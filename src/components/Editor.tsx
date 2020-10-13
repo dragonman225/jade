@@ -39,6 +39,10 @@ export const MyEditor = (props: MyEditorProps): JSX.Element => {
   const editor = useMemo(() => withReact(withHistory(createEditor())), [])
   const [value, setValue] = useState(props.content)
 
+  React.useEffect(() => {
+    setValue(props.content)
+  }, [props.content])
+
   /**
    * Need content to be loaded and DOM created first so that we can focus.
    * So, useEffect() is necessary.

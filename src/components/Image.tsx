@@ -5,11 +5,11 @@ interface State {
   imgSrc: string
 }
 
-export class Image extends React.Component<BlockContentProps<string>, State> {
-  constructor(props: BlockContentProps<string>) {
+export class Image extends React.Component<BlockContentProps, State> {
+  constructor(props: BlockContentProps) {
     super(props)
     this.state = {
-      imgSrc: props.content
+      imgSrc: props.content as string
     }
   }
 

@@ -17,10 +17,11 @@ export interface MessengerStatus {
   }[]
 }
 
-export interface BlockContentProps<T> {
+export interface BlockContentProps {
   readOnly: boolean
-  content: T
-  onChange: (content: T) => void
+  viewMode: 'block' | 'card'
+  content: unknown
+  onChange: (content: unknown) => void
   onInteractionStart: () => void
   onInteractionEnd: () => void
 }
@@ -32,23 +33,6 @@ export interface BlockModel<T> {
   content: T
   position: Vec2
   width: number
-}
-
-/**
- * A BlockCard has position and width only when it is in another BlockCard.
- */
-export interface BlockCard {
-  id: string
-  /** Below are summary of the BlockCard. */
-  type: string
-  content: unknown
-  /** Below are details of the BlockCard. */
-  drawing: Stroke[]
-  blocks: {
-    id: string
-    position: Vec2
-    width: number
-  }[]
 }
 
 /** Hand-drawing. */
@@ -66,11 +50,41 @@ export interface Stroke {
   points: Point[]
 }
 
-/** App state. */
+/** App state v2. */
 export interface State {
   debugging: boolean
   blocks: {
-    [id: string]: BlockModel<any>
+    [id: string]: BlockModel<unknown>
   }
   canvas: Stroke[]
+}
+
+/** A reference to a BlockCard. */
+export interface BlockCardRef {
+  id: string
+  position: Vec2
+  width: number
+}
+
+/**
+ * A BlockCard has position and width only when it is in another BlockCard.
+ */
+export interface BlockCard {
+  id: string
+  /** Below are summary of the BlockCard. */
+  type: string
+  content: unknown
+  /** Below are details of the BlockCard. */
+  drawing: Stroke[]
+  blocks: BlockCardRef[]
+}
+
+/** App state v3. */
+export interface State3 {
+  debugging: boolean
+  homeBlockCard: string // The user does not want to get lost!
+  currentBlockCard: string
+  blockCardMap: {
+    [id: string]: BlockCard
+  }
 }

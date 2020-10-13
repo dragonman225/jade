@@ -133,6 +133,74 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
     this.hotStroke = { config: this.state.strokeConfig === 'pencil' ? pencil : eraser, points: [] }
   }
 
+  onResizeWindow = (): void => {
+    resizeCanvas(this.refTmp.current, window.innerWidth, window.innerHeight)
+    resizeCanvas(this.refCommited.current,
+      window.innerWidth, window.innerHeight)
+    /**
+     * Immediate redraw does not work. Even when I do not resize the 
+     * canvas, Chrome clears it.
+     */
+    setTimeout(() => {
+      drawStrokes(this.ctxCommited, this.strokes)
+    }, 100)
+  }
+
+  onCtrlKeyDown = () => {
+    if (!this.props.readOnly && this.state.drawState === 'can_edit') {
+      this.setState({ drawState: 'can_draw' })
+      this.props.onInteractionStart()
+    }
+  }
+
+  onCtrlKeyUp = () => {
+    if (this.state.drawState === 'drawing') {
+      clearCanvas(this.refTmp.current)
+      drawStroke(this.ctxCommited, this.hotStroke)
+      this.commitStroke()
+    }
+    this.setState({ drawState: 'can_edit' })
+    this.props.onInteractionEnd()
+  }
+
+  onDragStart = (msg: UnifiedEventInfo) => {
+    if (this.state.drawState === 'can_draw') {
+      this.setState({ drawState: 'drawing' })
+      this.addHotPoint(msg.offsetX, msg.offsetY)
+    }
+  }
+
+  onDragging = (msg: UnifiedEventInfo) => {
+    if (this.state.drawState === 'drawing') {
+      this.props.messenger.publish('canvas::drawing')
+      this.addHotPoint(msg.offsetX, msg.offsetY)
+      clearCanvas(this.refTmp.current)
+      drawStroke(this.ctxTmp, this.hotStroke)
+    }
+  }
+
+  onDragEnd = (msg: UnifiedEventInfo) => {
+    if (this.state.drawState === 'drawing') {
+      this.setState({ drawState: 'can_draw' })
+      this.addHotPoint(msg.offsetX, msg.offsetY)
+      clearCanvas(this.refTmp.current)
+      drawStroke(this.ctxCommited, this.hotStroke)
+      this.commitStroke()
+      if (this.props.onChange) this.props.onChange(this.strokes)
+    }
+  }
+
+  onMouseMove = (msg: UnifiedEventInfo): void => {
+    clearCanvas(this.refCursor.current)
+    if ((this.state.drawState === 'can_draw'
+      || this.state.drawState === 'drawing')
+      && this.state.strokeConfig === 'eraser')
+      drawEraser(this.ctxCursor, {
+        x: msg.offsetX,
+        y: msg.offsetY
+      })
+  }
+
   componentDidMount(): void {
     this.ctxTmp = this.refTmp.current.getContext('2d')
     this.ctxCommited = this.refCommited.current.getContext('2d')
@@ -140,67 +208,23 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
 
     drawStrokes(this.ctxCommited, this.strokes)
 
-    this.props.messenger.subscribe('user::resizewindow', () => {
-      resizeCanvas(this.refTmp.current, window.innerWidth, window.innerHeight)
-      resizeCanvas(this.refCommited.current,
-        window.innerWidth, window.innerHeight)
-      /**
-       * Immediate redraw does not work. Even when I do not resize the 
-       * canvas, Chrome clears it.
-       */
-      setTimeout(() => {
-        drawStrokes(this.ctxCommited, this.strokes)
-      }, 100)
-    })
-    this.props.messenger.subscribe('user::ctrlkeydown', () => {
-      if (!this.props.readOnly && this.state.drawState === 'can_edit') {
-        this.setState({ drawState: 'can_draw' })
-        this.props.onInteractionStart()
-      }
-    })
-    this.props.messenger.subscribe('user::ctrlkeyup', () => {
-      if (this.state.drawState === 'drawing') {
-        clearCanvas(this.refTmp.current)
-        drawStroke(this.ctxCommited, this.hotStroke)
-        this.commitStroke()
-      }
-      this.setState({ drawState: 'can_edit' })
-      this.props.onInteractionEnd()
-    })
-    this.props.messenger.subscribe('user::dragstart', (msg: UnifiedEventInfo) => {
-      if (this.state.drawState === 'can_draw') {
-        this.setState({ drawState: 'drawing' })
-        this.addHotPoint(msg.offsetX, msg.offsetY)
-      }
-    })
-    this.props.messenger.subscribe('user::dragging', (msg: UnifiedEventInfo) => {
-      if (this.state.drawState === 'drawing') {
-        this.props.messenger.publish('canvas::drawing')
-        this.addHotPoint(msg.offsetX, msg.offsetY)
-        clearCanvas(this.refTmp.current)
-        drawStroke(this.ctxTmp, this.hotStroke)
-      }
-    })
-    this.props.messenger.subscribe('user::dragend', (msg: UnifiedEventInfo) => {
-      if (this.state.drawState === 'drawing') {
-        this.setState({ drawState: 'can_draw' })
-        this.addHotPoint(msg.offsetX, msg.offsetY)
-        clearCanvas(this.refTmp.current)
-        drawStroke(this.ctxCommited, this.hotStroke)
-        this.commitStroke()
-        if (this.props.onChange) this.props.onChange(this.strokes)
-      }
-    })
-    this.props.messenger.subscribe('user::mousemove', (msg: UnifiedEventInfo) => {
-      clearCanvas(this.refCursor.current)
-      if ((this.state.drawState === 'can_draw'
-        || this.state.drawState === 'drawing')
-        && this.state.strokeConfig === 'eraser')
-        drawEraser(this.ctxCursor, {
-          x: msg.offsetX,
-          y: msg.offsetY
-        })
-    })
+    this.props.messenger.subscribe('user::resizewindow', this.onResizeWindow)
+    this.props.messenger.subscribe('user::ctrlkeydown', this.onCtrlKeyDown)
+    this.props.messenger.subscribe('user::ctrlkeyup', this.onCtrlKeyUp)
+    this.props.messenger.subscribe('user::dragstart', this.onDragStart)
+    this.props.messenger.subscribe('user::dragging', this.onDragging)
+    this.props.messenger.subscribe('user::dragend', this.onDragEnd)
+    this.props.messenger.subscribe('user::mousemove', this.onMouseMove)
+  }
+
+  componentWillUnmount(): void {
+    this.props.messenger.unsubscribe('user::resizewindow', this.onResizeWindow)
+    this.props.messenger.unsubscribe('user::ctrlkeydown', this.onCtrlKeyDown)
+    this.props.messenger.unsubscribe('user::ctrlkeyup', this.onCtrlKeyUp)
+    this.props.messenger.unsubscribe('user::dragstart', this.onDragStart)
+    this.props.messenger.unsubscribe('user::dragging', this.onDragging)
+    this.props.messenger.unsubscribe('user::dragend', this.onDragEnd)
+    this.props.messenger.unsubscribe('user::mousemove', this.onMouseMove)
   }
 
   toggleStroke = (): void => {

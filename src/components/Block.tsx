@@ -2,17 +2,19 @@ import * as React from 'react'
 import { IPubSub } from '../lib/pubsub'
 import { IconDragHandle } from './IconDragHandle'
 import { IconCross } from './IconCross'
+import { IconExpand } from './IconExpand'
 import { UnifiedEventInfo, BlockModel, BlockContentProps } from '../interfaces'
 
-interface Props<T> {
+interface Props {
   readOnly: boolean
-  value: BlockModel<T>
-  onChange: (data: BlockModel<T>) => void
+  value: BlockModel<unknown>
+  onChange: (data: BlockModel<unknown>) => void
   onRemove: () => void
+  onExpand: () => void
   onInteractionStart?: () => void
   onInteractionEnd?: () => void
   messenger: IPubSub
-  children?: (props: BlockContentProps<T>) => JSX.Element
+  children?: (props: Omit<BlockContentProps, 'viewMode'>) => JSX.Element
 }
 
 interface State {
@@ -26,11 +28,11 @@ interface State {
 
 const dragAreaSize = 22
 
-export class Block<T> extends React.Component<Props<T>, State> {
+export class Block extends React.Component<Props, State> {
   ref: React.RefObject<HTMLDivElement>
   _isMounted: boolean // for the tricky remove
 
-  constructor(props: Props<T>) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       moving: false,
@@ -131,11 +133,6 @@ export class Block<T> extends React.Component<Props<T>, State> {
     this.props.messenger.unsubscribe('user::dragend', this.handleDragEnd)
   }
 
-  removeBlock = (): void => {
-    this.props.onRemove()
-    console.log('block remove')
-  }
-
   handleMouseEnter = (): void => {
     if (!this.props.readOnly) {
       this.setState({ mouseIsInside: true })
@@ -153,7 +150,7 @@ export class Block<T> extends React.Component<Props<T>, State> {
     this.setState({ mouseIsInside: false })
   }
 
-  handleContentChange = (content: T): void => {
+  handleContentChange = (content: unknown): void => {
     this.props.onChange({
       ...this.props.value,
       content
@@ -192,9 +189,10 @@ export class Block<T> extends React.Component<Props<T>, State> {
           .handle {
             width: ${dragAreaSize}px;
             height: ${dragAreaSize}px;
-            background:rgba(235, 235, 235, 0.8);
             fill: #aaaaaa;
             padding: .3rem;
+            background: rgba(0, 0, 0, 0);
+            position: absolute;
           }
 
           .handle:hover, .handle:active {
@@ -203,26 +201,26 @@ export class Block<T> extends React.Component<Props<T>, State> {
           }
 
           .drag-area {
-            background: rgba(0, 0, 0, 0);
-            position: absolute;
             top: 0;
             left: 0;
             cursor: ${this.state.moving ? 'grabbing' : 'grab'};
           }
 
+          .expand-area {
+            top: 0;
+            right: 0;
+            cursor: default;
+          }
+
           .resize-area {
-            background: rgba(0, 0, 0, 0);
-            position: absolute;
             bottom: 0;
             right: 0;
             cursor: ew-resize;
           }
 
           .remove-area {
-            background: rgba(0, 0, 0, 0);
-            position: absolute;
-            top: 0;
-            right: 0;
+            bottom: 0;
+            left: 0;
             cursor: default;
           }
 
@@ -253,7 +251,19 @@ export class Block<T> extends React.Component<Props<T>, State> {
           }
           {
             !this.props.readOnly && this.state.mouseIsInside
+              ? <div className="handle expand-area"
+                onClick={this.props.onExpand}><IconExpand /></div>
+              : <></>
+          }
+          {
+            !this.props.readOnly && this.state.mouseIsInside
               ? <div className="handle resize-area"><IconDragHandle /></div>
+              : <></>
+          }
+          {
+            !this.props.readOnly && this.state.mouseIsInside
+              ? <div className="handle remove-area"
+                onClick={this.props.onRemove}><IconCross /></div>
               : <></>
           }
           <div className="children-wrapper">
@@ -268,12 +278,6 @@ export class Block<T> extends React.Component<Props<T>, State> {
                 })
                 : <></>}
           </div>
-          {
-            !this.props.readOnly && this.state.mouseIsInside
-              ? <div className="handle remove-area"
-                onClick={this.removeBlock}><IconCross /></div>
-              : <></>
-          }
         </div>
       </>
     )

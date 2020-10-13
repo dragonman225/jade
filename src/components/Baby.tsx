@@ -5,8 +5,8 @@ interface MoreProps {
   onReplace: (type: string) => void
 }
 
-export class Baby extends React.Component<BlockContentProps<null> & MoreProps> {
-  constructor(props: BlockContentProps<null> & MoreProps) {
+export class Baby extends React.Component<BlockContentProps & MoreProps> {
+  constructor(props: BlockContentProps & MoreProps) {
     super(props)
   }
 

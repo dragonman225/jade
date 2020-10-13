@@ -1,23 +1,26 @@
+/* eslint-disable react/display-name */
 /* eslint-disable @typescript-eslint/no-var-requires */
 import * as React from 'react'
 import { useEffect, useReducer, useMemo } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { Baby } from './components/Baby'
 import { Block } from './components/Block'
-import { Image } from './components/Image'
+import { Baby } from './components/Baby'
 import { Text } from './components/Text'
+import { Image } from './components/Image'
 import { InputContainer } from './components/InputContainer'
 import { Status } from './components/Status'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
 import {
-  UnifiedEventInfo, MessengerStatus, BlockModel, State, Vec2, Stroke
+  UnifiedEventInfo, MessengerStatus, State3, Vec2, Stroke,
+  BlockCard, BlockModel, BlockCardRef, BlockContentProps
 } from './interfaces'
 import { Canvas } from './components/Canvas'
 import { BlockFactory } from './components/BlockFactory'
 import { Node } from 'slate'
+import { adaptToBlockCard, adaptToBlockModel } from './lib/utils'
 
-const initialState = require('./InitialState.json') as State
+const initialState = require('./InitialState.json') as State3
 
 interface BlockCreateAction {
   type: 'block::create'
@@ -44,11 +47,18 @@ interface BlockResizeAction {
 
 interface BlockChangeAction {
   type: 'block::change'
-  data: BlockModel<any>
+  data: BlockCard
 }
 
 interface BlockRemoveAction {
   type: 'block::remove'
+  data: {
+    id: string
+  }
+}
+
+interface BlockExpandAction {
+  type: 'block::expand'
   data: {
     id: string
   }
@@ -65,76 +75,120 @@ interface DebuggingToggleAction {
 
 type Action =
   BlockCreateAction | BlockMoveAction |
-  BlockResizeAction | BlockChangeAction | BlockRemoveAction |
+  BlockResizeAction | BlockChangeAction |
+  BlockRemoveAction | BlockExpandAction |
   CanvasChangeAction | DebuggingToggleAction
 
-function stateReducer(state: State, action: Action): State {
+function stateReducer(state: State3, action: Action): State3 {
   switch (action.type) {
     case 'block::create': {
-      const block: BlockModel<any> = {
+      const block: BlockCard = {
         id: uuidv4(),
         type: 'baby',
         content: null,
-        position: action.data.position,
-        width: 300
+        drawing: [],
+        blocks: []
       }
       return {
         ...state,
-        blocks: {
-          ...state.blocks,
+        blockCardMap: {
+          ...state.blockCardMap,
+          [state.currentBlockCard]: {
+            ...state.blockCardMap[state.currentBlockCard],
+            blocks: state.blockCardMap[state.currentBlockCard].blocks.concat([{
+              id: block.id,
+              position: action.data.position,
+              width: 300
+            }])
+          },
           [block.id]: block
         }
       }
     }
     case 'block::move': {
+      const toChange = state.currentBlockCard
       return {
         ...state,
-        blocks: {
-          ...state.blocks,
-          [action.data.id]: {
-            ...state.blocks[action.data.id],
-            position: action.data.position
+        blockCardMap: {
+          ...state.blockCardMap,
+          [toChange]: {
+            ...state.blockCardMap[toChange],
+            blocks: state.blockCardMap[toChange].blocks.map(block => {
+              if (block.id === action.data.id) {
+                return {
+                  ...block,
+                  position: action.data.position
+                }
+              } else {
+                return block
+              }
+            })
           }
         }
       }
     }
     case 'block::resize': {
+      const toChange = state.currentBlockCard
       return {
         ...state,
-        blocks: {
-          ...state.blocks,
-          [action.data.id]: {
-            ...state.blocks[action.data.id],
-            width: action.data.width
+        blockCardMap: {
+          ...state.blockCardMap,
+          [toChange]: {
+            ...state.blockCardMap[toChange],
+            blocks: state.blockCardMap[toChange].blocks.map(block => {
+              if (block.id === action.data.id) {
+                return {
+                  ...block,
+                  width: action.data.width
+                }
+              } else {
+                return block
+              }
+            })
           }
         }
       }
     }
     case 'block::change': {
+      const toChange = action.data.id
       return {
         ...state,
-        blocks: {
-          ...state.blocks,
-          [action.data.id]: action.data
+        blockCardMap: {
+          ...state.blockCardMap,
+          [toChange]: action.data
         }
       }
     }
-    case 'block::remove': {
+    case 'block::remove': { // remove reference only
+      const toChange = state.currentBlockCard
       return {
         ...state,
-        blocks: (function () {
-          const blocks = {
-            ...state.blocks
+        blockCardMap: {
+          ...state.blockCardMap,
+          [toChange]: {
+            ...state.blockCardMap[toChange],
+            blocks: state.blockCardMap[toChange].blocks.filter(block => block.id !== action.data.id)
           }
-          delete blocks[action.data.id]
-          return blocks
-        })()
+        }
+      }
+    }
+    case 'block::expand': {
+      return {
+        ...state,
+        currentBlockCard: action.data.id
       }
     }
     case 'canvas::change': {
+      const toChange = state.currentBlockCard
       return {
         ...state,
-        canvas: action.data
+        blockCardMap: {
+          ...state.blockCardMap,
+          [toChange]: {
+            ...state.blockCardMap[toChange],
+            drawing: action.data
+          }
+        }
       }
     }
     case 'debugging::toggle': {
@@ -153,6 +207,8 @@ export const App: React.FunctionComponent = () => {
   const messenger = useMemo(() => new PubSub(), [])
   const [state, dispatchAction] =
     useReducer(stateReducer, loadState() || initialState)
+
+  /** Interaction lock. */
   const [interactionLockOwner, setInteractionLockOwner] =
     React.useState<string>('')
   const lockInteraction = (requester: string) => {
@@ -165,6 +221,9 @@ export const App: React.FunctionComponent = () => {
   }
   const isInteractionLocked = (requester: string) => {
     return interactionLockOwner && interactionLockOwner !== requester
+  }
+  const resetInteractionLockOwner = () => {
+    setInteractionLockOwner('')
   }
 
   /** State Sync. */
@@ -240,6 +299,17 @@ export const App: React.FunctionComponent = () => {
     })
   }, [])
 
+  const handleChange = (currentBlockCard: BlockCard, referencedBlockCard: BlockCard, data: BlockModel<unknown>) => {
+    const adapted = adaptToBlockCard(currentBlockCard, referencedBlockCard, data)
+    dispatchAction({ type: 'block::change', data: adapted.newCurrentBlockCard })
+    dispatchAction({ type: 'block::change', data: adapted.newReferencedBlockCard })
+  }
+
+  const handleExpand = (blockCardId: string) => {
+    dispatchAction({ type: 'block::expand', data: { id: blockCardId } })
+    resetInteractionLockOwner()
+  }
+
   return (
     <>
       <style jsx global>{`
@@ -263,93 +333,126 @@ export const App: React.FunctionComponent = () => {
         <InputContainer messenger={messenger}>
           <BlockFactory messenger={messenger} />
           {
-            Object.values(state.blocks).map(block => {
-              switch (block.type) {
-                case 'text': {
-                  return (
-                    <Block<Node[]>
-                      messenger={messenger}
-                      readOnly={isInteractionLocked(block.id)}
-                      value={block}
-                      onChange={data => { dispatchAction({ type: 'block::change', data }) }}
-                      onRemove={() => { dispatchAction({ type: 'block::remove', data: { id: block.id } }) }}
-                      onInteractionStart={() => { lockInteraction(block.id) }}
-                      onInteractionEnd={() => { unlockInteraction(block.id) }}
-                      key={block.id}>
-                      {(props) => <Text {...props} />}
-                    </Block>
-                  )
-                }
-                case 'image': {
-                  return (
-                    <Block<string>
-                      messenger={messenger}
-                      readOnly={isInteractionLocked(block.id)}
-                      value={block}
-                      onChange={data => { dispatchAction({ type: 'block::change', data }) }}
-                      onRemove={() => { dispatchAction({ type: 'block::remove', data: { id: block.id } }) }}
-                      onInteractionStart={() => { lockInteraction(block.id) }}
-                      onInteractionEnd={() => { unlockInteraction(block.id) }}
-                      key={block.id}>
-                      {(props) => <Image {...props} />}
-                    </Block>
-                  )
-                }
-                case 'status': {
-                  return (
-                    <Block<string>
-                      messenger={messenger}
-                      readOnly={isInteractionLocked(block.id)}
-                      value={block}
-                      onChange={data => { dispatchAction({ type: 'block::change', data }) }}
-                      onRemove={() => { dispatchAction({ type: 'block::remove', data: { id: block.id } }) }}
-                      onInteractionStart={() => { lockInteraction(block.id) }}
-                      onInteractionEnd={() => { unlockInteraction(block.id) }}
-                      key={block.id}>
-                      {
-                        () =>
-                          <Status
-                            messenger={messenger}
-                            text={status.text} highlight={status.highlight} />
-                      }
-                    </Block>
-                  )
-                }
-                default: {
-                  return (
-                    <Block<null>
-                      messenger={messenger}
-                      readOnly={isInteractionLocked(block.id)}
-                      value={block}
-                      onChange={data => { dispatchAction({ type: 'block::change', data }) }}
-                      onRemove={() => { dispatchAction({ type: 'block::remove', data: { id: block.id } }) }}
-                      onInteractionStart={() => { lockInteraction(block.id) }}
-                      onInteractionEnd={() => { unlockInteraction(block.id) }}
-                      key={block.id}>
-                      {(props) => <Baby {...props} onReplace={
-                        (newType) => {
-                          dispatchAction({
-                            type: 'block::change', data: {
-                              ...block,
-                              type: newType,
-                              content: null
-                            }
-                          })
-                        }
-                      } />}
-                    </Block>
-                  )
-                }
+            function () {
+              const currentBlockCard = state.blockCardMap[state.currentBlockCard]
+              const fakeBlockRef: BlockCardRef = {
+                id: currentBlockCard.id,
+                position: { x: 0, y: 0 },
+                width: 300
               }
+              const key = 'card' + currentBlockCard.id
+              return (
+                <Block
+                  messenger={messenger}
+                  readOnly={isInteractionLocked(key)}
+                  value={adaptToBlockModel(currentBlockCard, fakeBlockRef) as BlockModel<Node[]>}
+                  onChange={data => {
+                    dispatchAction({
+                      type: 'block::change', data: {
+                        ...currentBlockCard,
+                        content: data.content
+                      }
+                    })
+                  }}
+                  onRemove={() => { return }}
+                  onExpand={() => { return }}
+                  onInteractionStart={() => { lockInteraction(key) }}
+                  onInteractionEnd={() => { unlockInteraction(key) }}
+                  key={key}>
+                  {
+                    function () {
+                      switch (currentBlockCard.type) {
+                        case 'text':
+                          return (props: BlockContentProps) => <Text viewMode="card" {...props} />
+                        case 'image':
+                          return (props: BlockContentProps) => <Image {...props} />
+                        case 'status':
+                          return () =>
+                            <Status
+                              messenger={messenger}
+                              text={status.text} highlight={status.highlight} />
+                        default:
+                          return (props: BlockContentProps) => <Baby {...props} onReplace={
+                            (newType) => {
+                              dispatchAction({
+                                type: 'block::change', data: {
+                                  ...currentBlockCard,
+                                  type: newType,
+                                  content: null
+                                }
+                              })
+                            }
+                          } />
+                      }
+                    }()
+                  }
+                </Block>
+              )
+            }()
+          }
+          {
+            state.blockCardMap[state.currentBlockCard].blocks.map(blockRef => {
+              const currentBlockCard = state.blockCardMap[state.currentBlockCard]
+              const referencedBlockCard = state.blockCardMap[blockRef.id]
+              const key = 'block' + referencedBlockCard.id
+              return (
+                <Block
+                  messenger={messenger}
+                  readOnly={isInteractionLocked(key)}
+                  value={adaptToBlockModel(referencedBlockCard, blockRef) as BlockModel<Node[]>}
+                  onChange={data => {
+                    handleChange(currentBlockCard, referencedBlockCard, data)
+                  }}
+                  onRemove={() => { dispatchAction({ type: 'block::remove', data: { id: referencedBlockCard.id } }) }}
+                  onExpand={() => { handleExpand(referencedBlockCard.id) }}
+                  onInteractionStart={() => { lockInteraction(key) }}
+                  onInteractionEnd={() => { unlockInteraction(key) }}
+                  key={key}>
+                  {
+                    function () {
+                      switch (referencedBlockCard.type) {
+                        case 'text': {
+                          return (props: BlockContentProps) => <Text viewMode="block" {...props} />
+                        }
+                        case 'image': {
+                          return (props: BlockContentProps) => <Image {...props} />
+                        }
+                        case 'status': {
+                          return () =>
+                            <Status
+                              messenger={messenger}
+                              text={status.text} highlight={status.highlight} />
+                        }
+                        default: {
+                          return (props: BlockContentProps) =>
+                            <Baby {...props} onReplace={
+                              (newType) => {
+                                dispatchAction({
+                                  type: 'block::change', data: {
+                                    ...referencedBlockCard,
+                                    type: newType,
+                                    content: null
+                                  }
+                                })
+                              }
+                            } />
+                        }
+                      }
+                    }()
+                  }
+                </Block>
+              )
             })
           }
           <Canvas
             messenger={messenger}
-            readOnly={isInteractionLocked('canvas')}
-            value={state.canvas}
+            readOnly={isInteractionLocked('canvas' + state.currentBlockCard)}
+            value={state.blockCardMap[state.currentBlockCard].drawing}
             onChange={data => dispatchAction({ type: 'canvas::change', data })}
-            onInteractionStart={() => { lockInteraction('canvas') }}
-            onInteractionEnd={() => { unlockInteraction('canvas') }} />
+            onInteractionStart={() => { lockInteraction('canvas' + state.currentBlockCard) }}
+            onInteractionEnd={() => { unlockInteraction('canvas' + state.currentBlockCard) }}
+            /** Use key to remount when currentBlockCard changes. */
+            key={'canvas' + state.currentBlockCard} />
         </InputContainer>
       </div>
     </>
