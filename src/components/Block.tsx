@@ -14,7 +14,7 @@ interface Props {
   onInteractionStart?: () => void
   onInteractionEnd?: () => void
   messenger: IPubSub
-  children?: (props: Omit<BlockContentProps, 'viewMode'>) => JSX.Element
+  children?: (props: Omit<BlockContentProps<unknown>, 'viewMode'>) => JSX.Element
 }
 
 interface State {

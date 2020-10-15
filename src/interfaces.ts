@@ -17,11 +17,11 @@ export interface MessengerStatus {
   }[]
 }
 
-export interface BlockContentProps {
+export interface BlockContentProps<T> {
   readOnly: boolean
   viewMode: 'block' | 'card'
-  content: unknown
-  onChange: (content: unknown) => void
+  content: T
+  onChange: (content: T) => void
   onInteractionStart: () => void
   onInteractionEnd: () => void
 }

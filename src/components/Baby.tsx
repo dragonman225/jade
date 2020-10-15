@@ -2,11 +2,11 @@ import * as React from 'react'
 import { BlockContentProps } from '../interfaces'
 
 interface MoreProps {
-  onReplace: (type: string) => void
+  onReplace: (type: string, content: unknown) => void
 }
 
-export class Baby extends React.Component<BlockContentProps & MoreProps> {
-  constructor(props: BlockContentProps & MoreProps) {
+export class Baby extends React.Component<BlockContentProps<null> & MoreProps> {
+  constructor(props: BlockContentProps<null> & MoreProps) {
     super(props)
   }
 
@@ -20,9 +20,9 @@ export class Baby extends React.Component<BlockContentProps & MoreProps> {
         `}</style>
         <div>
           <p>Which to turn into?</p>
-          <button onClick={() => { this.props.onReplace('text') }}>Text</button>
-          <button onClick={() => { this.props.onReplace('image') }}>Image</button>
-          <button onClick={() => { this.props.onReplace('status') }}>Status</button>
+          <button onClick={() => { this.props.onReplace('text', null) }}>Text</button>
+          <button onClick={() => { this.props.onReplace('image', { loaded: false }) }}>Image</button>
+          <button onClick={() => { this.props.onReplace('status', null) }}>Status</button>
         </div>
       </>
     )

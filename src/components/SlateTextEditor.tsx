@@ -4,8 +4,8 @@
  */
 
 import * as React from 'react'
-import { useCallback, useMemo, useState } from 'react'
-import { createEditor, Node, Transforms, Editor } from 'slate'
+import { useCallback, useMemo, useState, useEffect } from 'react'
+import { createEditor, Transforms, Editor, Element } from 'slate'
 import {
   Slate, Editable, withReact, RenderElementProps, RenderLeafProps,
   ReactEditor
@@ -26,43 +26,18 @@ const toggleMark = (editor: Editor, format: string) => {
   }
 }
 
-export interface MyEditorProps {
-  content: Node[]
+export interface Props {
+  content: Element[]
   readOnly: boolean
-  focus: boolean
-  onChange: (content: Node[]) => void
+  forceFocus: boolean
+  onChange: (content: Element[]) => void
   onFocus?: () => void
   onBlur?: () => void
 }
 
-export const MyEditor = (props: MyEditorProps): JSX.Element => {
+export const SlateTextEditor = (props: Props): JSX.Element => {
   const editor = useMemo(() => withReact(withHistory(createEditor())), [])
   const [value, setValue] = useState(props.content)
-
-  React.useEffect(() => {
-    setValue(props.content)
-  }, [props.content])
-
-  /**
-   * Need content to be loaded and DOM created first so that we can focus.
-   * So, useEffect() is necessary.
-   */
-  React.useEffect(() => {
-    if (props.focus) {
-      console.log('focus newly created text programmatically')
-      editor.selection = {
-        anchor: {
-          path: [0, 0],
-          offset: 0
-        },
-        focus: {
-          path: [0, 0],
-          offset: 0
-        }
-      }
-      ReactEditor.focus(editor)
-    }
-  }, [])
 
   // Define a rendering function based on the element passed to `props`. We use
   // `useCallback` here to memoize the function for subsequent renders.
@@ -80,9 +55,39 @@ export const MyEditor = (props: MyEditorProps): JSX.Element => {
     return <Leaf {...props} />
   }, [])
 
-  const onChange = (newValue: Node[]) => {
-    props.onChange(newValue)
+  /**
+   * When multiple references of the same BlockCard exist in current view, 
+   * changes on one reference should be synced to others.
+   */
+  useEffect(() => {
+    setValue(props.content)
+  }, [props.content])
+
+  /**
+   * Require content to be loaded and DOM created first 
+   * so that we can focus.
+   * So, we use useEffect() here.
+   */
+  useEffect(() => {
+    if (props.forceFocus) {
+      console.log('focus programmatically')
+      editor.selection = {
+        anchor: {
+          path: [0, 0],
+          offset: 0
+        },
+        focus: {
+          path: [0, 0],
+          offset: 0
+        }
+      }
+      ReactEditor.focus(editor)
+    }
+  }, [])
+
+  const onChange = (newValue: Element[]) => {
     setValue(newValue)
+    props.onChange(newValue)
   }
 
   const onKeyDown = (e: KeyboardEvent) => {
@@ -106,6 +111,27 @@ export const MyEditor = (props: MyEditorProps): JSX.Element => {
     }
   }
 
+  const onBlur = (e: React.FocusEvent) => {
+    /**
+     * Only clear selection on click-outside-editable-blur but not  
+     * switch-window-or-tab-blur.
+     * @see https://stackoverflow.com/a/61758013
+     */
+    if (e.target !== document.activeElement) {
+      ReactEditor.deselect(editor)
+      props.onBlur()
+    }
+  }
+
+  const [lastBeforeInputEvent, setLastBeforeInputEvent] = useState<{ data: string; isComposing: boolean }>(undefined)
+  const onDOMBeforeInput = (e: InputEvent) => {
+    console.log(e)
+    setLastBeforeInputEvent({ data: e.data, isComposing: e.isComposing })
+    if (lastBeforeInputEvent && lastBeforeInputEvent.isComposing && e.isComposing && lastBeforeInputEvent.data === e.data) {
+      console.log('ready to crash')
+    }
+  }
+
   return (
     <Slate editor={editor} value={value} onChange={onChange} >
       <Editable
@@ -114,7 +140,8 @@ export const MyEditor = (props: MyEditorProps): JSX.Element => {
         renderLeaf={renderLeaf}
         onKeyDown={onKeyDown}
         onFocus={props.onFocus}
-        onBlur={props.onBlur}
+        onBlur={onBlur}
+        onDOMBeforeInput={onDOMBeforeInput}
         placeholder={'Type here...'} />
     </Slate>
   )

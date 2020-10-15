@@ -313,31 +313,40 @@ export const App: React.FunctionComponent = () => {
   return (
     <>
       <style jsx global>{`
-      * {
-        box-sizing: border-box;
-        user-select: none;
-      }
+        * {
+          box-sizing: border-box;
+          user-select: none;
+        }
 
-      html, body, #react-root {
-        margin: 0;
-        height: 100%;
-        overflow: hidden;
-      }
+        html, body, #react-root {
+          margin: 0;
+          height: 100%;
+          overflow: hidden;
+        }
 
-      :root {
-        font-size: 18px;
-        line-height: 1.6;
-      }
-    `}</style>
-      <div className="bg-black-20 h-100 pa5">
+        :root {
+          font-size: 18px;
+          line-height: 1.6;
+        }
+
+        .HomeBtn {
+          position: absolute;
+          top: 1rem;
+          left: 1rem;
+        }
+      `}</style>
+      <div className="bg-black-20 h-100">
         <InputContainer messenger={messenger}>
           <BlockFactory messenger={messenger} />
+          <button className="HomeBtn" onClick={() => {
+            handleExpand(state.homeBlockCard)
+          }}>Go Home</button>
           {
             function () {
               const currentBlockCard = state.blockCardMap[state.currentBlockCard]
               const fakeBlockRef: BlockCardRef = {
                 id: currentBlockCard.id,
-                position: { x: 0, y: 0 },
+                position: { x: 120, y: 0 },
                 width: 300
               }
               const key = 'card' + currentBlockCard.id
@@ -363,22 +372,22 @@ export const App: React.FunctionComponent = () => {
                     function () {
                       switch (currentBlockCard.type) {
                         case 'text':
-                          return (props: BlockContentProps) => <Text viewMode="card" {...props} />
+                          return (props: BlockContentProps<unknown>) => <Text viewMode="card" {...props} />
                         case 'image':
-                          return (props: BlockContentProps) => <Image {...props} />
+                          return (props: BlockContentProps<unknown>) => <Image {...props} />
                         case 'status':
                           return () =>
                             <Status
                               messenger={messenger}
                               text={status.text} highlight={status.highlight} />
                         default:
-                          return (props: BlockContentProps) => <Baby {...props} onReplace={
-                            (newType) => {
+                          return (props: BlockContentProps<unknown>) => <Baby {...props} onReplace={
+                            (newType, newContent) => {
                               dispatchAction({
                                 type: 'block::change', data: {
                                   ...currentBlockCard,
                                   type: newType,
-                                  content: null
+                                  content: newContent
                                 }
                               })
                             }
@@ -412,10 +421,10 @@ export const App: React.FunctionComponent = () => {
                     function () {
                       switch (referencedBlockCard.type) {
                         case 'text': {
-                          return (props: BlockContentProps) => <Text viewMode="block" {...props} />
+                          return (props: BlockContentProps<unknown>) => <Text viewMode="block" {...props} />
                         }
                         case 'image': {
-                          return (props: BlockContentProps) => <Image {...props} />
+                          return (props: BlockContentProps<unknown>) => <Image {...props} />
                         }
                         case 'status': {
                           return () =>
@@ -424,14 +433,14 @@ export const App: React.FunctionComponent = () => {
                               text={status.text} highlight={status.highlight} />
                         }
                         default: {
-                          return (props: BlockContentProps) =>
+                          return (props: BlockContentProps<unknown>) =>
                             <Baby {...props} onReplace={
-                              (newType) => {
+                              (newType, newContent) => {
                                 dispatchAction({
                                   type: 'block::change', data: {
                                     ...referencedBlockCard,
                                     type: newType,
-                                    content: null
+                                    content: newContent
                                   }
                                 })
                               }

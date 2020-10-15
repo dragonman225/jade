@@ -1,15 +1,22 @@
 import * as React from 'react'
 import { BlockContentProps } from '../interfaces'
 
-interface State {
+interface ImageContent {
+  loaded: boolean
   imgSrc: string
 }
 
-export class Image extends React.Component<BlockContentProps, State> {
-  constructor(props: BlockContentProps) {
+interface State {
+  loaded: boolean
+  imgSrc: string
+}
+
+export class Image extends React.Component<BlockContentProps<ImageContent>, State> {
+  constructor(props: BlockContentProps<ImageContent>) {
     super(props)
     this.state = {
-      imgSrc: props.content as string
+      loaded: props.content.loaded,
+      imgSrc: props.content.loaded ? props.content.imgSrc : ''
     }
   }
 
@@ -23,10 +30,12 @@ export class Image extends React.Component<BlockContentProps, State> {
     const reader = new FileReader()
     reader.addEventListener('load', (event) => {
       const img = event.target.result.toString() // a data-url
-      this.props.onChange(img)
-      this.setState({
+      const newContent = {
+        loaded: true,
         imgSrc: img
-      })
+      }
+      this.props.onChange(newContent)
+      this.setState(newContent)
     })
     reader.readAsDataURL(file)
   }
@@ -35,7 +44,7 @@ export class Image extends React.Component<BlockContentProps, State> {
     return (
       <>
         {
-          this.state.imgSrc
+          this.state.loaded
             ? <img src={this.state.imgSrc} draggable={false} width="100%" />
             : <input type="file" accept=".jpg, .jpeg, .png"
               onChange={this.handleFileSelect} />
