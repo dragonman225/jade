@@ -11,12 +11,13 @@ interface State {
   imgSrc: string
 }
 
-export class Image extends React.Component<BlockContentProps<ImageContent>, State> {
-  constructor(props: BlockContentProps<ImageContent>) {
+export class Image extends React.Component<BlockContentProps<unknown>, State> {
+  constructor(props: BlockContentProps<unknown>) {
     super(props)
-    this.state = {
-      loaded: props.content.loaded,
-      imgSrc: props.content.loaded ? props.content.imgSrc : ''
+    if (props.content === null) {
+      this.state = { loaded: false, imgSrc: '' }
+    } else {
+      this.state = props.content as ImageContent
     }
   }
 
@@ -43,11 +44,20 @@ export class Image extends React.Component<BlockContentProps<ImageContent>, Stat
   render(): JSX.Element {
     return (
       <>
+        <style jsx>{`
+          .ImgChooser {
+            padding: 0.3rem 1.5rem;
+          }
+        `}</style>
         {
           this.state.loaded
             ? <img src={this.state.imgSrc} draggable={false} width="100%" />
-            : <input type="file" accept=".jpg, .jpeg, .png"
-              onChange={this.handleFileSelect} />
+            : (
+              <div className="ImgChooser">
+                <input type="file" accept=".jpg, .jpeg, .png"
+                  onChange={this.handleFileSelect} />
+              </div>
+            )
         }
       </>
     )

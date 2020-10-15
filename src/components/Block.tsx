@@ -48,8 +48,9 @@ export class Block extends React.Component<Props, State> {
   }
 
   inDragArea(x: number, y: number): boolean {
+    // HACK: Input container is listening at the whole viewport, and Navbar is 50px.
     if (x > this.props.value.position.x && x < this.props.value.position.x + dragAreaSize
-      && y > this.props.value.position.y && y < this.props.value.position.y + dragAreaSize) {
+      && y > this.props.value.position.y + 50 && y < this.props.value.position.y + 50 + dragAreaSize) {
       return true
     } else return false
   }
@@ -87,8 +88,20 @@ export class Block extends React.Component<Props, State> {
         x: msg.offsetX - this.state.dragPosition.x,
         y: msg.offsetY - this.state.dragPosition.y
       }
-      if (newPos.x < dragAreaSize) newPos.x = dragAreaSize
-      if (newPos.y < 0) newPos.y = 0
+      const limit = {
+        minX: dragAreaSize,
+        maxX: window.innerWidth - dragAreaSize,
+        minY: dragAreaSize,
+        maxY: window.innerHeight - dragAreaSize
+      }
+      const width = this.props.value.width
+      const minHeight = 100
+
+      if (newPos.x < limit.minX) newPos.x = limit.minX
+      else if (newPos.x + width > limit.maxX) newPos.x = limit.maxX - width
+      if (newPos.y < limit.minY) newPos.y = limit.minY
+      else if (newPos.y + minHeight > limit.maxY) newPos.y = limit.maxY - minHeight
+
       this.props.onChange({
         ...this.props.value,
         position: newPos
@@ -181,7 +194,6 @@ export class Block extends React.Component<Props, State> {
             display: flex;
             align-items: center;
             word-break: break-word;
-            padding: 10px ${dragAreaSize}px;
             user-select: none;
             z-index: ${!this.props.readOnly && (this.state.mouseIsInside || this.state.resizing || this.state.moving || this.state.editing) ? '1' : 'unset'};
           }
@@ -224,8 +236,11 @@ export class Block extends React.Component<Props, State> {
             cursor: default;
           }
 
-          .children-wrapper {
+          .ContentArea {
             width: 100%;
+            min-height: ${2 * dragAreaSize}px;
+            max-height: ${window.innerHeight - this.props.value.position.y - 100}px;
+            overflow: auto;
           }
 
           .debug-id {
@@ -266,7 +281,7 @@ export class Block extends React.Component<Props, State> {
                 onClick={this.props.onRemove}><IconCross /></div>
               : <></>
           }
-          <div className="children-wrapper">
+          <div className="ContentArea">
             {
               this.props.children
                 ? this.props.children({

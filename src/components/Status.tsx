@@ -31,7 +31,7 @@ export function Status(props: StatusProps): JSX.Element {
       <style jsx>{`
         div {
           user-select: none;
-          padding-left: 10px;
+          padding: 1rem;
         }
 
         span {
@@ -44,7 +44,7 @@ export function Status(props: StatusProps): JSX.Element {
           background: aquamarine;
         }
       `}</style>
-      <h3>({mouse.offsetX}, {mouse.offsetY})</h3>
+      <h3>Mouse Position:&nbsp;({mouse.offsetX.toFixed(0)}, {mouse.offsetY.toFixed(0)})</h3>
       {
         props.highlight
           ? <h3>{props.highlight}</h3>

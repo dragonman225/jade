@@ -46,20 +46,35 @@ export class Text extends React.Component<BlockContentProps<unknown>, State> {
       onChange={this.props.onChange}
       onFocus={this.props.onInteractionStart}
       onBlur={this.props.onInteractionEnd} />
-    return (
-      <>
-        <style jsx>{`
-          .Title {
-            font-size: 1.2rem;
-            font-weight: bold;
-          }
-        `}</style>
-        {
-          this.props.viewMode === 'block' ?
-            slateTextEditor :
-            <div className="Title">{slateTextEditor}</div>
-        }
-      </>
-    )
+
+    switch (this.props.viewMode) {
+      case 'block':
+        return (
+          <>
+            <style jsx>{`
+                .Block {
+                  padding: 0.3rem 1.5rem;
+                }
+              `}</style>
+            <div className="Block">{slateTextEditor}</div>
+          </>
+        )
+      case 'card':
+        return (
+          <>
+            <style jsx>{`
+                .CardTitle {
+                  padding: 0;
+                  font-size: 1.2rem;
+                  font-weight: bold;
+                  min-width: 100px;
+                }
+              `}</style>
+            <div className="CardTitle">{slateTextEditor}</div>
+          </>
+        )
+      default:
+        return <p>Unknown <code>viewMode</code>: {this.props.viewMode}</p>
+    }
   }
 }

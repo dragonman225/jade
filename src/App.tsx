@@ -13,12 +13,14 @@ import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
 import {
   UnifiedEventInfo, MessengerStatus, State3, Vec2, Stroke,
-  BlockCard, BlockModel, BlockCardRef, BlockContentProps
+  BlockCard, BlockModel, BlockContentProps
 } from './interfaces'
 import { Canvas } from './components/Canvas'
 import { BlockFactory } from './components/BlockFactory'
 import { Node } from 'slate'
 import { adaptToBlockCard, adaptToBlockModel } from './lib/utils'
+import { PMText } from './components/PMText'
+import { IconHome } from './components/IconHome'
 
 const initialState = require('./InitialState.json') as State3
 
@@ -236,7 +238,6 @@ export const App: React.FunctionComponent = () => {
       lastSyncTime = now
     } else {
       if (timer) {
-        console.log('update sync timeout')
         clearTimeout(timer)
       }
       const t = setTimeout(() => {
@@ -328,140 +329,166 @@ export const App: React.FunctionComponent = () => {
           font-size: 18px;
           line-height: 1.6;
         }
+      `}</style>
+      <style jsx>{`
+        .Navbar {
+          height: 50px;
+          display: flex; 
+          flex-wrap: nowrap;
+        }
+
+        .HomeBtnContainer {
+          flex: 0 0 50px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .SummaryContainer {
+          flex: 0 1 800px;
+          overflow: auto;
+          padding-top: 0.5rem;
+        }
+
+        .Playground {
+          position: relative;
+          height: 100%;
+        }
 
         .HomeBtn {
-          position: absolute;
-          top: 1rem;
-          left: 1rem;
+          width: 30px;
+          height: 30px;
+          fill: #000;
+          background: unset;
+          border: none;
+          transition: transform 0.2s ease-in-out;
+        }
+
+        .HomeBtn:hover {
+          transform: scale(1.2);
+        }
+        
+        .HomeBtn:active {
+          transform: scale(0.9);
+        }
+
+        .HomeBtn:focus {
+          outline: none;
         }
       `}</style>
       <div className="bg-black-20 h-100">
         <InputContainer messenger={messenger}>
-          <BlockFactory messenger={messenger} />
-          <button className="HomeBtn" onClick={() => {
-            handleExpand(state.homeBlockCard)
-          }}>Go Home</button>
-          {
-            function () {
-              const currentBlockCard = state.blockCardMap[state.currentBlockCard]
-              const fakeBlockRef: BlockCardRef = {
-                id: currentBlockCard.id,
-                position: { x: 120, y: 0 },
-                width: 300
-              }
-              const key = 'card' + currentBlockCard.id
-              return (
-                <Block
-                  messenger={messenger}
-                  readOnly={isInteractionLocked(key)}
-                  value={adaptToBlockModel(currentBlockCard, fakeBlockRef) as BlockModel<Node[]>}
-                  onChange={data => {
+          <div className="Navbar">
+            <div className="HomeBtnContainer">
+              <button className="HomeBtn" onClick={() => {
+                handleExpand(state.homeBlockCard)
+              }}><IconHome /></button>
+            </div>
+            <div className="SummaryContainer">
+              {
+                function () {
+                  const currentBlockCard = state.blockCardMap[state.currentBlockCard]
+                  const key = 'card-' + currentBlockCard.id
+                  const updateContent = (content: unknown) => {
                     dispatchAction({
                       type: 'block::change', data: {
                         ...currentBlockCard,
-                        content: data.content
+                        content
                       }
                     })
-                  }}
-                  onRemove={() => { return }}
-                  onExpand={() => { return }}
-                  onInteractionStart={() => { lockInteraction(key) }}
-                  onInteractionEnd={() => { unlockInteraction(key) }}
-                  key={key}>
-                  {
-                    function () {
-                      switch (currentBlockCard.type) {
-                        case 'text':
-                          return (props: BlockContentProps<unknown>) => <Text viewMode="card" {...props} />
-                        case 'image':
-                          return (props: BlockContentProps<unknown>) => <Image {...props} />
-                        case 'status':
-                          return () =>
-                            <Status
-                              messenger={messenger}
-                              text={status.text} highlight={status.highlight} />
-                        default:
-                          return (props: BlockContentProps<unknown>) => <Baby {...props} onReplace={
-                            (newType, newContent) => {
-                              dispatchAction({
-                                type: 'block::change', data: {
-                                  ...currentBlockCard,
-                                  type: newType,
-                                  content: newContent
+                  }
+                  const contentProps: BlockContentProps<unknown> & { key: string } = {
+                    viewMode: 'card',
+                    readOnly: isInteractionLocked(key),
+                    content: currentBlockCard.content,
+                    onChange: updateContent,
+                    onInteractionStart: () => { lockInteraction(key) },
+                    onInteractionEnd: () => { unlockInteraction(key) },
+                    key: key
+                  }
+                  switch (currentBlockCard.type) {
+                    case 'text':
+                      return <Text {...contentProps} />
+                    case 'pmtext':
+                      return <PMText {...contentProps} />
+                    case 'image':
+                      return <Image {...contentProps} />
+                    default:
+                      return <span>Cannot display {currentBlockCard.type} as Card title</span>
+                  }
+                }()
+              }
+            </div>
+          </div>
+          <div className="Playground">
+            <BlockFactory messenger={messenger} />
+            {
+              state.blockCardMap[state.currentBlockCard].blocks.map(blockRef => {
+                const currentBlockCard = state.blockCardMap[state.currentBlockCard]
+                const referencedBlockCard = state.blockCardMap[blockRef.id]
+                const key = 'block-' + referencedBlockCard.id
+                return (
+                  <Block
+                    messenger={messenger}
+                    readOnly={isInteractionLocked(key)}
+                    value={adaptToBlockModel(referencedBlockCard, blockRef) as BlockModel<Node[]>}
+                    onChange={data => {
+                      handleChange(currentBlockCard, referencedBlockCard, data)
+                    }}
+                    onRemove={() => { dispatchAction({ type: 'block::remove', data: { id: referencedBlockCard.id } }) }}
+                    onExpand={() => { handleExpand(referencedBlockCard.id) }}
+                    onInteractionStart={() => { lockInteraction(key) }}
+                    onInteractionEnd={() => { unlockInteraction(key) }}
+                    key={key}>
+                    {
+                      function () {
+                        switch (referencedBlockCard.type) {
+                          case 'text': {
+                            return (props: BlockContentProps<unknown>) => <Text viewMode="block" {...props} />
+                          }
+                          case 'pmtext': {
+                            return (props: BlockContentProps<unknown>) => <PMText viewMode="block" {...props} />
+                          }
+                          case 'image': {
+                            return (props: BlockContentProps<unknown>) => <Image {...props} />
+                          }
+                          case 'status': {
+                            return () =>
+                              <Status
+                                messenger={messenger}
+                                text={status.text} highlight={status.highlight} />
+                          }
+                          default: {
+                            return (props: BlockContentProps<unknown>) =>
+                              <Baby {...props} onReplace={
+                                (newType) => {
+                                  dispatchAction({
+                                    type: 'block::change', data: {
+                                      ...referencedBlockCard,
+                                      type: newType,
+                                      content: null
+                                    }
+                                  })
                                 }
-                              })
-                            }
-                          } />
-                      }
-                    }()
-                  }
-                </Block>
-              )
-            }()
-          }
-          {
-            state.blockCardMap[state.currentBlockCard].blocks.map(blockRef => {
-              const currentBlockCard = state.blockCardMap[state.currentBlockCard]
-              const referencedBlockCard = state.blockCardMap[blockRef.id]
-              const key = 'block' + referencedBlockCard.id
-              return (
-                <Block
-                  messenger={messenger}
-                  readOnly={isInteractionLocked(key)}
-                  value={adaptToBlockModel(referencedBlockCard, blockRef) as BlockModel<Node[]>}
-                  onChange={data => {
-                    handleChange(currentBlockCard, referencedBlockCard, data)
-                  }}
-                  onRemove={() => { dispatchAction({ type: 'block::remove', data: { id: referencedBlockCard.id } }) }}
-                  onExpand={() => { handleExpand(referencedBlockCard.id) }}
-                  onInteractionStart={() => { lockInteraction(key) }}
-                  onInteractionEnd={() => { unlockInteraction(key) }}
-                  key={key}>
-                  {
-                    function () {
-                      switch (referencedBlockCard.type) {
-                        case 'text': {
-                          return (props: BlockContentProps<unknown>) => <Text viewMode="block" {...props} />
+                              } />
+                          }
                         }
-                        case 'image': {
-                          return (props: BlockContentProps<unknown>) => <Image {...props} />
-                        }
-                        case 'status': {
-                          return () =>
-                            <Status
-                              messenger={messenger}
-                              text={status.text} highlight={status.highlight} />
-                        }
-                        default: {
-                          return (props: BlockContentProps<unknown>) =>
-                            <Baby {...props} onReplace={
-                              (newType, newContent) => {
-                                dispatchAction({
-                                  type: 'block::change', data: {
-                                    ...referencedBlockCard,
-                                    type: newType,
-                                    content: newContent
-                                  }
-                                })
-                              }
-                            } />
-                        }
-                      }
-                    }()
-                  }
-                </Block>
-              )
-            })
-          }
-          <Canvas
-            messenger={messenger}
-            readOnly={isInteractionLocked('canvas' + state.currentBlockCard)}
-            value={state.blockCardMap[state.currentBlockCard].drawing}
-            onChange={data => dispatchAction({ type: 'canvas::change', data })}
-            onInteractionStart={() => { lockInteraction('canvas' + state.currentBlockCard) }}
-            onInteractionEnd={() => { unlockInteraction('canvas' + state.currentBlockCard) }}
-            /** Use key to remount when currentBlockCard changes. */
-            key={'canvas' + state.currentBlockCard} />
+                      }()
+                    }
+                  </Block>
+                )
+              })
+            }
+            <Canvas
+              messenger={messenger}
+              readOnly={isInteractionLocked('canvas' + state.currentBlockCard)}
+              value={state.blockCardMap[state.currentBlockCard].drawing}
+              onChange={data => dispatchAction({ type: 'canvas::change', data })}
+              onInteractionStart={() => { lockInteraction('canvas' + state.currentBlockCard) }}
+              onInteractionEnd={() => { unlockInteraction('canvas' + state.currentBlockCard) }}
+              /** Use key to remount when currentBlockCard changes. */
+              key={'canvas-' + state.currentBlockCard} />
+          </div>
         </InputContainer>
       </div>
     </>

@@ -107,7 +107,7 @@ export function InputContainer(
         onMouseMove={handleMouse}
         onTouchMove={handleTouch}
         onMouseUp={handleMouse}
-        onMouseLeave={handleMouse}
+        // onMouseLeave={handleMouse} prevent block being put at unreachable position
         onTouchEnd={handleTouch}
         onTouchCancel={handleTouch}>
         {props.children}

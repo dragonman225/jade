@@ -32,7 +32,7 @@ export class PubSub implements IPubSub {
     }
     const now = Date.now()
     if (now - this.lastEmitTime > 16) {
-      /** Exclude its own message to prevent oscillation. */
+      /** Exclude its own message to prevent infinite loops. */
       if (channel !== 'messenger::publish')
         this.publish('messenger::publish', { channel })
     }
