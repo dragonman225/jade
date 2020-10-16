@@ -55,6 +55,15 @@ export class PMText extends React.Component<BlockContentProps<unknown>, State> {
         },
         blur: (_view, event) => {
           if (event.target !== document.activeElement) {
+            window.getSelection().removeAllRanges()
+            /**
+             * Below is not working. The old selection persists in the view 
+             * until future focus, and the future focus shows the 
+             * selection being set in setSelection() instead of 
+             * responding to the intention of the mouse.
+             */
+            // const state = view.state
+            // view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, 0)))
             this.props.onInteractionEnd()
           }
           return false
@@ -84,12 +93,26 @@ export class PMText extends React.Component<BlockContentProps<unknown>, State> {
         <div ref={this.PMRef}></div>
       </>
     switch (this.props.viewMode) {
+      case 'nav_item':
+        return (
+          <>
+            <style jsx>{`
+              div {
+                font-size: 0.8rem;
+                padding: 0.5rem;
+                max-height: 100%;
+                overflow: hidden;
+              }
+            `}</style>
+            <div>{PMTextEditor}</div>
+          </>
+        )
       case 'block':
         return (
           <>
             <style jsx>{`
               .Block {
-                padding: 0.3rem 1.5rem;
+                padding: 0.5rem 1.5rem;
               }
             `}</style>
             <div className="Block">{PMTextEditor}</div>
@@ -100,7 +123,7 @@ export class PMText extends React.Component<BlockContentProps<unknown>, State> {
           <>
             <style jsx>{`
               .CardTitle {
-                padding: 0;
+                padding-top: 0.5rem;
                 font-size: 1.2rem;
                 font-weight: bold;
                 min-width: 100px;
@@ -110,7 +133,7 @@ export class PMText extends React.Component<BlockContentProps<unknown>, State> {
           </>
         )
       default:
-        return <p>Unknown <code>viewMode</code>: {this.props.viewMode}</p>
+        return <span>Unknown <code>viewMode</code>: {this.props.viewMode}</span>
     }
   }
 }

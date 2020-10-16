@@ -18,17 +18,29 @@ interface State {
 export class Text extends React.Component<BlockContentProps<unknown>, State> {
   constructor(props: BlockContentProps<unknown>) {
     super(props)
-
-    const initialContent = [{ type: 'paragraph', children: [{ text: '' }] }]
     this.state = {
-      content: Slate.Element.isElementList(props.content)
-        ? props.content[0]
-          ? Slate.Text.isTextList(props.content[0].children)
-            ? props.content
-            : initialContent
-          : initialContent
-        : initialContent,
+      content: this.getValidContent(props.content),
       isNewText: props.content === null
+    }
+  }
+
+  getValidContent(content: unknown): Slate.Element[] {
+    const initialContent = [{ type: 'paragraph', children: [{ text: '' }] }]
+    return Slate.Element.isElementList(content)
+      ? content[0]
+        ? Slate.Text.isTextList(content[0].children)
+          ? content
+          : initialContent
+        : initialContent
+      : initialContent
+  }
+
+  // HACK: Detect props.content change from other BlockCard refs on the same view, using non-deprecated API.
+  componentDidUpdate(): void {
+    if (this.props.content && JSON.stringify(this.state.content) !== JSON.stringify(this.props.content)) {
+      this.setState({
+        content: this.getValidContent(this.props.content)
+      })
     }
   }
 
@@ -48,14 +60,28 @@ export class Text extends React.Component<BlockContentProps<unknown>, State> {
       onBlur={this.props.onInteractionEnd} />
 
     switch (this.props.viewMode) {
+      case 'nav_item':
+        return (
+          <>
+            <style jsx>{`
+              div {
+                font-size: 0.8rem;
+                padding: 0.5rem;
+                max-height: 100%;
+                overflow: hidden;
+              }
+            `}</style>
+            <div>{slateTextEditor}</div>
+          </>
+        )
       case 'block':
         return (
           <>
             <style jsx>{`
-                .Block {
-                  padding: 0.3rem 1.5rem;
-                }
-              `}</style>
+              .Block {
+                padding: 0.5rem 1.5rem;
+              }
+            `}</style>
             <div className="Block">{slateTextEditor}</div>
           </>
         )
@@ -63,18 +89,18 @@ export class Text extends React.Component<BlockContentProps<unknown>, State> {
         return (
           <>
             <style jsx>{`
-                .CardTitle {
-                  padding: 0;
-                  font-size: 1.2rem;
-                  font-weight: bold;
-                  min-width: 100px;
-                }
-              `}</style>
+              .CardTitle {
+                padding-top: 0.5rem;
+                font-size: 1.2rem;
+                font-weight: bold;
+                min-width: 100px;
+              }
+            `}</style>
             <div className="CardTitle">{slateTextEditor}</div>
           </>
         )
       default:
-        return <p>Unknown <code>viewMode</code>: {this.props.viewMode}</p>
+        return <span>Unknown <code>viewMode</code>: {this.props.viewMode}</span>
     }
   }
 }

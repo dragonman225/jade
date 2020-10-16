@@ -19,7 +19,7 @@ export interface MessengerStatus {
 
 export interface BlockContentProps<T> {
   readOnly: boolean
-  viewMode: 'block' | 'card'
+  viewMode: 'block' | 'card' | 'nav_item'
   content: T
   onChange: (content: T) => void
   onInteractionStart: () => void

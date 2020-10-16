@@ -42,24 +42,50 @@ export class Image extends React.Component<BlockContentProps<unknown>, State> {
   }
 
   render(): JSX.Element {
-    return (
-      <>
-        <style jsx>{`
-          .ImgChooser {
-            padding: 0.3rem 1.5rem;
-          }
-        `}</style>
-        {
-          this.state.loaded
-            ? <img src={this.state.imgSrc} draggable={false} width="100%" />
-            : (
-              <div className="ImgChooser">
-                <input type="file" accept=".jpg, .jpeg, .png"
-                  onChange={this.handleFileSelect} />
-              </div>
-            )
-        }
-      </>
-    )
+    switch (this.props.viewMode) {
+      case 'card':
+      case 'nav_item':
+        return (
+          <>
+            <style jsx>{`
+              div {
+                height: 100%;
+                overflow: hidden;
+              }
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                object-position: ${this.props.viewMode === 'card' ? 'left center' : 'unset'};
+              }
+            `}</style>
+            {
+              this.state.loaded
+                ? <div><img src={this.state.imgSrc} draggable={false} /></div>
+                : <span>Image not loaded.</span>
+            }
+          </>
+        )
+      default:
+        return (
+          <>
+            <style jsx>{`
+              .ImgChooser {
+                padding: 0.3rem 1.5rem;
+              }
+            `}</style>
+            {
+              this.state.loaded
+                ? <img src={this.state.imgSrc} draggable={false} width="100%" />
+                : (
+                  <div className="ImgChooser">
+                    <input type="file" accept=".jpg, .jpeg, .png"
+                      onChange={this.handleFileSelect} />
+                  </div>
+                )
+            }
+          </>
+        )
+    }
   }
 }

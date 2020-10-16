@@ -25,9 +25,9 @@ export class Baby extends React.Component<BlockContentProps<unknown> & MoreProps
         <div>
           <p>Which to turn into?</p>
           <button onClick={() => { this.props.onReplace('text') }}>Text</button>
+          <button onClick={() => { this.props.onReplace('pmtext') }}>PMText</button>
           <button onClick={() => { this.props.onReplace('image') }}>Image</button>
           <button onClick={() => { this.props.onReplace('status') }}>Status</button>
-          <button onClick={() => { this.props.onReplace('pmtext') }}>PMText</button>
         </div>
       </>
     )

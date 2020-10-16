@@ -306,9 +306,18 @@ export const App: React.FunctionComponent = () => {
     dispatchAction({ type: 'block::change', data: adapted.newReferencedBlockCard })
   }
 
+  const historySize = 15
+  const [expandHistory, setExpandHistory] = React.useState([] as string[])
+  const [last, setLast] = React.useState(-1)
   const handleExpand = (blockCardId: string) => {
-    dispatchAction({ type: 'block::expand', data: { id: blockCardId } })
-    resetInteractionLockOwner()
+    if (blockCardId !== expandHistory[last]) {
+      setLast(last + 1)
+      expandHistory[(last + 1) % historySize] = blockCardId
+      setExpandHistory(expandHistory)
+      console.log(expandHistory)
+      dispatchAction({ type: 'block::expand', data: { id: blockCardId } })
+      resetInteractionLockOwner()
+    }
   }
 
   return (
@@ -327,10 +336,15 @@ export const App: React.FunctionComponent = () => {
 
         :root {
           font-size: 18px;
+          font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
           line-height: 1.6;
         }
       `}</style>
       <style jsx>{`
+        .App {
+          overflow: hidden;
+        }
+
         .Navbar {
           height: 50px;
           display: flex; 
@@ -345,9 +359,31 @@ export const App: React.FunctionComponent = () => {
         }
 
         .SummaryContainer {
-          flex: 0 1 800px;
+          flex: 2 2 200px;
+          max-width: 800px;
           overflow: auto;
-          padding-top: 0.5rem;
+        }
+
+        .Recents {
+          flex: 1 1 100px;
+          display: flex;
+          overflow-y: hidden;
+          overflow-x: auto;
+        }
+
+        .RecentBtn {
+          flex: 1 0 100px;
+          min-width: 100px;
+          height: 50px;
+          transition: background 0.2s;
+        }
+
+        .RecentBtn:hover {
+          background: rgba(0, 0, 0, 0.2);
+        }
+
+        .RecentBtn:active {
+          background: rgba(0, 0, 0, 0.1);
         }
 
         .Playground {
@@ -359,8 +395,6 @@ export const App: React.FunctionComponent = () => {
           width: 30px;
           height: 30px;
           fill: #000;
-          background: unset;
-          border: none;
           transition: transform 0.2s ease-in-out;
         }
 
@@ -372,11 +406,16 @@ export const App: React.FunctionComponent = () => {
           transform: scale(0.9);
         }
 
-        .HomeBtn:focus {
+        button {
+          border: none;
+          background: unset;
+        }
+
+        button:focus {
           outline: none;
         }
       `}</style>
-      <div className="bg-black-20 h-100">
+      <div className="App bg-black-20 h-100">
         <InputContainer messenger={messenger}>
           <div className="Navbar">
             <div className="HomeBtnContainer">
@@ -417,6 +456,45 @@ export const App: React.FunctionComponent = () => {
                       return <span>Cannot display {currentBlockCard.type} as Card title</span>
                   }
                 }()
+              }
+            </div>
+            <div className="Recents">
+              {
+                expandHistory
+                  .reduce((historyToShow, blockCardId) => {
+                    if (typeof historyToShow.find((id) => id === blockCardId) === 'undefined') {
+                      if (blockCardId !== state.homeBlockCard && blockCardId !== state.currentBlockCard)
+                        historyToShow.push(blockCardId)
+                    }
+                    return historyToShow
+                  }, [] as string[])
+                  .map(blockCardId => {
+                    const blockCard = state.blockCardMap[blockCardId]
+                    const contentProps: BlockContentProps<unknown> = {
+                      viewMode: 'nav_item',
+                      readOnly: true,
+                      content: blockCard.content,
+                      onChange: () => { return },
+                      onInteractionStart: () => { return },
+                      onInteractionEnd: () => { return },
+                    }
+                    const content = function () {
+                      switch (blockCard.type) {
+                        case 'text':
+                          return <Text {...contentProps} />
+                        case 'pmtext':
+                          return <PMText {...contentProps} />
+                        case 'image':
+                          return <Image {...contentProps} />
+                        default:
+                          return <span>{blockCard.type}</span>
+                      }
+                    }()
+                    return <button
+                      className="RecentBtn"
+                      onClick={() => { handleExpand(blockCardId) }}
+                      key={blockCardId}>{content}</button>
+                  })
               }
             </div>
           </div>
