@@ -3,24 +3,23 @@
 import * as React from 'react'
 import { useEffect, useReducer, useMemo } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { Block } from './components/Block'
-import { Baby } from './components/Baby'
-import { Text } from './components/Text'
-import { Image } from './components/Image'
-import { InputContainer } from './components/InputContainer'
-import { Status } from './components/Status'
+import { Block } from './core/Block'
+import { Canvas } from './core/Canvas'
+import { IconHome } from './core/IconHome'
+import { BlockFactory } from './core/BlockFactory'
+import { InputContainer } from './core/InputContainer'
+import { Baby } from './content/Baby'
+import { Text } from './content/Text'
+import { PMText } from './content/PMText'
+import { Image } from './content/Image'
+import { Status } from './content/Status'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
+import { adaptToBlockCard, adaptToBlockModel } from './lib/utils'
 import {
   UnifiedEventInfo, MessengerStatus, State3, Vec2, Stroke,
   BlockCard, BlockModel, BlockContentProps
 } from './interfaces'
-import { Canvas } from './components/Canvas'
-import { BlockFactory } from './components/BlockFactory'
-import { Node } from 'slate'
-import { adaptToBlockCard, adaptToBlockModel } from './lib/utils'
-import { PMText } from './components/PMText'
-import { IconHome } from './components/IconHome'
 
 const initialState = require('./InitialState.json') as State3
 
@@ -248,20 +247,6 @@ export const App: React.FunctionComponent = () => {
       timer = t
     }
   }, [state])
-
-  useEffect(() => {
-    messenger.subscribe('user::createBlock', (msg: UnifiedEventInfo) => {
-      dispatchAction({
-        type: 'block::create',
-        data: {
-          position: {
-            x: msg.offsetX,
-            y: msg.offsetY
-          }
-        }
-      })
-    })
-  }, [])
 
   const [status, dispatchStatus] = useReducer(
     (
@@ -499,7 +484,17 @@ export const App: React.FunctionComponent = () => {
             </div>
           </div>
           <div className="Playground">
-            <BlockFactory messenger={messenger} />
+            <BlockFactory onRequestCreate={(info: UnifiedEventInfo) => {
+              dispatchAction({
+                type: 'block::create',
+                data: {
+                  position: {
+                    x: info.offsetX,
+                    y: info.offsetY
+                  }
+                }
+              })
+            }} />
             {
               state.blockCardMap[state.currentBlockCard].blocks.map(blockRef => {
                 const currentBlockCard = state.blockCardMap[state.currentBlockCard]
@@ -509,7 +504,7 @@ export const App: React.FunctionComponent = () => {
                   <Block
                     messenger={messenger}
                     readOnly={isInteractionLocked(key)}
-                    value={adaptToBlockModel(referencedBlockCard, blockRef) as BlockModel<Node[]>}
+                    value={adaptToBlockModel(referencedBlockCard, blockRef)}
                     onChange={data => {
                       handleChange(currentBlockCard, referencedBlockCard, data)
                     }}

@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { IPubSub } from '../lib/pubsub'
 import { getMouseOffset } from '../lib/utils'
+import { UnifiedEventInfo } from '../interfaces'
 
 interface Props {
-  messenger: IPubSub
+  onRequestCreate: (info: UnifiedEventInfo) => void
 }
 
 export class BlockFactory extends React.Component<Props> {
@@ -13,7 +13,7 @@ export class BlockFactory extends React.Component<Props> {
 
   handleDoubleClick = (e: React.MouseEvent): void => {
     const offset = getMouseOffset(e)
-    this.props.messenger.publish('user::createBlock', {
+    this.props.onRequestCreate({
       clientX: e.clientX,
       clientY: e.clientY,
       offsetX: offset.x,
