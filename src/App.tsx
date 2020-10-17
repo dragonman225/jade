@@ -19,6 +19,7 @@ import { adaptToBlockCard, adaptToBlockModel } from './lib/utils'
 import {
   UnifiedEventInfo, State3, BlockCard, BlockModel, BlockContentProps
 } from './interfaces'
+import { Recent } from './core/Recent'
 
 const initialState = require('./InitialState.json') as State3
 
@@ -91,8 +92,8 @@ export const App: React.FunctionComponent = () => {
   }
 
   const historySize = 15
-  const [expandHistory, setExpandHistory] = React.useState([] as string[])
-  const [last, setLast] = React.useState(-1)
+  const [expandHistory, setExpandHistory] = React.useState([state.currentBlockCard])
+  const [last, setLast] = React.useState(0)
   const handleExpand = (blockCardId: string) => {
     if (blockCardId !== expandHistory[last]) {
       setLast(last + 1)
@@ -143,31 +144,15 @@ export const App: React.FunctionComponent = () => {
         }
 
         .SummaryContainer {
-          flex: 2 2 200px;
+          flex: 7 7 50px;
           max-width: 800px;
           overflow: auto;
         }
 
-        .Recents {
-          flex: 1 1 100px;
-          display: flex;
-          overflow-y: hidden;
+        .RecentContainer {
+          flex: 3 3 50px;
           overflow-x: auto;
-        }
-
-        .RecentBtn {
-          flex: 1 0 100px;
-          min-width: 100px;
-          height: 50px;
-          transition: background 0.2s;
-        }
-
-        .RecentBtn:hover {
-          background: rgba(0, 0, 0, 0.2);
-        }
-
-        .RecentBtn:active {
-          background: rgba(0, 0, 0, 0.1);
+          overflow-y: hidden;
         }
 
         .Playground {
@@ -242,44 +227,13 @@ export const App: React.FunctionComponent = () => {
                 }()
               }
             </div>
-            <div className="Recents">
-              {
-                expandHistory
-                  .reduce((historyToShow, blockCardId) => {
-                    if (typeof historyToShow.find((id) => id === blockCardId) === 'undefined') {
-                      if (blockCardId !== state.homeBlockCard && blockCardId !== state.currentBlockCard)
-                        historyToShow.push(blockCardId)
-                    }
-                    return historyToShow
-                  }, [] as string[])
-                  .map(blockCardId => {
-                    const blockCard = state.blockCardMap[blockCardId]
-                    const contentProps: BlockContentProps<unknown> = {
-                      viewMode: 'nav_item',
-                      readOnly: true,
-                      content: blockCard.content,
-                      onChange: () => { return },
-                      onInteractionStart: () => { return },
-                      onInteractionEnd: () => { return },
-                    }
-                    const content = function () {
-                      switch (blockCard.type) {
-                        case 'text':
-                          return <Text {...contentProps} />
-                        case 'pmtext':
-                          return <PMText {...contentProps} />
-                        case 'image':
-                          return <Image {...contentProps} />
-                        default:
-                          return <span>{blockCard.type}</span>
-                      }
-                    }()
-                    return <button
-                      className="RecentBtn"
-                      onClick={() => { handleExpand(blockCardId) }}
-                      key={blockCardId}>{content}</button>
-                  })
-              }
+            <div className="RecentContainer">
+              <Recent
+                history={expandHistory}
+                historySize={historySize}
+                current={last}
+                state={state}
+                onExpand={handleExpand} />
             </div>
           </div>
           <div className="Playground">
