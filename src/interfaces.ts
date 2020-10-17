@@ -10,7 +10,11 @@ export interface UnifiedEventInfo {
   offsetY: number
 }
 
-export interface MessengerStatus {
+export type PubSubAction = 'publish' | 'subscribe' | 'unsubscribe'
+
+export interface PubSubStatusMessage {
+  activeChannel: string
+  action: PubSubAction
   channels: {
     name: string
     subNum: number

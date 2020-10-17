@@ -1,28 +1,38 @@
 import * as React from 'react'
 import { PubSub } from '../lib/pubsub'
-import { UnifiedEventInfo } from '../interfaces'
+import { PubSubStatusMessage, UnifiedEventInfo } from '../interfaces'
 
 export interface StatusProps {
-  text: string
-  highlight: string
   messenger: PubSub
 }
 
 export function Status(props: StatusProps): JSX.Element {
-  const highlightStart = props.text.indexOf(props.highlight)
-  const highlightEnd = highlightStart + props.highlight.length
+  const [statusText, setStatusText] = React.useState<string>('')
+  const [highlightText, setHighlightText] = React.useState<string>('')
   const [mouse, setMouse] = React.useState<UnifiedEventInfo>({
     clientX: 0, clientY: 0, offsetX: 0, offsetY: 0
   })
 
-  const handleMousemove = (e: UnifiedEventInfo) => {
-    setMouse(e)
+  const handleMousemove = (msg: UnifiedEventInfo) => {
+    setMouse(msg)
+  }
+
+  const handlePubSubStatusMessage = (msg: PubSubStatusMessage) => {
+    const channels = msg.channels
+    const newStatusText = Object.values(channels).reduce((result, cv) => {
+      return result += `${cv.name}: ${cv.subNum}\n`
+    }, '')
+    setStatusText(newStatusText)
+    setHighlightText(msg.activeChannel)
   }
 
   React.useEffect(() => {
-    props.messenger.subscribe('user::mousemove', handleMousemove)
+    const messenger = props.messenger
+    messenger.subscribe<UnifiedEventInfo>('user::mousemove', handleMousemove)
+    messenger.subscribe<PubSubStatusMessage>('pubsub::status', handlePubSubStatusMessage)
     return () => {
-      props.messenger.unsubscribe('user::mousemove', handleMousemove)
+      messenger.unsubscribe('user::mousemove', handleMousemove)
+      messenger.unsubscribe('pubsub::status', handlePubSubStatusMessage)
     }
   }, [])
 
@@ -46,21 +56,28 @@ export function Status(props: StatusProps): JSX.Element {
       `}</style>
       <h3>Mouse Position:&nbsp;({mouse.offsetX.toFixed(0)}, {mouse.offsetY.toFixed(0)})</h3>
       {
-        props.highlight
-          ? <h3>{props.highlight}</h3>
+        highlightText
+          ? <h3>{highlightText}</h3>
           : <h3>undefined</h3>
       }
       {
-        highlightStart === -1
-          ? <span>{props.text}</span>
-          :
-          <>
-            <span>{props.text.substring(0, highlightStart)}</span>
-            <span className="highlight">
-              {props.text.substring(highlightStart, highlightEnd)}
-            </span>
-            <span>{props.text.substring(highlightEnd)}</span>
-          </>
+        function () {
+          const highlightStart = statusText.indexOf(highlightText)
+          const highlightEnd = highlightStart + highlightText.length
+          if (highlightStart === -1) {
+            return <span>{statusText}</span>
+          } else {
+            return (
+              <>
+                <span>{statusText.substring(0, highlightStart)}</span>
+                <span className="highlight">
+                  {statusText.substring(highlightStart, highlightEnd)}
+                </span>
+                <span>{statusText.substring(highlightEnd)}</span>
+              </>
+            )
+          }
+        }()
       }
     </div>
   )

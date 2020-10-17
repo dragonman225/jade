@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import * as React from 'react'
 import { useEffect, useReducer, useMemo } from 'react'
-import { v4 as uuidv4 } from 'uuid'
+import { appStateReducer } from './core/model'
 import { Block } from './core/Block'
 import { Canvas } from './core/Canvas'
 import { IconHome } from './core/IconHome'
@@ -17,189 +17,10 @@ import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
 import { adaptToBlockCard, adaptToBlockModel } from './lib/utils'
 import {
-  UnifiedEventInfo, MessengerStatus, State3, Vec2, Stroke,
-  BlockCard, BlockModel, BlockContentProps
+  UnifiedEventInfo, State3, BlockCard, BlockModel, BlockContentProps
 } from './interfaces'
 
 const initialState = require('./InitialState.json') as State3
-
-interface BlockCreateAction {
-  type: 'block::create'
-  data: {
-    position: Vec2
-  }
-}
-
-interface BlockMoveAction {
-  type: 'block::move'
-  data: {
-    id: string
-    position: Vec2
-  }
-}
-
-interface BlockResizeAction {
-  type: 'block::resize'
-  data: {
-    id: string
-    width: number
-  }
-}
-
-interface BlockChangeAction {
-  type: 'block::change'
-  data: BlockCard
-}
-
-interface BlockRemoveAction {
-  type: 'block::remove'
-  data: {
-    id: string
-  }
-}
-
-interface BlockExpandAction {
-  type: 'block::expand'
-  data: {
-    id: string
-  }
-}
-
-interface CanvasChangeAction {
-  type: 'canvas::change'
-  data: Stroke[]
-}
-
-interface DebuggingToggleAction {
-  type: 'debugging::toggle'
-}
-
-type Action =
-  BlockCreateAction | BlockMoveAction |
-  BlockResizeAction | BlockChangeAction |
-  BlockRemoveAction | BlockExpandAction |
-  CanvasChangeAction | DebuggingToggleAction
-
-function stateReducer(state: State3, action: Action): State3 {
-  switch (action.type) {
-    case 'block::create': {
-      const block: BlockCard = {
-        id: uuidv4(),
-        type: 'baby',
-        content: null,
-        drawing: [],
-        blocks: []
-      }
-      return {
-        ...state,
-        blockCardMap: {
-          ...state.blockCardMap,
-          [state.currentBlockCard]: {
-            ...state.blockCardMap[state.currentBlockCard],
-            blocks: state.blockCardMap[state.currentBlockCard].blocks.concat([{
-              id: block.id,
-              position: action.data.position,
-              width: 300
-            }])
-          },
-          [block.id]: block
-        }
-      }
-    }
-    case 'block::move': {
-      const toChange = state.currentBlockCard
-      return {
-        ...state,
-        blockCardMap: {
-          ...state.blockCardMap,
-          [toChange]: {
-            ...state.blockCardMap[toChange],
-            blocks: state.blockCardMap[toChange].blocks.map(block => {
-              if (block.id === action.data.id) {
-                return {
-                  ...block,
-                  position: action.data.position
-                }
-              } else {
-                return block
-              }
-            })
-          }
-        }
-      }
-    }
-    case 'block::resize': {
-      const toChange = state.currentBlockCard
-      return {
-        ...state,
-        blockCardMap: {
-          ...state.blockCardMap,
-          [toChange]: {
-            ...state.blockCardMap[toChange],
-            blocks: state.blockCardMap[toChange].blocks.map(block => {
-              if (block.id === action.data.id) {
-                return {
-                  ...block,
-                  width: action.data.width
-                }
-              } else {
-                return block
-              }
-            })
-          }
-        }
-      }
-    }
-    case 'block::change': {
-      const toChange = action.data.id
-      return {
-        ...state,
-        blockCardMap: {
-          ...state.blockCardMap,
-          [toChange]: action.data
-        }
-      }
-    }
-    case 'block::remove': { // remove reference only
-      const toChange = state.currentBlockCard
-      return {
-        ...state,
-        blockCardMap: {
-          ...state.blockCardMap,
-          [toChange]: {
-            ...state.blockCardMap[toChange],
-            blocks: state.blockCardMap[toChange].blocks.filter(block => block.id !== action.data.id)
-          }
-        }
-      }
-    }
-    case 'block::expand': {
-      return {
-        ...state,
-        currentBlockCard: action.data.id
-      }
-    }
-    case 'canvas::change': {
-      const toChange = state.currentBlockCard
-      return {
-        ...state,
-        blockCardMap: {
-          ...state.blockCardMap,
-          [toChange]: {
-            ...state.blockCardMap[toChange],
-            drawing: action.data
-          }
-        }
-      }
-    }
-    case 'debugging::toggle': {
-      return {
-        ...state,
-        debugging: state.debugging ? false : true
-      }
-    }
-  }
-}
 
 let lastSyncTime = 0
 let timer: NodeJS.Timeout = undefined
@@ -207,7 +28,7 @@ let timer: NodeJS.Timeout = undefined
 export const App: React.FunctionComponent = () => {
   const messenger = useMemo(() => new PubSub(), [])
   const [state, dispatchAction] =
-    useReducer(stateReducer, loadState() || initialState)
+    useReducer(appStateReducer, loadState() || initialState)
 
   /** Interaction lock. */
   const [interactionLockOwner, setInteractionLockOwner] =
@@ -248,44 +69,22 @@ export const App: React.FunctionComponent = () => {
     }
   }, [state])
 
-  const [status, dispatchStatus] = useReducer(
-    (
-      state: { text: string; highlight: string },
-      action:
-      { type: 'messenger::subscribe'; msg: MessengerStatus } |
-      { type: 'messenger::publish'; msg: { channel: string } }
-    ) => {
-      if (action.type === 'messenger::subscribe') {
-        const channels = action.msg.channels
-        const result = Object.values(channels).reduce((result, cv) => {
-          return result += `${cv.name}: ${cv.subNum}\n`
-        }, '')
-        return { text: result, highlight: 'messenger::subscribe' }
-      } else if (action.type === 'messenger::publish') {
-        return { text: state.text, highlight: action.msg.channel }
-      } else {
-        return state
-      }
-    },
-    { text: '', highlight: '' }
-  )
+  const toggleDebugging = () => {
+    dispatchAction({ type: 'debugging::toggle' })
+  }
+
   useEffect(() => {
-    messenger.subscribe('messenger::subscribe', (msg: MessengerStatus) => {
-      dispatchStatus({
-        type: 'messenger::subscribe', msg
-      })
-    })
-    messenger.subscribe('messenger::publish', (msg: { channel: string }) => {
-      dispatchStatus({
-        type: 'messenger::publish', msg
-      })
-    })
-    messenger.subscribe('user::toggleDebugging', () => {
-      dispatchAction({ type: 'debugging::toggle' })
-    })
+    messenger.subscribe('user::toggleDebugging', toggleDebugging)
+    return () => {
+      messenger.unsubscribe('user::toggleDebugging', toggleDebugging)
+    }
   }, [])
 
-  const handleChange = (currentBlockCard: BlockCard, referencedBlockCard: BlockCard, data: BlockModel<unknown>) => {
+  const handleChange = (
+    currentBlockCard: BlockCard,
+    referencedBlockCard: BlockCard,
+    data: BlockModel<unknown>
+  ) => {
     const adapted = adaptToBlockCard(currentBlockCard, referencedBlockCard, data)
     dispatchAction({ type: 'block::change', data: adapted.newCurrentBlockCard })
     dispatchAction({ type: 'block::change', data: adapted.newReferencedBlockCard })
@@ -526,10 +325,7 @@ export const App: React.FunctionComponent = () => {
                             return (props: BlockContentProps<unknown>) => <Image {...props} />
                           }
                           case 'status': {
-                            return () =>
-                              <Status
-                                messenger={messenger}
-                                text={status.text} highlight={status.highlight} />
+                            return () => <Status messenger={messenger} />
                           }
                           default: {
                             return (props: BlockContentProps<unknown>) =>

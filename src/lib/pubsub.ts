@@ -1,3 +1,5 @@
+import { PubSubAction, PubSubStatusMessage } from '../interfaces'
+
 export interface IPubSub {
   publish: <T>(channel: string, content?: T) => void
   subscribe: <T>(channel: string, callback: (arg: T) => void) => void
@@ -12,10 +14,12 @@ export class PubSub implements IPubSub {
     }[]
   }
   private lastEmitTime: number
+  private statusChannel: string
 
   constructor() {
     this.channelMap = {}
     this.lastEmitTime = 0
+    this.statusChannel = 'pubsub::status'
   }
 
   /**
@@ -33,8 +37,8 @@ export class PubSub implements IPubSub {
     const now = Date.now()
     if (now - this.lastEmitTime > 16) {
       /** Exclude its own message to prevent infinite loops. */
-      if (channel !== 'messenger::publish')
-        this.publish('messenger::publish', { channel })
+      if (channel !== this.statusChannel)
+        this.emitStatus('publish', channel)
     }
     this.lastEmitTime = now
   }
@@ -53,7 +57,7 @@ export class PubSub implements IPubSub {
       this.channelMap[channel] = [newSubscriber]
     }
 
-    this.emitStatus()
+    this.emitStatus('subscribe', channel)
   }
 
   unsubscribe(channel: string, callback: (arg: unknown) => void): void {
@@ -67,17 +71,21 @@ export class PubSub implements IPubSub {
       }
     }
 
-    this.emitStatus()
+    this.emitStatus('unsubscribe', channel)
   }
 
-  private emitStatus(): void {
+  private emitStatus(action: PubSubAction, channel: string): void {
     const channels = Object.entries(this.channelMap).map(channelInfo => {
       return {
         name: channelInfo[0],
         subNum: channelInfo[1].length
       }
     })
-    this.publish('messenger::subscribe', { channels })
+    this.publish<PubSubStatusMessage>(this.statusChannel, {
+      activeChannel: channel,
+      action,
+      channels
+    })
   }
 }
 
