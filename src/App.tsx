@@ -192,52 +192,52 @@ export const App: React.FunctionComponent = () => {
         }
       `}</style>
       <div className="App bg-black-20 h-100">
-        <InputContainer messenger={messenger}>
-          <div className="Navbar">
-            <div className="HomeBtnContainer">
-              <button className="HomeBtn" onClick={() => {
-                handleExpand(state.homeBlockCard)
-              }}><IconHome /></button>
-            </div>
-            <div className="SummaryContainer">
-              {
-                function () {
-                  const currentBlockCard = state.blockCardMap[state.currentBlockCard]
-                  const key = 'card-' + currentBlockCard.id
-                  const updateContent = (content: unknown) => {
-                    dispatchAction({
-                      type: 'block::change', data: {
-                        ...currentBlockCard,
-                        content
-                      }
-                    })
-                  }
-                  const contentProps: BlockContentProps<unknown> & { key: string } = {
-                    viewMode: 'card',
-                    readOnly: isInteractionLocked(key),
-                    content: currentBlockCard.content,
-                    messageBus: messenger,
-                    onChange: updateContent,
-                    onReplace: type => { handleContentReplace(currentBlockCard, type) },
-                    onInteractionStart: () => { lockInteraction(key) },
-                    onInteractionEnd: () => { unlockInteraction(key) },
-                    key: key
-                  }
-                  return <Content contentType={currentBlockCard.type} contentProps={contentProps} />
-                }()
-              }
-            </div>
-            <div className="RecentContainer">
-              <Recent
-                history={expandHistory}
-                historySize={historySize}
-                current={last}
-                state={state}
-                messageBus={messenger}
-                onExpand={handleExpand} />
-            </div>
+        <div className="Navbar">
+          <div className="HomeBtnContainer">
+            <button className="HomeBtn" onClick={() => {
+              handleExpand(state.homeBlockCard)
+            }}><IconHome /></button>
           </div>
-          <div className="Playground">
+          <div className="SummaryContainer">
+            {
+              function () {
+                const currentBlockCard = state.blockCardMap[state.currentBlockCard]
+                const key = 'card-' + currentBlockCard.id
+                const updateContent = (content: unknown) => {
+                  dispatchAction({
+                    type: 'block::change', data: {
+                      ...currentBlockCard,
+                      content
+                    }
+                  })
+                }
+                const contentProps: BlockContentProps<unknown> & { key: string } = {
+                  viewMode: 'card',
+                  readOnly: isInteractionLocked(key),
+                  content: currentBlockCard.content,
+                  messageBus: messenger,
+                  onChange: updateContent,
+                  onReplace: type => { handleContentReplace(currentBlockCard, type) },
+                  onInteractionStart: () => { lockInteraction(key) },
+                  onInteractionEnd: () => { unlockInteraction(key) },
+                  key: key
+                }
+                return <Content contentType={currentBlockCard.type} contentProps={contentProps} />
+              }()
+            }
+          </div>
+          <div className="RecentContainer">
+            <Recent
+              history={expandHistory}
+              historySize={historySize}
+              current={last}
+              state={state}
+              messageBus={messenger}
+              onExpand={handleExpand} />
+          </div>
+        </div>
+        <div className="Playground">
+          <InputContainer messenger={messenger}>
             <BlockFactory onRequestCreate={(info: UnifiedEventInfo) => {
               dispatchAction({
                 type: 'block::create',
@@ -290,8 +290,8 @@ export const App: React.FunctionComponent = () => {
               onInteractionEnd={() => { unlockInteraction('canvas' + state.currentBlockCard) }}
               /** Use key to remount Canvas when currentBlockCard changes. */
               key={'canvas-' + state.currentBlockCard} />
-          </div>
-        </InputContainer>
+          </InputContainer>
+        </div>
       </div>
     </>
   )

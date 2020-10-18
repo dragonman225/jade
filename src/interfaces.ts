@@ -8,6 +8,8 @@ export interface Vec2 {
 export interface UnifiedEventInfo {
   clientX: number
   clientY: number
+  originX: number
+  originY: number
   offsetX: number
   offsetY: number
 }

@@ -49,22 +49,22 @@ export class Block extends React.Component<Props, State> {
   }
 
   inDragArea(x: number, y: number): boolean {
-    // HACK: Input container is listening at the whole viewport, and Navbar is 50px.
     if (x > this.props.value.position.x && x < this.props.value.position.x + dragAreaSize
-      && y > this.props.value.position.y + 50 && y < this.props.value.position.y + 50 + dragAreaSize) {
+      && y > this.props.value.position.y && y < this.props.value.position.y + dragAreaSize) {
       return true
     } else return false
   }
 
-  inResizeArea(x: number, y: number): boolean {
+  inResizeArea(msg: UnifiedEventInfo): boolean {
+    const { offsetX, offsetY, originX, originY } = msg
     const blockRect = this.ref.current.getBoundingClientRect()
     const resizeRect = {
-      top: blockRect.bottom - dragAreaSize,
-      left: blockRect.right - dragAreaSize,
+      top: blockRect.bottom - dragAreaSize - originY,
+      left: blockRect.right - dragAreaSize - originX,
       bottom: blockRect.bottom,
       right: blockRect.right
     }
-    if (x < resizeRect.right && x > resizeRect.left && y > resizeRect.top && y < resizeRect.bottom) return true
+    if (offsetX < resizeRect.right && offsetX > resizeRect.left && offsetY > resizeRect.top && offsetY < resizeRect.bottom) return true
     else return false
   }
 
@@ -73,7 +73,7 @@ export class Block extends React.Component<Props, State> {
       this.setState({ moving: true })
       this.props.onInteractionStart()
     }
-    if (this.inResizeArea(msg.offsetX, msg.offsetY) && this.state.mouseIsInside) {
+    if (this.inResizeArea(msg) && this.state.mouseIsInside) {
       this.setState({ resizing: true })
       this.props.onInteractionStart()
     }

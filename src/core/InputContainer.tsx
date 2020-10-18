@@ -60,9 +60,12 @@ export function InputContainer(
 
   const handleMouse = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect()
+    console.log(rect)
     const unifiedInfo = {
       clientX: e.clientX,
       clientY: e.clientY,
+      originX: rect.left,
+      originY: rect.top,
       offsetX: e.clientX - rect.left,
       offsetY: e.clientY - rect.top
     }
@@ -79,6 +82,8 @@ export function InputContainer(
     const unifiedInfo = {
       clientX: e.touches[0].clientX,
       clientY: e.touches[0].clientY,
+      originX: rect.left,
+      originY: rect.top,
       offsetX: e.touches[0].clientX - rect.left,
       offsetY: e.touches[0].clientY - rect.top
     }

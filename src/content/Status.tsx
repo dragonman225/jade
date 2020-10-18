@@ -7,7 +7,7 @@ export function Status(props: BlockContentProps<unknown>): JSX.Element {
   const [statusText, setStatusText] = React.useState<string>('')
   const [highlightText, setHighlightText] = React.useState<string>('')
   const [mouse, setMouse] = React.useState<UnifiedEventInfo>({
-    clientX: 0, clientY: 0, offsetX: 0, offsetY: 0
+    clientX: 0, clientY: 0, originX: 0, originY: 0, offsetX: 0, offsetY: 0
   })
 
   const handleMousemove = (msg: UnifiedEventInfo) => {
