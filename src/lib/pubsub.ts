@@ -6,6 +6,8 @@ export interface IPubSub {
   unsubscribe: (channel: string, callback: (arg: unknown) => void) => void
 }
 
+export type ISub = Omit<IPubSub, 'publish'>
+
 export class PubSub implements IPubSub {
   private channelMap: {
     [channel: string]: {

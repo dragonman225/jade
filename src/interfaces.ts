@@ -1,3 +1,5 @@
+import { ISub } from './lib/pubsub'
+
 export interface Vec2 {
   x: number
   y: number
@@ -25,7 +27,9 @@ export interface BlockContentProps<T> {
   readOnly: boolean
   viewMode: 'block' | 'card' | 'nav_item'
   content: T
+  messageBus: ISub
   onChange: (content: T) => void
+  onReplace: (type: string) => void
   onInteractionStart: () => void
   onInteractionEnd: () => void
 }

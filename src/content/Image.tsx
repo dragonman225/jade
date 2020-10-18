@@ -11,6 +11,10 @@ interface State {
   imgSrc: string
 }
 
+/**
+ * BUG: When props change after instantiated, state doesn't update.
+ */
+
 export class Image extends React.Component<BlockContentProps<unknown>, State> {
   constructor(props: BlockContentProps<unknown>) {
     super(props)
@@ -43,7 +47,6 @@ export class Image extends React.Component<BlockContentProps<unknown>, State> {
 
   render(): JSX.Element {
     switch (this.props.viewMode) {
-      case 'card':
       case 'nav_item':
         return (
           <>
@@ -56,7 +59,6 @@ export class Image extends React.Component<BlockContentProps<unknown>, State> {
                 width: 100%;
                 height: 100%;
                 object-fit: contain;
-                object-position: ${this.props.viewMode === 'card' ? 'left center' : 'unset'};
               }
             `}</style>
             {
@@ -70,13 +72,35 @@ export class Image extends React.Component<BlockContentProps<unknown>, State> {
         return (
           <>
             <style jsx>{`
+              .ImgViewer {
+                height: 100%;
+                overflow: hidden;
+              }
+              
               .ImgChooser {
                 padding: 0.3rem 1.5rem;
+              }
+
+              img {
+                width: 100%;
+              }
+
+              img[data-view-mode='card'] {
+                height: 100%;
+                object-fit: contain;
+                object-position: left center;
               }
             `}</style>
             {
               this.state.loaded
-                ? <img src={this.state.imgSrc} draggable={false} width="100%" />
+                ? (
+                  <div className="ImgViewer">
+                    <img
+                      src={this.state.imgSrc}
+                      draggable={false}
+                      data-view-mode={this.props.viewMode} />
+                  </div>
+                )
                 : (
                   <div className="ImgChooser">
                     <input type="file" accept=".jpg, .jpeg, .png"

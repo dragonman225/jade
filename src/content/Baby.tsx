@@ -1,12 +1,8 @@
 import * as React from 'react'
 import { BlockContentProps } from '../interfaces'
 
-interface MoreProps {
-  onReplace: (type: string) => void
-}
-
-export class Baby extends React.Component<BlockContentProps<unknown> & MoreProps> {
-  constructor(props: BlockContentProps<unknown> & MoreProps) {
+export class Baby extends React.Component<BlockContentProps<unknown>> {
+  constructor(props: BlockContentProps<unknown>) {
     super(props)
   }
 

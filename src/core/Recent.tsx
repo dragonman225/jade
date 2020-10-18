@@ -1,8 +1,7 @@
 import * as React from 'react'
-import { Text } from '../content/Text'
-import { Image } from '../content/Image'
-import { PMText } from '../content/PMText'
+import { Content } from '../content/Content'
 import { BlockContentProps, State3 } from '../interfaces'
+import { IPubSub } from '../lib/pubsub'
 
 interface Props {
   /** A ring buffer. */
@@ -12,6 +11,7 @@ interface Props {
   /** Index of the latest added. */
   current: number
   state: State3
+  messageBus: IPubSub
   onExpand: (blockCardId: string) => void
 }
 
@@ -70,26 +70,26 @@ export const Recent: React.FunctionComponent<Props> = (props) => {
               viewMode: 'nav_item',
               readOnly: true,
               content: blockCard.content,
+              messageBus: {
+                subscribe: props.messageBus.subscribe,
+                unsubscribe: props.messageBus.unsubscribe
+              },
               onChange: () => { return },
+              onReplace: () => { return },
               onInteractionStart: () => { return },
               onInteractionEnd: () => { return },
             }
-            const content = function () {
-              switch (blockCard.type) {
-                case 'text':
-                  return <Text {...contentProps} />
-                case 'pmtext':
-                  return <PMText {...contentProps} />
-                case 'image':
-                  return <Image {...contentProps} />
-                default:
-                  return <span>{blockCard.type}</span>
-              }
-            }()
-            return <button
-              className="RecentBtn"
-              onClick={() => { props.onExpand(blockCardId) }}
-              key={blockCardId}>{content}</button>
+            return (
+              <button
+                className="RecentBtn"
+                onClick={() => { props.onExpand(blockCardId) }}
+                key={blockCardId}>
+                <Content
+                  contentType={blockCard.type}
+                  contentProps={contentProps}
+                  key={blockCard.id} />
+              </button>
+            )
           })
         }()
       }

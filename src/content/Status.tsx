@@ -1,12 +1,9 @@
 import * as React from 'react'
-import { PubSub } from '../lib/pubsub'
-import { PubSubStatusMessage, UnifiedEventInfo } from '../interfaces'
+import {
+  BlockContentProps, PubSubStatusMessage, UnifiedEventInfo
+} from '../interfaces'
 
-export interface StatusProps {
-  messenger: PubSub
-}
-
-export function Status(props: StatusProps): JSX.Element {
+export function Status(props: BlockContentProps<unknown>): JSX.Element {
   const [statusText, setStatusText] = React.useState<string>('')
   const [highlightText, setHighlightText] = React.useState<string>('')
   const [mouse, setMouse] = React.useState<UnifiedEventInfo>({
@@ -27,58 +24,63 @@ export function Status(props: StatusProps): JSX.Element {
   }
 
   React.useEffect(() => {
-    const messenger = props.messenger
-    messenger.subscribe<UnifiedEventInfo>('user::mousemove', handleMousemove)
-    messenger.subscribe<PubSubStatusMessage>('pubsub::status', handlePubSubStatusMessage)
+    const messageBus = props.messageBus
+    messageBus.subscribe<UnifiedEventInfo>('user::mousemove', handleMousemove)
+    messageBus.subscribe<PubSubStatusMessage>('pubsub::status', handlePubSubStatusMessage)
     return () => {
-      messenger.unsubscribe('user::mousemove', handleMousemove)
-      messenger.unsubscribe('pubsub::status', handlePubSubStatusMessage)
+      messageBus.unsubscribe('user::mousemove', handleMousemove)
+      messageBus.unsubscribe('pubsub::status', handlePubSubStatusMessage)
     }
   }, [])
 
-  return (
-    <div>
-      <style jsx>{`
-        div {
-          user-select: none;
-          padding: 1rem;
-        }
-
-        span {
-          white-space: pre-wrap;
-          line-height: 1.5;
-          user-select: none;
-        }
-
-        .highlight {
-          background: aquamarine;
-        }
-      `}</style>
-      <h3>Mouse Position:&nbsp;({mouse.offsetX.toFixed(0)}, {mouse.offsetY.toFixed(0)})</h3>
-      {
-        highlightText
-          ? <h3>{highlightText}</h3>
-          : <h3>undefined</h3>
-      }
-      {
-        function () {
-          const highlightStart = statusText.indexOf(highlightText)
-          const highlightEnd = highlightStart + highlightText.length
-          if (highlightStart === -1) {
-            return <span>{statusText}</span>
-          } else {
-            return (
-              <>
-                <span>{statusText.substring(0, highlightStart)}</span>
-                <span className="highlight">
-                  {statusText.substring(highlightStart, highlightEnd)}
-                </span>
-                <span>{statusText.substring(highlightEnd)}</span>
-              </>
-            )
+  switch (props.viewMode) {
+    case 'block':
+      return (
+        <div>
+          <style jsx>{`
+            div {
+              user-select: none;
+              padding: 1rem;
+            }
+    
+            span {
+              white-space: pre-wrap;
+              line-height: 1.5;
+              user-select: none;
+            }
+    
+            .highlight {
+              background: aquamarine;
+            }
+          `}</style>
+          <h3>Mouse Position:&nbsp;({mouse.offsetX.toFixed(0)}, {mouse.offsetY.toFixed(0)})</h3>
+          {
+            highlightText
+              ? <h3>{highlightText}</h3>
+              : <h3>undefined</h3>
           }
-        }()
-      }
-    </div>
-  )
+          {
+            function () {
+              const highlightStart = statusText.indexOf(highlightText)
+              const highlightEnd = highlightStart + highlightText.length
+              if (highlightStart === -1) {
+                return <span>{statusText}</span>
+              } else {
+                return (
+                  <>
+                    <span>{statusText.substring(0, highlightStart)}</span>
+                    <span className="highlight">
+                      {statusText.substring(highlightStart, highlightEnd)}
+                    </span>
+                    <span>{statusText.substring(highlightEnd)}</span>
+                  </>
+                )
+              }
+            }()
+          }
+        </div>
+      )
+    default:
+      return <span>Status</span>
+  }
 }

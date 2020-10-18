@@ -8,7 +8,8 @@ import { UnifiedEventInfo, BlockModel, BlockContentProps } from '../interfaces'
 interface Props {
   readOnly: boolean
   value: BlockModel<unknown>
-  onChange: (data: BlockModel<unknown>) => void
+  onContentChange: (data: BlockModel<unknown>) => void
+  onContentReplace: (type: string) => void
   onRemove: () => void
   onExpand: () => void
   onInteractionStart?: () => void
@@ -102,7 +103,7 @@ export class Block extends React.Component<Props, State> {
       if (newPos.y < limit.minY) newPos.y = limit.minY
       else if (newPos.y + minHeight > limit.maxY) newPos.y = limit.maxY - minHeight
 
-      this.props.onChange({
+      this.props.onContentChange({
         ...this.props.value,
         position: newPos
       })
@@ -111,7 +112,7 @@ export class Block extends React.Component<Props, State> {
 
     if (this.state.resizing) {
       const deltaX = msg.offsetX - this.state.lastDragPosition.x
-      this.props.onChange({
+      this.props.onContentChange({
         ...this.props.value,
         width: this.props.value.width + deltaX
       })
@@ -164,7 +165,7 @@ export class Block extends React.Component<Props, State> {
   }
 
   handleContentChange = (content: unknown): void => {
-    this.props.onChange({
+    this.props.onContentChange({
       ...this.props.value,
       content
     })
@@ -287,7 +288,12 @@ export class Block extends React.Component<Props, State> {
                 ? this.props.children({
                   readOnly: this.props.readOnly,
                   content: this.props.value.content,
+                  messageBus: {
+                    subscribe: this.props.messenger.subscribe,
+                    unsubscribe: this.props.messenger.unsubscribe
+                  },
                   onChange: this.handleContentChange,
+                  onReplace: this.props.onContentReplace,
                   onInteractionStart: this.handleContentInteractionStart,
                   onInteractionEnd: this.handleContentInteractionEnd
                 })

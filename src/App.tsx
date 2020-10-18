@@ -8,18 +8,14 @@ import { Canvas } from './core/Canvas'
 import { IconHome } from './core/IconHome'
 import { BlockFactory } from './core/BlockFactory'
 import { InputContainer } from './core/InputContainer'
-import { Baby } from './content/Baby'
-import { Text } from './content/Text'
-import { PMText } from './content/PMText'
-import { Image } from './content/Image'
-import { Status } from './content/Status'
+import { Recent } from './core/Recent'
+import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
 import { adaptToBlockCard, adaptToBlockModel } from './lib/utils'
 import {
   UnifiedEventInfo, State3, BlockCard, BlockModel, BlockContentProps
 } from './interfaces'
-import { Recent } from './core/Recent'
 
 const initialState = require('./InitialState.json') as State3
 
@@ -94,6 +90,7 @@ export const App: React.FunctionComponent = () => {
   const historySize = 15
   const [expandHistory, setExpandHistory] = React.useState([state.currentBlockCard])
   const [last, setLast] = React.useState(0)
+
   const handleExpand = (blockCardId: string) => {
     if (blockCardId !== expandHistory[last]) {
       setLast(last + 1)
@@ -103,6 +100,16 @@ export const App: React.FunctionComponent = () => {
       dispatchAction({ type: 'block::expand', data: { id: blockCardId } })
       resetInteractionLockOwner()
     }
+  }
+
+  const handleContentReplace = (blockCard: BlockCard, newType: string) => {
+    dispatchAction({
+      type: 'block::change', data: {
+        ...blockCard,
+        type: newType,
+        content: null
+      }
+    })
   }
 
   return (
@@ -209,21 +216,14 @@ export const App: React.FunctionComponent = () => {
                     viewMode: 'card',
                     readOnly: isInteractionLocked(key),
                     content: currentBlockCard.content,
+                    messageBus: messenger,
                     onChange: updateContent,
+                    onReplace: type => { handleContentReplace(currentBlockCard, type) },
                     onInteractionStart: () => { lockInteraction(key) },
                     onInteractionEnd: () => { unlockInteraction(key) },
                     key: key
                   }
-                  switch (currentBlockCard.type) {
-                    case 'text':
-                      return <Text {...contentProps} />
-                    case 'pmtext':
-                      return <PMText {...contentProps} />
-                    case 'image':
-                      return <Image {...contentProps} />
-                    default:
-                      return <span>Cannot display {currentBlockCard.type} as Card title</span>
-                  }
+                  return <Content contentType={currentBlockCard.type} contentProps={contentProps} />
                 }()
               }
             </div>
@@ -233,6 +233,7 @@ export const App: React.FunctionComponent = () => {
                 historySize={historySize}
                 current={last}
                 state={state}
+                messageBus={messenger}
                 onExpand={handleExpand} />
             </div>
           </div>
@@ -258,45 +259,23 @@ export const App: React.FunctionComponent = () => {
                     messenger={messenger}
                     readOnly={isInteractionLocked(key)}
                     value={adaptToBlockModel(referencedBlockCard, blockRef)}
-                    onChange={data => {
+                    onContentChange={data => {
                       handleChange(currentBlockCard, referencedBlockCard, data)
                     }}
-                    onRemove={() => { dispatchAction({ type: 'block::remove', data: { id: referencedBlockCard.id } }) }}
+                    onContentReplace={type => {
+                      handleContentReplace(referencedBlockCard, type)
+                    }}
+                    onRemove={() => {
+                      dispatchAction({ type: 'block::remove', data: { id: referencedBlockCard.id } })
+                    }}
                     onExpand={() => { handleExpand(referencedBlockCard.id) }}
                     onInteractionStart={() => { lockInteraction(key) }}
                     onInteractionEnd={() => { unlockInteraction(key) }}
                     key={key}>
                     {
-                      function () {
-                        switch (referencedBlockCard.type) {
-                          case 'text': {
-                            return (props: BlockContentProps<unknown>) => <Text viewMode="block" {...props} />
-                          }
-                          case 'pmtext': {
-                            return (props: BlockContentProps<unknown>) => <PMText viewMode="block" {...props} />
-                          }
-                          case 'image': {
-                            return (props: BlockContentProps<unknown>) => <Image {...props} />
-                          }
-                          case 'status': {
-                            return () => <Status messenger={messenger} />
-                          }
-                          default: {
-                            return (props: BlockContentProps<unknown>) =>
-                              <Baby {...props} onReplace={
-                                (newType) => {
-                                  dispatchAction({
-                                    type: 'block::change', data: {
-                                      ...referencedBlockCard,
-                                      type: newType,
-                                      content: null
-                                    }
-                                  })
-                                }
-                              } />
-                          }
-                        }
-                      }()
+                      (contentProps) => <Content
+                        contentType={referencedBlockCard.type}
+                        contentProps={{ ...contentProps, viewMode: 'block' }} />
                     }
                   </Block>
                 )
@@ -309,7 +288,7 @@ export const App: React.FunctionComponent = () => {
               onChange={data => dispatchAction({ type: 'canvas::change', data })}
               onInteractionStart={() => { lockInteraction('canvas' + state.currentBlockCard) }}
               onInteractionEnd={() => { unlockInteraction('canvas' + state.currentBlockCard) }}
-              /** Use key to remount when currentBlockCard changes. */
+              /** Use key to remount Canvas when currentBlockCard changes. */
               key={'canvas-' + state.currentBlockCard} />
           </div>
         </InputContainer>
