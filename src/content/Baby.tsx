@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { BlockContentProps } from '../interfaces'
+import { ContentProps } from '../interfaces'
 
-export class Baby extends React.Component<BlockContentProps<unknown>> {
-  constructor(props: BlockContentProps<unknown>) {
+export class Baby extends React.Component<ContentProps<unknown>> {
+  constructor(props: ContentProps<unknown>) {
     super(props)
   }
 

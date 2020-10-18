@@ -3,19 +3,18 @@ import { IPubSub } from '../lib/pubsub'
 import { IconDragHandle } from './IconDragHandle'
 import { IconCross } from './IconCross'
 import { IconExpand } from './IconExpand'
-import { UnifiedEventInfo, BlockModel, BlockContentProps } from '../interfaces'
+import { UnifiedEventInfo, BlockModel, ContentProps } from '../interfaces'
 
 interface Props {
   readOnly: boolean
   value: BlockModel<unknown>
   onContentChange: (data: BlockModel<unknown>) => void
-  onContentReplace: (type: string) => void
   onRemove: () => void
   onExpand: () => void
   onInteractionStart?: () => void
   onInteractionEnd?: () => void
   messenger: IPubSub
-  children?: (props: Omit<BlockContentProps<unknown>, 'viewMode'>) => JSX.Element
+  children?: (props: Omit<ContentProps<unknown>, 'viewMode' | 'onReplace' | 'messageBus'>) => JSX.Element
 }
 
 interface State {
@@ -288,12 +287,7 @@ export class Block extends React.Component<Props, State> {
                 ? this.props.children({
                   readOnly: this.props.readOnly,
                   content: this.props.value.content,
-                  messageBus: {
-                    subscribe: this.props.messenger.subscribe,
-                    unsubscribe: this.props.messenger.unsubscribe
-                  },
                   onChange: this.handleContentChange,
-                  onReplace: this.props.onContentReplace,
                   onInteractionStart: this.handleContentInteractionStart,
                   onInteractionEnd: this.handleContentInteractionEnd
                 })

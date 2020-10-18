@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Content } from '../content/Content'
-import { BlockContentProps, State3 } from '../interfaces'
+import { ContentProps, State3 } from '../interfaces'
 import { IPubSub } from '../lib/pubsub'
 
 interface Props {
@@ -66,7 +66,7 @@ export const Recent: React.FunctionComponent<Props> = (props) => {
 
           return historyToShow.map(blockCardId => {
             const blockCard = props.state.blockCardMap[blockCardId]
-            const contentProps: BlockContentProps<unknown> = {
+            const contentProps: ContentProps<unknown> = {
               viewMode: 'nav_item',
               readOnly: true,
               content: blockCard.content,

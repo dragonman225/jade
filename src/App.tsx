@@ -14,7 +14,7 @@ import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
 import { adaptToBlockCard, adaptToBlockModel } from './lib/utils'
 import {
-  UnifiedEventInfo, State3, BlockCard, BlockModel, BlockContentProps
+  State3, BlockCard, BlockModel, ContentProps
 } from './interfaces'
 
 const initialState = require('./InitialState.json') as State3
@@ -24,6 +24,10 @@ let timer: NodeJS.Timeout = undefined
 
 export const App: React.FunctionComponent = () => {
   const messenger = useMemo(() => new PubSub(), [])
+  const readOnlyMessenger = {
+    subscribe: messenger.subscribe,
+    unsubscribe: messenger.unsubscribe
+  }
   const [state, dispatchAction] =
     useReducer(appStateReducer, loadState() || initialState)
 
@@ -211,11 +215,11 @@ export const App: React.FunctionComponent = () => {
                     }
                   })
                 }
-                const contentProps: BlockContentProps<unknown> & { key: string } = {
+                const contentProps: ContentProps<unknown> & { key: string } = {
                   viewMode: 'card',
                   readOnly: isInteractionLocked(key),
                   content: currentBlockCard.content,
-                  messageBus: messenger,
+                  messageBus: readOnlyMessenger,
                   onChange: updateContent,
                   onReplace: type => { handleContentReplace(currentBlockCard, type) },
                   onInteractionStart: () => { lockInteraction(key) },
@@ -238,15 +242,10 @@ export const App: React.FunctionComponent = () => {
         </div>
         <div className="Playground">
           <InputContainer messenger={messenger}>
-            <BlockFactory onRequestCreate={(info: UnifiedEventInfo) => {
+            <BlockFactory onRequestCreate={position => {
               dispatchAction({
                 type: 'block::create',
-                data: {
-                  position: {
-                    x: info.offsetX,
-                    y: info.offsetY
-                  }
-                }
+                data: { position }
               })
             }} />
             {
@@ -262,9 +261,6 @@ export const App: React.FunctionComponent = () => {
                     onContentChange={data => {
                       handleChange(currentBlockCard, referencedBlockCard, data)
                     }}
-                    onContentReplace={type => {
-                      handleContentReplace(referencedBlockCard, type)
-                    }}
                     onRemove={() => {
                       dispatchAction({ type: 'block::remove', data: { id: referencedBlockCard.id } })
                     }}
@@ -275,7 +271,14 @@ export const App: React.FunctionComponent = () => {
                     {
                       (contentProps) => <Content
                         contentType={referencedBlockCard.type}
-                        contentProps={{ ...contentProps, viewMode: 'block' }} />
+                        contentProps={{
+                          ...contentProps,
+                          viewMode: 'block',
+                          messageBus: readOnlyMessenger,
+                          onReplace: type => {
+                            handleContentReplace(referencedBlockCard, type)
+                          }
+                        }} />
                     }
                   </Block>
                 )

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { BlockContentProps } from '../interfaces'
+import { ContentProps } from '../interfaces'
 
 interface ImageContent {
   loaded: boolean
@@ -15,8 +15,8 @@ interface State {
  * BUG: When props change after instantiated, state doesn't update.
  */
 
-export class Image extends React.Component<BlockContentProps<unknown>, State> {
-  constructor(props: BlockContentProps<unknown>) {
+export class Image extends React.Component<ContentProps<unknown>, State> {
+  constructor(props: ContentProps<unknown>) {
     super(props)
     if (props.content === null) {
       this.state = { loaded: false, imgSrc: '' }

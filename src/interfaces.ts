@@ -25,7 +25,7 @@ export interface PubSubStatusMessage {
   }[]
 }
 
-export interface BlockContentProps<T> {
+export interface ContentProps<T> {
   readOnly: boolean
   viewMode: 'block' | 'card' | 'nav_item'
   content: T

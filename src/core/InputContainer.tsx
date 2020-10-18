@@ -60,7 +60,6 @@ export function InputContainer(
 
   const handleMouse = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect()
-    console.log(rect)
     const unifiedInfo = {
       clientX: e.clientX,
       clientY: e.clientY,

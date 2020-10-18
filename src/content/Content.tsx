@@ -4,11 +4,11 @@ import { Image } from './Image'
 import { PMText } from './PMText'
 import { Status } from './Status'
 import { Text } from './Text'
-import { BlockContentProps } from '../interfaces'
+import { ContentProps } from '../interfaces'
 
 interface Props {
   contentType: string
-  contentProps: BlockContentProps<unknown>
+  contentProps: ContentProps<unknown>
 }
 
 export const Content: React.FunctionComponent<Props> = (props) => {

@@ -1,9 +1,9 @@
 import * as React from 'react'
 import {
-  BlockContentProps, PubSubStatusMessage, UnifiedEventInfo
+  ContentProps, PubSubStatusMessage, UnifiedEventInfo
 } from '../interfaces'
 
-export function Status(props: BlockContentProps<unknown>): JSX.Element {
+export function Status(props: ContentProps<unknown>): JSX.Element {
   const [statusText, setStatusText] = React.useState<string>('')
   const [highlightText, setHighlightText] = React.useState<string>('')
   const [mouse, setMouse] = React.useState<UnifiedEventInfo>({

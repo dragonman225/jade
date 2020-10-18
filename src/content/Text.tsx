@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { SlateTextEditor } from './SlateTextEditor'
 import * as Slate from 'slate'
-import { BlockContentProps } from '../interfaces'
+import { ContentProps } from '../interfaces'
 
 /**
  * Slate CJK bugs
@@ -15,8 +15,8 @@ interface State {
   isNewText: boolean
 }
 
-export class Text extends React.Component<BlockContentProps<unknown>, State> {
-  constructor(props: BlockContentProps<unknown>) {
+export class Text extends React.Component<ContentProps<unknown>, State> {
+  constructor(props: ContentProps<unknown>) {
     super(props)
     this.state = {
       content: this.getValidContent(props.content),

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { BlockContentProps } from '../interfaces'
+import { ContentProps } from '../interfaces'
 import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { Schema, Node } from 'prosemirror-model'
@@ -24,10 +24,10 @@ interface State {
   isNewText: boolean
 }
 
-export class PMText extends React.Component<BlockContentProps<unknown>, State> {
+export class PMText extends React.Component<ContentProps<unknown>, State> {
   PMRef: React.RefObject<HTMLDivElement>
 
-  constructor(props: BlockContentProps<unknown>) {
+  constructor(props: ContentProps<unknown>) {
     super(props)
     this.state = {
       PMState: EditorState.create({

@@ -29,7 +29,7 @@ export class PubSub implements IPubSub {
    * @param channel 
    * @param content 
    */
-  publish<T>(channel: string, content?: T): void {
+  publish = <T>(channel: string, content?: T): void => {
     const subscribers = this.channelMap[channel]
     if (subscribers && subscribers.length > 0) {
       for (let i = 0; i < subscribers.length; i++) {
@@ -50,7 +50,7 @@ export class PubSub implements IPubSub {
    * @param channel 
    * @param callback 
    */
-  subscribe<T>(channel: string, callback: (arg: T) => void): void {
+  subscribe = <T>(channel: string, callback: (arg: T) => void): void => {
     const subscribers = this.channelMap[channel]
     const newSubscriber = { user: '', callback }
     if (subscribers && subscribers.length > 0) {
@@ -62,7 +62,7 @@ export class PubSub implements IPubSub {
     this.emitStatus('subscribe', channel)
   }
 
-  unsubscribe(channel: string, callback: (arg: unknown) => void): void {
+  unsubscribe = (channel: string, callback: (arg: unknown) => void): void => {
     const subscribers = this.channelMap[channel]
     if (subscribers && subscribers.length > 0) {
       for (let i = 0; i < subscribers.length; i++) {

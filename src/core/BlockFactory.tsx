@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { getMouseOffset } from '../lib/utils'
-import { UnifiedEventInfo } from '../interfaces'
+import { Vec2 } from '../interfaces'
 
 interface Props {
-  onRequestCreate: (info: UnifiedEventInfo) => void
+  onRequestCreate: (position: Vec2) => void
 }
 
 export class BlockFactory extends React.Component<Props> {
@@ -14,10 +14,8 @@ export class BlockFactory extends React.Component<Props> {
   handleDoubleClick = (e: React.MouseEvent): void => {
     const offset = getMouseOffset(e)
     this.props.onRequestCreate({
-      clientX: e.clientX,
-      clientY: e.clientY,
-      offsetX: offset.x,
-      offsetY: offset.y
+      x: offset.x,
+      y: offset.y
     })
   }
 
