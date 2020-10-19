@@ -9,6 +9,7 @@ import { IconHome } from './core/IconHome'
 import { BlockFactory } from './core/BlockFactory'
 import { InputContainer } from './core/InputContainer'
 import { Recent } from './core/Recent'
+import { Search } from './core/Search'
 import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
@@ -92,7 +93,7 @@ export const App: React.FunctionComponent = () => {
   }
 
   const historySize = 15
-  const [expandHistory, setExpandHistory] = React.useState([state.currentBlockCard])
+  const [expandHistory, setExpandHistory] = React.useState([state.currentBlockCardId])
   const [last, setLast] = React.useState(0)
 
   const handleExpand = (blockCardId: string) => {
@@ -115,6 +116,8 @@ export const App: React.FunctionComponent = () => {
       }
     })
   }
+
+  const currentBlockCard = state.blockCardMap[state.currentBlockCardId]
 
   return (
     <>
@@ -168,7 +171,7 @@ export const App: React.FunctionComponent = () => {
 
         .Playground {
           position: relative;
-          height: 100%;
+          height: calc(100% - 50px);
         }
 
         .HomeBtn {
@@ -195,17 +198,23 @@ export const App: React.FunctionComponent = () => {
           outline: none;
         }
       `}</style>
+      <style jsx>{`
+        .Search {
+          position: absolute;
+          left: 1.5rem;
+          bottom: 1.5rem;
+        }
+      `}</style>
       <div className="App bg-black-20 h-100">
         <div className="Navbar">
           <div className="HomeBtnContainer">
             <button className="HomeBtn" onClick={() => {
-              handleExpand(state.homeBlockCard)
+              handleExpand(state.homeBlockCardId)
             }}><IconHome /></button>
           </div>
           <div className="SummaryContainer">
             {
               function () {
-                const currentBlockCard = state.blockCardMap[state.currentBlockCard]
                 const key = 'card-' + currentBlockCard.id
                 const updateContent = (content: unknown) => {
                   dispatchAction({
@@ -248,9 +257,11 @@ export const App: React.FunctionComponent = () => {
                 data: { position }
               })
             }} />
+            <div className="Search">
+              <Search state={state} onExpand={handleExpand} />
+            </div>
             {
-              state.blockCardMap[state.currentBlockCard].blocks.map(blockRef => {
-                const currentBlockCard = state.blockCardMap[state.currentBlockCard]
+              state.blockCardMap[state.currentBlockCardId].blocks.map(blockRef => {
                 const referencedBlockCard = state.blockCardMap[blockRef.id]
                 const key = 'block-' + referencedBlockCard.id
                 return (
@@ -286,13 +297,13 @@ export const App: React.FunctionComponent = () => {
             }
             <Canvas
               messenger={messenger}
-              readOnly={isInteractionLocked('canvas' + state.currentBlockCard)}
-              value={state.blockCardMap[state.currentBlockCard].drawing}
+              readOnly={isInteractionLocked('canvas' + state.currentBlockCardId)}
+              value={state.blockCardMap[state.currentBlockCardId].drawing}
               onChange={data => dispatchAction({ type: 'canvas::change', data })}
-              onInteractionStart={() => { lockInteraction('canvas' + state.currentBlockCard) }}
-              onInteractionEnd={() => { unlockInteraction('canvas' + state.currentBlockCard) }}
+              onInteractionStart={() => { lockInteraction('canvas' + state.currentBlockCardId) }}
+              onInteractionEnd={() => { unlockInteraction('canvas' + state.currentBlockCardId) }}
               /** Use key to remount Canvas when currentBlockCard changes. */
-              key={'canvas-' + state.currentBlockCard} />
+              key={'canvas-' + state.currentBlockCardId} />
           </InputContainer>
         </div>
       </div>

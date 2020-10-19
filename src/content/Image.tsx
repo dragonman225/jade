@@ -53,11 +53,13 @@ export class Image extends React.Component<ContentProps<unknown>, State> {
             <style jsx>{`
               div {
                 height: 100%;
+                max-height: inherit;
                 overflow: hidden;
               }
               img {
                 width: 100%;
                 height: 100%;
+                max-height: inherit;
                 object-fit: contain;
               }
             `}</style>

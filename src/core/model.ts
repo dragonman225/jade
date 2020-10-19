@@ -77,9 +77,9 @@ export function appStateReducer(state: State3, action: Action): State3 {
         ...state,
         blockCardMap: {
           ...state.blockCardMap,
-          [state.currentBlockCard]: {
-            ...state.blockCardMap[state.currentBlockCard],
-            blocks: state.blockCardMap[state.currentBlockCard].blocks.concat([{
+          [state.currentBlockCardId]: {
+            ...state.blockCardMap[state.currentBlockCardId],
+            blocks: state.blockCardMap[state.currentBlockCardId].blocks.concat([{
               id: block.id,
               position: action.data.position,
               width: 300
@@ -90,7 +90,7 @@ export function appStateReducer(state: State3, action: Action): State3 {
       }
     }
     case 'block::move': {
-      const toChange = state.currentBlockCard
+      const toChange = state.currentBlockCardId
       return {
         ...state,
         blockCardMap: {
@@ -112,7 +112,7 @@ export function appStateReducer(state: State3, action: Action): State3 {
       }
     }
     case 'block::resize': {
-      const toChange = state.currentBlockCard
+      const toChange = state.currentBlockCardId
       return {
         ...state,
         blockCardMap: {
@@ -144,7 +144,7 @@ export function appStateReducer(state: State3, action: Action): State3 {
       }
     }
     case 'block::remove': { // remove reference only
-      const toChange = state.currentBlockCard
+      const toChange = state.currentBlockCardId
       return {
         ...state,
         blockCardMap: {
@@ -160,11 +160,11 @@ export function appStateReducer(state: State3, action: Action): State3 {
     case 'block::expand': {
       return {
         ...state,
-        currentBlockCard: action.data.id
+        currentBlockCardId: action.data.id
       }
     }
     case 'canvas::change': {
-      const toChange = state.currentBlockCard
+      const toChange = state.currentBlockCardId
       return {
         ...state,
         blockCardMap: {

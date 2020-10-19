@@ -92,8 +92,8 @@ export interface BlockCard {
 /** App state v3. */
 export interface State3 {
   debugging: boolean
-  homeBlockCard: string // The user does not want to get lost!
-  currentBlockCard: string
+  homeBlockCardId: string // The user does not want to get lost!
+  currentBlockCardId: string
   blockCardMap: {
     [id: string]: BlockCard
   }
