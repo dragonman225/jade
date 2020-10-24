@@ -40,6 +40,7 @@ export const Search: React.FunctionComponent<Props> = (props) => {
 
         .ScrollListItem {
           max-height: 200px;
+          overflow: hidden;
           margin: 0 .3rem;
           border-radius: .5rem;
           transition: background 0.1s;
@@ -80,7 +81,7 @@ export const Search: React.FunctionComponent<Props> = (props) => {
                   .toLocaleLowerCase().includes(text.toLocaleLowerCase())
               })
               .map(blockCard => {
-                return <>
+                return <React.Fragment key={blockCard.id}>
                   <div className="ScrollListItem"
                     onClick={() => { props.onExpand(blockCard.id) }}>
                     <Content
@@ -97,11 +98,10 @@ export const Search: React.FunctionComponent<Props> = (props) => {
                         onReplace: () => { return },
                         onInteractionStart: () => { return },
                         onInteractionEnd: () => { return },
-                      }}
-                      key={blockCard.id} />
+                      }} />
                   </div>
                   <hr />
-                </>
+                </React.Fragment>
               })
               : <></>
           }

@@ -142,6 +142,8 @@ export const App: React.FunctionComponent = () => {
       <style jsx>{`
         .App {
           overflow: hidden;
+          height: 100%;
+          background-color: #eeeeee;
         }
 
         .Navbar {
@@ -203,9 +205,10 @@ export const App: React.FunctionComponent = () => {
           position: absolute;
           left: 1.5rem;
           bottom: 1.5rem;
+          z-index: 9999;
         }
       `}</style>
-      <div className="App bg-black-20 h-100">
+      <div className="App">
         <div className="Navbar">
           <div className="HomeBtnContainer">
             <button className="HomeBtn" onClick={() => {
