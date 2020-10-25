@@ -143,7 +143,7 @@ export const App: React.FunctionComponent = () => {
         .App {
           overflow: hidden;
           height: 100%;
-          background-color: #eeeeee;
+          background: rgba(0,0,0,.2);
         }
 
         .Navbar {
