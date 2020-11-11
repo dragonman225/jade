@@ -205,7 +205,7 @@ export const App: React.FunctionComponent = () => {
           position: absolute;
           left: 1.5rem;
           bottom: 1.5rem;
-          z-index: 9999;
+          z-index: 99;
         }
       `}</style>
       <div className="App">
@@ -261,7 +261,14 @@ export const App: React.FunctionComponent = () => {
               })
             }} />
             <div className="Search">
-              <Search state={state} onExpand={handleExpand} />
+              <Search state={state} onExpand={handleExpand}
+                onRequestLink={data => {
+                  dispatchAction({
+                    type: 'block::link',
+                    data
+                  })
+                }}
+                messenger={messenger} />
             </div>
             {
               state.blockCardMap[state.currentBlockCardId].blocks.map(blockRef => {
