@@ -48,36 +48,43 @@ export const Status: React.FunctionComponent<ContentProps<unknown>> = (props) =>
               line-height: 1.5;
               user-select: none;
             }
-    
-            .highlight {
+
+            .MouseData > p {
+              margin: 0;
+            }
+
+            .EventData .highlight {
               background: aquamarine;
             }
           `}</style>
-          <h3>Mouse Position:&nbsp;({mouse.offsetX.toFixed(0)}, {mouse.offsetY.toFixed(0)})</h3>
-          {
-            highlightText
-              ? <h3>{highlightText}</h3>
-              : <h3>undefined</h3>
-          }
-          {
-            function () {
-              const highlightStart = statusText.indexOf(highlightText)
-              const highlightEnd = highlightStart + highlightText.length
-              if (highlightStart === -1) {
-                return <span>{statusText}</span>
-              } else {
-                return (
-                  <>
-                    <span>{statusText.substring(0, highlightStart)}</span>
-                    <span className="highlight">
-                      {statusText.substring(highlightStart, highlightEnd)}
-                    </span>
-                    <span>{statusText.substring(highlightEnd)}</span>
-                  </>
-                )
-              }
-            }()
-          }
+          <section className="MouseData">
+            <h3>Mouse</h3>
+            <p>Client: ({mouse.clientX.toFixed(0)}, {mouse.clientY.toFixed(0)})</p>
+            <p>Origin: ({mouse.originX.toFixed(0)}, {mouse.originY.toFixed(0)})</p>
+            <p>Offset: ({mouse.offsetX.toFixed(0)}, {mouse.offsetY.toFixed(0)})</p>
+          </section>
+          <section className="EventData">
+            <h3>Event</h3>
+            {
+              function () {
+                const highlightStart = statusText.indexOf(highlightText)
+                const highlightEnd = highlightStart + highlightText.length
+                if (highlightStart === -1) {
+                  return <span>{statusText}</span>
+                } else {
+                  return (
+                    <>
+                      <span>{statusText.substring(0, highlightStart)}</span>
+                      <span className="highlight">
+                        {statusText.substring(highlightStart, highlightEnd)}
+                      </span>
+                      <span>{statusText.substring(highlightEnd)}</span>
+                    </>
+                  )
+                }
+              }()
+            }
+          </section>
         </div>
       )
     default:
