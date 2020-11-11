@@ -1,4 +1,4 @@
-import { BlockCard, BlockCardRef, BlockModel, Vec2 } from '../interfaces'
+import { BlockCard, BlockCardRef, BlockModel, Vec2, Rect } from '../interfaces'
 
 export function getMouseOffset(e: React.MouseEvent): Vec2 {
   const rect = e.currentTarget.getBoundingClientRect()
@@ -6,6 +6,11 @@ export function getMouseOffset(e: React.MouseEvent): Vec2 {
     x: e.clientX - rect.left,
     y: e.clientY - rect.top
   }
+}
+
+export function isPointInRect(point: Vec2, domRect: Rect): boolean {
+  return point.x > domRect.left && point.x < domRect.right
+    && point.y > domRect.top && point.y < domRect.bottom
 }
 
 export function adaptToBlockModel(

@@ -4,6 +4,7 @@ import { IconDragHandle } from './IconDragHandle'
 import { IconCross } from './IconCross'
 import { IconExpand } from './IconExpand'
 import { UnifiedEventInfo, BlockModel, ContentProps } from '../interfaces'
+import { isPointInRect } from '../lib/utils'
 
 interface Props {
   readOnly: boolean
@@ -48,14 +49,23 @@ export class Block extends React.Component<Props, State> {
   }
 
   inDragArea(x: number, y: number): boolean {
-    if (x > this.props.value.position.x && x < this.props.value.position.x + dragAreaSize
-      && y > this.props.value.position.y && y < this.props.value.position.y + dragAreaSize) {
-      return true
-    } else return false
+    const mousePoint = { x, y }
+    const dragRect = {
+      top: this.props.value.position.y,
+      left: this.props.value.position.x,
+      bottom: this.props.value.position.y + dragAreaSize,
+      right: this.props.value.position.x + dragAreaSize
+    }
+    if (isPointInRect(mousePoint, dragRect)) return true
+    else return false
   }
 
   inResizeArea(msg: UnifiedEventInfo): boolean {
     const { offsetX, offsetY, originX, originY } = msg
+    const mousePoint = {
+      x: offsetX,
+      y: offsetY
+    }
     const blockRect = this.ref.current.getBoundingClientRect()
     const resizeRect = {
       top: blockRect.bottom - dragAreaSize - originY,
@@ -63,7 +73,7 @@ export class Block extends React.Component<Props, State> {
       bottom: blockRect.bottom,
       right: blockRect.right
     }
-    if (offsetX < resizeRect.right && offsetX > resizeRect.left && offsetY > resizeRect.top && offsetY < resizeRect.bottom) return true
+    if (isPointInRect(mousePoint, resizeRect)) return true
     else return false
   }
 

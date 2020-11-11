@@ -5,6 +5,13 @@ export interface Vec2 {
   y: number
 }
 
+export interface Rect {
+  left: number   // min x
+  right: number  // max x
+  top: number    // min y
+  bottom: number // max y
+}
+
 export interface UnifiedEventInfo {
   clientX: number
   clientY: number
