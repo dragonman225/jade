@@ -3,13 +3,15 @@ import { IPubSub } from '../lib/pubsub'
 import { IconDragHandle } from './IconDragHandle'
 import { IconCross } from './IconCross'
 import { IconExpand } from './IconExpand'
-import { UnifiedEventInfo, BlockModel, ContentProps } from '../interfaces'
+import { UnifiedEventInfo, BlockModel, ContentProps, Vec2 } from '../interfaces'
 import { isPointInRect } from '../lib/utils'
 
 interface Props {
   readOnly: boolean
   value: BlockModel<unknown>
-  onContentChange: (data: BlockModel<unknown>) => void
+  onContentChange: (data: unknown) => void
+  onResize: (width: number) => void
+  onMove: (position: Vec2) => void
   onRemove: () => void
   onExpand: () => void
   onInteractionStart?: () => void
@@ -112,19 +114,13 @@ export class Block extends React.Component<Props, State> {
       if (newPos.y < limit.minY) newPos.y = limit.minY
       else if (newPos.y + minHeight > limit.maxY) newPos.y = limit.maxY - minHeight
 
-      this.props.onContentChange({
-        ...this.props.value,
-        position: newPos
-      })
+      this.props.onMove(newPos)
       this.props.messenger.publish('block::moving')
     }
 
     if (this.state.resizing) {
       const deltaX = msg.offsetX - this.state.lastDragPosition.x
-      this.props.onContentChange({
-        ...this.props.value,
-        width: this.props.value.width + deltaX
-      })
+      this.props.onResize(this.props.value.width + deltaX)
       this.setState({
         lastDragPosition: {
           x: msg.offsetX,
@@ -174,10 +170,7 @@ export class Block extends React.Component<Props, State> {
   }
 
   handleContentChange = (content: unknown): void => {
-    this.props.onContentChange({
-      ...this.props.value,
-      content
-    })
+    this.props.onContentChange(content)
   }
 
   handleContentInteractionStart = (): void => {

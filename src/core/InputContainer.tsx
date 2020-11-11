@@ -44,12 +44,12 @@ export function InputContainer(
     }
   }, [])
 
-  const handleMoveStart =
+  const pointerEnter =
     (_e: React.MouseEvent | React.TouchEvent, info: UnifiedEventInfo) => {
       setDragState(dragStateEnum.ready)
     }
 
-  const handleMoving =
+  const pointerMove =
     (_e: React.MouseEvent | React.TouchEvent, info: UnifiedEventInfo) => {
       if (dragState === dragStateEnum.ready) {
         messenger.publish('user::dragstart', info)
@@ -60,9 +60,11 @@ export function InputContainer(
       messenger.publish('user::mousemove', info)
     }
 
-  const handleMoveEnd =
+  const pointerLeave =
     (_e: React.MouseEvent | React.TouchEvent, info: UnifiedEventInfo) => {
-      if (dragState === dragStateEnum.dragging) {
+      if (dragState === dragStateEnum.ready) {
+        messenger.publish('user::tap', info)
+      } else if (dragState === dragStateEnum.dragging) {
         messenger.publish('user::dragend', info)
       }
       setDragState(dragStateEnum.idle)
@@ -79,11 +81,11 @@ export function InputContainer(
       offsetY: e.clientY - rect.top
     }
     if (e.type === 'mousedown')
-      handleMoveStart(e, unifiedInfo)
+      pointerEnter(e, unifiedInfo)
     else if (e.type === 'mousemove')
-      handleMoving(e, unifiedInfo)
+      pointerMove(e, unifiedInfo)
     else
-      handleMoveEnd(e, unifiedInfo)
+      pointerLeave(e, unifiedInfo)
   }
 
   const handleTouch = (e: React.TouchEvent) => {
@@ -106,11 +108,11 @@ export function InputContainer(
         offsetY: e.changedTouches[0].clientY - rect.top
       }
     if (e.type === 'touchstart')
-      handleMoveStart(e, unifiedInfo)
+      pointerEnter(e, unifiedInfo)
     else if (e.type === 'touchmove')
-      handleMoving(e, unifiedInfo)
+      pointerMove(e, unifiedInfo)
     else
-      handleMoveEnd(e, unifiedInfo)
+      pointerLeave(e, unifiedInfo)
   }
 
   return (

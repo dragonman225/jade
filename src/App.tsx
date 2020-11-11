@@ -13,9 +13,9 @@ import { Search } from './core/Search'
 import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
-import { adaptToBlockCard, adaptToBlockModel } from './lib/utils'
+import { adaptToBlockModel } from './lib/utils'
 import {
-  State3, BlockCard, BlockModel, ContentProps
+  State3, BlockCard, ContentProps
 } from './interfaces'
 
 const initialState = require('./InitialState.json') as State3
@@ -82,18 +82,9 @@ export const App: React.FunctionComponent = () => {
     }
   }, [])
 
-  const handleChange = (
-    currentBlockCard: BlockCard,
-    referencedBlockCard: BlockCard,
-    data: BlockModel<unknown>
-  ) => {
-    const adapted = adaptToBlockCard(currentBlockCard, referencedBlockCard, data)
-    dispatchAction({ type: 'block::change', data: adapted.newCurrentBlockCard })
-    dispatchAction({ type: 'block::change', data: adapted.newReferencedBlockCard })
-  }
-
   const historySize = 15
-  const [expandHistory, setExpandHistory] = React.useState([state.currentBlockCardId])
+  const [expandHistory, setExpandHistory] =
+    React.useState([state.currentBlockCardId])
   const [last, setLast] = React.useState(0)
 
   const handleExpand = (blockCardId: string) => {
@@ -107,7 +98,7 @@ export const App: React.FunctionComponent = () => {
     }
   }
 
-  const handleContentReplace = (blockCard: BlockCard, newType: string) => {
+  const replaceContentType = (blockCard: BlockCard, newType: string) => {
     dispatchAction({
       type: 'block::change', data: {
         ...blockCard,
@@ -233,12 +224,15 @@ export const App: React.FunctionComponent = () => {
                   content: currentBlockCard.content,
                   messageBus: readOnlyMessenger,
                   onChange: updateContent,
-                  onReplace: type => { handleContentReplace(currentBlockCard, type) },
+                  onReplace: type => {
+                    replaceContentType(currentBlockCard, type)
+                  },
                   onInteractionStart: () => { lockInteraction(key) },
                   onInteractionEnd: () => { unlockInteraction(key) },
                   key: key
                 }
-                return <Content contentType={currentBlockCard.type} contentProps={contentProps} />
+                return <Content contentType={currentBlockCard.type}
+                  contentProps={contentProps} />
               }()
             }
           </div>
@@ -271,39 +265,58 @@ export const App: React.FunctionComponent = () => {
                 messenger={messenger} />
             </div>
             {
-              state.blockCardMap[state.currentBlockCardId].blocks.map(blockRef => {
-                const referencedBlockCard = state.blockCardMap[blockRef.id]
-                const key = 'block-' + referencedBlockCard.id
-                return (
-                  <Block
-                    messenger={messenger}
-                    readOnly={isInteractionLocked(key)}
-                    value={adaptToBlockModel(referencedBlockCard, blockRef)}
-                    onContentChange={data => {
-                      handleChange(currentBlockCard, referencedBlockCard, data)
-                    }}
-                    onRemove={() => {
-                      dispatchAction({ type: 'block::remove', data: { id: referencedBlockCard.id } })
-                    }}
-                    onExpand={() => { handleExpand(referencedBlockCard.id) }}
-                    onInteractionStart={() => { lockInteraction(key) }}
-                    onInteractionEnd={() => { unlockInteraction(key) }}
-                    key={key}>
-                    {
-                      (contentProps) => <Content
-                        contentType={referencedBlockCard.type}
-                        contentProps={{
-                          ...contentProps,
-                          viewMode: 'block',
-                          messageBus: readOnlyMessenger,
-                          onReplace: type => {
-                            handleContentReplace(referencedBlockCard, type)
-                          }
-                        }} />
-                    }
-                  </Block>
-                )
-              })
+              state.blockCardMap[state.currentBlockCardId].blocks
+                .map(blockRef => {
+                  const referencedBlockCard = state.blockCardMap[blockRef.to]
+                  const key = 'blockref-' + blockRef.id
+                  return (
+                    <Block
+                      messenger={messenger}
+                      readOnly={isInteractionLocked(key)}
+                      value={adaptToBlockModel(referencedBlockCard, blockRef)}
+                      onContentChange={(content) => {
+                        dispatchAction({
+                          type: 'block::change',
+                          data: { ...referencedBlockCard, content }
+                        })
+                      }}
+                      onResize={(width) => {
+                        dispatchAction({
+                          type: 'block::resize',
+                          data: { id: blockRef.id, width }
+                        })
+                      }}
+                      onMove={(position) => {
+                        dispatchAction({
+                          type: 'block::move',
+                          data: { id: blockRef.id, position }
+                        })
+                      }}
+                      onRemove={() => {
+                        dispatchAction({
+                          type: 'block::remove',
+                          data: { id: blockRef.id }
+                        })
+                      }}
+                      onExpand={() => { handleExpand(referencedBlockCard.id) }}
+                      onInteractionStart={() => { lockInteraction(key) }}
+                      onInteractionEnd={() => { unlockInteraction(key) }}
+                      key={key}>
+                      {
+                        (contentProps) => <Content
+                          contentType={referencedBlockCard.type}
+                          contentProps={{
+                            ...contentProps,
+                            viewMode: 'block',
+                            messageBus: readOnlyMessenger,
+                            onReplace: type => {
+                              replaceContentType(referencedBlockCard, type)
+                            }
+                          }} />
+                      }
+                    </Block>
+                  )
+                })
             }
             <Canvas
               messenger={messenger}

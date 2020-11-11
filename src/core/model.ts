@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { BlockCard, State3, Stroke, Vec2 } from '../interfaces'
+import { BlockCard, BlockCardRef, State3, Stroke, Vec2 } from '../interfaces'
 
 interface BlockCreateAction {
   type: 'block::create'
@@ -83,17 +83,20 @@ export function appStateReducer(state: State3, action: Action): State3 {
         drawing: [],
         blocks: []
       }
+      const blockRef: BlockCardRef = {
+        id: uuidv4(),
+        to: block.id,
+        position: action.data.position,
+        width: defaultBlockWidth
+      }
       return {
         ...state,
         blockCardMap: {
           ...state.blockCardMap,
           [state.currentBlockCardId]: {
             ...state.blockCardMap[state.currentBlockCardId],
-            blocks: state.blockCardMap[state.currentBlockCardId].blocks.concat([{
-              id: block.id,
-              position: action.data.position,
-              width: defaultBlockWidth
-            }])
+            blocks: state.blockCardMap[state.currentBlockCardId].blocks
+              .concat([blockRef])
           },
           [block.id]: block
         }
@@ -183,7 +186,8 @@ export function appStateReducer(state: State3, action: Action): State3 {
             ...state.blockCardMap[toChange],
             blocks: state.blockCardMap[toChange].blocks
               .concat([{
-                id: action.data.id,
+                id: uuidv4(),
+                to: action.data.id,
                 position: action.data.position,
                 width: defaultBlockWidth
               }])

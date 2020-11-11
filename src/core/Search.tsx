@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Content } from '../content/Content'
 import { BlockCard, State3, UnifiedEventInfo, Vec2 } from '../interfaces'
 import { IPubSub } from '../lib/pubsub'
+import { isPointInRect } from '../lib/utils'
 
 interface SearchItemContentProps {
   blockCard: BlockCard
@@ -103,20 +104,31 @@ export const Search: React.FunctionComponent<Props> = (props) => {
     }
   }
 
+  const handleTap = (e: UnifiedEventInfo) => {
+    const point = {
+      x: e.clientX,
+      y: e.clientY
+    }
+    if (!isPointInRect(point, getSearchRect())) {
+      setMinimized(true)
+    }
+  }
+
   React.useEffect(() => {
     messenger.subscribe('user::dragstart', handleDragStart)
     messenger.subscribe('user::dragging', handleDragging)
     messenger.subscribe('user::dragend', handleDragEnd)
+    messenger.subscribe('user::tap', handleTap)
     return () => {
       messenger.unsubscribe('user::dragstart', handleDragStart)
       messenger.unsubscribe('user::dragging', handleDragging)
       messenger.unsubscribe('user::dragend', handleDragEnd)
+      messenger.unsubscribe('user::tap', handleTap)
     }
   })
 
   return (
     <div className="Search" ref={searchRef}
-      onBlur={() => { setMinimized(true) }}
       onFocus={() => { setMinimized(false) }}>
       <style jsx>{`
         .Search {
@@ -124,6 +136,7 @@ export const Search: React.FunctionComponent<Props> = (props) => {
           background: #fff;
           border-radius: .5rem;
           box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
+          cursor: ${s2lState === s2lStateEnum.linking ? 'grabbing' : 'auto'}
         }
 
         .SearchInput {
@@ -250,6 +263,7 @@ export const Search: React.FunctionComponent<Props> = (props) => {
       </div>
       {
         function () {
+          console.log(s2lState)
           if (s2lState === s2lStateEnum.linking && s2lBlock.valid) {
             const blockCard = props.state.blockCardMap[s2lBlock.id]
             const searchRect = getSearchRect()

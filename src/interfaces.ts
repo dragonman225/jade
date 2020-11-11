@@ -78,7 +78,10 @@ export interface State {
 
 /** A reference to a BlockCard. */
 export interface BlockCardRef {
+  /** ID of the reference. */
   id: string
+  /** ID of the referenced BlockCard. */
+  to: string
   position: Vec2
   width: number
 }
