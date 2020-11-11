@@ -43,6 +43,14 @@ interface BlockExpandAction {
   }
 }
 
+interface BlockLinkAction {
+  type: 'block::link'
+  data: {
+    id: string
+    position: Vec2
+  }
+}
+
 interface CanvasChangeAction {
   type: 'canvas::change'
   data: Stroke[]
@@ -56,6 +64,7 @@ type Action =
   BlockCreateAction | BlockMoveAction |
   BlockResizeAction | BlockChangeAction |
   BlockRemoveAction | BlockExpandAction |
+  BlockLinkAction |
   CanvasChangeAction | DebuggingToggleAction
 
 /**
@@ -64,6 +73,7 @@ type Action =
  * @param action - The action to perform.
  */
 export function appStateReducer(state: State3, action: Action): State3 {
+  const defaultBlockWidth = 300
   switch (action.type) {
     case 'block::create': {
       const block: BlockCard = {
@@ -82,7 +92,7 @@ export function appStateReducer(state: State3, action: Action): State3 {
             blocks: state.blockCardMap[state.currentBlockCardId].blocks.concat([{
               id: block.id,
               position: action.data.position,
-              width: 300
+              width: defaultBlockWidth
             }])
           },
           [block.id]: block
@@ -161,6 +171,24 @@ export function appStateReducer(state: State3, action: Action): State3 {
       return {
         ...state,
         currentBlockCardId: action.data.id
+      }
+    }
+    case 'block::link': {
+      const toChange = state.currentBlockCardId
+      return {
+        ...state,
+        blockCardMap: {
+          ...state.blockCardMap,
+          [toChange]: {
+            ...state.blockCardMap[toChange],
+            blocks: state.blockCardMap[toChange].blocks
+              .concat([{
+                id: action.data.id,
+                position: action.data.position,
+                width: defaultBlockWidth
+              }])
+          }
+        }
       }
     }
     case 'canvas::change': {
