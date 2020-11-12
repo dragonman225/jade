@@ -17,7 +17,7 @@ interface Props {
 
 export const Recent: React.FunctionComponent<Props> = (props) => {
   return (
-    <div className="Recent">
+    <div className="ToolBox Recent">
       <style jsx>{`
         button {
           border: none;
@@ -29,21 +29,23 @@ export const Recent: React.FunctionComponent<Props> = (props) => {
         }
 
         .Recent {
+          width: 500px;
           height: 50px;
           display: flex;
           overflow-x: auto;
         }
 
         .RecentBtn {
-          flex: 1 0 100px;
+          flex: 1 0 75px;
           max-width: 300px;
           height: 100%;
           overflow-y: hidden;
-          transition: background 0.2s;
+          transition: background 0.2s, flex-basis 0.3s;
         }
 
         .RecentBtn:hover {
-          background: rgba(0, 0, 0, 0.2);
+          background: rgba(0, 0, 0, 0.1);
+          flex: 1 0 200px;
         }
 
         .RecentBtn:active {
@@ -53,6 +55,7 @@ export const Recent: React.FunctionComponent<Props> = (props) => {
       {
         function () {
           const historyToShow: string[] = []
+          const maxNumToShow = 5
 
           for (let i = props.current - 1 + props.historySize; i > props.current; i--) {
             const blockCardId = props.history[i % props.historySize]
@@ -61,6 +64,7 @@ export const Recent: React.FunctionComponent<Props> = (props) => {
             /** Count once for repeated visits. */
             if (typeof historyToShow.find(id => id === blockCardId) === 'undefined') {
               historyToShow.push(blockCardId)
+              if (historyToShow.length >= maxNumToShow) break
             }
           }
 

@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Content } from '../content/Content'
+import { isPointInRect } from '../lib/utils'
 import { BlockCard, State3, UnifiedEventInfo, Vec2 } from '../interfaces'
 import { IPubSub } from '../lib/pubsub'
-import { isPointInRect } from '../lib/utils'
 
 interface SearchItemContentProps {
   blockCard: BlockCard
@@ -127,14 +127,11 @@ export const Search: React.FunctionComponent<Props> = (props) => {
   })
 
   return (
-    <div className="Search" ref={searchRef}
+    <div className="ToolBox Search" ref={searchRef}
       onFocus={() => { setMinimized(false) }}>
       <style jsx>{`
         .Search {
           width: 300px;
-          background: #fff;
-          border-radius: .5rem;
-          box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
           cursor: ${s2lState === s2lStateEnum.linking ? 'grabbing' : 'auto'}
         }
 

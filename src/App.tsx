@@ -5,7 +5,7 @@ import { useEffect, useReducer, useMemo } from 'react'
 import { appStateReducer } from './core/model'
 import { Block } from './core/Block'
 import { Canvas } from './core/Canvas'
-import { IconHome } from './core/IconHome'
+import { IconHome } from './core/component/IconHome'
 import { BlockFactory } from './core/BlockFactory'
 import { InputContainer } from './core/InputContainer'
 import { Recent } from './core/Recent'
@@ -129,6 +129,14 @@ export const App: React.FunctionComponent = () => {
           font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
           line-height: 1.6;
         }
+
+        .ToolBox {
+          background: #fff;
+          border-radius: .5rem;
+          box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px,
+                      rgba(15, 15, 15, 0.1) 0px 3px 6px,
+                      rgba(15, 15, 15, 0.2) 0px 9px 24px;
+        }
       `}</style>
       <style jsx>{`
         .App {
@@ -198,6 +206,13 @@ export const App: React.FunctionComponent = () => {
           bottom: 1.5rem;
           z-index: 99;
         }
+
+        .Recent {
+          position: absolute;
+          right: 1.5rem;
+          top: 1.5rem;
+          z-index: 99;
+        }
       `}</style>
       <div className="App">
         <div className="Navbar">
@@ -236,15 +251,6 @@ export const App: React.FunctionComponent = () => {
               }()
             }
           </div>
-          <div className="RecentContainer">
-            <Recent
-              history={expandHistory}
-              historySize={historySize}
-              current={last}
-              state={state}
-              messageBus={messenger}
-              onExpand={handleExpand} />
-          </div>
         </div>
         <div className="Playground">
           <InputContainer messenger={messenger}>
@@ -257,6 +263,15 @@ export const App: React.FunctionComponent = () => {
                 onRequestLink={data => {
                   dispatchAction({ type: 'block::link', data })
                 }} />
+            </div>
+            <div className="Recent">
+              <Recent
+                history={expandHistory}
+                historySize={historySize}
+                current={last}
+                state={state}
+                messageBus={messenger}
+                onExpand={handleExpand} />
             </div>
             {
               state.blockCardMap[state.currentBlockCardId].blocks

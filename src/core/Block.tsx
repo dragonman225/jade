@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { IPubSub } from '../lib/pubsub'
-import { IconDragHandle } from './IconDragHandle'
-import { IconCross } from './IconCross'
-import { IconExpand } from './IconExpand'
+import { IconDragHandle } from './component/IconDragHandle'
+import { IconCross } from './component/IconCross'
+import { IconExpand } from './component/IconExpand'
 import { UnifiedEventInfo, BlockModel, ContentProps, Vec2 } from '../interfaces'
 import { isPointInRect } from '../lib/utils'
 
