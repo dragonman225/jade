@@ -7,11 +7,13 @@ export interface InputContainerProps {
   messenger: IPubSub
 }
 
-const dragStateEnum = {
-  idle: Symbol(),
-  ready: Symbol(),
-  dragging: Symbol()
+const DragState = {
+  Idle: Symbol('idle'),
+  Ready: Symbol('ready'),
+  Dragging: Symbol('dragging')
 }
+
+type Event = 'pointerdown' | 'pointermove' | 'pointerup'
 
 /**
  * A container for global event delegation.
@@ -24,7 +26,7 @@ const dragStateEnum = {
 export function InputContainer(
   props: React.PropsWithChildren<InputContainerProps>): JSX.Element {
   const messenger = props.messenger
-  const [dragState, setDragState] = useState(dragStateEnum.idle)
+  const [dragState, setDragState] = useState(DragState.Idle)
 
   useEffect(() => {
     window.onresize = () => {
@@ -44,31 +46,44 @@ export function InputContainer(
     }
   }, [])
 
-  const pointerEnter =
-    (_e: React.MouseEvent | React.TouchEvent, info: UnifiedEventInfo) => {
-      setDragState(dragStateEnum.ready)
-    }
+  /**
+   * Lagacy: Currently users expect user::mousemove to fire whenever 
+   * pointer moves.
+   * In the future, proper pen events should be implemented.
+   */
+  const pointerMove = (info: UnifiedEventInfo) => {
+    messenger.publish('user::mousemove', info)
+  }
 
-  const pointerMove =
-    (_e: React.MouseEvent | React.TouchEvent, info: UnifiedEventInfo) => {
-      if (dragState === dragStateEnum.ready) {
-        messenger.publish('user::dragstart', info)
-        setDragState(dragStateEnum.dragging)
-      } else if (dragState === dragStateEnum.dragging) {
-        messenger.publish('user::dragging', info)
+  const handleEvent = (type: Event, info: UnifiedEventInfo) => {
+    switch (dragState) {
+      case DragState.Idle: {
+        if (type === 'pointerdown') {
+          setDragState(DragState.Ready)
+        }
+        break
       }
-      messenger.publish('user::mousemove', info)
-    }
-
-  const pointerLeave =
-    (_e: React.MouseEvent | React.TouchEvent, info: UnifiedEventInfo) => {
-      if (dragState === dragStateEnum.ready) {
-        messenger.publish('user::tap', info)
-      } else if (dragState === dragStateEnum.dragging) {
-        messenger.publish('user::dragend', info)
+      case DragState.Ready: {
+        if (type === 'pointermove') {
+          messenger.publish('user::dragstart', info)
+          setDragState(DragState.Dragging)
+        } else if (type === 'pointerup') {
+          messenger.publish('user::tap', info)
+          setDragState(DragState.Idle)
+        }
+        break
       }
-      setDragState(dragStateEnum.idle)
+      case DragState.Dragging: {
+        if (type === 'pointermove') {
+          messenger.publish('user::dragging', info)
+        } else if (type === 'pointerup') {
+          messenger.publish('user::dragend', info)
+          setDragState(DragState.Idle)
+        }
+        break
+      }
     }
+  }
 
   const handleMouse = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -81,11 +96,12 @@ export function InputContainer(
       offsetY: e.clientY - rect.top
     }
     if (e.type === 'mousedown')
-      pointerEnter(e, unifiedInfo)
-    else if (e.type === 'mousemove')
-      pointerMove(e, unifiedInfo)
-    else
-      pointerLeave(e, unifiedInfo)
+      handleEvent('pointerdown', unifiedInfo)
+    else if (e.type === 'mousemove') {
+      handleEvent('pointermove', unifiedInfo)
+      pointerMove(unifiedInfo)
+    } else
+      handleEvent('pointerup', unifiedInfo)
   }
 
   const handleTouch = (e: React.TouchEvent) => {
@@ -108,11 +124,12 @@ export function InputContainer(
         offsetY: e.changedTouches[0].clientY - rect.top
       }
     if (e.type === 'touchstart')
-      pointerEnter(e, unifiedInfo)
-    else if (e.type === 'touchmove')
-      pointerMove(e, unifiedInfo)
-    else
-      pointerLeave(e, unifiedInfo)
+      handleEvent('pointerdown', unifiedInfo)
+    else if (e.type === 'touchmove') {
+      handleEvent('pointermove', unifiedInfo)
+      pointerMove(unifiedInfo)
+    } else
+      handleEvent('pointerup', unifiedInfo)
   }
 
   return (
@@ -128,11 +145,11 @@ export function InputContainer(
       `}</style>
       <div
         onMouseDown={handleMouse}
-        onTouchStart={handleTouch}
         onMouseMove={handleMouse}
-        onTouchMove={handleTouch}
         onMouseUp={handleMouse}
         // onMouseLeave={handleMouse} prevent block being put at unreachable position
+        onTouchStart={handleTouch}
+        onTouchMove={handleTouch}
         onTouchEnd={handleTouch}
         onTouchCancel={handleTouch}>
         {props.children}
