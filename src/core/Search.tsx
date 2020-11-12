@@ -92,8 +92,7 @@ export const Search: React.FunctionComponent<Props> = (props) => {
           id: s2lBlock.id,
           position: {
             x: s2lBlock.rect.left + s2lDelta.x,
-            // HACK: The rect is relative to viewport, but there's Navbar's 50px
-            y: s2lBlock.rect.top + s2lDelta.y - 50
+            y: s2lBlock.rect.top + s2lDelta.y - e.originY
           }
         })
       }
@@ -188,7 +187,6 @@ export const Search: React.FunctionComponent<Props> = (props) => {
           overflow: hidden;
           border-radius: .5rem;
           background: #fff;
-          position: absolute;
           z-index: 999;
         }   
 
@@ -263,7 +261,7 @@ export const Search: React.FunctionComponent<Props> = (props) => {
       </div>
       {
         function () {
-          console.log(s2lState)
+          //console.log(s2lState)
           if (s2lState === s2lStateEnum.linking && s2lBlock.valid) {
             const blockCard = props.state.blockCardMap[s2lBlock.id]
             const searchRect = getSearchRect()
@@ -273,7 +271,7 @@ export const Search: React.FunctionComponent<Props> = (props) => {
             }}>
               <div className="VisualCopy"
                 style={{
-                  top: s2lDelta.y, left: s2lDelta.x
+                  transform: `translate(${s2lDelta.x}px, ${s2lDelta.y}px)`
                 }}>
                 <SearchItemContent blockCard={blockCard} />
               </div>

@@ -249,20 +249,14 @@ export const App: React.FunctionComponent = () => {
         <div className="Playground">
           <InputContainer messenger={messenger}>
             <BlockFactory onRequestCreate={position => {
-              dispatchAction({
-                type: 'block::create',
-                data: { position }
-              })
+              dispatchAction({ type: 'block::create', data: { position } })
             }} />
             <div className="Search">
               <Search state={state} onExpand={handleExpand}
+                messenger={messenger}
                 onRequestLink={data => {
-                  dispatchAction({
-                    type: 'block::link',
-                    data
-                  })
-                }}
-                messenger={messenger} />
+                  dispatchAction({ type: 'block::link', data })
+                }} />
             </div>
             {
               state.blockCardMap[state.currentBlockCardId].blocks
