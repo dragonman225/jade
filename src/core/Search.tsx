@@ -1,8 +1,10 @@
 import * as React from 'react'
+import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
 import { isPointInRect } from '../lib/utils'
 import { BlockCard, State3, UnifiedEventInfo, Vec2 } from '../interfaces'
 import { IPubSub } from '../lib/pubsub'
+import { Box } from './component/Box'
 
 interface SearchItemContentProps {
   blockCard: BlockCard
@@ -10,7 +12,6 @@ interface SearchItemContentProps {
 
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (props) => {
   const { blockCard } = props
-
   return (
     <Content
       contentType={blockCard.type}
@@ -49,9 +50,9 @@ interface S2LBlockInvalid {
 
 type S2LBlock = S2LBlockValid | S2LBlockInvalid
 
-const s2lStateEnum = {
-  idle: Symbol('idle'),
-  linking: Symbol('linking')
+const S2LState = {
+  Idle: Symbol('idle'),
+  Linking: Symbol('linking')
 }
 
 export const Search: React.FunctionComponent<Props> = (props) => {
@@ -64,26 +65,27 @@ export const Search: React.FunctionComponent<Props> = (props) => {
   const [minimized, setMinimized] = React.useState(true)
 
   /** Search-to-Link */
-  const [s2lState, setS2lState] = React.useState(s2lStateEnum.idle)
+  const [s2lState, setS2lState] = React.useState(S2LState.Idle)
   const [s2lBlock, setS2lBlock] = React.useState<S2LBlock>({ valid: false })
   const [s2lStart, setS2lStart] = React.useState<Vec2>({ x: 0, y: 0 })
   const [s2lDelta, setS2lDelta] = React.useState<Vec2>({ x: 0, y: 0 })
+
   const handleDragStart = (e: UnifiedEventInfo) => {
-    if (s2lState === s2lStateEnum.idle && s2lBlock.valid) {
+    if (s2lState === S2LState.Idle && s2lBlock.valid) {
       setMinimized(true)
-      setS2lState(s2lStateEnum.linking)
+      setS2lState(S2LState.Linking)
       setS2lStart({ x: e.clientX, y: e.clientY })
     }
   }
 
   const handleDragging = (e: UnifiedEventInfo) => {
-    if (s2lState === s2lStateEnum.linking) {
+    if (s2lState === S2LState.Linking) {
       setS2lDelta({ x: e.clientX - s2lStart.x, y: e.clientY - s2lStart.y })
     }
   }
 
   const handleDragEnd = (e: UnifiedEventInfo) => {
-    if (s2lState === s2lStateEnum.linking) {
+    if (s2lState === S2LState.Linking) {
       setS2lStart({ x: 0, y: 0 })
       setS2lDelta({ x: 0, y: 0 })
       if (s2lBlock.valid) {
@@ -99,7 +101,7 @@ export const Search: React.FunctionComponent<Props> = (props) => {
       else
         console.log('s2lBlock is invalid')
       setS2lBlock({ valid: false })
-      setS2lState(s2lStateEnum.idle)
+      setS2lState(S2LState.Idle)
     }
   }
 
@@ -126,83 +128,90 @@ export const Search: React.FunctionComponent<Props> = (props) => {
     }
   })
 
+  const styles = {
+    Search: typestyle.style({
+      width: '300px',
+      cursor: `${s2lState === S2LState.Linking ? 'grabbing' : 'auto'}`,
+      $nest: {
+        '& hr': {
+          border: '1px solid #ddd',
+          marginRight: '.5rem',
+          marginLeft: '.5rem',
+          $nest: {
+            '&:last-of-type': {
+              display: 'none'
+            }
+          }
+        }
+      }
+    }),
+    SearchInput: typestyle.style({
+      padding: '.5rem',
+      $nest: {
+        '&>input': {
+          outline: 'none',
+          border: 'none'
+        }
+      }
+    }),
+    SearchResult: typestyle.style({
+      padding: '0 .5rem 0'
+    }),
+    ScrollList: typestyle.style({
+      height: '100%',
+      maxHeight: '500px',
+      overflow: 'auto'
+    }),
+    ScrollListItem: typestyle.style({
+      maxHeight: '200px',
+      overflow: 'hidden',
+      margin: '0 .3rem',
+      borderRadius: '.5rem',
+      $nest: {
+        '&:hover': {
+          background: 'rgba(0, 0, 0, 0.1)'
+        },
+        '&:first-of-type': {
+          marginTop: '.5rem'
+        },
+        '&:last-of-type': {
+          marginBottom: '.5rem'
+        }
+      }
+    }),
+    S2LRelativeElem: typestyle.style({
+      position: 'absolute'
+    }),
+    VisualCopy: typestyle.style({
+      width: 300,
+      maxHeight: 200,
+      overflow: 'hidden',
+      zIndex: 999,
+      transform: `translate(${s2lDelta.x}px, ${s2lDelta.y}px)`
+    }),
+    hr: typestyle.style({
+      border: '1px solid #ddd',
+      marginRight: '.5rem',
+      marginLeft: '.5rem',
+      $nest: {
+        '&:last-of-type': {
+          display: 'none'
+        }
+      }
+    })
+  }
+
   return (
-    <div className="ToolBox Search" ref={searchRef}
+    <Box
+      className={styles.Search}
+      ref={searchRef}
       onFocus={() => { setMinimized(false) }}>
-      <style jsx>{`
-        .Search {
-          width: 300px;
-          cursor: ${s2lState === s2lStateEnum.linking ? 'grabbing' : 'auto'}
-        }
-
-        .SearchInput {
-          padding: .5rem;
-        }
-
-        .SearchInput > input {
-          outline: none;
-          border: none;
-        }
-
-        .SearchResult {
-          padding: 0 .5rem 0;
-        }
-
-        .ScrollList {
-          height: 100%;
-          max-height: 500px;
-          overflow: auto;
-        }
-
-        .ScrollListItem {
-          max-height: 200px;
-          overflow: hidden;
-          margin: 0 .3rem;
-          border-radius: .5rem;
-          transition: background 0.1s;
-        }
-
-        .ScrollListItem:hover {
-          background: rgba(0, 0, 0, 0.1);
-        }
-
-        .ScrollListItem:first-of-type {
-          margin-top: .5rem;
-        }
-
-        .ScrollListItem:last-of-type {
-          margin-bottom: .5rem;
-        }
-
-        .S2LRelativeElem {
-          position: absolute;
-        }
-
-        .VisualCopy {
-          width: 300px;
-          max-height: 200px;
-          overflow: hidden;
-          border-radius: .5rem;
-          background: #fff;
-          z-index: 999;
-        }   
-
-        hr {
-          border: 1px solid #ddd;
-          margin-right: .5rem;
-          margin-left: .5rem;
-        }
-
-        hr:last-of-type {
-          display: none;
-        }
-      `}</style>
       {
         !minimized ?
-          <div className="SearchResult">
-            <div className="ScrollList">
+          <div className={styles.SearchResult}>
+            <div className={styles.ScrollList}>
               {
-                text ? Object.values(props.state.blockCardMap)
+                text || !text ? Object.values(props.state.blockCardMap)
                   .filter(blockCard => {
                     /**
                      * HACK: Each content type should be able to decide 
@@ -216,9 +225,9 @@ export const Search: React.FunctionComponent<Props> = (props) => {
                       {
                         function () {
                           switch (s2lState) {
-                            case s2lStateEnum.idle: {
+                            case S2LState.Idle: {
                               /** The following doesn't support touch. */
-                              return <div className="ScrollListItem"
+                              return <div className={styles.ScrollListItem}
                                 onMouseEnter={(e) => {
                                   setS2lBlock({
                                     valid: true,
@@ -235,8 +244,8 @@ export const Search: React.FunctionComponent<Props> = (props) => {
                                 <SearchItemContent blockCard={blockCard} />
                               </div>
                             }
-                            case s2lStateEnum.linking: {
-                              return <div className="ScrollListItem">
+                            case S2LState.Linking: {
+                              return <div className={styles.ScrollListItem}>
                                 <SearchItemContent blockCard={blockCard} />
                               </div>
                             }
@@ -252,30 +261,27 @@ export const Search: React.FunctionComponent<Props> = (props) => {
           </div> :
           <></>
       }
-      <div className="SearchInput">
+      <div className={styles.SearchInput}>
         <input placeholder="Search here..."
           onChange={(e) => { setText(e.target.value) }} />
       </div>
       {
         function () {
           //console.log(s2lState)
-          if (s2lState === s2lStateEnum.linking && s2lBlock.valid) {
+          if (s2lState === S2LState.Linking && s2lBlock.valid) {
             const blockCard = props.state.blockCardMap[s2lBlock.id]
             const searchRect = getSearchRect()
-            return <div className="S2LRelativeElem" style={{
+            return <div className={styles.S2LRelativeElem} style={{
               top: s2lBlock.valid ? s2lBlock.rect.top - searchRect.top : 0,
               left: s2lBlock.valid ? s2lBlock.rect.left - searchRect.left : 0
             }}>
-              <div className="VisualCopy"
-                style={{
-                  transform: `translate(${s2lDelta.x}px, ${s2lDelta.y}px)`
-                }}>
+              <Box className={styles.VisualCopy}>
                 <SearchItemContent blockCard={blockCard} />
-              </div>
+              </Box>
             </div>
           }
         }()
       }
-    </div>
+    </Box>
   )
 }

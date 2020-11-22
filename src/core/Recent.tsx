@@ -1,7 +1,9 @@
 import * as React from 'react'
+import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
 import { ContentProps, State3 } from '../interfaces'
 import { IPubSub } from '../lib/pubsub'
+import { Box } from './component/Box'
 
 interface Props {
   /** A ring buffer. */
@@ -15,9 +17,18 @@ interface Props {
   onExpand: (blockCardId: string) => void
 }
 
+const styles = {
+  Recent: typestyle.style({
+    width: 'calc(500px + .5rem * 2)',
+    height: 50,
+    display: 'flex',
+    padding: '0px .5rem'
+  })
+}
+
 export const Recent: React.FunctionComponent<Props> = (props) => {
   return (
-    <div className="ToolBox Recent">
+    <Box className={styles.Recent}>
       <style jsx>{`
         button {
           border: none;
@@ -28,24 +39,34 @@ export const Recent: React.FunctionComponent<Props> = (props) => {
           outline: none;
         }
 
-        .Recent {
-          width: 500px;
-          height: 50px;
-          display: flex;
-          overflow-x: auto;
-        }
-
         .RecentBtn {
           flex: 1 0 75px;
           max-width: 300px;
           height: 100%;
-          overflow-y: hidden;
+          overflow: hidden;
           transition: background 0.2s, flex-basis 0.3s;
+        }
+
+        .RecentBtn ::-webkit-scrollbar {
+          width: 5px;
+        }
+
+        .RecentBtn ::-webkit-scrollbar-track {
+          background: #f1f1f1;
+        }
+
+        .RecentBtn ::-webkit-scrollbar-thumb {
+          background: #888;
+        }
+
+        .Recent ::-webkit-scrollbar-thumb:hover {
+          background: #555;
         }
 
         .RecentBtn:hover {
           background: rgba(0, 0, 0, 0.1);
-          flex: 1 0 200px;
+          /* flex: 1 0 200px; */
+          overflow-y: auto;
         }
 
         .RecentBtn:active {
@@ -97,6 +118,6 @@ export const Recent: React.FunctionComponent<Props> = (props) => {
           })
         }()
       }
-    </div>
+    </Box>
   )
 }
