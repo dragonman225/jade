@@ -129,14 +129,6 @@ export const App: React.FunctionComponent = () => {
           font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
           line-height: 1.6;
         }
-
-        .ToolBox {
-          background: #fff;
-          border-radius: .5rem;
-          box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px,
-                      rgba(15, 15, 15, 0.1) 0px 3px 6px,
-                      rgba(15, 15, 15, 0.2) 0px 9px 24px;
-        }
       `}</style>
       <style jsx>{`
         .App {
