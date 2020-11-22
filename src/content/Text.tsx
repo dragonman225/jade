@@ -68,7 +68,7 @@ export class Text extends React.Component<ContentProps<unknown>, State> {
                 font-size: 0.8rem;
                 padding: 0.5rem;
                 max-height: 100%;
-                overflow: hidden;
+                /* overflow: hidden; */
               }
             `}</style>
             <div>{slateTextEditor}</div>

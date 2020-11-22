@@ -31,7 +31,26 @@ export class Baby extends React.Component<ContentProps<unknown>> {
         )
       }
       default: {
-        return <span>Baby</span>
+        return (
+          <>
+            <style jsx>{`
+              div {
+                padding: 0.3rem 1.5rem;
+              }
+    
+              p {
+                margin: 0;
+              }
+            `}</style>
+            <div>
+              <p>Which to turn into?</p>
+              <button>Text</button>
+              <button>PMText</button>
+              <button>Image</button>
+              <button>Status</button>
+            </div>
+          </>
+        )
       }
     }
 
