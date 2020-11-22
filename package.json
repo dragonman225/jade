@@ -17,9 +17,15 @@
     "@babel/preset-env": "^7.10.2",
     "@babel/preset-react": "^7.10.1",
     "@babel/preset-typescript": "^7.10.1",
+    "@types/prosemirror-history": "^1.0.1",
+    "@types/prosemirror-keymap": "^1.0.3",
+    "@types/prosemirror-model": "^1.7.4",
+    "@types/prosemirror-state": "^1.2.5",
+    "@types/prosemirror-view": "^1.16.1",
     "@types/react": "^16.9.51",
     "@types/react-dom": "^16.9.8",
     "@types/styled-jsx": "^2.2.8",
+    "@types/uuid": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^3.2.0",
     "@typescript-eslint/parser": "^3.2.0",
     "babel-loader": "^8.1.0",
@@ -37,12 +43,7 @@
     "webpack-dev-server": "^3.0.0"
   },
   "dependencies": {
-    "@types/prosemirror-history": "^1.0.1",
-    "@types/prosemirror-keymap": "^1.0.3",
-    "@types/prosemirror-model": "^1.7.4",
-    "@types/prosemirror-state": "^1.2.5",
-    "@types/prosemirror-view": "^1.16.1",
-    "@types/uuid": "^8.0.0",
+    "normalize.css": "^8.0.1",
     "prosemirror-history": "^1.1.3",
     "prosemirror-keymap": "^1.1.4",
     "prosemirror-model": "^1.12.0",
@@ -51,13 +52,13 @@
     "prosemirror-view": "^1.16.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "sirv": "^1.0.1",
-    "sirv-cli": "^1.0.1",
+    "sirv": "^1.0.7",
+    "sirv-cli": "^1.0.8",
     "slate": "^0.59.0",
     "slate-history": "^0.59.0",
     "slate-react": "^0.59.0",
-    "styled-jsx": "^3.3.0",
-    "tachyons": "4.12.0",
-    "uuid": "^8.1.0"
+    "styled-jsx": "^3.3.2",
+    "typestyle": "^2.1.0",
+    "uuid": "^8.3.1"
   }
 }
