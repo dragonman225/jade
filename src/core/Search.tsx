@@ -131,7 +131,6 @@ export const Search: React.FunctionComponent<Props> = (props) => {
   const styles = {
     Search: typestyle.style({
       width: '300px',
-      cursor: `${s2lState === S2LState.Linking ? 'grabbing' : 'auto'}`,
       $nest: {
         '& hr': {
           border: '1px solid #ddd',
@@ -186,8 +185,7 @@ export const Search: React.FunctionComponent<Props> = (props) => {
       width: 300,
       maxHeight: 200,
       overflow: 'hidden',
-      zIndex: 999,
-      transform: `translate(${s2lDelta.x}px, ${s2lDelta.y}px)`
+      zIndex: 999
     }),
     hr: typestyle.style({
       border: '1px solid #ddd',
@@ -204,6 +202,9 @@ export const Search: React.FunctionComponent<Props> = (props) => {
   return (
     <Box
       className={styles.Search}
+      style={{
+        cursor: `${s2lState === S2LState.Linking ? 'grabbing' : 'auto'}`
+      }}
       ref={searchRef}
       onFocus={() => { setMinimized(false) }}>
       {
@@ -275,7 +276,9 @@ export const Search: React.FunctionComponent<Props> = (props) => {
               top: s2lBlock.valid ? s2lBlock.rect.top - searchRect.top : 0,
               left: s2lBlock.valid ? s2lBlock.rect.left - searchRect.left : 0
             }}>
-              <Box className={styles.VisualCopy}>
+              <Box className={styles.VisualCopy} style={{
+                transform: `translate(${s2lDelta.x}px, ${s2lDelta.y}px)`
+              }}>
                 <SearchItemContent blockCard={blockCard} />
               </Box>
             </div>
