@@ -3,13 +3,13 @@ import { IPubSub } from '../lib/pubsub'
 import { IconDragHandle } from './component/IconDragHandle'
 import { IconCross } from './component/IconCross'
 import { IconExpand } from './component/IconExpand'
-import { UnifiedEventInfo, BlockModel, ContentProps, Vec2 } from '../interfaces'
+import { UnifiedEventInfo, BlockModel, ContentProps, Vec2, BaseContent } from '../interfaces'
 import { isPointInRect } from '../lib/utils'
 
 interface Props {
   readOnly: boolean
   value: BlockModel<unknown>
-  onContentChange: (data: unknown) => void
+  onContentChange: (data: BaseContent) => void
   onResize: (width: number) => void
   onMove: (position: Vec2) => void
   onRemove: () => void
@@ -169,7 +169,7 @@ export class Block extends React.Component<Props, State> {
     this.setState({ mouseIsInside: false })
   }
 
-  handleContentChange = (content: unknown): void => {
+  handleContentChange = (content: BaseContent): void => {
     this.props.onContentChange(content)
   }
 

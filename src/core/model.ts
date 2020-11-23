@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { BlockCard, BlockCardRef, State3, Stroke, Vec2 } from '../interfaces'
+import { BaseContent, BlockCard, BlockCardRef, State3, Stroke, Vec2 } from '../interfaces'
 
 interface BlockCreateAction {
   type: 'block::create'
@@ -25,8 +25,12 @@ interface BlockResizeAction {
 }
 
 interface BlockChangeAction {
-  type: 'block::change'
-  data: BlockCard
+  type: 'block::edit'
+  data: {
+    id: string
+    type: string
+    content: BaseContent
+  }
 }
 
 interface BlockRemoveAction {
@@ -73,13 +77,14 @@ type Action =
  * @param action - The action to perform.
  */
 export function appStateReducer(state: State3, action: Action): State3 {
+  console.log(action)
   const defaultBlockWidth = 300
   switch (action.type) {
     case 'block::create': {
       const block: BlockCard = {
         id: uuidv4(),
         type: 'baby',
-        content: null,
+        content: { initialized: false },
         drawing: [],
         blocks: []
       }
@@ -146,13 +151,17 @@ export function appStateReducer(state: State3, action: Action): State3 {
         }
       }
     }
-    case 'block::change': {
+    case 'block::edit': {
       const toChange = action.data.id
       return {
         ...state,
         blockCardMap: {
           ...state.blockCardMap,
-          [toChange]: action.data
+          [toChange]: {
+            ...state.blockCardMap[toChange],
+            type: action.data.type,
+            content: action.data.content
+          }
         }
       }
     }

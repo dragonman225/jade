@@ -15,13 +15,13 @@ import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
 import { adaptToBlockModel } from './lib/utils'
 import {
-  State3, BlockCard, ContentProps
+  State3, BlockCard, ContentProps, BaseContent
 } from './interfaces'
 
 const initialState = require('./InitialState.json') as State3
 
 let lastSyncTime = 0
-let timer: NodeJS.Timeout = undefined
+let timer: NodeJS.Timeout | undefined = undefined
 
 export const App: React.FunctionComponent = () => {
   const messenger = useMemo(() => new PubSub(), [])
@@ -41,10 +41,12 @@ export const App: React.FunctionComponent = () => {
   }
   const unlockInteraction = (requester: string) => {
     console.log(requester, 'requests unlock')
-    if (interactionLockOwner === requester) setInteractionLockOwner('')
+    if (interactionLockOwner === requester ||
+      interactionLockOwner === '') setInteractionLockOwner('')
+    // HACK: if I don't check interactionLockOwner === '', although interactionLockOwner is '', blocks are readOnly
   }
   const isInteractionLocked = (requester: string) => {
-    return interactionLockOwner && interactionLockOwner !== requester
+    return !!interactionLockOwner && interactionLockOwner !== requester
   }
   const resetInteractionLockOwner = () => {
     setInteractionLockOwner('')
@@ -100,15 +102,13 @@ export const App: React.FunctionComponent = () => {
 
   const replaceContentType = (blockCard: BlockCard, newType: string) => {
     dispatchAction({
-      type: 'block::change', data: {
-        ...blockCard,
+      type: 'block::edit', data: {
+        id: blockCard.id,
         type: newType,
-        content: null
+        content: { initialized: false }
       }
     })
   }
-
-  const currentBlockCard = state.blockCardMap[state.currentBlockCardId]
 
   return (
     <>
@@ -216,11 +216,13 @@ export const App: React.FunctionComponent = () => {
           <div className="SummaryContainer">
             {
               function () {
+                const currentBlockCard = state.blockCardMap[state.currentBlockCardId]
                 const key = 'card-' + currentBlockCard.id
-                const updateContent = (content: unknown) => {
+                const updateContent = (content: BaseContent) => {
                   dispatchAction({
-                    type: 'block::change', data: {
-                      ...currentBlockCard,
+                    type: 'block::edit', data: {
+                      id: currentBlockCard.id,
+                      type: currentBlockCard.type,
                       content
                     }
                   })
@@ -277,7 +279,7 @@ export const App: React.FunctionComponent = () => {
                       value={adaptToBlockModel(referencedBlockCard, blockRef)}
                       onContentChange={(content) => {
                         dispatchAction({
-                          type: 'block::change',
+                          type: 'block::edit',
                           data: { ...referencedBlockCard, content }
                         })
                       }}
