@@ -3,12 +3,12 @@ import { IPubSub } from '../lib/pubsub'
 import { IconDragHandle } from './component/IconDragHandle'
 import { IconCross } from './component/IconCross'
 import { IconExpand } from './component/IconExpand'
-import { UnifiedEventInfo, BlockModel, ContentProps, Vec2, BaseContent } from '../interfaces'
+import { UnifiedEventInfo, BlockModel, ContentProps, Vec2, BaseContent, InitializedContent } from '../interfaces'
 import { isPointInRect } from '../lib/utils'
 
 interface Props {
   readOnly: boolean
-  value: BlockModel<unknown>
+  value: BlockModel<BaseContent>
   onContentChange: (data: BaseContent) => void
   onResize: (width: number) => void
   onMove: (position: Vec2) => void
@@ -17,7 +17,7 @@ interface Props {
   onInteractionStart?: () => void
   onInteractionEnd?: () => void
   messenger: IPubSub
-  children?: (props: Omit<ContentProps<unknown>, 'viewMode' | 'onReplace' | 'messageBus'>) => JSX.Element
+  children?: (props: Omit<ContentProps<InitializedContent>, 'viewMode' | 'onReplace' | 'messageBus'>) => JSX.Element
 }
 
 interface State {

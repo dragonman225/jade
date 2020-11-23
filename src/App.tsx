@@ -15,7 +15,7 @@ import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
 import { adaptToBlockModel } from './lib/utils'
 import {
-  State3, BlockCard, ContentProps, BaseContent
+  State3, BlockCard, ContentProps, BaseContent, InitializedContent
 } from './interfaces'
 
 const initialState = require('./InitialState.json') as State3
@@ -227,7 +227,7 @@ export const App: React.FunctionComponent = () => {
                     }
                   })
                 }
-                const contentProps: ContentProps<unknown> & { key: string } = {
+                const contentProps: ContentProps<InitializedContent> & { key: string } = {
                   viewMode: 'card',
                   readOnly: isInteractionLocked(key),
                   content: currentBlockCard.content,

@@ -32,6 +32,7 @@ export interface PubSubStatusMessage {
   }[]
 }
 
+/** Content API. */
 export interface UninitializedContent {
   initialized: false
 }
@@ -42,7 +43,7 @@ export interface InitializedContent {
 
 export type BaseContent = UninitializedContent | InitializedContent
 
-export interface ContentProps<T> {
+export interface ContentProps<T extends InitializedContent> {
   readOnly: boolean
   viewMode: 'block' | 'card' | 'nav_item'
   content: T | UninitializedContent

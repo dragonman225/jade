@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
-import { ContentProps, State3 } from '../interfaces'
+import { ContentProps, InitializedContent, State3 } from '../interfaces'
 import { IPubSub } from '../lib/pubsub'
 import { Box } from './component/Box'
 
@@ -89,7 +89,7 @@ export const Recent: React.FunctionComponent<Props> = (props) => {
 
           return historyToShow.map(blockCardId => {
             const blockCard = props.state.blockCardMap[blockCardId]
-            const contentProps: ContentProps<unknown> = {
+            const contentProps: ContentProps<InitializedContent> = {
               viewMode: 'nav_item',
               readOnly: true,
               content: blockCard.content,

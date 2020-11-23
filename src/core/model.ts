@@ -1,5 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
-import { BaseContent, BlockCard, BlockCardRef, State3, Stroke, Vec2 } from '../interfaces'
+import {
+  BaseContent, BlockCard, BlockCardRef,
+  State3, Stroke, Vec2
+} from '../interfaces'
 
 interface BlockCreateAction {
   type: 'block::create'
