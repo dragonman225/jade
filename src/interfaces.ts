@@ -32,10 +32,20 @@ export interface PubSubStatusMessage {
   }[]
 }
 
+export interface UninitializedContent {
+  initialized: false
+}
+
+export interface InitializedContent {
+  initialized: true
+}
+
+export type BaseContent = UninitializedContent | InitializedContent
+
 export interface ContentProps<T> {
   readOnly: boolean
   viewMode: 'block' | 'card' | 'nav_item'
-  content: T
+  content: T | UninitializedContent
   messageBus: ISub
   onChange: (content: T) => void
   onReplace: (type: string) => void
@@ -93,7 +103,7 @@ export interface BlockCard {
   id: string
   /** Below are summary of the BlockCard. */
   type: string
-  content: unknown
+  content: BaseContent
   /** Below are details of the BlockCard. */
   drawing: Stroke[]
   blocks: BlockCardRef[]
