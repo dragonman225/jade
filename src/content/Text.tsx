@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { SlateTextEditor } from './SlateTextEditor'
 import * as Slate from 'slate'
-import { ContentProps } from '../interfaces'
+import { ContentProps, InitializedContent, UninitializedContent } from '../interfaces'
 
 /**
  * Slate CJK bugs
@@ -10,43 +10,43 @@ import { ContentProps } from '../interfaces'
  * https://github.com/ianstormtaylor/slate/issues/3292
  */
 
-interface State {
-  content: Slate.Element[]
-  isNewText: boolean
+interface TextContent extends InitializedContent {
+  data: Slate.Element[]
 }
 
-export class Text extends React.Component<ContentProps<unknown>, State> {
-  constructor(props: ContentProps<unknown>) {
+interface State {
+  slateData: Slate.Element[]
+  isNewText: boolean
+  prevPropsContent: TextContent | UninitializedContent
+}
+
+export class Text extends React.Component<ContentProps<TextContent>, State> {
+  constructor(props: ContentProps<TextContent>) {
     super(props)
     this.state = {
-      content: this.getValidContent(props.content),
-      isNewText: props.content === null
+      slateData: this.getValidSlateData(props.content),
+      isNewText: !props.content.initialized,
+      prevPropsContent: props.content
     }
   }
 
-  getValidContent(content: unknown): Slate.Element[] {
+  getValidSlateData(content: TextContent | UninitializedContent): Slate.Element[] {
     const initialContent = [{ type: 'paragraph', children: [{ text: '' }] }]
-    return Slate.Element.isElementList(content)
-      ? content[0]
-        ? Slate.Text.isTextList(content[0].children)
-          ? content
-          : initialContent
-        : initialContent
-      : initialContent
+    return content.initialized ? content.data : initialContent
   }
 
   // HACK: Detect props.content change from other BlockCard refs on the same view, using non-deprecated API.
-  componentDidUpdate(): void {
-    if (this.props.content && JSON.stringify(this.state.content) !== JSON.stringify(this.props.content)) {
-      this.setState({
-        content: this.getValidContent(this.props.content)
-      })
-    }
-  }
+  // componentDidUpdate(): void {
+  //   if (JSON.stringify(this.state.prevPropsContent) !== JSON.stringify(this.props.content)) {
+  //     this.setState({
+  //       slateData: this.getValidSlateData(this.props.content)
+  //     })
+  //   }
+  // }
 
   onChange = (content: Slate.Element[]): void => {
-    this.setState({ content, isNewText: false })
-    this.props.onChange(content)
+    this.setState({ slateData: content, isNewText: false })
+    this.props.onChange({ initialized: true, data: content })
   }
 
   render(): JSX.Element {
@@ -54,8 +54,8 @@ export class Text extends React.Component<ContentProps<unknown>, State> {
       readOnly={this.props.readOnly}
       // Cannot type Japanese in programmatically focused editor when the text block is newly created.
       forceFocus={this.state.isNewText}
-      content={this.state.content}
-      onChange={this.props.onChange}
+      content={this.state.slateData}
+      onChange={this.onChange}
       onFocus={this.props.onInteractionStart}
       onBlur={this.props.onInteractionEnd} />
 
