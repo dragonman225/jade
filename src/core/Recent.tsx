@@ -45,14 +45,11 @@ export const Recent: React.FunctionComponent<Props> = (props) => {
           height: 100%;
           overflow: hidden;
           transition: background 0.2s, flex-basis 0.3s;
+          padding: 0 5px;
         }
 
         .RecentBtn ::-webkit-scrollbar {
           width: 5px;
-        }
-
-        .RecentBtn ::-webkit-scrollbar-track {
-          background: #f1f1f1;
         }
 
         .RecentBtn ::-webkit-scrollbar-thumb {
@@ -66,7 +63,8 @@ export const Recent: React.FunctionComponent<Props> = (props) => {
         .RecentBtn:hover {
           background: rgba(0, 0, 0, 0.1);
           /* flex: 1 0 200px; */
-          overflow-y: auto;
+          overflow-y: scroll;
+          padding-right: 0;
         }
 
         .RecentBtn:active {
