@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { ContentProps } from '../interfaces'
+import { ContentProps, InitializedContent } from '../interfaces'
 
-interface Content {
+interface ImageContent extends InitializedContent {
   valid: boolean
   imgData: string
 }
@@ -26,14 +26,19 @@ const ImgState = {
   Error: Symbol('error')
 }
 
-export const Image: React.FunctionComponent<ContentProps<unknown>> = (props) => {
-  const content = props.content as Content
+export const Image: React.FunctionComponent<ContentProps<ImageContent>> = (props) => {
+  const content = props.content
   const [imgState, setImgState] = React.useState(ImgState.NotLoaded)
   const [img, setImg] = React.useState('')
   const [error, setError] = React.useState('')
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const file = e.target.files[0]
+    const files = e.target.files
+    if (!files) {
+      console.log('"e.target.files" is null.')
+      return
+    }
+    const file = files[0]
     console.log(file)
     if (file.type && file.type.indexOf('image') === -1) {
       console.log('File is not an image.', file.type, file)
@@ -44,6 +49,7 @@ export const Image: React.FunctionComponent<ContentProps<unknown>> = (props) => 
         setImg(img)
         setImgState(ImgState.Loaded)
         props.onChange({
+          initialized: true,
           valid: true,
           imgData: img
         })
@@ -56,7 +62,7 @@ export const Image: React.FunctionComponent<ContentProps<unknown>> = (props) => 
 
   /** Load image on first render or props change. */
   React.useEffect(() => {
-    if (content && content.valid) {
+    if (content.initialized && content.valid) {
       setImg(content.imgData)
       setImgState(ImgState.Loaded)
     }
