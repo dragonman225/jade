@@ -13,7 +13,6 @@ import { Search } from './core/Search'
 import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
-import { adaptToBlockModel } from './lib/utils'
 import {
   State3, BlockCard, ContentProps, BaseContent, InitializedContent
 } from './interfaces'
@@ -276,7 +275,14 @@ export const App: React.FunctionComponent = () => {
                     <Block
                       messenger={messenger}
                       readOnly={isInteractionLocked(key)}
-                      value={adaptToBlockModel(referencedBlockCard, blockRef)}
+                      data={{
+                        blockId: referencedBlockCard.id,
+                        refId: blockRef.id,
+                        type: referencedBlockCard.type,
+                        content: referencedBlockCard.content,
+                        position: blockRef.position,
+                        width: blockRef.width
+                      }}
                       onContentChange={(content) => {
                         dispatchAction({
                           type: 'block::edit',

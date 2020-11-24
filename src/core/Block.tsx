@@ -3,12 +3,22 @@ import { IPubSub } from '../lib/pubsub'
 import { IconDragHandle } from './component/IconDragHandle'
 import { IconCross } from './component/IconCross'
 import { IconExpand } from './component/IconExpand'
-import { UnifiedEventInfo, BlockModel, ContentProps, Vec2, BaseContent, InitializedContent } from '../interfaces'
+import {
+  UnifiedEventInfo, ContentProps, Vec2, BaseContent,
+  InitializedContent
+} from '../interfaces'
 import { isPointInRect } from '../lib/utils'
 
 interface Props {
   readOnly: boolean
-  value: BlockModel<BaseContent>
+  data: {
+    blockId: string
+    refId: string
+    type: string
+    content: BaseContent
+    position: Vec2
+    width: number
+  }
   onContentChange: (data: BaseContent) => void
   onResize: (width: number) => void
   onMove: (position: Vec2) => void
@@ -53,10 +63,10 @@ export class Block extends React.Component<Props, State> {
   inDragArea(x: number, y: number): boolean {
     const mousePoint = { x, y }
     const dragRect = {
-      top: this.props.value.position.y,
-      left: this.props.value.position.x,
-      bottom: this.props.value.position.y + dragAreaSize,
-      right: this.props.value.position.x + dragAreaSize
+      top: this.props.data.position.y,
+      left: this.props.data.position.x,
+      bottom: this.props.data.position.y + dragAreaSize,
+      right: this.props.data.position.x + dragAreaSize
     }
     if (isPointInRect(mousePoint, dragRect)) return true
     else return false
@@ -88,8 +98,8 @@ export class Block extends React.Component<Props, State> {
       this.setState({ resizing: true })
       this.props.onInteractionStart()
     }
-    this.state.dragPosition.x = msg.offsetX - this.props.value.position.x
-    this.state.dragPosition.y = msg.offsetY - this.props.value.position.y
+    this.state.dragPosition.x = msg.offsetX - this.props.data.position.x
+    this.state.dragPosition.y = msg.offsetY - this.props.data.position.y
     this.state.lastDragPosition.x = msg.offsetX
     this.state.lastDragPosition.y = msg.offsetY
   }
@@ -106,7 +116,7 @@ export class Block extends React.Component<Props, State> {
         minY: dragAreaSize,
         maxY: window.innerHeight - dragAreaSize
       }
-      const width = this.props.value.width
+      const width = this.props.data.width
       const minHeight = 100
 
       if (newPos.x < limit.minX) newPos.x = limit.minX
@@ -120,7 +130,7 @@ export class Block extends React.Component<Props, State> {
 
     if (this.state.resizing) {
       const deltaX = msg.offsetX - this.state.lastDragPosition.x
-      this.props.onResize(this.props.value.width + deltaX)
+      this.props.onResize(this.props.data.width + deltaX)
       this.setState({
         lastDragPosition: {
           x: msg.offsetX,
@@ -189,9 +199,9 @@ export class Block extends React.Component<Props, State> {
         <style jsx>{`
           .Block {
             position: absolute;
-            top: ${this.props.value.position.y}px;
-            left: ${this.props.value.position.x}px;
-            width: ${this.props.value.width}px;
+            top: ${this.props.data.position.y}px;
+            left: ${this.props.data.position.x}px;
+            width: ${this.props.data.width}px;
             color: rgb(65, 65, 65);
             background: ${!this.props.readOnly && (this.state.mouseIsInside || this.state.resizing || this.state.moving || this.state.editing) ? 'rgba(235, 235, 235, 0.8)' : 'inherit'};
             display: flex;
@@ -242,7 +252,7 @@ export class Block extends React.Component<Props, State> {
           .ContentArea {
             width: 100%;
             min-height: ${2 * dragAreaSize}px;
-            max-height: ${window.innerHeight - this.props.value.position.y - 100}px;
+            max-height: ${window.innerHeight - this.props.data.position.y - 100}px;
             overflow: auto;
           }
 
@@ -261,7 +271,7 @@ export class Block extends React.Component<Props, State> {
           onMouseEnter={this.handleMouseEnter}
           onMouseLeave={this.handleMouseLeave}
           onClick={this.handleMouseEnter}>
-          <span className="debug-id">{this.props.value.id}</span>
+          <span className="debug-id">{this.props.data.blockId}</span>
           {
             !this.props.readOnly && this.state.mouseIsInside
               ? <div className="handle drag-area"><IconDragHandle /></div>
@@ -289,7 +299,7 @@ export class Block extends React.Component<Props, State> {
               this.props.children
                 ? this.props.children({
                   readOnly: this.props.readOnly,
-                  content: this.props.value.content,
+                  content: this.props.data.content,
                   onChange: this.handleContentChange,
                   onInteractionStart: this.handleContentInteractionStart,
                   onInteractionEnd: this.handleContentInteractionEnd

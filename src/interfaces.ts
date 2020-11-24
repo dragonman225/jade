@@ -54,15 +54,6 @@ export interface ContentProps<T extends InitializedContent> {
   onInteractionEnd: () => void
 }
 
-/** Block. */
-export interface BlockModel<T> {
-  id: string
-  type: string
-  content: T
-  position: Vec2
-  width: number
-}
-
 /** Hand-drawing. */
 export type Point = Vec2
 
@@ -76,15 +67,6 @@ export interface StrokeConfig {
 export interface Stroke {
   config: StrokeConfig
   points: Point[]
-}
-
-/** App state v2. */
-export interface State {
-  debugging: boolean
-  blocks: {
-    [id: string]: BlockModel<unknown>
-  }
-  canvas: Stroke[]
 }
 
 /** A reference to a BlockCard. */
