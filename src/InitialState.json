@@ -6,16 +6,19 @@
     "home": {
       "id": "home",
       "type": "text",
-      "content": [
-        {
-          "type": "paragraph",
-          "children": [
-            {
-              "text": "Home"
-            }
-          ]
-        }
-      ],
+      "content": {
+        "initialized": true,
+        "data": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "text": "Home"
+              }
+            ]
+          }
+        ]
+      },
       "drawing": [],
       "blocks": []
     }
