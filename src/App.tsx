@@ -192,7 +192,6 @@ export const App: React.FunctionComponent = () => {
                 position: headerToolState.position,
                 width: headerToolState.width
               }}
-              onContentChange={() => { return }}
               onResize={(width) => {
                 setHeaderToolState({
                   ...headerToolState,
@@ -239,7 +238,6 @@ export const App: React.FunctionComponent = () => {
                 position: recentToolState.position,
                 width: recentToolState.width
               }}
-              onContentChange={() => { return }}
               onResize={(width) => {
                 setRecentToolState({
                   ...recentToolState,
@@ -281,12 +279,6 @@ export const App: React.FunctionComponent = () => {
                         position: blockRef.position,
                         width: blockRef.width
                       }}
-                      onContentChange={(content) => {
-                        dispatchAction({
-                          type: 'block::edit',
-                          data: { ...referencedBlockCard, content }
-                        })
-                      }}
                       onResize={(width) => {
                         dispatchAction({
                           type: 'block::resize',
@@ -316,6 +308,12 @@ export const App: React.FunctionComponent = () => {
                             ...contentProps,
                             viewMode: 'block',
                             messageBus: readOnlyMessenger,
+                            onChange: content => {
+                              dispatchAction({
+                                type: 'block::edit',
+                                data: { ...referencedBlockCard, content }
+                              })
+                            },
                             onReplace: type => {
                               replaceContentType(referencedBlockCard, type)
                             }

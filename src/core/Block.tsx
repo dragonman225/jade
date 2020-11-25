@@ -19,7 +19,6 @@ interface Props {
     position: Vec2
     width: number
   }
-  onContentChange: (data: BaseContent) => void
   onResize: (width: number) => void
   onMove: (position: Vec2) => void
   onRemove?: () => void
@@ -27,7 +26,7 @@ interface Props {
   onInteractionStart?: () => void
   onInteractionEnd?: () => void
   messenger: IPubSub
-  children?: (props: Omit<ContentProps<InitializedContent>, 'viewMode' | 'onReplace' | 'messageBus'>) => JSX.Element
+  children?: (props: Omit<ContentProps<InitializedContent>, 'viewMode' | 'onReplace' | 'onChange' | 'messageBus'>) => JSX.Element
 }
 
 interface State {
@@ -296,7 +295,6 @@ export class Block extends React.Component<Props, State> {
                 ? this.props.children({
                   readOnly: this.props.readOnly,
                   content: this.props.data.content,
-                  onChange: this.props.onContentChange,
                   onInteractionStart: this.handleContentInteractionStart,
                   onInteractionEnd: this.handleContentInteractionEnd
                 })
