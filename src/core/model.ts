@@ -80,7 +80,6 @@ type Action =
  * @param action - The action to perform.
  */
 export function appStateReducer(state: State3, action: Action): State3 {
-  console.log(action)
   const defaultBlockWidth = 300
   switch (action.type) {
     case 'block::create': {

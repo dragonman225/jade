@@ -179,10 +179,6 @@ export class Block extends React.Component<Props, State> {
     this.setState({ mouseIsInside: false })
   }
 
-  handleContentChange = (content: BaseContent): void => {
-    this.props.onContentChange(content)
-  }
-
   handleContentInteractionStart = (): void => {
     this.setState({ editing: true })
     if (typeof this.props.onInteractionStart === 'function') this.props.onInteractionStart()
@@ -300,7 +296,7 @@ export class Block extends React.Component<Props, State> {
                 ? this.props.children({
                   readOnly: this.props.readOnly,
                   content: this.props.data.content,
-                  onChange: this.handleContentChange,
+                  onChange: this.props.onContentChange,
                   onInteractionStart: this.handleContentInteractionStart,
                   onInteractionEnd: this.handleContentInteractionEnd
                 })
