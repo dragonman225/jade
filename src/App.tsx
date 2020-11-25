@@ -5,11 +5,11 @@ import { useEffect, useReducer, useMemo } from 'react'
 import { appStateReducer } from './core/model'
 import { Block } from './core/Block'
 import { Canvas } from './core/Canvas'
-import { IconHome } from './core/component/IconHome'
 import { BlockFactory } from './core/BlockFactory'
 import { InputContainer } from './core/InputContainer'
 import { RecentTool } from './core/RecentTool'
 import { SearchTool } from './core/SearchTool'
+import { HeaderTool } from './core/HeaderTool'
 import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
@@ -109,6 +109,19 @@ export const App: React.FunctionComponent = () => {
     })
   }
 
+  const [recentToolState, setRecentToolState] = React.useState({
+    position: { x: window.innerWidth - 500 - 24, y: 24 },
+    width: 500
+  })
+
+  const [headerToolState, setHeaderToolState] = React.useState({
+    position: { x: 24, y: 24 },
+    width: 500,
+    height: 50
+  })
+
+  const currentConcept = state.blockCardMap[state.currentBlockCardId]
+
   return (
     <>
       <style jsx global>{`
@@ -136,61 +149,11 @@ export const App: React.FunctionComponent = () => {
           background: rgba(0,0,0,.2);
         }
 
-        .Navbar {
-          height: 50px;
-          display: flex; 
-          flex-wrap: nowrap;
-        }
-
-        .HomeBtnContainer {
-          flex: 0 0 50px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        .SummaryContainer {
-          flex: 7 7 50px;
-          max-width: 800px;
-          overflow: auto;
-        }
-
-        .RecentContainer {
-          flex: 3 3 50px;
-          overflow-x: auto;
-          overflow-y: hidden;
-        }
-
         .Playground {
           position: relative;
-          height: calc(100% - 50px);
+          height: 100%;
         }
 
-        .HomeBtn {
-          width: 30px;
-          height: 30px;
-          fill: #000;
-          transition: transform 0.2s ease-in-out;
-        }
-
-        .HomeBtn:hover {
-          transform: scale(1.2);
-        }
-        
-        .HomeBtn:active {
-          transform: scale(0.9);
-        }
-
-        button {
-          border: none;
-          background: unset;
-        }
-
-        button:focus {
-          outline: none;
-        }
-      `}</style>
-      <style jsx>{`
         .Search {
           position: absolute;
           left: 1.5rem;
@@ -206,45 +169,6 @@ export const App: React.FunctionComponent = () => {
         }
       `}</style>
       <div className="App">
-        <div className="Navbar">
-          <div className="HomeBtnContainer">
-            <button className="HomeBtn" onClick={() => {
-              handleExpand(state.homeBlockCardId)
-            }}><IconHome /></button>
-          </div>
-          <div className="SummaryContainer">
-            {
-              function () {
-                const currentBlockCard = state.blockCardMap[state.currentBlockCardId]
-                const key = 'card-' + currentBlockCard.id
-                const updateContent = (content: BaseContent) => {
-                  dispatchAction({
-                    type: 'block::edit', data: {
-                      id: currentBlockCard.id,
-                      type: currentBlockCard.type,
-                      content
-                    }
-                  })
-                }
-                const contentProps: ContentProps<InitializedContent> & { key: string } = {
-                  viewMode: 'card',
-                  readOnly: isInteractionLocked(key),
-                  content: currentBlockCard.content,
-                  messageBus: readOnlyMessenger,
-                  onChange: updateContent,
-                  onReplace: type => {
-                    replaceContentType(currentBlockCard, type)
-                  },
-                  onInteractionStart: () => { lockInteraction(key) },
-                  onInteractionEnd: () => { unlockInteraction(key) },
-                  key: key
-                }
-                return <Content contentType={currentBlockCard.type}
-                  contentProps={contentProps} />
-              }()
-            }
-          </div>
-        </div>
         <div className="Playground">
           <InputContainer messenger={messenger}>
             <BlockFactory onRequestCreate={position => {
@@ -257,15 +181,93 @@ export const App: React.FunctionComponent = () => {
                   dispatchAction({ type: 'block::link', data })
                 }} />
             </div>
-            <div className="Recent">
-              <RecentTool
-                history={expandHistory}
-                historySize={historySize}
-                current={last}
-                state={state}
-                messageBus={messenger}
-                onExpand={handleExpand} />
-            </div>
+            <Block
+              messenger={messenger}
+              readOnly={false}
+              data={{
+                blockId: currentConcept.id,
+                refId: '',
+                type: '',
+                content: { initialized: false },
+                position: headerToolState.position,
+                width: headerToolState.width
+              }}
+              onContentChange={() => { return }}
+              onResize={(width) => {
+                setHeaderToolState({
+                  ...headerToolState,
+                  width
+                })
+              }}
+              onMove={(position) => {
+                setHeaderToolState({
+                  ...headerToolState,
+                  position
+                })
+              }}
+              onRemove={() => { return }}
+              onExpand={() => { return }}
+              key="HeaderTool">
+              {
+                (_contentProps) => <HeaderTool
+                  width={headerToolState.width}
+                  height={headerToolState.height}
+                  concept={currentConcept}
+                  readOnlyMessenger={readOnlyMessenger}
+                  onHomeClick={() => { handleExpand(state.homeBlockCardId) }}
+                  onConceptEdit={(data) => {
+                    dispatchAction({
+                      type: 'block::edit',
+                      data: {
+                        id: currentConcept.id,
+                        type: currentConcept.type,
+                        content: data
+                      }
+                    })
+                  }}
+                  onConceptReplace={(typeId) => {
+                    replaceContentType(currentConcept, typeId)
+                  }} />
+              }
+            </Block>
+            <Block
+              messenger={messenger}
+              readOnly={false}
+              data={{
+                blockId: '',
+                refId: '',
+                type: '',
+                content: { initialized: false },
+                position: recentToolState.position,
+                width: recentToolState.width
+              }}
+              onContentChange={() => { return }}
+              onResize={(width) => {
+                setRecentToolState({
+                  ...recentToolState,
+                  width
+                })
+              }}
+              onMove={(position) => {
+                setRecentToolState({
+                  ...recentToolState,
+                  position
+                })
+              }}
+              onRemove={() => { return }}
+              onExpand={() => { return }}
+              key="RecentTool">
+              {
+                (_contentProps) => <RecentTool
+                  width={recentToolState.width}
+                  history={expandHistory}
+                  historySize={historySize}
+                  current={last}
+                  state={state}
+                  messageBus={messenger}
+                  onExpand={handleExpand} />
+              }
+            </Block>
             {
               state.blockCardMap[state.currentBlockCardId].blocks
                 .map(blockRef => {

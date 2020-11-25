@@ -6,6 +6,7 @@ import { IPubSub } from '../lib/pubsub'
 import { Box } from './component/Box'
 
 interface Props {
+  width: number
   /** A ring buffer. */
   history: string[]
   /** The size of the ring buffer. */
@@ -19,16 +20,15 @@ interface Props {
 
 const styles = {
   Recent: typestyle.style({
-    width: 'calc(500px + .5rem * 2)',
     height: 50,
     display: 'flex',
-    padding: '0px .5rem'
+    padding: '0px 22px'
   })
 }
 
 export const RecentTool: React.FunctionComponent<Props> = (props) => {
   return (
-    <Box className={styles.Recent}>
+    <Box className={styles.Recent} style={{ width: props.width }}>
       <style jsx>{`
         button {
           border: none;
@@ -74,7 +74,7 @@ export const RecentTool: React.FunctionComponent<Props> = (props) => {
       {
         function () {
           const historyToShow: string[] = []
-          const maxNumToShow = 5
+          const maxNumToShow = Math.floor(props.width / 100)
 
           for (let i = props.current - 1 + props.historySize; i > props.current; i--) {
             const blockCardId = props.history[i % props.historySize]
