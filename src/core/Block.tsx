@@ -92,11 +92,11 @@ export class Block extends React.Component<Props, State> {
   handleDragStart = (msg: UnifiedEventInfo): void => {
     if (this.inDragArea(msg.offsetX, msg.offsetY) && this.state.mouseIsInside) {
       this.setState({ moving: true })
-      this.props.onInteractionStart()
+      if (typeof this.props.onInteractionStart === 'function') this.props.onInteractionStart()
     }
     if (this.inResizeArea(msg) && this.state.mouseIsInside) {
       this.setState({ resizing: true })
-      this.props.onInteractionStart()
+      if (typeof this.props.onInteractionStart === 'function') this.props.onInteractionStart()
     }
     this.state.dragPosition.x = msg.offsetX - this.props.data.position.x
     this.state.dragPosition.y = msg.offsetY - this.props.data.position.y
@@ -144,7 +144,7 @@ export class Block extends React.Component<Props, State> {
   handleDragEnd = (): void => {
     if (this.state.moving || this.state.resizing) {
       this.setState({ moving: false, resizing: false })
-      this.props.onInteractionEnd()
+      if (typeof this.props.onInteractionEnd === 'function') this.props.onInteractionEnd()
     }
   }
 
@@ -185,12 +185,12 @@ export class Block extends React.Component<Props, State> {
 
   handleContentInteractionStart = (): void => {
     this.setState({ editing: true })
-    this.props.onInteractionStart()
+    if (typeof this.props.onInteractionStart === 'function') this.props.onInteractionStart()
   }
 
   handleContentInteractionEnd = (): void => {
     this.setState({ editing: false })
-    this.props.onInteractionEnd()
+    if (typeof this.props.onInteractionEnd === 'function') this.props.onInteractionEnd()
   }
 
   render(): JSX.Element {
