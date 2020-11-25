@@ -9,13 +9,13 @@ import {
 } from '../interfaces'
 import { isPointInRect } from '../lib/utils'
 
+type ChildrenProps = Pick<ContentProps<InitializedContent>,
+'readOnly' | 'onInteractionStart' | 'onInteractionEnd'>
+
 interface Props {
   readOnly: boolean
   data: {
     blockId: string
-    refId: string
-    type: string
-    content: BaseContent
     position: Vec2
     width: number
   }
@@ -26,7 +26,7 @@ interface Props {
   onInteractionStart?: () => void
   onInteractionEnd?: () => void
   messenger: IPubSub
-  children?: (props: Omit<ContentProps<InitializedContent>, 'viewMode' | 'onReplace' | 'onChange' | 'messageBus'>) => JSX.Element
+  children?: (props: ChildrenProps) => JSX.Element
 }
 
 interface State {
@@ -38,7 +38,7 @@ interface State {
   lastDragPosition: { x: number; y: number }
 }
 
-const dragAreaSize = 22
+const dragHandleSize = 22
 
 export class Block extends React.Component<Props, State> {
   ref: React.RefObject<HTMLDivElement>
@@ -64,8 +64,8 @@ export class Block extends React.Component<Props, State> {
     const dragRect = {
       top: this.props.data.position.y,
       left: this.props.data.position.x,
-      bottom: this.props.data.position.y + dragAreaSize,
-      right: this.props.data.position.x + dragAreaSize
+      bottom: this.props.data.position.y + dragHandleSize,
+      right: this.props.data.position.x + dragHandleSize
     }
     if (isPointInRect(mousePoint, dragRect)) return true
     else return false
@@ -79,8 +79,8 @@ export class Block extends React.Component<Props, State> {
     }
     const blockRect = this.ref.current.getBoundingClientRect()
     const resizeRect = {
-      top: blockRect.bottom - dragAreaSize - originY,
-      left: blockRect.right - dragAreaSize - originX,
+      top: blockRect.bottom - dragHandleSize - originY,
+      left: blockRect.right - dragHandleSize - originX,
       bottom: blockRect.bottom,
       right: blockRect.right
     }
@@ -91,11 +91,13 @@ export class Block extends React.Component<Props, State> {
   handleDragStart = (msg: UnifiedEventInfo): void => {
     if (this.inDragArea(msg.offsetX, msg.offsetY) && this.state.mouseIsInside) {
       this.setState({ moving: true })
-      if (typeof this.props.onInteractionStart === 'function') this.props.onInteractionStart()
+      if (typeof this.props.onInteractionStart === 'function')
+        this.props.onInteractionStart()
     }
     if (this.inResizeArea(msg) && this.state.mouseIsInside) {
       this.setState({ resizing: true })
-      if (typeof this.props.onInteractionStart === 'function') this.props.onInteractionStart()
+      if (typeof this.props.onInteractionStart === 'function')
+        this.props.onInteractionStart()
     }
     this.state.dragPosition.x = msg.offsetX - this.props.data.position.x
     this.state.dragPosition.y = msg.offsetY - this.props.data.position.y
@@ -110,10 +112,10 @@ export class Block extends React.Component<Props, State> {
         y: msg.offsetY - this.state.dragPosition.y
       }
       const limit = {
-        minX: dragAreaSize,
-        maxX: window.innerWidth - dragAreaSize,
-        minY: dragAreaSize,
-        maxY: window.innerHeight - dragAreaSize
+        minX: dragHandleSize,
+        maxX: window.innerWidth - dragHandleSize,
+        minY: dragHandleSize,
+        maxY: window.innerHeight - dragHandleSize
       }
       const width = this.props.data.width
       const minHeight = 100
@@ -129,13 +131,21 @@ export class Block extends React.Component<Props, State> {
 
     if (this.state.resizing) {
       const deltaX = msg.offsetX - this.state.lastDragPosition.x
-      this.props.onResize(this.props.data.width + deltaX)
-      this.setState({
-        lastDragPosition: {
-          x: msg.offsetX,
-          y: msg.offsetY
-        }
-      })
+      const newW = this.props.data.width + deltaX
+      const minW = dragHandleSize * 2
+
+      if (newW > minW) {
+        this.props.onResize(newW)
+        this.setState({
+          lastDragPosition: {
+            x: msg.offsetX,
+            y: msg.offsetY
+          }
+        })
+      } else {
+        this.props.onResize(minW)
+      }
+
       this.props.messenger.publish('block::resizing')
     }
   }
@@ -143,7 +153,8 @@ export class Block extends React.Component<Props, State> {
   handleDragEnd = (): void => {
     if (this.state.moving || this.state.resizing) {
       this.setState({ moving: false, resizing: false })
-      if (typeof this.props.onInteractionEnd === 'function') this.props.onInteractionEnd()
+      if (typeof this.props.onInteractionEnd === 'function')
+        this.props.onInteractionEnd()
     }
   }
 
@@ -180,12 +191,20 @@ export class Block extends React.Component<Props, State> {
 
   handleContentInteractionStart = (): void => {
     this.setState({ editing: true })
-    if (typeof this.props.onInteractionStart === 'function') this.props.onInteractionStart()
+    if (typeof this.props.onInteractionStart === 'function')
+      this.props.onInteractionStart()
   }
 
   handleContentInteractionEnd = (): void => {
     this.setState({ editing: false })
-    if (typeof this.props.onInteractionEnd === 'function') this.props.onInteractionEnd()
+    if (typeof this.props.onInteractionEnd === 'function')
+      this.props.onInteractionEnd()
+  }
+
+  isActive = (): boolean => {
+    return !this.props.readOnly &&
+      (this.state.mouseIsInside || this.state.resizing ||
+        this.state.moving || this.state.editing)
   }
 
   render(): JSX.Element {
@@ -198,17 +217,17 @@ export class Block extends React.Component<Props, State> {
             left: ${this.props.data.position.x}px;
             width: ${this.props.data.width}px;
             color: rgb(65, 65, 65);
-            background: ${!this.props.readOnly && (this.state.mouseIsInside || this.state.resizing || this.state.moving || this.state.editing) ? 'rgba(235, 235, 235, 0.8)' : 'inherit'};
+            background: ${this.isActive() ? 'rgba(235, 235, 235, 0.8)' : 'inherit'};
             display: flex;
             align-items: center;
             word-break: break-word;
             user-select: none;
-            z-index: ${!this.props.readOnly && (this.state.mouseIsInside || this.state.resizing || this.state.moving || this.state.editing) ? '1' : 'unset'};
+            z-index: ${this.isActive() ? '1' : 'unset'};
           }
 
           .handle {
-            width: ${dragAreaSize}px;
-            height: ${dragAreaSize}px;
+            width: ${dragHandleSize}px;
+            height: ${dragHandleSize}px;
             fill: #aaaaaa;
             padding: .3rem;
             background: rgba(0, 0, 0, 0);
@@ -246,7 +265,7 @@ export class Block extends React.Component<Props, State> {
 
           .ContentArea {
             width: 100%;
-            min-height: ${2 * dragAreaSize}px;
+            min-height: ${2 * dragHandleSize}px;
             max-height: ${window.innerHeight - this.props.data.position.y - 100}px;
             overflow: auto;
           }
@@ -273,7 +292,8 @@ export class Block extends React.Component<Props, State> {
               : <></>
           }
           {
-            !this.props.readOnly && this.state.mouseIsInside && typeof this.props.onExpand === 'function'
+            !this.props.readOnly && this.state.mouseIsInside
+              && typeof this.props.onExpand === 'function'
               ? <div className="handle expand-area"
                 onClick={this.props.onExpand}><IconExpand /></div>
               : <></>
@@ -284,7 +304,8 @@ export class Block extends React.Component<Props, State> {
               : <></>
           }
           {
-            !this.props.readOnly && this.state.mouseIsInside && typeof this.props.onRemove === 'function'
+            !this.props.readOnly && this.state.mouseIsInside
+              && typeof this.props.onRemove === 'function'
               ? <div className="handle remove-area"
                 onClick={this.props.onRemove}><IconCross /></div>
               : <></>
@@ -294,7 +315,6 @@ export class Block extends React.Component<Props, State> {
               this.props.children
                 ? this.props.children({
                   readOnly: this.props.readOnly,
-                  content: this.props.data.content,
                   onInteractionStart: this.handleContentInteractionStart,
                   onInteractionEnd: this.handleContentInteractionEnd
                 })

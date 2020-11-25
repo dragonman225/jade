@@ -185,10 +185,7 @@ export const App: React.FunctionComponent = () => {
               messenger={messenger}
               readOnly={false}
               data={{
-                blockId: currentConcept.id,
-                refId: '',
-                type: '',
-                content: { initialized: false },
+                blockId: 'HeaderTool',
                 position: headerToolState.position,
                 width: headerToolState.width
               }}
@@ -231,10 +228,7 @@ export const App: React.FunctionComponent = () => {
               messenger={messenger}
               readOnly={false}
               data={{
-                blockId: '',
-                refId: '',
-                type: '',
-                content: { initialized: false },
+                blockId: 'RecentTool',
                 position: recentToolState.position,
                 width: recentToolState.width
               }}
@@ -273,9 +267,6 @@ export const App: React.FunctionComponent = () => {
                       readOnly={isInteractionLocked(key)}
                       data={{
                         blockId: referencedBlockCard.id,
-                        refId: blockRef.id,
-                        type: referencedBlockCard.type,
-                        content: referencedBlockCard.content,
                         position: blockRef.position,
                         width: blockRef.width
                       }}
@@ -307,6 +298,7 @@ export const App: React.FunctionComponent = () => {
                           contentProps={{
                             ...contentProps,
                             viewMode: 'block',
+                            content: referencedBlockCard.content,
                             messageBus: readOnlyMessenger,
                             onChange: content => {
                               dispatchAction({
