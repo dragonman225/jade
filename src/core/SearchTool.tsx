@@ -16,7 +16,7 @@ const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (prop
     <Content
       contentType={blockCard.type}
       contentProps={{
-        viewMode: 'nav_item',
+        viewMode: 'NavItem',
         readOnly: true,
         content: blockCard.content,
         messageBus: {

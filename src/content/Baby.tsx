@@ -8,8 +8,8 @@ export class Baby extends React.Component<ContentProps<InitializedContent>> {
 
   render(): JSX.Element {
     switch (this.props.viewMode) {
-      case 'card':
-      case 'block': {
+      case 'CardTitle':
+      case 'Block': {
         return (
           <>
             <style jsx>{`

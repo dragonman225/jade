@@ -69,7 +69,7 @@ export const Image: React.FunctionComponent<ContentProps<ImageContent>> = (props
   }, [props.content])
 
   switch (props.viewMode) {
-    case 'nav_item':
+    case 'NavItem':
       return (
         <>
           <style jsx>{`

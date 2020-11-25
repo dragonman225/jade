@@ -90,7 +90,7 @@ export const RecentTool: React.FunctionComponent<Props> = (props) => {
           return historyToShow.map(blockCardId => {
             const blockCard = props.state.blockCardMap[blockCardId]
             const contentProps: ContentProps<InitializedContent> = {
-              viewMode: 'nav_item',
+              viewMode: 'NavItem',
               readOnly: true,
               content: blockCard.content,
               messageBus: {

@@ -45,7 +45,7 @@ export type BaseContent = UninitializedContent | InitializedContent
 
 export interface ContentProps<T extends InitializedContent> {
   readOnly: boolean
-  viewMode: 'block' | 'card' | 'nav_item'
+  viewMode: 'Block' | 'CardTitle' | 'NavItem'
   content: T | UninitializedContent
   messageBus: ISub
   onChange: (content: T) => void

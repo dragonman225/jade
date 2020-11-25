@@ -297,7 +297,7 @@ export const App: React.FunctionComponent = () => {
                           contentType={referencedBlockCard.type}
                           contentProps={{
                             ...contentProps,
-                            viewMode: 'block',
+                            viewMode: 'Block',
                             content: referencedBlockCard.content,
                             messageBus: readOnlyMessenger,
                             onChange: content => {

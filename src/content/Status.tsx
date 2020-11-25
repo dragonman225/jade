@@ -34,7 +34,7 @@ export const Status: React.FunctionComponent<ContentProps<InitializedContent>> =
   }, [])
 
   switch (props.viewMode) {
-    case 'block':
+    case 'Block':
       return (
         <div>
           <style jsx>{`

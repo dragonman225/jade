@@ -70,9 +70,8 @@ export const HeaderTool: React.FunctionComponent<Props> = (props) => {
       <div className={styles.CardTitleContainer}>
         {
           function () {
-            const key = 'CardTitle-' + props.concept.id
             const contentProps: ContentProps<InitializedContent> & { key: string } = {
-              viewMode: 'card',
+              viewMode: 'CardTitle',
               readOnly: false,
               content: props.concept.content,
               messageBus: props.readOnlyMessenger,
@@ -80,7 +79,7 @@ export const HeaderTool: React.FunctionComponent<Props> = (props) => {
               onReplace: props.onConceptReplace,
               onInteractionStart: () => { return },
               onInteractionEnd: () => { return },
-              key: key
+              key: 'CardTitle-' + props.concept.id
             }
             return <Content contentType={props.concept.type}
               contentProps={contentProps} />

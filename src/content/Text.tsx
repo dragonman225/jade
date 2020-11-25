@@ -60,7 +60,7 @@ export class Text extends React.Component<ContentProps<TextContent>, State> {
       onBlur={this.props.onInteractionEnd} />
 
     switch (this.props.viewMode) {
-      case 'nav_item':
+      case 'NavItem':
         return (
           <>
             <style jsx>{`
@@ -74,7 +74,7 @@ export class Text extends React.Component<ContentProps<TextContent>, State> {
             <div>{slateTextEditor}</div>
           </>
         )
-      case 'block':
+      case 'Block':
         return (
           <>
             <style jsx>{`
@@ -85,7 +85,7 @@ export class Text extends React.Component<ContentProps<TextContent>, State> {
             <div className="Block">{slateTextEditor}</div>
           </>
         )
-      case 'card':
+      case 'CardTitle':
         return (
           <>
             <style jsx>{`

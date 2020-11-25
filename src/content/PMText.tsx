@@ -119,7 +119,7 @@ export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (pro
   </>
 
   switch (props.viewMode) {
-    case 'nav_item':
+    case 'NavItem':
       return (
         <>
           <style jsx>{`
@@ -132,7 +132,7 @@ export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (pro
           <div>{PMTextEditor}</div>
         </>
       )
-    case 'block':
+    case 'Block':
       return (
         <>
           <style jsx>{`
@@ -143,7 +143,7 @@ export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (pro
           <div className="Block">{PMTextEditor}</div>
         </>
       )
-    case 'card':
+    case 'CardTitle':
       return (
         <>
           <style jsx>{`
@@ -234,7 +234,7 @@ export class PMTextOld extends React.Component<ContentProps<PMTextContent>, Stat
         <div ref={this.PMRef}></div>
       </>
     switch (this.props.viewMode) {
-      case 'nav_item':
+      case 'NavItem':
         return (
           <>
             <style jsx>{`
@@ -248,7 +248,7 @@ export class PMTextOld extends React.Component<ContentProps<PMTextContent>, Stat
             <div>{PMTextEditor}</div>
           </>
         )
-      case 'block':
+      case 'Block':
         return (
           <>
             <style jsx>{`
@@ -259,7 +259,7 @@ export class PMTextOld extends React.Component<ContentProps<PMTextContent>, Stat
             <div className="Block">{PMTextEditor}</div>
           </>
         )
-      case 'card':
+      case 'CardTitle':
         return (
           <>
             <style jsx>{`
