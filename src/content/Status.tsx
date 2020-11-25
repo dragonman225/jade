@@ -1,9 +1,9 @@
 import * as React from 'react'
 import {
-  ContentProps, PubSubStatusMessage, UnifiedEventInfo
+  ContentProps, InitializedContent, PubSubStatusMessage, UnifiedEventInfo
 } from '../interfaces'
 
-export const Status: React.FunctionComponent<ContentProps<unknown>> = (props) => {
+export const Status: React.FunctionComponent<ContentProps<InitializedContent>> = (props) => {
   const [statusText, setStatusText] = React.useState<string>('')
   const [highlightText, setHighlightText] = React.useState<string>('')
   const [mouse, setMouse] = React.useState<UnifiedEventInfo>({

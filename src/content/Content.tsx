@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { ContentProps } from '../interfaces'
+import { ContentProps, InitializedContent } from '../interfaces'
 import { config } from './config'
 
 interface Props {
   contentType: string
-  contentProps: ContentProps<unknown>
+  contentProps: ContentProps<InitializedContent>
 }
 
 export const Content: React.FunctionComponent<Props> = (props) => {
