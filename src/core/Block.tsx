@@ -22,8 +22,8 @@ interface Props {
   onContentChange: (data: BaseContent) => void
   onResize: (width: number) => void
   onMove: (position: Vec2) => void
-  onRemove: () => void
-  onExpand: () => void
+  onRemove?: () => void
+  onExpand?: () => void
   onInteractionStart?: () => void
   onInteractionEnd?: () => void
   messenger: IPubSub
@@ -274,7 +274,7 @@ export class Block extends React.Component<Props, State> {
               : <></>
           }
           {
-            !this.props.readOnly && this.state.mouseIsInside
+            !this.props.readOnly && this.state.mouseIsInside && typeof this.props.onExpand === 'function'
               ? <div className="handle expand-area"
                 onClick={this.props.onExpand}><IconExpand /></div>
               : <></>
@@ -285,7 +285,7 @@ export class Block extends React.Component<Props, State> {
               : <></>
           }
           {
-            !this.props.readOnly && this.state.mouseIsInside
+            !this.props.readOnly && this.state.mouseIsInside && typeof this.props.onRemove === 'function'
               ? <div className="handle remove-area"
                 onClick={this.props.onRemove}><IconCross /></div>
               : <></>

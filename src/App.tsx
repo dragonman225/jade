@@ -205,8 +205,6 @@ export const App: React.FunctionComponent = () => {
                   position
                 })
               }}
-              onRemove={() => { return }}
-              onExpand={() => { return }}
               key="HeaderTool">
               {
                 (_contentProps) => <HeaderTool
@@ -254,8 +252,6 @@ export const App: React.FunctionComponent = () => {
                   position
                 })
               }}
-              onRemove={() => { return }}
-              onExpand={() => { return }}
               key="RecentTool">
               {
                 (_contentProps) => <RecentTool
