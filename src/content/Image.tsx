@@ -120,7 +120,7 @@ export const Image: React.FunctionComponent<ContentProps<ImageContent>> = (props
               width: 100%;
             }
 
-            img[data-view-mode='card'] {
+            img[data-view-mode='CardTitle'] {
               height: 100%;
               object-fit: contain;
               object-position: left center;
