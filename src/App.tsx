@@ -8,8 +8,8 @@ import { Canvas } from './core/Canvas'
 import { IconHome } from './core/component/IconHome'
 import { BlockFactory } from './core/BlockFactory'
 import { InputContainer } from './core/InputContainer'
-import { Recent } from './core/Recent'
-import { Search } from './core/Search'
+import { RecentTool } from './core/RecentTool'
+import { SearchTool } from './core/SearchTool'
 import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
@@ -251,14 +251,14 @@ export const App: React.FunctionComponent = () => {
               dispatchAction({ type: 'block::create', data: { position } })
             }} />
             <div className="Search">
-              <Search state={state} onExpand={handleExpand}
+              <SearchTool state={state} onExpand={handleExpand}
                 messenger={messenger}
                 onRequestLink={data => {
                   dispatchAction({ type: 'block::link', data })
                 }} />
             </div>
             <div className="Recent">
-              <Recent
+              <RecentTool
                 history={expandHistory}
                 historySize={historySize}
                 current={last}

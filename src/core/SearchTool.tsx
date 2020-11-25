@@ -55,7 +55,7 @@ const S2LState = {
   Linking: Symbol('linking')
 }
 
-export const Search: React.FunctionComponent<Props> = (props) => {
+export const SearchTool: React.FunctionComponent<Props> = (props) => {
   const { messenger } = props
   const searchRef = React.useRef<HTMLDivElement>()
   const getSearchRect = () => {

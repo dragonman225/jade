@@ -26,7 +26,7 @@ const styles = {
   })
 }
 
-export const Recent: React.FunctionComponent<Props> = (props) => {
+export const RecentTool: React.FunctionComponent<Props> = (props) => {
   return (
     <Box className={styles.Recent}>
       <style jsx>{`
