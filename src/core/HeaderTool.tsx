@@ -58,7 +58,7 @@ const styles = {
 
 export const HeaderTool: React.FunctionComponent<Props> = (props) => {
   return (
-    <Box className={styles.HeaderTool} style={{
+    <div className={styles.HeaderTool} style={{
       width: props.width,
       height: props.height
     }}>
@@ -86,6 +86,6 @@ export const HeaderTool: React.FunctionComponent<Props> = (props) => {
           }()
         }
       </div>
-    </Box>
+    </div>
   )
 }

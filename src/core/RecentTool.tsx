@@ -28,7 +28,7 @@ const styles = {
 
 export const RecentTool: React.FunctionComponent<Props> = (props) => {
   return (
-    <Box className={styles.Recent} style={{ width: props.width }}>
+    <div className={styles.Recent} style={{ width: props.width }}>
       <style jsx>{`
         button {
           border: none;
@@ -116,6 +116,6 @@ export const RecentTool: React.FunctionComponent<Props> = (props) => {
           })
         }()
       }
-    </Box>
+    </div>
   )
 }

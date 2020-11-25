@@ -10,12 +10,11 @@ import { InputContainer } from './core/InputContainer'
 import { RecentTool } from './core/RecentTool'
 import { SearchTool } from './core/SearchTool'
 import { HeaderTool } from './core/HeaderTool'
+import { Box } from './core/component/Box'
 import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
-import {
-  State3, BlockCard, ContentProps, BaseContent, InitializedContent
-} from './interfaces'
+import { State3, BlockCard } from './interfaces'
 
 const initialState = require('./InitialState.json') as State3
 
@@ -189,6 +188,7 @@ export const App: React.FunctionComponent = () => {
                 position: headerToolState.position,
                 width: headerToolState.width
               }}
+              container={Box}
               onResize={(width) => {
                 setHeaderToolState({
                   ...headerToolState,
@@ -232,6 +232,7 @@ export const App: React.FunctionComponent = () => {
                 position: recentToolState.position,
                 width: recentToolState.width
               }}
+              container={Box}
               onResize={(width) => {
                 setRecentToolState({
                   ...recentToolState,

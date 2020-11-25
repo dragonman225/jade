@@ -200,8 +200,7 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
   }
 
   return (
-    <Box
-      className={styles.Search}
+    <Box className={styles.Search}
       style={{
         cursor: `${s2lState === S2LState.Linking ? 'grabbing' : 'auto'}`
       }}

@@ -4,8 +4,7 @@ import { IconDragHandle } from './component/IconDragHandle'
 import { IconCross } from './component/IconCross'
 import { IconExpand } from './component/IconExpand'
 import {
-  UnifiedEventInfo, ContentProps, Vec2, BaseContent,
-  InitializedContent
+  UnifiedEventInfo, ContentProps, Vec2, InitializedContent
 } from '../interfaces'
 import { isPointInRect } from '../lib/utils'
 
@@ -19,6 +18,7 @@ interface Props {
     position: Vec2
     width: number
   }
+  container?: React.ComponentClass<any> | React.FunctionComponent<any>
   onResize: (width: number) => void
   onMove: (position: Vec2) => void
   onRemove?: () => void
@@ -118,7 +118,7 @@ export class Block extends React.Component<Props, State> {
         maxY: window.innerHeight - dragHandleSize
       }
       const width = this.props.data.width
-      const minHeight = 100
+      const minHeight = 55
 
       if (newPos.x < limit.minX) newPos.x = limit.minX
       else if (newPos.x + width > limit.maxX) newPos.x = limit.maxX - width
@@ -208,6 +208,7 @@ export class Block extends React.Component<Props, State> {
   }
 
   render(): JSX.Element {
+    const Container = this.props.container || 'div'
     return (
       <>
         <style jsx>{`
@@ -217,7 +218,6 @@ export class Block extends React.Component<Props, State> {
             left: ${this.props.data.position.x}px;
             width: ${this.props.data.width}px;
             color: rgb(65, 65, 65);
-            background: ${this.isActive() ? 'rgba(235, 235, 235, 0.8)' : 'inherit'};
             display: flex;
             align-items: center;
             word-break: break-word;
@@ -266,7 +266,7 @@ export class Block extends React.Component<Props, State> {
           .ContentArea {
             width: 100%;
             min-height: ${2 * dragHandleSize}px;
-            max-height: ${window.innerHeight - this.props.data.position.y - 100}px;
+            max-height: ${window.innerHeight - this.props.data.position.y - 24}px;
             overflow: auto;
           }
 
@@ -280,11 +280,14 @@ export class Block extends React.Component<Props, State> {
             white-space: nowrap;
           }
         `}</style>
-        <div
+        <Container
           className="Block" ref={this.ref}
           onMouseEnter={this.handleMouseEnter}
           onMouseLeave={this.handleMouseLeave}
-          onClick={this.handleMouseEnter}>
+          onClick={this.handleMouseEnter}
+          style={this.props.container ? {} : {
+            background: this.isActive() ? 'rgba(235, 235, 235, 0.8)' : 'inherit'
+          }}>
           <span className="debug-id">{this.props.data.blockId}</span>
           {
             !this.props.readOnly && this.state.mouseIsInside
@@ -320,7 +323,7 @@ export class Block extends React.Component<Props, State> {
                 })
                 : <></>}
           </div>
-        </div>
+        </Container>
       </>
     )
   }
