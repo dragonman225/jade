@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as typestyle from 'typestyle'
 import { IPubSub } from '../lib/pubsub'
 import { IconDragHandle } from './component/IconDragHandle'
 import { IconCross } from './component/IconCross'
@@ -209,122 +210,122 @@ export class Block extends React.Component<Props, State> {
 
   render(): JSX.Element {
     const Container = this.props.container || 'div'
+    const containerStyle: React.CSSProperties = {
+      transform: `translate(${this.props.data.position.x}px, ${this.props.data.position.y}px)`,
+      width: `${this.props.data.width}px`,
+      zIndex: this.isActive() ? 1 : 'unset'
+    }
+    const styles = {
+      Block: typestyle.style({
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        color: 'rgb(65, 65, 65)',
+        display: 'flex',
+        alignItems: 'center',
+        wordBreak: 'break-word',
+        userSelect: 'none'
+      }),
+      Handle: typestyle.style({
+        position: 'absolute',
+        width: dragHandleSize,
+        height: dragHandleSize,
+        fill: '#aaa',
+        padding: '.3rem',
+        background: 'rgba(0, 0, 0, 0)',
+        $nest: {
+          '&:hover, &:active': {
+            background: 'rgba(182, 182, 182, 0.8)',
+            fill: '#7c7c7c'
+          }
+        }
+      }),
+      DragArea: typestyle.style({
+        top: 0,
+        left: 0
+      }),
+      ExpandArea: typestyle.style({
+        top: 0,
+        right: 0,
+        cursor: 'default'
+      }),
+      ResizeArea: typestyle.style({
+        bottom: 0,
+        right: 0,
+        cursor: 'ew-resize'
+      }),
+      RemoveArea: typestyle.style({
+        bottom: 0,
+        left: 0,
+        cursor: 'default'
+      }),
+      ContentArea: typestyle.style({
+        width: '100%',
+        minHeight: 2 * dragHandleSize,
+        overflow: 'auto'
+      }),
+      DebugId: typestyle.style({
+        display: 'none',
+        fontSize: 6,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        color: '#050c9c',
+        whiteSpace: 'nowrap'
+      })
+    }
     return (
-      <>
-        <style jsx>{`
-          .Block {
-            position: absolute;
-            top: ${this.props.data.position.y}px;
-            left: ${this.props.data.position.x}px;
-            width: ${this.props.data.width}px;
-            color: rgb(65, 65, 65);
-            display: flex;
-            align-items: center;
-            word-break: break-word;
-            user-select: none;
-            z-index: ${this.isActive() ? '1' : 'unset'};
-          }
-
-          .handle {
-            width: ${dragHandleSize}px;
-            height: ${dragHandleSize}px;
-            fill: #aaaaaa;
-            padding: .3rem;
-            background: rgba(0, 0, 0, 0);
-            position: absolute;
-          }
-
-          .handle:hover, .handle:active {
-            background:rgba(182, 182, 182, 0.8);
-            fill: #7c7c7c;
-          }
-
-          .drag-area {
-            top: 0;
-            left: 0;
-            cursor: ${this.state.moving ? 'grabbing' : 'grab'};
-          }
-
-          .expand-area {
-            top: 0;
-            right: 0;
-            cursor: default;
-          }
-
-          .resize-area {
-            bottom: 0;
-            right: 0;
-            cursor: ew-resize;
-          }
-
-          .remove-area {
-            bottom: 0;
-            left: 0;
-            cursor: default;
-          }
-
-          .ContentArea {
-            width: 100%;
-            min-height: ${2 * dragHandleSize}px;
-            max-height: ${window.innerHeight - this.props.data.position.y - 24}px;
-            overflow: auto;
-          }
-
-          .debug-id {
-            display: none;
-            font-size: 6px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            color: #050c9c;
-            white-space: nowrap;
-          }
-        `}</style>
-        <Container
-          className="Block" ref={this.ref}
-          onMouseEnter={this.handleMouseEnter}
-          onMouseLeave={this.handleMouseLeave}
-          onClick={this.handleMouseEnter}
-          style={this.props.container ? {} : {
-            background: this.isActive() ? 'rgba(235, 235, 235, 0.8)' : 'inherit'
-          }}>
-          <span className="debug-id">{this.props.data.blockId}</span>
+      <Container
+        className={styles.Block} ref={this.ref}
+        onMouseEnter={this.handleMouseEnter}
+        onMouseLeave={this.handleMouseLeave}
+        onClick={this.handleMouseEnter}
+        style={this.props.container ? containerStyle : {
+          ...containerStyle,
+          background: this.isActive() ? 'rgba(235, 235, 235, 0.8)' : 'inherit'
+        }}>
+        <span className={styles.DebugId}>{this.props.data.blockId}</span>
+        {
+          !this.props.readOnly && this.state.mouseIsInside
+            ? <div className={typestyle.classes(styles.Handle, styles.DragArea)} style={{
+              cursor: this.state.moving ? 'grabbing' : 'grab'
+            }}>
+              <IconDragHandle /></div>
+            : <></>
+        }
+        {
+          !this.props.readOnly && this.state.mouseIsInside
+            && typeof this.props.onExpand === 'function'
+            ? <div className={typestyle.classes(styles.Handle, styles.ExpandArea)}
+              onClick={this.props.onExpand}><IconExpand /></div>
+            : <></>
+        }
+        {
+          !this.props.readOnly && this.state.mouseIsInside
+            ? <div className={typestyle.classes(styles.Handle, styles.ResizeArea)}>
+              <IconDragHandle /></div>
+            : <></>
+        }
+        {
+          !this.props.readOnly && this.state.mouseIsInside
+            && typeof this.props.onRemove === 'function'
+            ? <div className={typestyle.classes(styles.Handle, styles.RemoveArea)}
+              onClick={this.props.onRemove}><IconCross /></div>
+            : <></>
+        }
+        <div className={styles.ContentArea} style={{
+          maxHeight: window.innerHeight - this.props.data.position.y - 24
+        }}>
           {
-            !this.props.readOnly && this.state.mouseIsInside
-              ? <div className="handle drag-area"><IconDragHandle /></div>
-              : <></>
-          }
-          {
-            !this.props.readOnly && this.state.mouseIsInside
-              && typeof this.props.onExpand === 'function'
-              ? <div className="handle expand-area"
-                onClick={this.props.onExpand}><IconExpand /></div>
-              : <></>
-          }
-          {
-            !this.props.readOnly && this.state.mouseIsInside
-              ? <div className="handle resize-area"><IconDragHandle /></div>
-              : <></>
-          }
-          {
-            !this.props.readOnly && this.state.mouseIsInside
-              && typeof this.props.onRemove === 'function'
-              ? <div className="handle remove-area"
-                onClick={this.props.onRemove}><IconCross /></div>
-              : <></>
-          }
-          <div className="ContentArea">
-            {
-              this.props.children
-                ? this.props.children({
-                  readOnly: this.props.readOnly,
-                  onInteractionStart: this.handleContentInteractionStart,
-                  onInteractionEnd: this.handleContentInteractionEnd
-                })
-                : <></>}
-          </div>
-        </Container>
-      </>
+            this.props.children
+              ? this.props.children({
+                readOnly: this.props.readOnly,
+                onInteractionStart: this.handleContentInteractionStart,
+                onInteractionEnd: this.handleContentInteractionEnd
+              })
+              : <></>}
+        </div>
+      </Container>
     )
   }
 }
