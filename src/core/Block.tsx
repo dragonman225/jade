@@ -240,9 +240,16 @@ export class Block extends React.Component<Props, State> {
           }
         }
       }),
+      HandleHide: typestyle.style({
+        display: 'none'
+      }),
       DragArea: typestyle.style({
         top: 0,
-        left: 0
+        left: 0,
+        cursor: 'grab'
+      }),
+      DragAreaMoving: typestyle.style({
+        cursor: 'grabbing'
       }),
       ExpandArea: typestyle.style({
         top: 0,
@@ -285,33 +292,38 @@ export class Block extends React.Component<Props, State> {
           background: this.isActive() ? 'rgba(235, 235, 235, 0.8)' : 'inherit'
         }}>
         <span className={styles.DebugId}>{this.props.data.blockId}</span>
+        <div className={typestyle.classes(
+          styles.Handle,
+          (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
+          styles.DragArea,
+          this.state.moving && styles.DragAreaMoving)}>
+          <IconDragHandle />
+        </div>
         {
-          !this.props.readOnly && this.state.mouseIsInside
-            ? <div className={typestyle.classes(styles.Handle, styles.DragArea)} style={{
-              cursor: this.state.moving ? 'grabbing' : 'grab'
-            }}>
-              <IconDragHandle /></div>
-            : <></>
+          typeof this.props.onExpand === 'function' ?
+            <div className={typestyle.classes(
+              styles.Handle,
+              (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
+              styles.ExpandArea)}
+            onClick={this.props.onExpand}>
+              <IconExpand />
+            </div> : <></>
         }
+        <div className={typestyle.classes(
+          styles.Handle,
+          (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
+          styles.ResizeArea)}>
+          <IconDragHandle />
+        </div>
         {
-          !this.props.readOnly && this.state.mouseIsInside
-            && typeof this.props.onExpand === 'function'
-            ? <div className={typestyle.classes(styles.Handle, styles.ExpandArea)}
-              onClick={this.props.onExpand}><IconExpand /></div>
-            : <></>
-        }
-        {
-          !this.props.readOnly && this.state.mouseIsInside
-            ? <div className={typestyle.classes(styles.Handle, styles.ResizeArea)}>
-              <IconDragHandle /></div>
-            : <></>
-        }
-        {
-          !this.props.readOnly && this.state.mouseIsInside
-            && typeof this.props.onRemove === 'function'
-            ? <div className={typestyle.classes(styles.Handle, styles.RemoveArea)}
-              onClick={this.props.onRemove}><IconCross /></div>
-            : <></>
+          typeof this.props.onRemove === 'function' ?
+            <div className={typestyle.classes(
+              styles.Handle,
+              (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
+              styles.RemoveArea)}
+            onClick={this.props.onRemove}>
+              <IconCross />
+            </div> : <></>
         }
         <div className={styles.ContentArea} style={{
           maxHeight: window.innerHeight - this.props.data.position.y - 24
