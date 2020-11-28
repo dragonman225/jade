@@ -108,15 +108,20 @@ export const App: React.FunctionComponent = () => {
     })
   }
 
+  const [headerToolState, setHeaderToolState] = React.useState({
+    position: { x: 24, y: 24 },
+    width: 500,
+    height: 50
+  })
+
   const [recentToolState, setRecentToolState] = React.useState({
     position: { x: window.innerWidth - 500 - 24, y: 24 },
     width: 500
   })
 
-  const [headerToolState, setHeaderToolState] = React.useState({
-    position: { x: 24, y: 24 },
-    width: 500,
-    height: 50
+  const [searchToolState, setSearchToolState] = React.useState({
+    position: { x: 24, y: 100 },
+    width: 500
   })
 
   const currentConcept = state.blockCardMap[state.currentBlockCardId]
@@ -173,13 +178,36 @@ export const App: React.FunctionComponent = () => {
             <BlockFactory onRequestCreate={position => {
               dispatchAction({ type: 'block::create', data: { position } })
             }} />
-            <div className="Search">
-              <SearchTool state={state} onExpand={handleExpand}
-                messenger={messenger}
-                onRequestLink={data => {
-                  dispatchAction({ type: 'block::link', data })
-                }} />
-            </div>
+            <Block
+              messenger={messenger}
+              readOnly={false}
+              data={{
+                blockId: 'SearchTool',
+                position: searchToolState.position,
+                width: searchToolState.width
+              }}
+              container={Box}
+              onResize={(width) => {
+                setSearchToolState({
+                  ...searchToolState,
+                  width
+                })
+              }}
+              onMove={(position) => {
+                setSearchToolState({
+                  ...searchToolState,
+                  position
+                })
+              }}
+              key="SearchTool">
+              {
+                (_contentProps) => <SearchTool state={state} onExpand={handleExpand}
+                  messenger={messenger}
+                  onRequestLink={data => {
+                    dispatchAction({ type: 'block::link', data })
+                  }} />
+              }
+            </Block>
             <Block
               messenger={messenger}
               readOnly={false}

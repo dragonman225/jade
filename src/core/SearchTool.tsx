@@ -63,6 +63,21 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
   }
   const [text, setText] = React.useState('')
   const [minimized, setMinimized] = React.useState(true)
+  const resultConcepts = React.useMemo(() => {
+    const allConcepts = Object.values(props.state.blockCardMap)
+    if (text) {
+      return allConcepts.filter(blockCard => {
+        /**
+         * HACK: Each content type should be able to decide 
+         * how to search its content!
+         */
+        return JSON.stringify(blockCard.content)
+          .toLocaleLowerCase().includes(text.toLocaleLowerCase())
+      })
+    } else {
+      return allConcepts
+    }
+  }, [text])
 
   /** Search-to-Link */
   const [s2lState, setS2lState] = React.useState(S2LState.Idle)
@@ -130,12 +145,9 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
 
   const styles = {
     Search: typestyle.style({
-      width: '300px',
       $nest: {
         '& hr': {
           border: '1px solid #ddd',
-          marginRight: '.5rem',
-          marginLeft: '.5rem',
           $nest: {
             '&:last-of-type': {
               display: 'none'
@@ -144,17 +156,21 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
         }
       }
     }),
+    'Search--Linking': typestyle.style({
+      cursor: 'grabbing'
+    }),
     SearchInput: typestyle.style({
-      padding: '.5rem',
+      padding: '.5rem 22px',
       $nest: {
         '&>input': {
           outline: 'none',
-          border: 'none'
+          border: 'none',
+          width: '100%'
         }
       }
     }),
     SearchResult: typestyle.style({
-      padding: '0 .5rem 0'
+      padding: '0 22px 0'
     }),
     ScrollList: typestyle.style({
       height: '100%',
@@ -164,7 +180,7 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
     ScrollListItem: typestyle.style({
       maxHeight: '200px',
       overflow: 'hidden',
-      margin: '0 .3rem',
+      margin: 0,
       borderRadius: '.5rem',
       $nest: {
         '&:hover': {
@@ -187,23 +203,13 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
       overflow: 'hidden',
       zIndex: 999
     }),
-    hr: typestyle.style({
-      border: '1px solid #ddd',
-      marginRight: '.5rem',
-      marginLeft: '.5rem',
-      $nest: {
-        '&:last-of-type': {
-          display: 'none'
-        }
-      }
-    })
   }
 
   return (
-    <Box className={styles.Search}
-      style={{
-        cursor: `${s2lState === S2LState.Linking ? 'grabbing' : 'auto'}`
-      }}
+    <div
+      className={typestyle.classes(
+        styles.Search,
+        s2lState === S2LState.Linking && styles['Search--Linking'])}
       ref={searchRef}
       onFocus={() => { setMinimized(false) }}>
       {
@@ -211,51 +217,41 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
           <div className={styles.SearchResult}>
             <div className={styles.ScrollList}>
               {
-                text || !text ? Object.values(props.state.blockCardMap)
-                  .filter(blockCard => {
-                    /**
-                     * HACK: Each content type should be able to decide 
-                     * how to search its content!
-                     */
-                    return JSON.stringify(blockCard.content)
-                      .toLocaleLowerCase().includes(text.toLocaleLowerCase())
-                  })
-                  .map(blockCard => {
-                    return <React.Fragment key={blockCard.id}>
-                      {
-                        function () {
-                          switch (s2lState) {
-                            case S2LState.Idle: {
-                              /** The following doesn't support touch. */
-                              return <div className={styles.ScrollListItem}
-                                onMouseEnter={(e) => {
-                                  setS2lBlock({
-                                    valid: true,
-                                    id: blockCard.id,
-                                    rect: e.currentTarget.getBoundingClientRect()
-                                  })
-                                }}
-                                onMouseLeave={() => {
-                                  setS2lBlock({ valid: false })
-                                }}
-                                onMouseUp={() => {
-                                  props.onExpand(blockCard.id)
-                                }}>
-                                <SearchItemContent blockCard={blockCard} />
-                              </div>
-                            }
-                            case S2LState.Linking: {
-                              return <div className={styles.ScrollListItem}>
-                                <SearchItemContent blockCard={blockCard} />
-                              </div>
-                            }
+                resultConcepts.map(blockCard => {
+                  return <React.Fragment key={blockCard.id}>
+                    {
+                      function () {
+                        switch (s2lState) {
+                          case S2LState.Idle: {
+                            /** The following doesn't support touch. */
+                            return <div className={styles.ScrollListItem}
+                              onMouseEnter={(e) => {
+                                setS2lBlock({
+                                  valid: true,
+                                  id: blockCard.id,
+                                  rect: e.currentTarget.getBoundingClientRect()
+                                })
+                              }}
+                              onMouseLeave={() => {
+                                setS2lBlock({ valid: false })
+                              }}
+                              onMouseUp={() => {
+                                props.onExpand(blockCard.id)
+                              }}>
+                              <SearchItemContent blockCard={blockCard} />
+                            </div>
                           }
-                        }()
-                      }
-                      <hr />
-                    </React.Fragment>
-                  }) :
-                  <></>
+                          case S2LState.Linking: {
+                            return <div className={styles.ScrollListItem}>
+                              <SearchItemContent blockCard={blockCard} />
+                            </div>
+                          }
+                        }
+                      }()
+                    }
+                    <hr />
+                  </React.Fragment>
+                })
               }
             </div>
           </div> :
@@ -284,6 +280,6 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
           }
         }()
       }
-    </Box>
+    </div>
   )
 }
