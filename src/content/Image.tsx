@@ -104,7 +104,7 @@ export const Image: React.FunctionComponent<ContentProps<ImageContent>> = (props
         <>
           <style jsx>{`
             .ImgViewer {
-              height: 100%;
+              display: flex; /* Remove extra space below img. */
               overflow: hidden;
             }
             
