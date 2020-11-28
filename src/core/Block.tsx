@@ -35,8 +35,9 @@ interface State {
   editing: boolean
   resizing: boolean
   mouseIsInside: boolean
-  dragPosition: { x: number; y: number }
-  lastDragPosition: { x: number; y: number }
+  position: Vec2
+  dragPosition: Vec2
+  lastDragPosition: Vec2
 }
 
 const dragHandleSize = 22
@@ -52,6 +53,7 @@ export class Block extends React.Component<Props, State> {
       editing: false,
       resizing: false,
       mouseIsInside: false,
+      position: props.data.position,
       dragPosition: { x: 0, y: 0 },
       lastDragPosition: { x: 0, y: 0 }
     }
@@ -63,10 +65,10 @@ export class Block extends React.Component<Props, State> {
   inDragArea(x: number, y: number): boolean {
     const mousePoint = { x, y }
     const dragRect = {
-      top: this.props.data.position.y,
-      left: this.props.data.position.x,
-      bottom: this.props.data.position.y + dragHandleSize,
-      right: this.props.data.position.x + dragHandleSize
+      top: this.state.position.y,
+      left: this.state.position.x,
+      bottom: this.state.position.y + dragHandleSize,
+      right: this.state.position.x + dragHandleSize
     }
     if (isPointInRect(mousePoint, dragRect)) return true
     else return false
@@ -100,8 +102,8 @@ export class Block extends React.Component<Props, State> {
       if (typeof this.props.onInteractionStart === 'function')
         this.props.onInteractionStart()
     }
-    this.state.dragPosition.x = msg.offsetX - this.props.data.position.x
-    this.state.dragPosition.y = msg.offsetY - this.props.data.position.y
+    this.state.dragPosition.x = msg.offsetX - this.state.position.x
+    this.state.dragPosition.y = msg.offsetY - this.state.position.y
     this.state.lastDragPosition.x = msg.offsetX
     this.state.lastDragPosition.y = msg.offsetY
   }
@@ -126,7 +128,7 @@ export class Block extends React.Component<Props, State> {
       if (newPos.y < limit.minY) newPos.y = limit.minY
       else if (newPos.y + minHeight > limit.maxY) newPos.y = limit.maxY - minHeight
 
-      this.props.onMove(newPos)
+      this.setState({ position: newPos })
       this.props.messenger.publish('block::moving')
     }
 
@@ -154,6 +156,7 @@ export class Block extends React.Component<Props, State> {
   handleDragEnd = (): void => {
     if (this.state.moving || this.state.resizing) {
       this.setState({ moving: false, resizing: false })
+      this.props.onMove(this.state.position)
       if (typeof this.props.onInteractionEnd === 'function')
         this.props.onInteractionEnd()
     }
@@ -211,7 +214,7 @@ export class Block extends React.Component<Props, State> {
   render(): JSX.Element {
     const Container = this.props.container || 'div'
     const containerStyle: React.CSSProperties = {
-      transform: `translate(${this.props.data.position.x}px, ${this.props.data.position.y}px)`,
+      transform: `translate(${this.state.position.x}px, ${this.state.position.y}px)`,
       width: `${this.props.data.width}px`,
       zIndex: this.isActive() ? 1 : 'unset'
     }
@@ -327,7 +330,7 @@ export class Block extends React.Component<Props, State> {
             </div> : <></>
         }
         <div className={styles.ContentArea} style={{
-          maxHeight: window.innerHeight - this.props.data.position.y - 24
+          maxHeight: window.innerHeight - this.state.position.y - 24
         }}>
           {
             this.props.children
