@@ -65,6 +65,7 @@ export const Status: React.FunctionComponent<ContentProps<InitializedContent>> =
           </section>
           <section className="EventData">
             <h3>Event</h3>
+            <p><strong>Last</strong>: {highlightText}</p>
             {
               function () {
                 const highlightStart = statusText.indexOf(highlightText)
