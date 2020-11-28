@@ -77,7 +77,7 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
     } else {
       return allConcepts
     }
-  }, [text])
+  }, [text, props.state.blockCardMap])
 
   /** Search-to-Link */
   const [s2lState, setS2lState] = React.useState(S2LState.Idle)
@@ -160,12 +160,14 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
       cursor: 'grabbing'
     }),
     SearchInput: typestyle.style({
+      height: 50,
       padding: '.5rem 22px',
       $nest: {
         '&>input': {
           outline: 'none',
           border: 'none',
-          width: '100%'
+          width: '100%',
+          height: '100%'
         }
       }
     }),
