@@ -220,6 +220,7 @@ export class Block extends React.Component<Props, State> {
         position: 'absolute',
         top: 0,
         left: 0,
+        borderRadius: '.5rem',
         color: 'rgb(65, 65, 65)',
         display: 'flex',
         alignItems: 'center',
