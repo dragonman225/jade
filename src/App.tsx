@@ -121,7 +121,7 @@ export const App: React.FunctionComponent = () => {
 
   const [searchToolState, setSearchToolState] = React.useState({
     position: { x: 24, y: 100 },
-    width: 500
+    width: 300
   })
 
   const currentConcept = state.blockCardMap[state.currentBlockCardId]
