@@ -240,7 +240,6 @@ export const App: React.FunctionComponent = () => {
               key="HeaderTool">
               {
                 (_contentProps) => <HeaderTool
-                  width={headerToolState.width}
                   height={headerToolState.height}
                   concept={currentConcept}
                   readOnlyMessenger={readOnlyMessenger}

@@ -9,7 +9,6 @@ import { Box } from './component/Box'
 import { IconHome } from './component/IconHome'
 
 interface Props {
-  width: number
   height: number
   concept: BlockCard
   readOnlyMessenger: ISub
@@ -20,6 +19,7 @@ interface Props {
 
 const styles = {
   HeaderTool: typestyle.style({
+    width: '100%',
     display: 'flex',
     flexWrap: 'nowrap',
     padding: '0px 22px'
@@ -51,7 +51,6 @@ const styles = {
   }),
   CardTitleContainer: typestyle.style({
     flex: '7 7 50px',
-    maxWidth: 800,
     overflow: 'auto'
   })
 }
@@ -59,7 +58,6 @@ const styles = {
 export const HeaderTool: React.FunctionComponent<Props> = (props) => {
   return (
     <div className={styles.HeaderTool} style={{
-      width: props.width,
       height: props.height
     }}>
       <div className={styles.HomeBtnContainer}>
