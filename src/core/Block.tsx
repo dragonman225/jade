@@ -5,7 +5,7 @@ import { IconDragHandle } from './component/IconDragHandle'
 import { IconCross } from './component/IconCross'
 import { IconExpand } from './component/IconExpand'
 import {
-  UnifiedEventInfo, ContentProps, Vec2, InitializedContent
+  UnifiedEventInfo, ContentProps, Vec2, InitializedContent, Origin
 } from '../interfaces'
 import { isPointInRect } from '../lib/utils'
 
@@ -19,6 +19,7 @@ interface Props {
     position: Vec2
     width: number
   }
+  origin: Origin
   container?: React.ComponentClass<any> | React.FunctionComponent<any>
   onResize: (width: number) => void
   onMove: (position: Vec2) => void
@@ -35,9 +36,12 @@ interface State {
   editing: boolean
   resizing: boolean
   mouseIsInside: boolean
+  width: number
   position: Vec2
-  dragPosition: Vec2
-  lastDragPosition: Vec2
+  moveDelta: Vec2
+  dragOffset: Vec2
+  lastMovePosition: Vec2
+  blockRectOnDragStart?: DOMRect
 }
 
 const dragHandleSize = 22
@@ -53,37 +57,34 @@ export class Block extends React.Component<Props, State> {
       editing: false,
       resizing: false,
       mouseIsInside: false,
+      width: props.data.width,
       position: props.data.position,
-      dragPosition: { x: 0, y: 0 },
-      lastDragPosition: { x: 0, y: 0 }
+      moveDelta: { x: 0, y: 0 },
+      dragOffset: { x: 0, y: 0 },
+      lastMovePosition: { x: 0, y: 0 }
     }
 
     /** For inResizeArea() to getBoundingClientRect(). */
     this.ref = React.createRef<HTMLDivElement>()
   }
 
-  inDragArea(x: number, y: number): boolean {
-    const mousePoint = { x, y }
+  inDragArea(point: Vec2, blockRect: DOMRect): boolean {
+    const mousePoint = point
     const dragRect = {
-      top: this.state.position.y,
-      left: this.state.position.x,
-      bottom: this.state.position.y + dragHandleSize,
-      right: this.state.position.x + dragHandleSize
+      top: blockRect.top,
+      left: blockRect.left,
+      bottom: blockRect.top + dragHandleSize,
+      right: blockRect.left + dragHandleSize
     }
     if (isPointInRect(mousePoint, dragRect)) return true
     else return false
   }
 
-  inResizeArea(msg: UnifiedEventInfo): boolean {
-    const { offsetX, offsetY, originX, originY } = msg
-    const mousePoint = {
-      x: offsetX,
-      y: offsetY
-    }
-    const blockRect = this.ref.current.getBoundingClientRect()
+  inResizeArea(point: Vec2, blockRect: DOMRect): boolean {
+    const mousePoint = point
     const resizeRect = {
-      top: blockRect.bottom - dragHandleSize - originY,
-      left: blockRect.right - dragHandleSize - originX,
+      top: blockRect.bottom - dragHandleSize,
+      left: blockRect.right - dragHandleSize,
       bottom: blockRect.bottom,
       right: blockRect.right
     }
@@ -92,61 +93,85 @@ export class Block extends React.Component<Props, State> {
   }
 
   handleDragStart = (msg: UnifiedEventInfo): void => {
-    if (this.inDragArea(msg.offsetX, msg.offsetY) && this.state.mouseIsInside) {
+    const blockRect = this.ref.current.getBoundingClientRect()
+    const mousePoint = { x: msg.clientX, y: msg.clientY }
+    if (this.inDragArea(mousePoint, blockRect) && this.state.mouseIsInside) {
       this.setState({ moving: true })
       if (typeof this.props.onInteractionStart === 'function')
         this.props.onInteractionStart()
     }
-    if (this.inResizeArea(msg) && this.state.mouseIsInside) {
+    if (this.inResizeArea(mousePoint, blockRect) && this.state.mouseIsInside) {
       this.setState({ resizing: true })
       if (typeof this.props.onInteractionStart === 'function')
         this.props.onInteractionStart()
     }
-    this.state.dragPosition.x = msg.offsetX - this.state.position.x
-    this.state.dragPosition.y = msg.offsetY - this.state.position.y
-    this.state.lastDragPosition.x = msg.offsetX
-    this.state.lastDragPosition.y = msg.offsetY
+    this.setState({
+      blockRectOnDragStart: blockRect,
+      dragOffset: {
+        x: msg.offsetX - this.state.position.x,
+        y: msg.offsetY - this.state.position.y
+      },
+      lastMovePosition: {
+        x: msg.offsetX,
+        y: msg.offsetY
+      }
+    })
   }
 
   handleDragging = (msg: UnifiedEventInfo): void => {
     if (this.state.moving) {
+      const moveDelta = {
+        x: msg.offsetX - this.state.lastMovePosition.x,
+        y: msg.offsetY - this.state.lastMovePosition.y
+      }
       const newPos = {
-        x: msg.offsetX - this.state.dragPosition.x,
-        y: msg.offsetY - this.state.dragPosition.y
+        x: this.state.position.x + moveDelta.x,
+        y: this.state.position.y + moveDelta.y
       }
-      const limit = {
-        minX: dragHandleSize,
-        maxX: window.innerWidth - dragHandleSize,
-        minY: dragHandleSize,
-        maxY: window.innerHeight - dragHandleSize
+
+      const blockWidth = this.state.width
+      //const blockHeight = this.state.blockRectOnDragStart.height
+      const blockHeight = 52 /** min height */
+
+      const originType = this.props.origin.type
+      const posLimit = {
+        left: (originType === 'TL' || originType === 'BL') ? dragHandleSize : -window.innerWidth + dragHandleSize + blockWidth,
+        right: (originType === 'TL' || originType === 'BL') ? window.innerWidth - dragHandleSize - blockWidth : -dragHandleSize,
+        top: (originType === 'TL' || originType === 'TR') ? dragHandleSize : -window.innerHeight + dragHandleSize + blockHeight,
+        bottom: (originType === 'TL' || originType === 'TR') ? window.innerHeight - dragHandleSize - blockHeight : -dragHandleSize
       }
-      const width = this.props.data.width
-      const minHeight = 55
 
-      if (newPos.x < limit.minX) newPos.x = limit.minX
-      else if (newPos.x + width > limit.maxX) newPos.x = limit.maxX - width
-      if (newPos.y < limit.minY) newPos.y = limit.minY
-      else if (newPos.y + minHeight > limit.maxY) newPos.y = limit.maxY - minHeight
+      /** Limit newPos in allowed range. */
+      if (newPos.x < posLimit.left) newPos.x = posLimit.left
+      else if (newPos.x > posLimit.right) newPos.x = posLimit.right
+      if (newPos.y < posLimit.top) newPos.y = posLimit.top
+      else if (newPos.y > posLimit.bottom) newPos.y = posLimit.bottom
 
-      this.setState({ position: newPos })
+      this.setState({
+        position: newPos,
+        lastMovePosition: {
+          x: newPos.x + this.state.dragOffset.x,
+          y: newPos.y + this.state.dragOffset.y
+        }
+      })
       this.props.messenger.publish('block::moving')
     }
 
     if (this.state.resizing) {
-      const deltaX = msg.offsetX - this.state.lastDragPosition.x
-      const newW = this.props.data.width + deltaX
+      const deltaX = msg.offsetX - this.state.lastMovePosition.x
+      const newW = this.state.width + deltaX
       const minW = dragHandleSize * 2
 
       if (newW > minW) {
-        this.props.onResize(newW)
         this.setState({
-          lastDragPosition: {
+          width: newW,
+          lastMovePosition: {
             x: msg.offsetX,
             y: msg.offsetY
           }
         })
       } else {
-        this.props.onResize(minW)
+        this.setState({ width: minW })
       }
 
       this.props.messenger.publish('block::resizing')
@@ -155,8 +180,9 @@ export class Block extends React.Component<Props, State> {
 
   handleDragEnd = (): void => {
     if (this.state.moving || this.state.resizing) {
+      if (this.state.moving) this.props.onMove(this.state.position)
+      else if (this.state.resizing) this.props.onResize(this.state.width)
       this.setState({ moving: false, resizing: false })
-      this.props.onMove(this.state.position)
       if (typeof this.props.onInteractionEnd === 'function')
         this.props.onInteractionEnd()
     }
@@ -213,16 +239,28 @@ export class Block extends React.Component<Props, State> {
 
   render(): JSX.Element {
     const Container = this.props.container || 'div'
-    const containerStyle: React.CSSProperties = {
+    const { type, ...origin } = this.props.origin
+    const commonStyle: React.CSSProperties = {
+      ...origin,
       transform: `translate(${this.state.position.x}px, ${this.state.position.y}px)`,
-      width: `${this.props.data.width}px`,
+      transformOrigin: function () {
+        switch (type) {
+          case 'TL':
+            return 'top left'
+          case 'TR':
+            return 'top right'
+          case 'BL':
+            return 'bottom left'
+          default:
+            return 'bottom right'
+        }
+      }(),
+      width: `${this.state.width}px`,
       zIndex: this.isActive() ? 1 : 'unset'
     }
     const styles = {
       Block: typestyle.style({
         position: 'absolute',
-        top: 0,
-        left: 0,
         borderRadius: '.5rem',
         color: 'rgb(65, 65, 65)',
         display: 'flex',
@@ -291,8 +329,8 @@ export class Block extends React.Component<Props, State> {
         onMouseEnter={this.handleMouseEnter}
         onMouseLeave={this.handleMouseLeave}
         onClick={this.handleMouseEnter}
-        style={this.props.container ? containerStyle : {
-          ...containerStyle,
+        style={this.props.container ? commonStyle : {
+          ...commonStyle,
           background: this.isActive() ? 'rgba(235, 235, 235, 0.8)' : 'inherit'
         }}>
         <span className={styles.DebugId}>{this.props.data.blockId}</span>

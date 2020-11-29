@@ -14,7 +14,10 @@ import { Box } from './core/component/Box'
 import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
-import { State3, BlockCard } from './interfaces'
+import {
+  State3, BlockCard,
+  OriginBottomLeft, OriginTopRight, OriginTopLeft
+} from './interfaces'
 
 const initialState = require('./InitialState.json') as State3
 
@@ -109,18 +112,21 @@ export const App: React.FunctionComponent = () => {
   }
 
   const [headerToolState, setHeaderToolState] = React.useState({
+    origin: { type: 'TL', top: 0, left: 0 } as OriginTopLeft,
     position: { x: 24, y: 24 },
     width: 500,
     height: 50
   })
 
   const [recentToolState, setRecentToolState] = React.useState({
-    position: { x: window.innerWidth - 500 - 24, y: 24 },
+    origin: { type: 'TR', top: 0, right: 0 } as OriginTopRight,
+    position: { x: -24, y: 24 },
     width: 500
   })
 
   const [searchToolState, setSearchToolState] = React.useState({
-    position: { x: 24, y: 100 },
+    origin: { type: 'BL', bottom: 0, left: 0 } as OriginBottomLeft,
+    position: { x: 24, y: -24 },
     width: 300
   })
 
@@ -186,6 +192,7 @@ export const App: React.FunctionComponent = () => {
                 position: searchToolState.position,
                 width: searchToolState.width
               }}
+              origin={searchToolState.origin}
               container={Box}
               onResize={(width) => {
                 setSearchToolState({
@@ -216,6 +223,7 @@ export const App: React.FunctionComponent = () => {
                 position: headerToolState.position,
                 width: headerToolState.width
               }}
+              origin={headerToolState.origin}
               container={Box}
               onResize={(width) => {
                 setHeaderToolState({
@@ -260,6 +268,7 @@ export const App: React.FunctionComponent = () => {
                 position: recentToolState.position,
                 width: recentToolState.width
               }}
+              origin={recentToolState.origin}
               container={Box}
               onResize={(width) => {
                 setRecentToolState({
@@ -299,6 +308,7 @@ export const App: React.FunctionComponent = () => {
                         position: blockRef.position,
                         width: blockRef.width
                       }}
+                      origin={{ type: 'TL', top: 0, left: 0 }}
                       onResize={(width) => {
                         dispatchAction({
                           type: 'block::resize',

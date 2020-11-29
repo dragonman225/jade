@@ -12,6 +12,34 @@ export interface Rect {
   bottom: number // max y
 }
 
+export interface OriginTopLeft {
+  type: 'TL'
+  top: number
+  left: number
+}
+
+export interface OriginTopRight {
+  type: 'TR'
+  top: number
+  right: number
+}
+
+export interface OriginBottomLeft {
+  type: 'BL'
+  bottom: number
+  left: number
+}
+
+export interface OriginBottomRight {
+  type: 'BR'
+  bottom: number
+  right: number
+}
+
+export type Origin =
+  OriginTopLeft | OriginTopRight |
+  OriginBottomLeft | OriginBottomRight
+
 export interface UnifiedEventInfo {
   clientX: number
   clientY: number
