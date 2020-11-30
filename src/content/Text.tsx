@@ -90,10 +90,10 @@ export class Text extends React.Component<ContentProps<TextContent>, State> {
           <>
             <style jsx>{`
               .CardTitle {
-                padding-top: 0.5rem;
                 font-size: 1.2rem;
                 font-weight: bold;
-                min-width: 100px;
+                padding: .5rem;
+                overflow: auto;
               }
             `}</style>
             <div className="CardTitle">{slateTextEditor}</div>

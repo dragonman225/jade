@@ -147,13 +147,13 @@ export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (pro
       return (
         <>
           <style jsx>{`
-              .CardTitle {
-                padding-top: 0.5rem;
-                font-size: 1.2rem;
-                font-weight: bold;
-                min-width: 100px;
-              }
-            `}</style>
+            .CardTitle {
+              font-size: 1.2rem;
+              font-weight: bold;
+              padding: .5rem;
+              overflow: auto;
+            }
+          `}</style>
           <div className="CardTitle">{PMTextEditor}</div>
         </>
       )

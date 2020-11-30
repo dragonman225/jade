@@ -9,7 +9,6 @@ import { Box } from './component/Box'
 import { IconHome } from './component/IconHome'
 
 interface Props {
-  height: number
   concept: BlockCard
   readOnlyMessenger: ISub
   onHomeClick: () => void
@@ -20,15 +19,17 @@ interface Props {
 const styles = {
   HeaderTool: typestyle.style({
     width: '100%',
+    maxHeight: 200,
     display: 'flex',
     flexWrap: 'nowrap',
     padding: '0px 22px'
   }),
   HomeBtnContainer: typestyle.style({
     flex: '0 0 50px',
+    height: 50,
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   }),
   HomeBtn: typestyle.style({
     width: 30,
@@ -50,16 +51,15 @@ const styles = {
     }
   }),
   CardTitleContainer: typestyle.style({
-    flex: '7 7 50px',
-    overflow: 'auto'
+    flex: '1 1 50px',
+    overflow: 'hidden',
+    display: 'flex'
   })
 }
 
 export const HeaderTool: React.FunctionComponent<Props> = (props) => {
   return (
-    <div className={styles.HeaderTool} style={{
-      height: props.height
-    }}>
+    <div className={styles.HeaderTool}>
       <div className={styles.HomeBtnContainer}>
         <button className={styles.HomeBtn} onClick={props.onHomeClick}>
           <IconHome />

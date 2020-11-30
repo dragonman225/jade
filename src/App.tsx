@@ -114,8 +114,7 @@ export const App: React.FunctionComponent = () => {
   const [headerToolState, setHeaderToolState] = React.useState({
     origin: { type: 'TL', top: 0, left: 0 } as OriginTopLeft,
     position: { x: 24, y: 24 },
-    width: 500,
-    height: 50
+    width: 500
   })
 
   const [recentToolState, setRecentToolState] = React.useState({
@@ -240,7 +239,6 @@ export const App: React.FunctionComponent = () => {
               key="HeaderTool">
               {
                 (_contentProps) => <HeaderTool
-                  height={headerToolState.height}
                   concept={currentConcept}
                   readOnlyMessenger={readOnlyMessenger}
                   onHomeClick={() => { handleExpand(state.homeBlockCardId) }}
