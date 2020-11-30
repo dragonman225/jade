@@ -10,7 +10,9 @@ import {
 import { isPointInRect } from '../lib/utils'
 
 type ChildrenProps = Pick<ContentProps<InitializedContent>,
-'readOnly' | 'onInteractionStart' | 'onInteractionEnd'>
+'readOnly' | 'onInteractionStart' | 'onInteractionEnd'> & {
+  width: number
+}
 
 interface Props {
   readOnly: boolean
@@ -375,7 +377,8 @@ export class Block extends React.Component<Props, State> {
               ? this.props.children({
                 readOnly: this.props.readOnly,
                 onInteractionStart: this.handleContentInteractionStart,
-                onInteractionEnd: this.handleContentInteractionEnd
+                onInteractionEnd: this.handleContentInteractionEnd,
+                width: this.state.width
               })
               : <></>}
         </div>

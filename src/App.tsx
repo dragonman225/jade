@@ -283,8 +283,8 @@ export const App: React.FunctionComponent = () => {
               }}
               key="RecentTool">
               {
-                (_contentProps) => <RecentTool
-                  width={recentToolState.width}
+                (contentProps) => <RecentTool
+                  width={contentProps.width}
                   history={expandHistory}
                   historySize={historySize}
                   current={last}
