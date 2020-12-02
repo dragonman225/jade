@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as typestyle from 'typestyle'
 import { IPubSub } from '../lib/pubsub'
 import { UnifiedEventInfo } from '../interfaces'
 import { Stroke, StrokeConfig, Point } from '../interfaces'
@@ -22,14 +23,16 @@ const pencil: StrokeConfig = {
   lineWidth: 3,
   shadowBlur: 1,
   shadowColor: 'rgb(0, 0, 0)',
-  strokeStyle: 'black'
+  strokeStyle: 'black',
+  compositeOperation: 'source-over'
 }
 
 const eraser: StrokeConfig = {
   lineWidth: 24,
   shadowBlur: 0,
   shadowColor: 'rgb(0, 0, 0)',
-  strokeStyle: 'white'
+  strokeStyle: 'white',
+  compositeOperation: 'destination-out'
 }
 
 function resizeCanvas(el: HTMLCanvasElement, width: number, height: number) {
@@ -61,6 +64,7 @@ function drawStroke(ctx: CanvasRenderingContext2D, path: Stroke) {
   ctx.strokeStyle = path.config.strokeStyle
   ctx.shadowBlur = path.config.shadowBlur
   ctx.shadowColor = path.config.shadowColor
+  ctx.globalCompositeOperation = path.config.compositeOperation
   ctx.lineJoin = ctx.lineCap = 'round'
   ctx.moveTo(points[0].x, points[0].y)
 
@@ -134,6 +138,7 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
   }
 
   onResizeWindow = (): void => {
+    resizeCanvas(this.refCursor.current, window.innerWidth, window.innerHeight)
     resizeCanvas(this.refTmp.current, window.innerWidth, window.innerHeight)
     resizeCanvas(this.refCommited.current,
       window.innerWidth, window.innerHeight)
@@ -174,8 +179,16 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
     if (this.state.drawState === 'drawing') {
       this.props.messenger.publish('canvas::drawing')
       this.addHotPoint(msg.offsetX, msg.offsetY)
-      clearCanvas(this.refTmp.current)
-      drawStroke(this.ctxTmp, this.hotStroke)
+      if (this.state.strokeConfig === 'pencil') {
+        clearCanvas(this.refTmp.current)
+        drawStroke(this.ctxTmp, this.hotStroke)
+      } else {
+        /**
+         * HACK: Since the eraser uses 'destination-out', it must be drawn 
+         * on the ctxCommited to take effect.
+         */
+        drawStroke(this.ctxCommited, this.hotStroke)
+      }
     }
   }
 
@@ -238,86 +251,89 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
   }
 
   render(): JSX.Element {
-    return (
-      <>
-        <style jsx>{`
-          canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: -1;
-          }
-
-          :global(body) {
-            cursor: ${this.state.drawState === 'can_draw' || this.state.drawState === 'drawing' ? this.state.strokeConfig === 'eraser' ? 'none' : 'crosshair' : 'auto'}
-          }
-
-          .toolbar {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 1rem;
-            background: rgba(0, 0, 0, 0);
-          }
-
-          .toolbar button {
-            padding: .2em .5em;
-            transition: background 0.25s;
-          }
-
-          .toolbar button, .toolbar button:active {
-            outline: none;
-            border: none;
-          }
-
-          .toolbar button:first-child {
-            border-radius: .5rem 0 0 .5rem;
-          }
-
-          .toolbar button:last-child {
-            border-radius: 0 .5rem .5rem 0;
-          }
-
-          .toolbar button.active {
-            background: aquamarine;
-          }
-        `}</style>
-        <canvas
-          ref={this.refCommited}
-          width={window.innerWidth}
-          height={window.innerHeight} />
-        <canvas
-          ref={this.refTmp}
-          width={window.innerWidth}
-          height={window.innerHeight} />
-        <canvas
-          ref={this.refCursor}
-          width={window.innerWidth}
-          height={window.innerHeight} />
-        {
+    const styles = {
+      Canvas: typestyle.style({
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        zIndex: 10000,
+        pointerEvents: 'none'
+      })
+    }
+    return <>
+      <canvas
+        ref={this.refCommited}
+        className={styles.Canvas}
+        width={window.innerWidth}
+        height={window.innerHeight} />
+      <canvas
+        ref={this.refTmp}
+        className={styles.Canvas}
+        width={window.innerWidth}
+        height={window.innerHeight} />
+      <canvas
+        ref={this.refCursor}
+        className={styles.Canvas}
+        width={window.innerWidth}
+        height={window.innerHeight} />
+      {
+        (
+          this.state.drawState === 'can_draw' ||
+          this.state.drawState === 'drawing'
+        ) ?
           (
-            this.state.drawState === 'can_draw' ||
-            this.state.drawState === 'drawing'
-          ) ?
-            (
-              <div
-                className="toolbar"
-                /** Prevent drawing under toolbar. */
-                onMouseDown={(e) => { e.stopPropagation() }}>
-                <button
-                  className={this.state.strokeConfig === 'pencil' ? 'active' : ''}
-                  onClick={this.toggleStroke}>
-                  Pencil
-                </button>
-                <button
-                  className={this.state.strokeConfig === 'eraser' ? 'active' : ''}
-                  onClick={this.toggleStroke}>
-                  Eraser
-                </button>
-              </div>
-            ) : <></>
-        }
-      </>
-    )
+            <div
+              className="toolbar"
+              /** Prevent drawing under toolbar. */
+              onMouseDown={(e) => { e.stopPropagation() }}>
+              <style jsx>{`
+                :global(body) {
+                  cursor: ${this.state.drawState === 'can_draw' || this.state.drawState === 'drawing' ? this.state.strokeConfig === 'eraser' ? 'none' : 'crosshair' : 'auto'}
+                }
+
+                .toolbar {
+                  position: absolute;
+                  top: 1rem;
+                  right: 1rem;
+                  font-size: 1rem;
+                  background: rgba(0, 0, 0, 0);
+                }
+
+                .toolbar button {
+                  padding: .2em .5em;
+                  transition: background 0.25s;
+                }
+
+                .toolbar button, .toolbar button:active {
+                  outline: none;
+                  border: none;
+                }
+
+                .toolbar button:first-child {
+                  border-radius: .5rem 0 0 .5rem;
+                }
+
+                .toolbar button:last-child {
+                  border-radius: 0 .5rem .5rem 0;
+                }
+
+                .toolbar button.active {
+                  background: aquamarine;
+                }
+              `}</style>
+              <button
+                className={this.state.strokeConfig === 'pencil' ? 'active' : ''}
+                onClick={this.toggleStroke}>
+                Pencil
+              </button>
+              <button
+                className={this.state.strokeConfig === 'eraser' ? 'active' : ''}
+                onClick={this.toggleStroke}>
+                Eraser
+              </button>
+            </div>
+          ) : <></>
+      }
+    </>
   }
 }

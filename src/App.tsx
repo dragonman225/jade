@@ -155,7 +155,7 @@ export const App: React.FunctionComponent = () => {
         .App {
           overflow: hidden;
           height: 100%;
-          background: rgba(0,0,0,.2);
+          background: #e5e5e5;
         }
 
         .Playground {
@@ -192,6 +192,7 @@ export const App: React.FunctionComponent = () => {
                 width: searchToolState.width
               }}
               origin={searchToolState.origin}
+              zIndex={2}
               container={Box}
               onResize={(width) => {
                 setSearchToolState({
@@ -223,6 +224,7 @@ export const App: React.FunctionComponent = () => {
                 width: headerToolState.width
               }}
               origin={headerToolState.origin}
+              zIndex={2}
               container={Box}
               onResize={(width) => {
                 setHeaderToolState({
@@ -266,6 +268,7 @@ export const App: React.FunctionComponent = () => {
                 width: recentToolState.width
               }}
               origin={recentToolState.origin}
+              zIndex={2}
               container={Box}
               onResize={(width) => {
                 setRecentToolState({
@@ -306,6 +309,7 @@ export const App: React.FunctionComponent = () => {
                         width: blockRef.width
                       }}
                       origin={{ type: 'TL', top: 0, left: 0 }}
+                      zIndex={1}
                       onResize={(width) => {
                         dispatchAction({
                           type: 'block::resize',

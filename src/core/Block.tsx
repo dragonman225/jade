@@ -22,6 +22,7 @@ interface Props {
     width: number
   }
   origin: Origin
+  zIndex: number
   container?: React.ComponentClass<any> | React.FunctionComponent<any>
   onResize: (width: number) => void
   onMove: (position: Vec2) => void
@@ -258,17 +259,18 @@ export class Block extends React.Component<Props, State> {
         }
       }(),
       width: `${this.state.width}px`,
-      zIndex: this.isActive() ? 1 : 'unset'
+      zIndex: this.isActive() ? 9999 : this.props.zIndex
     }
     const styles = {
       Block: typestyle.style({
         position: 'absolute',
-        borderRadius: '.5rem',
+        borderRadius: '.3rem',
         color: 'rgb(65, 65, 65)',
         display: 'flex',
         alignItems: 'center',
         wordBreak: 'break-word',
-        userSelect: 'none'
+        userSelect: 'none',
+        overflow: 'hidden' // To enforce borderRadius.
       }),
       Handle: typestyle.style({
         position: 'absolute',
@@ -279,7 +281,7 @@ export class Block extends React.Component<Props, State> {
         background: 'rgba(0, 0, 0, 0)',
         $nest: {
           '&:hover, &:active': {
-            background: 'rgba(182, 182, 182, 0.8)',
+            background: 'rgba(182, 182, 182, 0.7)',
             fill: '#7c7c7c'
           }
         }
@@ -333,7 +335,7 @@ export class Block extends React.Component<Props, State> {
         onClick={this.handleMouseEnter}
         style={this.props.container ? commonStyle : {
           ...commonStyle,
-          background: this.isActive() ? 'rgba(235, 235, 235, 0.8)' : 'inherit'
+          background: this.isActive() ? '#eeeeee' : 'inherit'
         }}>
         <span className={styles.DebugId}>{this.props.data.blockId}</span>
         <div className={typestyle.classes(

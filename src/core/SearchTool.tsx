@@ -203,7 +203,7 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
       width: 300,
       maxHeight: 200,
       overflow: 'hidden',
-      zIndex: 999
+      zIndex: 9999
     }),
   }
 

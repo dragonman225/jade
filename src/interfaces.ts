@@ -90,6 +90,7 @@ export interface StrokeConfig {
   strokeStyle: string | CanvasGradient | CanvasPattern
   shadowBlur: number
   shadowColor: string
+  compositeOperation: string
 }
 
 export interface Stroke {
