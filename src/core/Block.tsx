@@ -205,6 +205,12 @@ export class Block extends React.Component<Props, State> {
     this.props.messenger.unsubscribe('user::dragend', this.handleDragEnd)
   }
 
+  componentWillReceiveProps(props: Props): void {
+    this.setState({
+      position: props.data.position
+    })
+  }
+
   handleMouseEnter = (): void => {
     if (!this.props.readOnly) {
       this.setState({ mouseIsInside: true })

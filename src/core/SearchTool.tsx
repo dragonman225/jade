@@ -1,24 +1,30 @@
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
 import { isPointInRect } from '../lib/utils'
-import { Concept, State3, UnifiedEventInfo, Vec2 } from '../interfaces'
+import {
+  Concept, ContentProps, InitializedConceptData, State3,
+  UnifiedEventInfo, Vec2
+} from '../interfaces'
 import { IPubSub } from '../lib/pubsub'
 import { Box } from './component/Box'
+import { Block } from './Block'
 
-interface SearchItemContentProps {
-  blockCard: Concept
+interface SearchItemContentProps
+  extends Pick<ContentProps<InitializedConceptData>, 'viewMode'> {
+  concept: Concept
 }
 
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (props) => {
-  const { blockCard } = props
+  const { concept, viewMode } = props
   return (
     <Content
-      contentType={blockCard.type}
+      contentType={concept.type}
       contentProps={{
-        viewMode: 'NavItem',
+        viewMode,
         readOnly: true,
-        content: blockCard.data,
+        content: concept.data,
         messageBus: {
           subscribe: () => { return },
           unsubscribe: () => { return }
@@ -33,7 +39,8 @@ const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (prop
 
 interface Props {
   state: State3
-  onExpand: (blockCardId: string) => void
+  portal: React.MutableRefObject<HTMLDivElement>
+  onExpand: (conceptId: string) => void
   onRequestLink: (data: { id: string; position: Vec2 }) => void
   messenger: IPubSub
 }
@@ -66,12 +73,12 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
   const resultConcepts = React.useMemo(() => {
     const allConcepts = Object.values(props.state.conceptMap)
     if (text) {
-      return allConcepts.filter(blockCard => {
+      return allConcepts.filter(concept => {
         /**
          * HACK: Each content type should be able to decide 
          * how to search its content!
          */
-        return JSON.stringify(blockCard.data)
+        return JSON.stringify(concept.data)
           .toLocaleLowerCase().includes(text.toLocaleLowerCase())
       })
     } else {
@@ -84,6 +91,67 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
   const [s2lBlock, setS2lBlock] = React.useState<S2LBlock>({ valid: false })
   const [s2lStart, setS2lStart] = React.useState<Vec2>({ x: 0, y: 0 })
   const [s2lDelta, setS2lDelta] = React.useState<Vec2>({ x: 0, y: 0 })
+
+  const styles = {
+    Search: typestyle.style({
+      $nest: {
+        '& hr': {
+          border: '1px solid #ddd',
+          $nest: {
+            '&:last-of-type': {
+              display: 'none'
+            }
+          }
+        }
+      }
+    }),
+    'Search--Linking': typestyle.style({
+      cursor: 'grabbing'
+    }),
+    SearchInput: typestyle.style({
+      height: 50,
+      padding: '.5rem 22px',
+      $nest: {
+        '&>input': {
+          outline: 'none',
+          border: 'none',
+          width: '100%',
+          height: '100%'
+        }
+      }
+    }),
+    SearchResult: typestyle.style({
+      padding: '0 22px 0'
+    }),
+    ScrollList: typestyle.style({
+      height: '100%',
+      maxHeight: '500px',
+      overflow: 'auto'
+    }),
+    ScrollListItem: typestyle.style({
+      maxHeight: '200px',
+      overflow: 'hidden',
+      margin: 0,
+      borderRadius: '.5rem',
+      $nest: {
+        '&:hover': {
+          background: 'rgba(0, 0, 0, 0.1)'
+        },
+        '&:first-of-type': {
+          marginTop: '.5rem'
+        },
+        '&:last-of-type': {
+          marginBottom: '.5rem'
+        }
+      }
+    }),
+    VisualCopy: typestyle.style({
+      width: 300,
+      maxHeight: 200,
+      overflow: 'hidden',
+      zIndex: 99999
+    }),
+  }
 
   const handleDragStart = (e: UnifiedEventInfo) => {
     if (s2lState === S2LState.Idle && s2lBlock.valid) {
@@ -143,70 +211,6 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
     }
   })
 
-  const styles = {
-    Search: typestyle.style({
-      $nest: {
-        '& hr': {
-          border: '1px solid #ddd',
-          $nest: {
-            '&:last-of-type': {
-              display: 'none'
-            }
-          }
-        }
-      }
-    }),
-    'Search--Linking': typestyle.style({
-      cursor: 'grabbing'
-    }),
-    SearchInput: typestyle.style({
-      height: 50,
-      padding: '.5rem 22px',
-      $nest: {
-        '&>input': {
-          outline: 'none',
-          border: 'none',
-          width: '100%',
-          height: '100%'
-        }
-      }
-    }),
-    SearchResult: typestyle.style({
-      padding: '0 22px 0'
-    }),
-    ScrollList: typestyle.style({
-      height: '100%',
-      maxHeight: '500px',
-      overflow: 'auto'
-    }),
-    ScrollListItem: typestyle.style({
-      maxHeight: '200px',
-      overflow: 'hidden',
-      margin: 0,
-      borderRadius: '.5rem',
-      $nest: {
-        '&:hover': {
-          background: 'rgba(0, 0, 0, 0.1)'
-        },
-        '&:first-of-type': {
-          marginTop: '.5rem'
-        },
-        '&:last-of-type': {
-          marginBottom: '.5rem'
-        }
-      }
-    }),
-    S2LRelativeElem: typestyle.style({
-      position: 'absolute'
-    }),
-    VisualCopy: typestyle.style({
-      width: 300,
-      maxHeight: 200,
-      overflow: 'hidden',
-      zIndex: 99999
-    }),
-  }
-
   return (
     <div
       className={typestyle.classes(
@@ -219,8 +223,8 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
           <div className={styles.SearchResult}>
             <div className={styles.ScrollList}>
               {
-                resultConcepts.map(blockCard => {
-                  return <React.Fragment key={blockCard.id}>
+                resultConcepts.map(concept => {
+                  return <React.Fragment key={concept.id}>
                     {
                       function () {
                         switch (s2lState) {
@@ -230,7 +234,7 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
                               onMouseEnter={(e) => {
                                 setS2lBlock({
                                   valid: true,
-                                  id: blockCard.id,
+                                  id: concept.id,
                                   rect: e.currentTarget.getBoundingClientRect()
                                 })
                               }}
@@ -238,14 +242,14 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
                                 setS2lBlock({ valid: false })
                               }}
                               onMouseUp={() => {
-                                props.onExpand(blockCard.id)
+                                props.onExpand(concept.id)
                               }}>
-                              <SearchItemContent blockCard={blockCard} />
+                              <SearchItemContent concept={concept} viewMode="NavItem" />
                             </div>
                           }
                           case S2LState.Linking: {
                             return <div className={styles.ScrollListItem}>
-                              <SearchItemContent blockCard={blockCard} />
+                              <SearchItemContent concept={concept} viewMode="NavItem" />
                             </div>
                           }
                         }
@@ -267,18 +271,30 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
         function () {
           //console.log(s2lState)
           if (s2lState === S2LState.Linking && s2lBlock.valid) {
-            const blockCard = props.state.conceptMap[s2lBlock.id]
-            const searchRect = getSearchRect()
-            return <div className={styles.S2LRelativeElem} style={{
-              top: s2lBlock.valid ? s2lBlock.rect.top - searchRect.top : 0,
-              left: s2lBlock.valid ? s2lBlock.rect.left - searchRect.left : 0
-            }}>
-              <Box className={styles.VisualCopy} style={{
-                transform: `translate(${s2lDelta.x}px, ${s2lDelta.y}px)`
-              }}>
-                <SearchItemContent blockCard={blockCard} />
-              </Box>
-            </div>
+            const concept = props.state.conceptMap[s2lBlock.id]
+            const position = {
+              x: s2lBlock.rect.left + s2lDelta.x,
+              y: s2lBlock.rect.top + s2lDelta.y
+            }
+            return ReactDOM.createPortal(<Block
+              readOnly={true}
+              data={{
+                blockId: concept.id,
+                position,
+                width: 300
+              }}
+              origin={{
+                type: 'TL',
+                top: 0,
+                left: 0
+              }}
+              zIndex={9999}
+              container={Box}
+              onResize={() => { return }}
+              onMove={() => { return }}
+              messenger={messenger}>
+              {() => <SearchItemContent concept={concept} viewMode="Block" />}
+            </Block>, props.portal.current)
           }
         }()
       }

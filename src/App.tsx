@@ -11,6 +11,7 @@ import { RecentTool } from './core/RecentTool'
 import { SearchTool } from './core/SearchTool'
 import { HeaderTool } from './core/HeaderTool'
 import { Box } from './core/component/Box'
+import { Portal } from './core/component/Portal'
 import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
@@ -130,6 +131,7 @@ export const App: React.FunctionComponent = () => {
   })
 
   const currentConcept = state.conceptMap[state.viewingConceptId]
+  const portalRef = React.useRef<HTMLDivElement>(null)
 
   return (
     <>
@@ -180,6 +182,7 @@ export const App: React.FunctionComponent = () => {
       <div className="App">
         <div className="Playground">
           <InputContainer messenger={messenger}>
+            <Portal ref={portalRef} />
             <BlockFactory onRequestCreate={position => {
               dispatchAction({ type: 'concept::create', data: { position } })
             }} />
@@ -208,7 +211,8 @@ export const App: React.FunctionComponent = () => {
               }}
               key="SearchTool">
               {
-                (_contentProps) => <SearchTool state={state} onExpand={handleExpand}
+                (_contentProps) => <SearchTool portal={portalRef}
+                  state={state} onExpand={handleExpand}
                   messenger={messenger}
                   onRequestLink={data => {
                     dispatchAction({ type: 'link::create', data })
