@@ -1,12 +1,12 @@
 {
   "debugging": "false",
-  "homeBlockCardId": "home",
-  "currentBlockCardId": "home",
-  "blockCardMap": {
+  "homeConceptId": "home",
+  "viewingConceptId": "home",
+  "conceptMap": {
     "home": {
       "id": "home",
       "type": "text",
-      "content": {
+      "data": {
         "initialized": true,
         "data": [
           {
@@ -20,7 +20,8 @@
         ]
       },
       "drawing": [],
-      "blocks": []
+      "isMaterial": true
     }
-  }
+  },
+  "linkMap": {}
 }

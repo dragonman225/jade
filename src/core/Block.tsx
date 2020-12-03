@@ -5,11 +5,11 @@ import { IconDragHandle } from './component/IconDragHandle'
 import { IconCross } from './component/IconCross'
 import { IconExpand } from './component/IconExpand'
 import {
-  UnifiedEventInfo, ContentProps, Vec2, InitializedContent, Origin
+  UnifiedEventInfo, ContentProps, Vec2, InitializedConceptData, Origin
 } from '../interfaces'
 import { isPointInRect } from '../lib/utils'
 
-type ChildrenProps = Pick<ContentProps<InitializedContent>,
+type ChildrenProps = Pick<ContentProps<InitializedConceptData>,
 'readOnly' | 'onInteractionStart' | 'onInteractionEnd'> & {
   width: number
 }

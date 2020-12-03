@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { SlateTextEditor } from './SlateTextEditor'
 import * as Slate from 'slate'
-import { ContentProps, InitializedContent, UninitializedContent } from '../interfaces'
+import { ContentProps, InitializedConceptData, UninitializedConceptData } from '../interfaces'
 
 /**
  * Slate CJK bugs
@@ -10,14 +10,14 @@ import { ContentProps, InitializedContent, UninitializedContent } from '../inter
  * https://github.com/ianstormtaylor/slate/issues/3292
  */
 
-interface TextContent extends InitializedContent {
+interface TextContent extends InitializedConceptData {
   data: Slate.Element[]
 }
 
 interface State {
   slateData: Slate.Element[]
   isNewText: boolean
-  prevPropsContent: TextContent | UninitializedContent
+  prevPropsContent: TextContent | UninitializedConceptData
 }
 
 export class Text extends React.Component<ContentProps<TextContent>, State> {
@@ -30,7 +30,7 @@ export class Text extends React.Component<ContentProps<TextContent>, State> {
     }
   }
 
-  getValidSlateData(content: TextContent | UninitializedContent): Slate.Element[] {
+  getValidSlateData(content: TextContent | UninitializedConceptData): Slate.Element[] {
     const initialContent = [{ type: 'paragraph', children: [{ text: '' }] }]
     return content.initialized ? content.data : initialContent
   }

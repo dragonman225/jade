@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ContentProps, InitializedContent } from '../interfaces'
+import { ContentProps, InitializedConceptData } from '../interfaces'
 import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { Schema, Node } from 'prosemirror-model'
@@ -19,7 +19,7 @@ const schema = new Schema({
   }
 })
 
-interface PMTextContent extends InitializedContent {
+interface PMTextContent extends InitializedConceptData {
   data: {
     [key: string]: any
   }

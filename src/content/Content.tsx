@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { ContentProps, InitializedContent } from '../interfaces'
+import { ContentProps, InitializedConceptData } from '../interfaces'
 import { config } from './config'
 
 interface Props {
   contentType: string
-  contentProps: ContentProps<InitializedContent>
+  contentProps: ContentProps<InitializedConceptData>
 }
 
 export const Content: React.FunctionComponent<Props> = (props) => {

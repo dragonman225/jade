@@ -2,17 +2,17 @@ import * as React from 'react'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
 import {
-  BaseContent, BlockCard, ContentProps, InitializedContent
+  BaseConceptData, Concept, ContentProps, InitializedConceptData
 } from '../interfaces'
 import { ISub } from '../lib/pubsub'
 import { Box } from './component/Box'
 import { IconHome } from './component/IconHome'
 
 interface Props {
-  concept: BlockCard
+  concept: Concept
   readOnlyMessenger: ISub
   onHomeClick: () => void
-  onConceptEdit: (data: BaseContent) => void
+  onConceptEdit: (data: BaseConceptData) => void
   onConceptReplace: (typeId: string) => void
 }
 
@@ -68,10 +68,10 @@ export const HeaderTool: React.FunctionComponent<Props> = (props) => {
       <div className={styles.CardTitleContainer}>
         {
           function () {
-            const contentProps: ContentProps<InitializedContent> & { key: string } = {
+            const contentProps: ContentProps<InitializedConceptData> & { key: string } = {
               viewMode: 'CardTitle',
               readOnly: false,
-              content: props.concept.content,
+              content: props.concept.data,
               messageBus: props.readOnlyMessenger,
               onChange: props.onConceptEdit,
               onReplace: props.onConceptReplace,

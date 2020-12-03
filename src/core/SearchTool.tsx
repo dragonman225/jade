@@ -2,12 +2,12 @@ import * as React from 'react'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
 import { isPointInRect } from '../lib/utils'
-import { BlockCard, State3, UnifiedEventInfo, Vec2 } from '../interfaces'
+import { Concept, State3, UnifiedEventInfo, Vec2 } from '../interfaces'
 import { IPubSub } from '../lib/pubsub'
 import { Box } from './component/Box'
 
 interface SearchItemContentProps {
-  blockCard: BlockCard
+  blockCard: Concept
 }
 
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (props) => {
@@ -18,7 +18,7 @@ const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (prop
       contentProps={{
         viewMode: 'NavItem',
         readOnly: true,
-        content: blockCard.content,
+        content: blockCard.data,
         messageBus: {
           subscribe: () => { return },
           unsubscribe: () => { return }
@@ -64,20 +64,20 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
   const [text, setText] = React.useState('')
   const [minimized, setMinimized] = React.useState(true)
   const resultConcepts = React.useMemo(() => {
-    const allConcepts = Object.values(props.state.blockCardMap)
+    const allConcepts = Object.values(props.state.conceptMap)
     if (text) {
       return allConcepts.filter(blockCard => {
         /**
          * HACK: Each content type should be able to decide 
          * how to search its content!
          */
-        return JSON.stringify(blockCard.content)
+        return JSON.stringify(blockCard.data)
           .toLocaleLowerCase().includes(text.toLocaleLowerCase())
       })
     } else {
       return allConcepts
     }
-  }, [text, props.state.blockCardMap])
+  }, [text, props.state.conceptMap])
 
   /** Search-to-Link */
   const [s2lState, setS2lState] = React.useState(S2LState.Idle)
@@ -203,7 +203,7 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
       width: 300,
       maxHeight: 200,
       overflow: 'hidden',
-      zIndex: 9999
+      zIndex: 99999
     }),
   }
 
@@ -267,7 +267,7 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
         function () {
           //console.log(s2lState)
           if (s2lState === S2LState.Linking && s2lBlock.valid) {
-            const blockCard = props.state.blockCardMap[s2lBlock.id]
+            const blockCard = props.state.conceptMap[s2lBlock.id]
             const searchRect = getSearchRect()
             return <div className={styles.S2LRelativeElem} style={{
               top: s2lBlock.valid ? s2lBlock.rect.top - searchRect.top : 0,

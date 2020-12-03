@@ -61,20 +61,20 @@ export interface PubSubStatusMessage {
 }
 
 /** Content API. */
-export interface UninitializedContent {
+export interface UninitializedConceptData {
   initialized: false
 }
 
-export interface InitializedContent {
+export interface InitializedConceptData {
   initialized: true
 }
 
-export type BaseContent = UninitializedContent | InitializedContent
+export type BaseConceptData = UninitializedConceptData | InitializedConceptData
 
-export interface ContentProps<T extends InitializedContent> {
+export interface ContentProps<T extends InitializedConceptData> {
   readOnly: boolean
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
-  content: T | UninitializedContent
+  content: T | UninitializedConceptData
   messageBus: ISub
   onChange: (content: T) => void
   onReplace: (type: string) => void
@@ -98,35 +98,48 @@ export interface Stroke {
   points: Point[]
 }
 
-/** A reference to a BlockCard. */
-export interface BlockCardRef {
-  /** ID of the reference. */
-  id: string
-  /** ID of the referenced BlockCard. */
-  to: string
-  position: Vec2
-  width: number
+/** Link: Connect Concepts to form a network. */
+export type LinkId = string
+export interface Link {
+  id: LinkId
+  type: string
+  from: ConceptId
+  to: ConceptId
+  data?: unknown
 }
 
-/**
- * A BlockCard has position and width only when it is in another BlockCard.
- */
-export interface BlockCard {
-  id: string
-  /** Below are summary of the BlockCard. */
+export interface ContainsLink extends Link {
+  type: 'contains'
+  data: {
+    position: Vec2
+    width: number
+  }
+}
+
+/** Concept: Represent an idea of any type. */
+export type ConceptId = string
+export interface Concept {
+  id: ConceptId
   type: string
-  content: BaseContent
-  /** Below are details of the BlockCard. */
+  data: BaseConceptData
   drawing: Stroke[]
-  blocks: BlockCardRef[]
+  isMaterial: boolean
+}
+
+/** Material: A Concept with zero ContainsLink starting from. */
+export interface Material extends Concept {
+  isMaterial: true
 }
 
 /** App state v3. */
 export interface State3 {
   debugging: boolean
-  homeBlockCardId: string // The user does not want to get lost!
-  currentBlockCardId: string
-  blockCardMap: {
-    [id: string]: BlockCard
+  homeConceptId: ConceptId // The user does not want to get lost!
+  viewingConceptId: ConceptId
+  conceptMap: {
+    [id: string]: Concept
+  }
+  linkMap: {
+    [id: string]: ContainsLink
   }
 }

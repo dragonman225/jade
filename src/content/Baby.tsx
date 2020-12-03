@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { ContentProps, InitializedContent } from '../interfaces'
+import { ContentProps, InitializedConceptData } from '../interfaces'
 
-export class Baby extends React.Component<ContentProps<InitializedContent>> {
-  constructor(props: ContentProps<InitializedContent>) {
+export class Baby extends React.Component<ContentProps<InitializedConceptData>> {
+  constructor(props: ContentProps<InitializedConceptData>) {
     super(props)
   }
 

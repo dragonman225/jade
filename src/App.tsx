@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import * as React from 'react'
 import { useEffect, useReducer, useMemo } from 'react'
-import { appStateReducer } from './core/model'
+import { appStateReducer, getDetailsOfConcept } from './core/model'
 import { Block } from './core/Block'
 import { Canvas } from './core/Canvas'
 import { BlockFactory } from './core/BlockFactory'
@@ -15,7 +15,7 @@ import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
 import {
-  State3, BlockCard,
+  State3, Concept,
   OriginBottomLeft, OriginTopRight, OriginTopLeft
 } from './interfaces'
 
@@ -87,7 +87,7 @@ export const App: React.FunctionComponent = () => {
 
   const historySize = 15
   const [expandHistory, setExpandHistory] =
-    React.useState([state.currentBlockCardId])
+    React.useState([state.viewingConceptId])
   const [last, setLast] = React.useState(0)
 
   const handleExpand = (blockCardId: string) => {
@@ -96,14 +96,14 @@ export const App: React.FunctionComponent = () => {
       expandHistory[(last + 1) % historySize] = blockCardId
       setExpandHistory(expandHistory)
       console.log(expandHistory)
-      dispatchAction({ type: 'block::expand', data: { id: blockCardId } })
+      dispatchAction({ type: 'navigation::expand', data: { id: blockCardId } })
       resetInteractionLockOwner()
     }
   }
 
-  const replaceContentType = (blockCard: BlockCard, newType: string) => {
+  const replaceContentType = (blockCard: Concept, newType: string) => {
     dispatchAction({
-      type: 'block::edit', data: {
+      type: 'concept::datachange', data: {
         id: blockCard.id,
         type: newType,
         content: { initialized: false }
@@ -129,7 +129,7 @@ export const App: React.FunctionComponent = () => {
     width: 300
   })
 
-  const currentConcept = state.blockCardMap[state.currentBlockCardId]
+  const currentConcept = state.conceptMap[state.viewingConceptId]
 
   return (
     <>
@@ -181,7 +181,7 @@ export const App: React.FunctionComponent = () => {
         <div className="Playground">
           <InputContainer messenger={messenger}>
             <BlockFactory onRequestCreate={position => {
-              dispatchAction({ type: 'block::create', data: { position } })
+              dispatchAction({ type: 'concept::create', data: { position } })
             }} />
             <Block
               messenger={messenger}
@@ -211,7 +211,7 @@ export const App: React.FunctionComponent = () => {
                 (_contentProps) => <SearchTool state={state} onExpand={handleExpand}
                   messenger={messenger}
                   onRequestLink={data => {
-                    dispatchAction({ type: 'block::link', data })
+                    dispatchAction({ type: 'link::create', data })
                   }} />
               }
             </Block>
@@ -243,10 +243,10 @@ export const App: React.FunctionComponent = () => {
                 (_contentProps) => <HeaderTool
                   concept={currentConcept}
                   readOnlyMessenger={readOnlyMessenger}
-                  onHomeClick={() => { handleExpand(state.homeBlockCardId) }}
+                  onHomeClick={() => { handleExpand(state.homeConceptId) }}
                   onConceptEdit={(data) => {
                     dispatchAction({
-                      type: 'block::edit',
+                      type: 'concept::datachange',
                       data: {
                         id: currentConcept.id,
                         type: currentConcept.type,
@@ -295,59 +295,59 @@ export const App: React.FunctionComponent = () => {
               }
             </Block>
             {
-              state.blockCardMap[state.currentBlockCardId].blocks
-                .map(blockRef => {
-                  const referencedBlockCard = state.blockCardMap[blockRef.to]
-                  const key = 'blockref-' + blockRef.id
+              getDetailsOfConcept(state.viewingConceptId, state)
+                .map(result => {
+                  const subConcept = result.concept
+                  const key = 'ConceptRef-' + result.link.id
                   return (
                     <Block
                       messenger={messenger}
                       readOnly={isInteractionLocked(key)}
                       data={{
-                        blockId: referencedBlockCard.id,
-                        position: blockRef.position,
-                        width: blockRef.width
+                        blockId: subConcept.id,
+                        position: result.link.data.position,
+                        width: result.link.data.width
                       }}
                       origin={{ type: 'TL', top: 0, left: 0 }}
                       zIndex={1}
                       onResize={(width) => {
                         dispatchAction({
-                          type: 'block::resize',
-                          data: { id: blockRef.id, width }
+                          type: 'containslink::resize',
+                          data: { id: result.link.id, width }
                         })
                       }}
                       onMove={(position) => {
                         dispatchAction({
-                          type: 'block::move',
-                          data: { id: blockRef.id, position }
+                          type: 'containslink::move',
+                          data: { id: result.link.id, position }
                         })
                       }}
                       onRemove={() => {
                         dispatchAction({
-                          type: 'block::remove',
-                          data: { id: blockRef.id }
+                          type: 'link::remove',
+                          data: { id: result.link.id }
                         })
                       }}
-                      onExpand={() => { handleExpand(referencedBlockCard.id) }}
+                      onExpand={() => { handleExpand(subConcept.id) }}
                       onInteractionStart={() => { lockInteraction(key) }}
                       onInteractionEnd={() => { unlockInteraction(key) }}
                       key={key}>
                       {
                         (contentProps) => <Content
-                          contentType={referencedBlockCard.type}
+                          contentType={subConcept.type}
                           contentProps={{
                             ...contentProps,
                             viewMode: 'Block',
-                            content: referencedBlockCard.content,
+                            content: subConcept.data,
                             messageBus: readOnlyMessenger,
                             onChange: content => {
                               dispatchAction({
-                                type: 'block::edit',
-                                data: { ...referencedBlockCard, content }
+                                type: 'concept::datachange',
+                                data: { ...subConcept, content }
                               })
                             },
                             onReplace: type => {
-                              replaceContentType(referencedBlockCard, type)
+                              replaceContentType(subConcept, type)
                             }
                           }} />
                       }
@@ -357,13 +357,13 @@ export const App: React.FunctionComponent = () => {
             }
             <Canvas
               messenger={messenger}
-              readOnly={isInteractionLocked('canvas' + state.currentBlockCardId)}
-              value={state.blockCardMap[state.currentBlockCardId].drawing}
-              onChange={data => dispatchAction({ type: 'canvas::change', data })}
-              onInteractionStart={() => { lockInteraction('canvas' + state.currentBlockCardId) }}
-              onInteractionEnd={() => { unlockInteraction('canvas' + state.currentBlockCardId) }}
+              readOnly={isInteractionLocked('canvas' + state.viewingConceptId)}
+              value={state.conceptMap[state.viewingConceptId].drawing}
+              onChange={data => dispatchAction({ type: 'concept::drawingchange', data })}
+              onInteractionStart={() => { lockInteraction('canvas' + state.viewingConceptId) }}
+              onInteractionEnd={() => { unlockInteraction('canvas' + state.viewingConceptId) }}
               /** Use key to remount Canvas when currentBlockCard changes. */
-              key={'canvas-' + state.currentBlockCardId} />
+              key={'canvas-' + state.viewingConceptId} />
           </InputContainer>
         </div>
       </div>
