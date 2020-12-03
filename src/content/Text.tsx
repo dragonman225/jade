@@ -94,6 +94,7 @@ export class Text extends React.Component<ContentProps<TextContent>, State> {
                 font-weight: bold;
                 padding: .5rem;
                 overflow: auto;
+                width: 100%;
               }
             `}</style>
             <div className="CardTitle">{slateTextEditor}</div>

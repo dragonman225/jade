@@ -152,6 +152,7 @@ export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (pro
               font-weight: bold;
               padding: .5rem;
               overflow: auto;
+              width: 100%;
             }
           `}</style>
           <div className="CardTitle">{PMTextEditor}</div>
