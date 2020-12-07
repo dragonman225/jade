@@ -12,12 +12,12 @@ import { Box } from './component/Box'
 import { Block } from './Block'
 
 interface SearchItemContentProps
-  extends Pick<ContentProps<InitializedConceptData>, 'viewMode'> {
+  extends Pick<ContentProps<InitializedConceptData>, 'viewMode' | 'messageBus'> {
   concept: Concept
 }
 
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (props) => {
-  const { concept, viewMode } = props
+  const { concept, viewMode, messageBus } = props
   return (
     <Content
       contentType={concept.type}
@@ -25,10 +25,7 @@ const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (prop
         viewMode,
         readOnly: true,
         content: concept.data,
-        messageBus: {
-          subscribe: () => { return },
-          unsubscribe: () => { return }
-        },
+        messageBus,
         onChange: () => { return },
         onReplace: () => { return },
         onInteractionStart: () => { return },
@@ -244,12 +241,14 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
                               onMouseUp={() => {
                                 props.onExpand(concept.id)
                               }}>
-                              <SearchItemContent concept={concept} viewMode="NavItem" />
+                              <SearchItemContent concept={concept}
+                                viewMode="NavItem" messageBus={messenger} />
                             </div>
                           }
                           case S2LState.Linking: {
                             return <div className={styles.ScrollListItem}>
-                              <SearchItemContent concept={concept} viewMode="NavItem" />
+                              <SearchItemContent concept={concept}
+                                viewMode="NavItem" messageBus={messenger} />
                             </div>
                           }
                         }
@@ -293,7 +292,8 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
               onResize={() => { return }}
               onMove={() => { return }}
               messenger={messenger}>
-              {() => <SearchItemContent concept={concept} viewMode="Block" />}
+              {() => <SearchItemContent concept={concept} viewMode="Block"
+                messageBus={messenger} />}
             </Block>, props.portal.current)
           }
         }()
