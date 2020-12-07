@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { ContentProps, InitializedConceptData } from '../core/interfaces'
+import { ContentProps } from '../core/interfaces'
+import { InitializedConceptData } from '../core/interfaces/concept'
 
 interface ImageContent extends InitializedConceptData {
   valid: boolean

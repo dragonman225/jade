@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { ContentProps, InitializedConceptData } from '../core/interfaces'
+import { ContentProps } from '../core/interfaces'
+import { InitializedConceptData } from '../core/interfaces/concept'
 
 export class Baby extends React.Component<ContentProps<InitializedConceptData>> {
   constructor(props: ContentProps<InitializedConceptData>) {

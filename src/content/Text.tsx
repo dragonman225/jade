@@ -1,7 +1,10 @@
 import * as React from 'react'
 import { SlateTextEditor } from './SlateTextEditor'
 import * as Slate from 'slate'
-import { ContentProps, InitializedConceptData, UninitializedConceptData } from '../core/interfaces'
+import { ContentProps } from '../core/interfaces'
+import {
+  InitializedConceptData, UninitializedConceptData
+} from '../core/interfaces/concept'
 
 /**
  * Slate CJK bugs
