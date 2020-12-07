@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as typestyle from 'typestyle'
 import { IPubSub } from '../lib/pubsub'
 import { UnifiedEventInfo } from './interfaces'
-import { Stroke, StrokeConfig, Point } from './interfaces'
+import { Stroke, StrokeConfig, Point } from './interfaces/concept'
 
 interface CanvasProps {
   value: Stroke[] /** Value representing a drawing. */

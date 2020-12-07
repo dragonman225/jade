@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
-import { ContentProps, InitializedConceptData, State3 } from './interfaces'
+import { ContentProps, State3 } from './interfaces'
+import { InitializedConceptData } from './interfaces/concept'
 import { IPubSub } from '../lib/pubsub'
-import { Box } from './component/Box'
 
 interface Props {
   width: number

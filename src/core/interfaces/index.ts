@@ -1,5 +1,8 @@
 import { ISub } from '../../lib/pubsub'
-import { Concept, ConceptId } from './concept'
+import {
+  Concept, ConceptId,
+  InitializedConceptData, UninitializedConceptData
+} from './concept'
 
 export interface Vec2 {
   x: number
@@ -61,17 +64,7 @@ export interface PubSubStatusMessage {
   }[]
 }
 
-/** Content API. */
-export interface UninitializedConceptData {
-  initialized: false
-}
-
-export interface InitializedConceptData {
-  initialized: true
-}
-
-export type BaseConceptData = UninitializedConceptData | InitializedConceptData
-
+/** Content Plugin Interface. */
 export interface ContentProps<T extends InitializedConceptData> {
   readOnly: boolean
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
@@ -81,33 +74,6 @@ export interface ContentProps<T extends InitializedConceptData> {
   onReplace: (type: string) => void
   onInteractionStart: () => void
   onInteractionEnd: () => void
-}
-
-/** Hand-drawing. */
-export type Point = Vec2
-
-export interface StrokeConfig {
-  lineWidth: number
-  strokeStyle: string | CanvasGradient | CanvasPattern
-  shadowBlur: number
-  shadowColor: string
-  compositeOperation: string
-}
-
-export interface Stroke {
-  config: StrokeConfig
-  points: Point[]
-}
-
-/** Link: Connect Concepts to form a network. */
-export type LinkId = string
-
-export interface Link {
-  id: LinkId
-  to: ConceptId
-  type: 'contains'
-  position: Vec2
-  width: number
 }
 
 /** App state v3. */

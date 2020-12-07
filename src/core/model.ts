@@ -1,9 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
-import {
-  BaseConceptData, Link,
-  State3, Stroke, Vec2
-} from './interfaces'
-import { Concept } from './interfaces/concept'
+import { State3, Vec2 } from './interfaces'
+import { Concept, BaseConceptData, Link, Stroke } from './interfaces/concept'
 
 interface ConceptCreateAction {
   type: 'concept::create'

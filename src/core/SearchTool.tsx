@@ -3,11 +3,8 @@ import * as ReactDOM from 'react-dom'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
 import { isPointInRect } from '../lib/utils'
-import {
-  ContentProps, InitializedConceptData, State3,
-  UnifiedEventInfo, Vec2
-} from './interfaces'
-import { Concept } from './interfaces/concept'
+import { ContentProps, State3, UnifiedEventInfo, Vec2 } from './interfaces'
+import { Concept, InitializedConceptData } from './interfaces/concept'
 import { IPubSub } from '../lib/pubsub'
 import { Box } from './component/Box'
 import { Block } from './Block'

@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
+import { ContentProps } from './interfaces'
 import {
-  BaseConceptData, ContentProps, InitializedConceptData
-} from './interfaces'
-import { Concept } from './interfaces/concept'
+  Concept, BaseConceptData,
+  InitializedConceptData
+} from './interfaces/concept'
 import { ISub } from '../lib/pubsub'
-import { Box } from './component/Box'
 import { IconHome } from './component/IconHome'
 
 interface Props {
