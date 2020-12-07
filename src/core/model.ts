@@ -86,8 +86,7 @@ export function appStateReducer(state: State3, action: Action): State3 {
         id: uuidv4(),
         type: 'baby',
         data: { initialized: false },
-        drawing: [],
-        isMaterial: true
+        drawing: []
       }
       const link: ContainsLink = {
         id: uuidv4(),
@@ -105,7 +104,6 @@ export function appStateReducer(state: State3, action: Action): State3 {
           ...state.conceptMap,
           [state.viewingConceptId]: {
             ...state.conceptMap[state.viewingConceptId],
-            isMaterial: false
           },
           [concept.id]: concept
         },
@@ -195,8 +193,7 @@ export function appStateReducer(state: State3, action: Action): State3 {
         conceptMap: {
           ...state.conceptMap,
           [state.viewingConceptId]: {
-            ...state.conceptMap[state.viewingConceptId],
-            isMaterial: false
+            ...state.conceptMap[state.viewingConceptId]
           }
         },
         linkMap: {

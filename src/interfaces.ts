@@ -123,12 +123,6 @@ export interface Concept {
   type: string
   data: BaseConceptData
   drawing: Stroke[]
-  isMaterial: boolean
-}
-
-/** Material: A Concept with zero ContainsLink starting from. */
-export interface Material extends Concept {
-  isMaterial: true
 }
 
 /** App state v3. */
