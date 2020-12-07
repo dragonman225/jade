@@ -21,10 +21,6 @@ type Detail = {
 }
 
 export const Concept = {
-  summary(concept: Concept): ConceptSummary {
-    return concept.summary
-  },
-
   details(concept: Concept, state: State3): Detail[] {
     return concept.details.map(link => {
       return {
@@ -32,5 +28,18 @@ export const Concept = {
         concept: state.conceptMap[link.to]
       }
     })
+  },
+
+  isHighOrder(concept: Concept): boolean {
+    return concept.details.length > 0
+  },
+
+  includesText(concept: Concept, text: string): boolean {
+    /**
+     * HACK: Each content type should be able to decide 
+     * how to search its content!
+     */
+    return JSON.stringify(concept.summary.data)
+      .toLocaleLowerCase().includes(text.toLocaleLowerCase())
   }
 }

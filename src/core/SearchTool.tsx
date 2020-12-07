@@ -68,21 +68,27 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
   }
   const [text, setText] = React.useState('')
   const [minimized, setMinimized] = React.useState(true)
-  const resultConcepts = React.useMemo(() => {
+
+  const [higherOrderConcepts, leafConcepts] = React.useMemo(() => {
     const allConcepts = Object.values(props.state.conceptMap)
-    if (text) {
-      return allConcepts.filter(concept => {
-        /**
-         * HACK: Each content type should be able to decide 
-         * how to search its content!
-         */
-        return JSON.stringify(concept.summary.data)
-          .toLocaleLowerCase().includes(text.toLocaleLowerCase())
-      })
-    } else {
-      return allConcepts
-    }
+    return [
+      allConcepts.filter(concept => Concept.isHighOrder(concept)),
+      allConcepts.filter(concept => !Concept.isHighOrder(concept))
+    ]
   }, [text, props.state.conceptMap])
+
+  const resultConcepts = React.useMemo(() => {
+    if (text) {
+      const match = (concept: Concept) => {
+        return Concept.includesText(concept, text)
+      }
+      const resHighOrderConcepts = higherOrderConcepts.filter(match)
+      const resLeafConcepts = leafConcepts.filter(match)
+      return resHighOrderConcepts.concat(resLeafConcepts)
+    } else {
+      return higherOrderConcepts.concat(leafConcepts)
+    }
+  }, [higherOrderConcepts, leafConcepts])
 
   /** Search-to-Link */
   const [s2lState, setS2lState] = React.useState(S2LState.Idle)
