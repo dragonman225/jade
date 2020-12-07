@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {
   ContentProps, InitializedConceptData, PubSubStatusMessage, UnifiedEventInfo
-} from '../interfaces'
+} from '../core/interfaces'
 
 export const Status: React.FunctionComponent<ContentProps<InitializedConceptData>> = (props) => {
   const [statusText, setStatusText] = React.useState<string>('')

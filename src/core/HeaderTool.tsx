@@ -2,8 +2,9 @@ import * as React from 'react'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
 import {
-  BaseConceptData, Concept, ContentProps, InitializedConceptData
-} from '../interfaces'
+  BaseConceptData, ContentProps, InitializedConceptData
+} from './interfaces'
+import { Concept } from './interfaces/concept'
 import { ISub } from '../lib/pubsub'
 import { Box } from './component/Box'
 import { IconHome } from './component/IconHome'
@@ -71,7 +72,7 @@ export const HeaderTool: React.FunctionComponent<Props> = (props) => {
             const contentProps: ContentProps<InitializedConceptData> & { key: string } = {
               viewMode: 'CardTitle',
               readOnly: false,
-              content: props.concept.data,
+              content: props.concept.summary.data,
               messageBus: props.readOnlyMessenger,
               onChange: props.onConceptEdit,
               onReplace: props.onConceptReplace,
@@ -79,7 +80,7 @@ export const HeaderTool: React.FunctionComponent<Props> = (props) => {
               onInteractionEnd: () => { return },
               key: 'CardTitle-' + props.concept.id
             }
-            return <Content contentType={props.concept.type}
+            return <Content contentType={props.concept.summary.type}
               contentProps={contentProps} />
           }()
         }

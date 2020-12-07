@@ -6,7 +6,7 @@ import { IconCross } from './component/IconCross'
 import { IconExpand } from './component/IconExpand'
 import {
   UnifiedEventInfo, ContentProps, Vec2, InitializedConceptData, Origin
-} from '../interfaces'
+} from './interfaces'
 import { isPointInRect } from '../lib/utils'
 
 type ChildrenProps = Pick<ContentProps<InitializedConceptData>,

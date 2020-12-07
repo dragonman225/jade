@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ContentProps, InitializedConceptData } from '../interfaces'
+import { ContentProps, InitializedConceptData } from '../core/interfaces'
 import { config } from './config'
 
 interface Props {

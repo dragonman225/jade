@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { getMouseOffset } from '../lib/utils'
-import { Vec2 } from '../interfaces'
+import { Vec2 } from './interfaces'
 
 interface Props {
   onRequestCreate: (position: Vec2) => void

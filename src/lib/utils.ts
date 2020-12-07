@@ -1,4 +1,4 @@
-import { Vec2, Rect } from '../interfaces'
+import { Vec2, Rect } from '../core/interfaces'
 
 export function getMouseOffset(e: React.MouseEvent): Vec2 {
   const rect = e.currentTarget.getBoundingClientRect()

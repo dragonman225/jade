@@ -1,4 +1,4 @@
-import { State3 } from '../interfaces'
+import { State3 } from '../core/interfaces'
 
 const itemKey = 'state_v3'
 

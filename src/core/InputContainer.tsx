@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useState, useEffect } from 'react'
 import { IPubSub } from '../lib/pubsub'
-import { UnifiedEventInfo } from '../interfaces'
+import { UnifiedEventInfo } from './interfaces'
 
 export interface InputContainerProps {
   messenger: IPubSub

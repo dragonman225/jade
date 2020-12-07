@@ -5,22 +5,24 @@
   "conceptMap": {
     "home": {
       "id": "home",
-      "type": "text",
-      "data": {
-        "initialized": true,
-        "data": [
-          {
-            "type": "paragraph",
-            "children": [
-              {
-                "text": "Home"
-              }
-            ]
-          }
-        ]
+      "summary": {
+        "type": "text",
+        "data": {
+          "initialized": true,
+          "data": [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "text": "Home"
+                }
+              ]
+            }
+          ]
+        }
       },
+      "details": [],
       "drawing": []
     }
-  },
-  "linkMap": {}
+  }
 }

@@ -1,4 +1,5 @@
-import { ISub } from './lib/pubsub'
+import { ISub } from '../../lib/pubsub'
+import { Concept, ConceptId } from './concept'
 
 export interface Vec2 {
   x: number
@@ -100,29 +101,13 @@ export interface Stroke {
 
 /** Link: Connect Concepts to form a network. */
 export type LinkId = string
+
 export interface Link {
   id: LinkId
-  type: string
-  from: ConceptId
   to: ConceptId
-  data?: unknown
-}
-
-export interface ContainsLink extends Link {
   type: 'contains'
-  data: {
-    position: Vec2
-    width: number
-  }
-}
-
-/** Concept: Represent an idea of any type. */
-export type ConceptId = string
-export interface Concept {
-  id: ConceptId
-  type: string
-  data: BaseConceptData
-  drawing: Stroke[]
+  position: Vec2
+  width: number
 }
 
 /** App state v3. */
@@ -132,8 +117,5 @@ export interface State3 {
   viewingConceptId: ConceptId
   conceptMap: {
     [id: string]: Concept
-  }
-  linkMap: {
-    [id: string]: ContainsLink
   }
 }

@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 import {
-  BaseConceptData, Concept, ConceptId, ContainsLink,
+  BaseConceptData, Link,
   State3, Stroke, Vec2
-} from '../interfaces'
+} from './interfaces'
+import { Concept } from './interfaces/concept'
 
 interface ConceptCreateAction {
   type: 'concept::create'
@@ -84,49 +85,53 @@ export function appStateReducer(state: State3, action: Action): State3 {
     case 'concept::create': {
       const concept: Concept = {
         id: uuidv4(),
-        type: 'baby',
-        data: { initialized: false },
+        summary: {
+          type: 'baby',
+          data: { initialized: false }
+        },
+        details: [],
         drawing: []
       }
-      const link: ContainsLink = {
+      const link: Link = {
         id: uuidv4(),
         type: 'contains',
-        from: state.viewingConceptId,
         to: concept.id,
-        data: {
-          position: action.data.position,
-          width: defaultBlockWidth
-        }
+        position: action.data.position,
+        width: defaultBlockWidth
       }
+      const toChange = state.conceptMap[state.viewingConceptId]
       return {
         ...state,
         conceptMap: {
           ...state.conceptMap,
           [state.viewingConceptId]: {
-            ...state.conceptMap[state.viewingConceptId],
+            ...toChange,
+            details: toChange.details.concat([link])
           },
           [concept.id]: concept
-        },
-        linkMap: {
-          ...state.linkMap,
-          [link.id]: link
         }
       }
     }
     case 'containslink::move': {
       const linkId = action.data.id
       const newPosition = action.data.position
-      const link = state.linkMap[linkId]
+      const toChange = state.conceptMap[state.viewingConceptId]
       return {
         ...state,
-        linkMap: {
-          ...state.linkMap,
-          [linkId]: {
-            ...link,
-            data: {
-              ...link.data,
-              position: newPosition
-            }
+        conceptMap: {
+          ...state.conceptMap,
+          [state.viewingConceptId]: {
+            ...toChange,
+            details: toChange.details.map(link => {
+              if (linkId === link.id) {
+                return {
+                  ...link,
+                  position: newPosition
+                }
+              } else {
+                return link
+              }
+            })
           }
         }
       }
@@ -134,17 +139,23 @@ export function appStateReducer(state: State3, action: Action): State3 {
     case 'containslink::resize': {
       const linkId = action.data.id
       const newWidth = action.data.width
-      const link = state.linkMap[linkId]
+      const toChange = state.conceptMap[state.viewingConceptId]
       return {
         ...state,
-        linkMap: {
-          ...state.linkMap,
-          [linkId]: {
-            ...link,
-            data: {
-              ...link.data,
-              width: newWidth
-            }
+        conceptMap: {
+          ...state.conceptMap,
+          [state.viewingConceptId]: {
+            ...toChange,
+            details: toChange.details.map(link => {
+              if (linkId === link.id) {
+                return {
+                  ...link,
+                  width: newWidth
+                }
+              } else {
+                return link
+              }
+            })
           }
         }
       }
@@ -157,18 +168,26 @@ export function appStateReducer(state: State3, action: Action): State3 {
           ...state.conceptMap,
           [toChange]: {
             ...state.conceptMap[toChange],
-            type: action.data.type,
-            data: action.data.content
+            summary: {
+              type: action.data.type,
+              data: action.data.content
+            }
           }
         }
       }
     }
     case 'link::remove': { // remove link only
       const linkId = action.data.id
-      const { [linkId]: linkRemoved, ...newLinkMap } = state.linkMap
+      const toChange = state.conceptMap[state.viewingConceptId]
       return {
         ...state,
-        linkMap: newLinkMap
+        conceptMap: {
+          ...state.conceptMap,
+          [state.viewingConceptId]: {
+            ...toChange,
+            details: toChange.details.filter(link => linkId !== link.id)
+          }
+        }
       }
     }
     case 'navigation::expand': {
@@ -178,27 +197,22 @@ export function appStateReducer(state: State3, action: Action): State3 {
       }
     }
     case 'link::create': {
-      const link: ContainsLink = {
+      const link: Link = {
         id: uuidv4(),
         type: 'contains',
-        from: state.viewingConceptId,
         to: action.data.id,
-        data: {
-          position: action.data.position,
-          width: defaultBlockWidth
-        }
+        position: action.data.position,
+        width: defaultBlockWidth
       }
+      const toChange = state.conceptMap[state.viewingConceptId]
       return {
         ...state,
         conceptMap: {
           ...state.conceptMap,
           [state.viewingConceptId]: {
-            ...state.conceptMap[state.viewingConceptId]
+            ...toChange,
+            details: toChange.details.concat([link])
           }
-        },
-        linkMap: {
-          ...state.linkMap,
-          [link.id]: link
         }
       }
     }
@@ -222,22 +236,4 @@ export function appStateReducer(state: State3, action: Action): State3 {
       }
     }
   }
-}
-
-type Details = {
-  link: ContainsLink
-  concept: Concept
-}[]
-
-export function getDetailsOfConcept(conceptId: ConceptId, state: State3): Details {
-  const fromId = conceptId
-  const linkType = 'contains'
-  return Object.values(state.linkMap).filter(link => {
-    return link.type === linkType && link.from === fromId
-  }).map(link => {
-    return {
-      link,
-      concept: state.conceptMap[link.to]
-    }
-  })
 }

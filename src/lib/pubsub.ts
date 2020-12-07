@@ -1,4 +1,4 @@
-import { PubSubAction, PubSubStatusMessage } from '../interfaces'
+import { PubSubAction, PubSubStatusMessage } from '../core/interfaces'
 
 export interface IPubSub {
   publish: <T>(channel: string, content?: T) => void

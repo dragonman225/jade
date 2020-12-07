@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import * as React from 'react'
 import { useEffect, useReducer, useMemo } from 'react'
-import { appStateReducer, getDetailsOfConcept } from './core/model'
+import { appStateReducer } from './core/model'
 import { Block } from './core/Block'
 import { Canvas } from './core/Canvas'
 import { BlockFactory } from './core/BlockFactory'
@@ -16,9 +16,9 @@ import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
 import {
-  State3, Concept,
-  OriginBottomLeft, OriginTopRight, OriginTopLeft
-} from './interfaces'
+  State3, OriginBottomLeft, OriginTopRight, OriginTopLeft
+} from './core/interfaces'
+import { Concept } from './core/interfaces/concept'
 
 const initialState = require('./InitialState.json') as State3
 
@@ -253,7 +253,7 @@ export const App: React.FunctionComponent = () => {
                       type: 'concept::datachange',
                       data: {
                         id: currentConcept.id,
-                        type: currentConcept.type,
+                        type: currentConcept.summary.type,
                         content: data
                       }
                     })
@@ -299,7 +299,7 @@ export const App: React.FunctionComponent = () => {
               }
             </Block>
             {
-              getDetailsOfConcept(state.viewingConceptId, state)
+              Concept.details(currentConcept, state)
                 .map(result => {
                   const subConcept = result.concept
                   const key = 'ConceptRef-' + result.link.id
@@ -309,8 +309,8 @@ export const App: React.FunctionComponent = () => {
                       readOnly={isInteractionLocked(key)}
                       data={{
                         blockId: subConcept.id,
-                        position: result.link.data.position,
-                        width: result.link.data.width
+                        position: result.link.position,
+                        width: result.link.width
                       }}
                       origin={{ type: 'TL', top: 0, left: 0 }}
                       zIndex={1}
@@ -338,16 +338,20 @@ export const App: React.FunctionComponent = () => {
                       key={key}>
                       {
                         (contentProps) => <Content
-                          contentType={subConcept.type}
+                          contentType={subConcept.summary.type}
                           contentProps={{
                             ...contentProps,
                             viewMode: 'Block',
-                            content: subConcept.data,
+                            content: subConcept.summary.data,
                             messageBus: readOnlyMessenger,
                             onChange: content => {
                               dispatchAction({
                                 type: 'concept::datachange',
-                                data: { ...subConcept, content }
+                                data: {
+                                  id: subConcept.id,
+                                  type: subConcept.summary.type,
+                                  content
+                                }
                               })
                             },
                             onReplace: type => {

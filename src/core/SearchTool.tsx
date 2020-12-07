@@ -4,9 +4,10 @@ import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
 import { isPointInRect } from '../lib/utils'
 import {
-  Concept, ContentProps, InitializedConceptData, State3,
+  ContentProps, InitializedConceptData, State3,
   UnifiedEventInfo, Vec2
-} from '../interfaces'
+} from './interfaces'
+import { Concept } from './interfaces/concept'
 import { IPubSub } from '../lib/pubsub'
 import { Box } from './component/Box'
 import { Block } from './Block'
@@ -20,11 +21,11 @@ const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (prop
   const { concept, viewMode, messageBus } = props
   return (
     <Content
-      contentType={concept.type}
+      contentType={concept.summary.type}
       contentProps={{
         viewMode,
         readOnly: true,
-        content: concept.data,
+        content: concept.summary.data,
         messageBus,
         onChange: () => { return },
         onReplace: () => { return },
@@ -75,7 +76,7 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
          * HACK: Each content type should be able to decide 
          * how to search its content!
          */
-        return JSON.stringify(concept.data)
+        return JSON.stringify(concept.summary.data)
           .toLocaleLowerCase().includes(text.toLocaleLowerCase())
       })
     } else {

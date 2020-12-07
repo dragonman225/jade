@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
-import { ContentProps, InitializedConceptData, State3 } from '../interfaces'
+import { ContentProps, InitializedConceptData, State3 } from './interfaces'
 import { IPubSub } from '../lib/pubsub'
 import { Box } from './component/Box'
 
@@ -87,12 +87,12 @@ export const RecentTool: React.FunctionComponent<Props> = (props) => {
             }
           }
 
-          return historyToShow.map(blockCardId => {
-            const blockCard = props.state.conceptMap[blockCardId]
+          return historyToShow.map(conceptId => {
+            const concept = props.state.conceptMap[conceptId]
             const contentProps: ContentProps<InitializedConceptData> = {
               viewMode: 'NavItem',
               readOnly: true,
-              content: blockCard.data,
+              content: concept.summary.data,
               messageBus: {
                 subscribe: props.messageBus.subscribe,
                 unsubscribe: props.messageBus.unsubscribe
@@ -105,12 +105,12 @@ export const RecentTool: React.FunctionComponent<Props> = (props) => {
             return (
               <button
                 className="RecentBtn"
-                onClick={() => { props.onExpand(blockCardId) }}
-                key={blockCardId}>
+                onClick={() => { props.onExpand(conceptId) }}
+                key={conceptId}>
                 <Content
-                  contentType={blockCard.type}
+                  contentType={concept.summary.type}
                   contentProps={contentProps}
-                  key={blockCard.id} />
+                  key={concept.id} />
               </button>
             )
           })
