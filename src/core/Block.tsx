@@ -277,7 +277,8 @@ export class Block extends React.Component<Props, State> {
         alignItems: 'center',
         wordBreak: 'break-word',
         userSelect: 'none',
-        overflow: 'hidden' // To enforce borderRadius.
+        overflow: 'hidden', // To enforce borderRadius.
+        transition: 'background 0.1s, box-shadow 0.1s'
       }),
       Handle: typestyle.style({
         position: 'absolute',
@@ -342,7 +343,10 @@ export class Block extends React.Component<Props, State> {
         onClick={this.handleMouseEnter}
         style={this.props.container ? commonStyle : {
           ...commonStyle,
-          background: this.isActive() ? '#eeeeee' : 'inherit'
+          background: this.isActive() ? '#eeeeee' : 'inherit',
+          boxShadow: this.isActive() ? `\
+            rgba(15, 15, 15, 0.1) 0px 0px 3px, 
+            rgba(15, 15, 15, 0.1) 0px 0px 9px` : 'inherit'
         }}>
         <span className={styles.DebugId}>{this.props.data.blockId}</span>
         <div className={typestyle.classes(
