@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { style } from 'typestyle'
 import { ContentProps } from '../core/interfaces'
 import { InitializedConceptData } from '../core/interfaces/concept'
 import { EditorState } from 'prosemirror-state'
@@ -24,11 +25,6 @@ interface PMTextContent extends InitializedConceptData {
   data: {
     [key: string]: any
   }
-}
-
-interface State {
-  PMState: EditorState
-  isNewText: boolean
 }
 
 export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (props) => {
@@ -74,7 +70,7 @@ export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (pro
           return false
         }
       },
-      editable: () => { return !props.readOnly }
+      editable: () => !props.readOnly
     })
     return view
   }
@@ -106,177 +102,54 @@ export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (pro
     if (PMView && !PMView.hasFocus()) PMView.updateState(PMState)
   }, [props.content])
 
-  const PMTextEditor = <>
-    <style jsx global>{`
-          .ProseMirror:focus {
-            outline: none;
-          }
+  /**
+   * Update editable of prosemirror view when props change.
+   */
+  React.useEffect(() => {
+    if (PMView) {
+      PMView.setProps({ editable: () => !props.readOnly })
+    }
+  }, [props.readOnly])
 
-          .ProseMirror {
-            white-space: pre-wrap;
-          }
-        `}</style>
-    <div ref={PMRef}></div>
-  </>
+  const PMTextEditorClassName = style({
+    $debugName: 'PMTextEditor',
+    $nest: {
+      '& .ProseMirror': {
+        whiteSpace: 'pre-wrap'
+      },
+      '& .ProseMirror:focus': {
+        outline: 'none'
+      }
+    }
+  })
+  const PMTextEditor = <div ref={PMRef} className={PMTextEditorClassName}></div>
 
   switch (props.viewMode) {
-    case 'NavItem':
-      return (
-        <>
-          <style jsx>{`
-              div {
-                font-size: 0.8rem;
-                padding: 0.5rem;
-                max-height: 100%;
-              }
-            `}</style>
-          <div>{PMTextEditor}</div>
-        </>
-      )
-    case 'Block':
-      return (
-        <>
-          <style jsx>{`
-              .Block {
-                padding: 0.5rem 1.5rem;
-              }
-            `}</style>
-          <div className="Block">{PMTextEditor}</div>
-        </>
-      )
-    case 'CardTitle':
-      return (
-        <>
-          <style jsx>{`
-            .CardTitle {
-              font-size: 1.2rem;
-              font-weight: bold;
-              padding: .5rem;
-              overflow: auto;
-              width: 100%;
-            }
-          `}</style>
-          <div className="CardTitle">{PMTextEditor}</div>
-        </>
-      )
+    case 'NavItem': {
+      const className = style({
+        fontSize: '.8rem',
+        padding: '.5rem',
+        maxHeight: '100%'
+      })
+      return <div className={className}>{PMTextEditor}</div>
+    }
+    case 'Block': {
+      const className = style({
+        padding: '0.5rem 1.5rem'
+      })
+      return <div className={className}>{PMTextEditor}</div>
+    }
+    case 'CardTitle': {
+      const className = style({
+        fontSize: '1.2rem',
+        fontWeight: 'bold',
+        padding: '.5rem',
+        overflow: 'auto',
+        width: '100%'
+      })
+      return <div className={className}>{PMTextEditor}</div>
+    }
     default:
       return <span>Unknown <code>viewMode</code>: {props.viewMode}</span>
-  }
-}
-
-export class PMTextOld extends React.Component<ContentProps<PMTextContent>, State> {
-  PMRef: React.RefObject<HTMLDivElement>
-
-  constructor(props: ContentProps<PMTextContent>) {
-    super(props)
-    this.state = {
-      PMState: EditorState.create({
-        schema,
-        doc: props.content.initialized
-          ? Node.fromJSON(schema, props.content.data) : undefined
-      }),
-      isNewText: !props.content.initialized
-    }
-    this.PMRef = React.createRef()
-  }
-
-  componentDidMount(): void {
-    const view = new EditorView(this.PMRef.current, {
-      state: this.state.PMState,
-      dispatchTransaction: (transaction) => {
-        const newState = view.state.apply(transaction)
-        view.updateState(newState)
-        this.props.onChange({
-          initialized: true,
-          data: newState.doc.toJSON()
-        })
-      },
-      handleDOMEvents: {
-        focus: () => {
-          this.props.onInteractionStart()
-          return false
-        },
-        blur: (_view, event) => {
-          if (event.target !== document.activeElement) {
-            window.getSelection().removeAllRanges()
-            /**
-             * Below is not working. The old selection persists in the view 
-             * until future focus, and the future focus shows the 
-             * selection being set in setSelection() instead of 
-             * responding to the intention of the mouse.
-             */
-            // const state = view.state
-            // view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, 0)))
-            this.props.onInteractionEnd()
-          }
-          return false
-        }
-      },
-      editable: () => { return !this.props.readOnly }
-    })
-
-    if (this.state.isNewText) {
-      view.focus()
-      this.setState({ isNewText: false })
-    }
-  }
-
-  render(): JSX.Element {
-    const PMTextEditor =
-      <>
-        <style jsx global>{`
-          .ProseMirror:focus {
-            outline: none;
-          }
-
-          .ProseMirror {
-            white-space: pre-wrap;
-          }
-        `}</style>
-        <div ref={this.PMRef}></div>
-      </>
-    switch (this.props.viewMode) {
-      case 'NavItem':
-        return (
-          <>
-            <style jsx>{`
-              div {
-                font-size: 0.8rem;
-                padding: 0.5rem;
-                max-height: 100%;
-                /*overflow: hidden;*/
-              }
-            `}</style>
-            <div>{PMTextEditor}</div>
-          </>
-        )
-      case 'Block':
-        return (
-          <>
-            <style jsx>{`
-              .Block {
-                padding: 0.5rem 1.5rem;
-              }
-            `}</style>
-            <div className="Block">{PMTextEditor}</div>
-          </>
-        )
-      case 'CardTitle':
-        return (
-          <>
-            <style jsx>{`
-              .CardTitle {
-                padding-top: 0.5rem;
-                font-size: 1.2rem;
-                font-weight: bold;
-                min-width: 100px;
-              }
-            `}</style>
-            <div className="CardTitle">{PMTextEditor}</div>
-          </>
-        )
-      default:
-        return <span>Unknown <code>viewMode</code>: {this.props.viewMode}</span>
-    }
   }
 }
