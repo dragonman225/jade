@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import { State3, Vec2 } from './interfaces'
+import { Database, State3, Vec2 } from './interfaces'
 import { Concept, BaseConceptData, Link, Stroke } from './interfaces/concept'
 
 interface ConceptCreateAction {
@@ -230,6 +230,203 @@ export function appStateReducer(state: State3, action: Action): State3 {
       return {
         ...state,
         debugging: state.debugging ? false : true
+      }
+    }
+  }
+}
+
+export function createReducer(db: Database) {
+  return function appStateReducer(state: State3, action: Action): State3 {
+    const defaultBlockWidth = 300
+    switch (action.type) {
+      case 'concept::create': {
+        const conceptId = uuidv4()
+        console.log('c', conceptId, state)
+        const concept: Concept = {
+          id: conceptId,
+          summary: {
+            type: 'baby',
+            data: { initialized: false }
+          },
+          details: [],
+          drawing: []
+        }
+        const link: Link = {
+          id: uuidv4(),
+          type: 'contains',
+          to: concept.id,
+          position: action.data.position,
+          width: defaultBlockWidth
+        }
+        const toChange = state.conceptMap[state.viewingConceptId]
+        db.saveConcept({
+          ...toChange,
+          details: toChange.details.concat([link])
+        })
+        db.saveConcept(concept)
+        return {
+          ...state,
+          conceptMap: {
+            ...state.conceptMap,
+            [state.viewingConceptId]: {
+              ...toChange,
+              details: toChange.details.concat([link])
+            },
+            [concept.id]: concept
+          }
+        }
+      }
+      case 'containslink::move': {
+        const linkId = action.data.id
+        const newPosition = action.data.position
+        const toChange = state.conceptMap[state.viewingConceptId]
+        const changed = {
+          ...toChange,
+          details: toChange.details.map(link => {
+            if (linkId === link.id) {
+              return {
+                ...link,
+                position: newPosition
+              }
+            } else {
+              return link
+            }
+          })
+        }
+        db.saveConcept(changed)
+        return {
+          ...state,
+          conceptMap: {
+            ...state.conceptMap,
+            [state.viewingConceptId]: changed
+          }
+        }
+      }
+      case 'containslink::resize': {
+        const linkId = action.data.id
+        const newWidth = action.data.width
+        const toChange = state.conceptMap[state.viewingConceptId]
+        const changed = {
+          ...toChange,
+          details: toChange.details.map(link => {
+            if (linkId === link.id) {
+              return {
+                ...link,
+                width: newWidth
+              }
+            } else {
+              return link
+            }
+          })
+        }
+        db.saveConcept(changed)
+        return {
+          ...state,
+          conceptMap: {
+            ...state.conceptMap,
+            [state.viewingConceptId]: changed
+          }
+        }
+      }
+      case 'concept::datachange': {
+        const toChange = action.data.id
+        db.saveConcept({
+          ...state.conceptMap[toChange],
+          summary: {
+            type: action.data.type,
+            data: action.data.content
+          }
+        })
+        return {
+          ...state,
+          conceptMap: {
+            ...state.conceptMap,
+            [toChange]: {
+              ...state.conceptMap[toChange],
+              summary: {
+                type: action.data.type,
+                data: action.data.content
+              }
+            }
+          }
+        }
+      }
+      case 'link::remove': { // remove link only
+        const linkId = action.data.id
+        const toChange = state.conceptMap[state.viewingConceptId]
+        const changed = {
+          ...toChange,
+          details: toChange.details.filter(link => linkId !== link.id)
+        }
+        db.saveConcept(changed)
+        return {
+          ...state,
+          conceptMap: {
+            ...state.conceptMap,
+            [state.viewingConceptId]: changed
+          }
+        }
+      }
+      case 'navigation::expand': {
+        db.saveSettings({
+          debugging: state.debugging,
+          homeConceptId: state.homeConceptId,
+          viewingConceptId: action.data.id
+        })
+        return {
+          ...state,
+          viewingConceptId: action.data.id
+        }
+      }
+      case 'link::create': {
+        const link: Link = {
+          id: uuidv4(),
+          type: 'contains',
+          to: action.data.id,
+          position: action.data.position,
+          width: defaultBlockWidth
+        }
+        const toChange = state.conceptMap[state.viewingConceptId]
+        const changed = {
+          ...toChange,
+          details: toChange.details.concat([link])
+        }
+        db.saveConcept(changed)
+        return {
+          ...state,
+          conceptMap: {
+            ...state.conceptMap,
+            [state.viewingConceptId]: changed
+          }
+        }
+      }
+      case 'concept::drawingchange': {
+        const toChange = state.viewingConceptId
+        db.saveConcept({
+          ...state.conceptMap[toChange],
+          drawing: action.data
+        })
+        return {
+          ...state,
+          conceptMap: {
+            ...state.conceptMap,
+            [toChange]: {
+              ...state.conceptMap[toChange],
+              drawing: action.data
+            }
+          }
+        }
+      }
+      case 'debugging::toggle': {
+        db.saveSettings({
+          debugging: !state.debugging,
+          homeConceptId: state.homeConceptId,
+          viewingConceptId: state.viewingConceptId
+        })
+        return {
+          ...state,
+          debugging: !state.debugging
+        }
       }
     }
   }

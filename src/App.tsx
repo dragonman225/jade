@@ -1,8 +1,8 @@
 /* eslint-disable react/display-name */
 /* eslint-disable @typescript-eslint/no-var-requires */
 import * as React from 'react'
-import { useEffect, useReducer, useMemo } from 'react'
-import { appStateReducer } from './core/model'
+import { useEffect, useReducer, useMemo, useCallback } from 'react'
+import { createReducer } from './core/model'
 import { Block } from './core/Block'
 import { Canvas } from './core/Canvas'
 import { BlockFactory } from './core/BlockFactory'
@@ -16,7 +16,7 @@ import { Content } from './content/Content'
 import { PubSub } from './lib/pubsub'
 import { loadState, saveState } from './lib/storage'
 import {
-  State3, OriginBottomLeft, OriginTopRight, OriginTopLeft
+  State3, OriginBottomLeft, OriginTopRight, OriginTopLeft, Database
 } from './core/interfaces'
 import { Concept } from './core/interfaces/concept'
 
@@ -25,14 +25,18 @@ const initialState = require('./InitialState.json') as State3
 let lastSyncTime = 0
 let timer: NodeJS.Timeout | undefined = undefined
 
-export const App: React.FunctionComponent = () => {
+type Props = {
+  db: Database
+}
+
+export const App: React.FunctionComponent<Props> = (props) => {
   const messenger = useMemo(() => new PubSub(), [])
   const readOnlyMessenger = {
     subscribe: messenger.subscribe,
     unsubscribe: messenger.unsubscribe
   }
-  const [state, dispatchAction] =
-    useReducer(appStateReducer, loadState() || initialState)
+  const reducer = useCallback(createReducer(props.db), [])
+  const [state, dispatchAction] = useReducer(reducer, loadState() || initialState)
 
   /** Interaction lock. */
   const [interactionLockOwner, setInteractionLockOwner] =
@@ -130,7 +134,7 @@ export const App: React.FunctionComponent = () => {
     width: 300
   })
 
-  const currentConcept = state.conceptMap[state.viewingConceptId]
+  const currentConcept = props.db.getConcept(state.viewingConceptId)
   const portalRef = React.useRef<HTMLDivElement>(null)
 
   return (
@@ -212,7 +216,7 @@ export const App: React.FunctionComponent = () => {
               key="SearchTool">
               {
                 (_contentProps) => <SearchTool portal={portalRef}
-                  state={state} onExpand={handleExpand}
+                  db={props.db} onExpand={handleExpand}
                   messenger={messenger}
                   onRequestLink={data => {
                     dispatchAction({ type: 'link::create', data })
@@ -293,13 +297,13 @@ export const App: React.FunctionComponent = () => {
                   history={expandHistory}
                   historySize={historySize}
                   current={last}
-                  state={state}
+                  db={props.db}
                   messageBus={messenger}
                   onExpand={handleExpand} />
               }
             </Block>
             {
-              Concept.details(currentConcept, state)
+              Concept.details(currentConcept, props.db)
                 .map(result => {
                   const subConcept = result.concept
                   const key = 'ConceptRef-' + result.link.id
@@ -366,7 +370,7 @@ export const App: React.FunctionComponent = () => {
             <Canvas
               messenger={messenger}
               readOnly={isInteractionLocked('canvas' + state.viewingConceptId)}
-              value={state.conceptMap[state.viewingConceptId].drawing}
+              value={currentConcept.drawing}
               onChange={data => dispatchAction({ type: 'concept::drawingchange', data })}
               onInteractionStart={() => { lockInteraction('canvas' + state.viewingConceptId) }}
               onInteractionEnd={() => { unlockInteraction('canvas' + state.viewingConceptId) }}

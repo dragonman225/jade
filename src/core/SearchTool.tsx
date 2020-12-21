@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
 import { isPointInRect } from '../lib/utils'
-import { ContentProps, State3, UnifiedEventInfo, Vec2 } from './interfaces'
+import { ContentProps, Database, UnifiedEventInfo, Vec2 } from './interfaces'
 import { Concept, InitializedConceptData } from './interfaces/concept'
 import { IPubSub } from '../lib/pubsub'
 import { Box } from './component/Box'
@@ -33,7 +33,7 @@ const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (prop
 }
 
 interface Props {
-  state: State3
+  db: Database
   portal: React.MutableRefObject<HTMLDivElement>
   onExpand: (conceptId: string) => void
   onRequestLink: (data: { id: string; position: Vec2 }) => void
@@ -67,12 +67,12 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
   const [minimized, setMinimized] = React.useState(true)
 
   const [higherOrderConcepts, leafConcepts] = React.useMemo(() => {
-    const allConcepts = Object.values(props.state.conceptMap)
+    const allConcepts = props.db.getAllConcepts()
     return [
       allConcepts.filter(concept => Concept.isHighOrder(concept)),
       allConcepts.filter(concept => !Concept.isHighOrder(concept))
     ]
-  }, [text, props.state.conceptMap])
+  }, [text, props.db.getLastUpdatedTime()])
 
   const resultConcepts = React.useMemo(() => {
     if (text) {
@@ -274,7 +274,7 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
         function () {
           //console.log(s2lState)
           if (s2lState === S2LState.Linking && s2lBlock.valid) {
-            const concept = props.state.conceptMap[s2lBlock.id]
+            const concept = props.db.getConcept(s2lBlock.id)
             const position = {
               x: s2lBlock.rect.left + s2lDelta.x,
               y: s2lBlock.rect.top + s2lDelta.y

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
-import { ContentProps, State3 } from './interfaces'
+import { ContentProps, Database } from './interfaces'
 import { InitializedConceptData } from './interfaces/concept'
 import { IPubSub } from '../lib/pubsub'
 
@@ -13,7 +13,7 @@ interface Props {
   historySize: number
   /** Index of the latest added. */
   current: number
-  state: State3
+  db: Database
   messageBus: IPubSub
   onExpand: (blockCardId: string) => void
 }
@@ -88,7 +88,7 @@ export const RecentTool: React.FunctionComponent<Props> = (props) => {
           }
 
           return historyToShow.map(conceptId => {
-            const concept = props.state.conceptMap[conceptId]
+            const concept = props.db.getConcept(conceptId)
             const contentProps: ContentProps<InitializedConceptData> = {
               viewMode: 'NavItem',
               readOnly: true,

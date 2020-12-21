@@ -1,4 +1,4 @@
-import { State3, Vec2 } from '.'
+import { Database, Vec2 } from '.'
 
 /** Summary. */
 export interface UninitializedConceptData {
@@ -60,11 +60,11 @@ type Detail = {
 
 /** Concept Interface. */
 export const Concept = {
-  details(concept: Concept, state: State3): Detail[] {
+  details(concept: Concept, db: Database): Detail[] {
     return concept.details.map(link => {
       return {
         link,
-        concept: state.conceptMap[link.to]
+        concept: db.getConcept(link.to)
       }
     })
   },

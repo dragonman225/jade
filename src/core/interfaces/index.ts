@@ -85,3 +85,18 @@ export interface State3 {
     [id: string]: Concept
   }
 }
+
+export interface Settings {
+  debugging: boolean
+  homeConceptId: ConceptId // The user does not want to get lost!
+  viewingConceptId: ConceptId
+}
+
+export interface Database {
+  getConcept: (id: ConceptId) => Concept | undefined
+  getAllConcepts: () => Concept[]
+  saveConcept: (concept: Concept) => void
+  getSettings: () => Settings
+  saveSettings: (settings: Settings) => void
+  getLastUpdatedTime: () => number
+}
