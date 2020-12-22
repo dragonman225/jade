@@ -1,10 +1,21 @@
 import * as React from 'react'
+import { stylesheet } from 'typestyle'
 import { getMouseOffset } from '../lib/utils'
 import { Vec2 } from './interfaces'
 
 interface Props {
   onRequestCreate: (position: Vec2) => void
 }
+
+const styles = stylesheet({
+  BlockFactory: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0
+  }
+})
 
 export class BlockFactory extends React.Component<Props> {
   constructor(props: Props) {
@@ -21,18 +32,8 @@ export class BlockFactory extends React.Component<Props> {
 
   render(): JSX.Element {
     return (
-      <>
-        <style jsx>{`
-          .BlockFactory {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-          }
-        `}</style>
-        <div className="BlockFactory" onDoubleClick={this.handleDoubleClick} />
-      </>
+      <div className={styles.BlockFactory}
+        onDoubleClick={this.handleDoubleClick} />
     )
   }
 }

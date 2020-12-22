@@ -32,6 +32,36 @@ type Props = {
   db: Database
 }
 
+cssRaw(`
+* {
+  box-sizing: border-box;
+  user-select: none;
+}
+
+html, body, #react-root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+:root {
+  font-size: 18px;
+  font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.6;
+}`)
+
+const styles = stylesheet({
+  App: {
+    overflow: 'hidden',
+    height: '100%',
+    background: '#e5e5e5'
+  },
+  Playground: {
+    position: 'relative',
+    height: '100%'
+  }
+})
+
 export const App: React.FunctionComponent<Props> = (props) => {
   const messenger = useMemo(() => new PubSub(), [])
   const readOnlyMessenger = {
@@ -119,54 +149,24 @@ export const App: React.FunctionComponent<Props> = (props) => {
 
   const [headerToolState, setHeaderToolState] = useState({
     origin: { type: 'TL', top: 0, left: 0 } as OriginTopLeft,
-    position: { x: 24, y: 24 },
+    position: { x: 20, y: 20 },
     width: 500
   })
 
   const [recentToolState, setRecentToolState] = useState({
     origin: { type: 'TR', top: 0, right: 0 } as OriginTopRight,
-    position: { x: -24, y: 24 },
+    position: { x: -20, y: 20 },
     width: 500
   })
 
   const [searchToolState, setSearchToolState] = useState({
     origin: { type: 'BL', bottom: 0, left: 0 } as OriginBottomLeft,
-    position: { x: 24, y: -24 },
+    position: { x: 20, y: -20 },
     width: 300
   })
 
   const currentConcept = props.db.getConcept(state.viewingConceptId)
   const portalRef = useRef<HTMLDivElement>(null)
-
-  cssRaw(`
-  * {
-    box-sizing: border-box;
-    user-select: none;
-  }
-
-  html, body, #react-root {
-    margin: 0;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  :root {
-    font-size: 18px;
-    font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    line-height: 1.6;
-  }`)
-
-  const styles = stylesheet({
-    App: {
-      overflow: 'hidden',
-      height: '100%',
-      background: '#e5e5e5'
-    },
-    Playground: {
-      position: 'relative',
-      height: '100%'
-    }
-  })
 
   return (
     <div className={styles.App}>

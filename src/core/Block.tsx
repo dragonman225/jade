@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as typestyle from 'typestyle'
+import { stylesheet, classes } from 'typestyle'
 import { IPubSub } from '../lib/pubsub'
 import { IconDragHandle } from './component/IconDragHandle'
 import { IconCross } from './component/IconCross'
@@ -49,6 +49,74 @@ interface State {
 }
 
 const dragHandleSize = 22
+
+const styles = stylesheet({
+  Block: {
+    position: 'absolute',
+    borderRadius: '.3rem',
+    color: 'rgb(65, 65, 65)',
+    display: 'flex',
+    alignItems: 'center',
+    wordBreak: 'break-word',
+    userSelect: 'none',
+    overflow: 'hidden', // To enforce borderRadius.
+    transition: 'background 0.1s, box-shadow 0.1s'
+  },
+  Handle: {
+    position: 'absolute',
+    width: dragHandleSize,
+    height: dragHandleSize,
+    fill: '#aaa',
+    padding: '.3rem',
+    background: 'rgba(0, 0, 0, 0)',
+    $nest: {
+      '&:hover, &:active': {
+        background: 'rgba(182, 182, 182, 0.7)',
+        fill: '#7c7c7c'
+      }
+    }
+  },
+  HandleHide: {
+    display: 'none'
+  },
+  DragArea: {
+    top: 0,
+    left: 0,
+    cursor: 'grab'
+  },
+  DragAreaMoving: {
+    cursor: 'grabbing'
+  },
+  ExpandArea: {
+    top: 0,
+    right: 0,
+    cursor: 'default'
+  },
+  ResizeArea: {
+    bottom: 0,
+    right: 0,
+    cursor: 'ew-resize'
+  },
+  RemoveArea: {
+    bottom: 0,
+    left: 0,
+    cursor: 'default'
+  },
+  ContentArea: {
+    width: '100%',
+    minHeight: 2 * dragHandleSize,
+    overflow: 'auto'
+  },
+  DebugId: {
+    display: 'none',
+    fontSize: 6,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    color: '#050c9c',
+    whiteSpace: 'nowrap'
+  }
+})
 
 export class Block extends React.Component<Props, State> {
   ref: React.RefObject<HTMLDivElement>
@@ -268,73 +336,7 @@ export class Block extends React.Component<Props, State> {
       width: `${this.state.width}px`,
       zIndex: this.isActive() ? 9999 : this.props.zIndex
     }
-    const styles = {
-      Block: typestyle.style({
-        position: 'absolute',
-        borderRadius: '.3rem',
-        color: 'rgb(65, 65, 65)',
-        display: 'flex',
-        alignItems: 'center',
-        wordBreak: 'break-word',
-        userSelect: 'none',
-        overflow: 'hidden', // To enforce borderRadius.
-        transition: 'background 0.1s, box-shadow 0.1s'
-      }),
-      Handle: typestyle.style({
-        position: 'absolute',
-        width: dragHandleSize,
-        height: dragHandleSize,
-        fill: '#aaa',
-        padding: '.3rem',
-        background: 'rgba(0, 0, 0, 0)',
-        $nest: {
-          '&:hover, &:active': {
-            background: 'rgba(182, 182, 182, 0.7)',
-            fill: '#7c7c7c'
-          }
-        }
-      }),
-      HandleHide: typestyle.style({
-        display: 'none'
-      }),
-      DragArea: typestyle.style({
-        top: 0,
-        left: 0,
-        cursor: 'grab'
-      }),
-      DragAreaMoving: typestyle.style({
-        cursor: 'grabbing'
-      }),
-      ExpandArea: typestyle.style({
-        top: 0,
-        right: 0,
-        cursor: 'default'
-      }),
-      ResizeArea: typestyle.style({
-        bottom: 0,
-        right: 0,
-        cursor: 'ew-resize'
-      }),
-      RemoveArea: typestyle.style({
-        bottom: 0,
-        left: 0,
-        cursor: 'default'
-      }),
-      ContentArea: typestyle.style({
-        width: '100%',
-        minHeight: 2 * dragHandleSize,
-        overflow: 'auto'
-      }),
-      DebugId: typestyle.style({
-        display: 'none',
-        fontSize: 6,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        color: '#050c9c',
-        whiteSpace: 'nowrap'
-      })
-    }
+
     return (
       <Container
         className={styles.Block} ref={this.ref}
@@ -349,7 +351,7 @@ export class Block extends React.Component<Props, State> {
             rgba(15, 15, 15, 0.1) 0px 0px 9px` : 'inherit'
         }}>
         <span className={styles.DebugId}>{this.props.data.blockId}</span>
-        <div className={typestyle.classes(
+        <div className={classes(
           styles.Handle,
           (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
           styles.DragArea,
@@ -358,7 +360,7 @@ export class Block extends React.Component<Props, State> {
         </div>
         {
           typeof this.props.onExpand === 'function' ?
-            <div className={typestyle.classes(
+            <div className={classes(
               styles.Handle,
               (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
               styles.ExpandArea)}
@@ -366,7 +368,7 @@ export class Block extends React.Component<Props, State> {
               <IconExpand />
             </div> : <></>
         }
-        <div className={typestyle.classes(
+        <div className={classes(
           styles.Handle,
           (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
           styles.ResizeArea)}>
@@ -374,7 +376,7 @@ export class Block extends React.Component<Props, State> {
         </div>
         {
           typeof this.props.onRemove === 'function' ?
-            <div className={typestyle.classes(
+            <div className={classes(
               styles.Handle,
               (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
               styles.RemoveArea)}

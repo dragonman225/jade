@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { stylesheet } from 'typestyle'
 import { useState, useEffect } from 'react'
 import { IPubSub } from '../lib/pubsub'
 import { UnifiedEventInfo } from './interfaces'
@@ -14,6 +15,16 @@ const DragState = {
 }
 
 type Event = 'pointerdown' | 'pointermove' | 'pointerup'
+
+const styles = stylesheet({
+  InputContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0
+  }
+})
 
 /**
  * A container for global event delegation.
@@ -133,27 +144,17 @@ export function InputContainer(
   }
 
   return (
-    <>
-      <style jsx>{`
-        div {
-          position: absolute;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          left: 0;
-        }
-      `}</style>
-      <div
-        onMouseDown={handleMouse}
-        onMouseMove={handleMouse}
-        onMouseUp={handleMouse}
-        // onMouseLeave={handleMouse} prevent block being put at unreachable position
-        onTouchStart={handleTouch}
-        onTouchMove={handleTouch}
-        onTouchEnd={handleTouch}
-        onTouchCancel={handleTouch}>
-        {props.children}
-      </div>
-    </>
+    <div
+      className={styles.InputContainer}
+      onMouseDown={handleMouse}
+      onMouseMove={handleMouse}
+      onMouseUp={handleMouse}
+      // onMouseLeave={handleMouse} prevent block being put at unreachable position
+      onTouchStart={handleTouch}
+      onTouchMove={handleTouch}
+      onTouchEnd={handleTouch}
+      onTouchCancel={handleTouch}>
+      {props.children}
+    </div>
   )
 }
