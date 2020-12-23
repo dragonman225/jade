@@ -4,7 +4,7 @@ import { Concept } from '../core/interfaces/concept'
 /** Legacy database interface. */
 const itemKey = 'state_v3'
 
-export function loadState(): State3 | undefined {
+export function legacyLoadState(): State3 | undefined {
   const blob = localStorage.getItem(itemKey)
   if (blob) {
     try {
@@ -18,13 +18,15 @@ export function loadState(): State3 | undefined {
   }
 }
 
-export function saveState(state: State3): void {
+export function legacySaveState(state: State3): void {
   localStorage.setItem(itemKey, JSON.stringify(state))
 }
 
 /** 
  * New database interface.
- * TODO: Add frontend LRU cache, invalidate on write.
+ * TODO: Add frontend LRU cache, update on write.
+ * TODO: Add write buffer that queue writes and use transaction to write 
+ *       a batch.
  */
 function markStorageUpdate() {
   localStorage.setItem('lastUpdatedAt', Date.now().toString())

@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { App } from './core/App'
-import { loadState, database } from './lib/storage'
+import { legacyLoadState, database } from './lib/storage'
 
 /** Migrate old state_v3 to the new database. */
-const state3 = loadState()
+const state3 = legacyLoadState()
 if (!database.isValid() && state3) {
   database.init({
     debugging: state3.debugging,
