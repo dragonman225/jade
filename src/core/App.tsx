@@ -1,35 +1,67 @@
 /* eslint-disable react/display-name */
-/* eslint-disable @typescript-eslint/no-var-requires */
 import * as React from 'react'
 import {
   useEffect, useReducer, useMemo, useCallback, useState, useRef
 } from 'react'
 import { cssRaw, stylesheet } from 'typestyle'
-import { createReducer } from './core/model'
-import { Block } from './core/Block'
-import { Canvas } from './core/Canvas'
-import { BlockFactory } from './core/BlockFactory'
-import { InputContainer } from './core/InputContainer'
-import { RecentTool } from './core/RecentTool'
-import { SearchTool } from './core/SearchTool'
-import { HeaderTool } from './core/HeaderTool'
-import { Box } from './core/component/Box'
-import { Portal } from './core/component/Portal'
-import { Content } from './content/Content'
-import { PubSub } from './lib/pubsub'
-import { loadState, saveState } from './lib/storage'
+import { createReducer } from './reducer'
+import { Block } from './Block'
+import { Canvas } from './Canvas'
+import { BlockFactory } from './BlockFactory'
+import { InputContainer } from './InputContainer'
+import { RecentTool } from './RecentTool'
+import { SearchTool } from './SearchTool'
+import { HeaderTool } from './HeaderTool'
+import { Box } from './component/Box'
+import { Portal } from './component/Portal'
+import { Content } from '../content/Content'
+import { PubSub } from '../lib/pubsub'
 import {
-  State3, OriginBottomLeft, OriginTopRight, OriginTopLeft, Database
-} from './core/interfaces'
-import { Concept } from './core/interfaces/concept'
+  OriginBottomLeft, OriginTopRight, OriginTopLeft, DatabaseInterface, State4
+} from './interfaces'
+import { Concept } from './interfaces/concept'
 
-const initialState = require('./InitialState.json') as State3
+function loadAppState(db: DatabaseInterface): State4 {
+  if (!db.isValid()) {
+    db.init({
+      debugging: false,
+      homeConceptId: 'home',
+      viewingConceptId: 'home'
+    }, [{
+      id: 'home',
+      summary: {
+        type: 'pmtext',
+        data: {
+          initialized: true,
+          data: {
+            type: 'doc',
+            content: [{
+              type: 'text',
+              text: 'Home'
+            }]
+          }
+        }
+      },
+      drawing: [],
+      details: []
+    }])
+  }
+  const settings = db.getSettings()
+  const viewingConcept = db.getConcept(settings.viewingConceptId)
+  const viewingConceptDetails = Concept.details(viewingConcept, db)
+  return {
+    debugging: settings.debugging,
+    homeConceptId: settings.homeConceptId,
+    viewingConcept,
+    viewingConceptDetails
+  }
+}
 
-let lastSyncTime = 0
-let timer: NodeJS.Timeout | undefined = undefined
+// const lastSyncTime = 0
+// const timer: NodeJS.Timeout | undefined = undefined
 
 type Props = {
-  db: Database
+  db: DatabaseInterface
 }
 
 cssRaw(`
@@ -68,8 +100,8 @@ export const App: React.FunctionComponent<Props> = (props) => {
     subscribe: messenger.subscribe,
     unsubscribe: messenger.unsubscribe
   }
-  const reducer = useCallback(createReducer(props.db), [])
-  const [state, dispatchAction] = useReducer(reducer, loadState() || initialState)
+  const appStateReducer = useCallback(createReducer(props.db), [])
+  const [state, dispatchAction] = useReducer(appStateReducer, loadAppState(props.db))
 
   /** Interaction lock. */
   const [interactionLockOwner, setInteractionLockOwner] = useState<string>('')
@@ -90,26 +122,26 @@ export const App: React.FunctionComponent<Props> = (props) => {
     setInteractionLockOwner('')
   }
 
-  /** State Sync. */
-  useEffect(() => {
-    const now = Date.now()
-    const minInterval = 500
-    if (now - lastSyncTime > minInterval) {
-      console.log('sync immediately')
-      saveState(state)
-      lastSyncTime = now
-    } else {
-      if (timer) {
-        clearTimeout(timer)
-      }
-      const t = setTimeout(() => {
-        console.log('sync after timeout')
-        saveState(state)
-        lastSyncTime = now
-      }, minInterval)
-      timer = t
-    }
-  }, [state])
+  /** LEGACY: State Sync. */
+  // useEffect(() => {
+  //   const now = Date.now()
+  //   const minInterval = 500
+  //   if (now - lastSyncTime > minInterval) {
+  //     console.log('sync immediately')
+  //     saveState(state)
+  //     lastSyncTime = now
+  //   } else {
+  //     if (timer) {
+  //       clearTimeout(timer)
+  //     }
+  //     const t = setTimeout(() => {
+  //       console.log('sync after timeout')
+  //       saveState(state)
+  //       lastSyncTime = now
+  //     }, minInterval)
+  //     timer = t
+  //   }
+  // }, [state])
 
   const toggleDebugging = () => {
     dispatchAction({ type: 'debugging::toggle' })
@@ -123,7 +155,7 @@ export const App: React.FunctionComponent<Props> = (props) => {
   }, [])
 
   const historySize = 15
-  const [expandHistory, setExpandHistory] = useState([state.viewingConceptId])
+  const [expandHistory, setExpandHistory] = useState([state.viewingConcept.id])
   const [last, setLast] = useState(0)
 
   const handleExpand = (blockCardId: string) => {
@@ -165,7 +197,8 @@ export const App: React.FunctionComponent<Props> = (props) => {
     width: 300
   })
 
-  const currentConcept = props.db.getConcept(state.viewingConceptId)
+  const currentConcept = state.viewingConcept
+  console.log(currentConcept)
   const portalRef = useRef<HTMLDivElement>(null)
 
   return (
@@ -355,13 +388,13 @@ export const App: React.FunctionComponent<Props> = (props) => {
           }
           <Canvas
             messenger={messenger}
-            readOnly={isInteractionLocked('canvas' + state.viewingConceptId)}
+            readOnly={isInteractionLocked('canvas' + state.viewingConcept.id)}
             value={currentConcept.drawing}
             onChange={data => dispatchAction({ type: 'concept::drawingchange', data })}
-            onInteractionStart={() => { lockInteraction('canvas' + state.viewingConceptId) }}
-            onInteractionEnd={() => { unlockInteraction('canvas' + state.viewingConceptId) }}
+            onInteractionStart={() => { lockInteraction('canvas' + state.viewingConcept.id) }}
+            onInteractionEnd={() => { unlockInteraction('canvas' + state.viewingConcept.id) }}
             /** Use key to remount Canvas when currentBlockCard changes. */
-            key={'canvas-' + state.viewingConceptId} />
+            key={'canvas-' + state.viewingConcept.id} />
         </InputContainer>
       </div>
     </div>

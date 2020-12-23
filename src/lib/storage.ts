@@ -1,4 +1,4 @@
-import { Database, Settings, State3 } from '../core/interfaces'
+import { DatabaseInterface, Settings, State3 } from '../core/interfaces'
 import { Concept } from '../core/interfaces/concept'
 
 /** Legacy database interface. */
@@ -30,10 +30,21 @@ function markStorageUpdate() {
   localStorage.setItem('lastUpdatedAt', Date.now().toString())
 }
 
-export const database: Database = {
+export const database: DatabaseInterface = {
+  isValid: () => {
+    return localStorage.getItem('JADE_DB_LOADED') !== null
+  },
+  init: (settings: Settings, concepts: Concept[]) => {
+    database.saveSettings(settings)
+    concepts.forEach(concept => {
+      database.saveConcept(concept)
+    })
+    localStorage.setItem('JADE_DB_LOADED', '')
+  },
   getConcept: (id) => {
     try {
-      const concept = JSON.parse(localStorage.getItem(`concept/${id}`)) as Concept
+      const item = localStorage.getItem(`concept/${id}`)
+      const concept = JSON.parse(item) as Concept
       return concept
     } catch (error) {
       return undefined
@@ -51,6 +62,7 @@ export const database: Database = {
     return concepts
   },
   saveConcept: (concept) => {
+    console.log('save concept', concept)
     localStorage.setItem(`concept/${concept.id}`, JSON.stringify(concept))
     markStorageUpdate()
   },

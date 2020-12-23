@@ -1,4 +1,4 @@
-import { Database, Vec2 } from '.'
+import { DatabaseInterface, Vec2 } from '.'
 
 /** Summary. */
 export interface UninitializedConceptData {
@@ -7,6 +7,7 @@ export interface UninitializedConceptData {
 
 export interface InitializedConceptData {
   initialized: true
+  data?: unknown
 }
 
 export type BaseConceptData = UninitializedConceptData | InitializedConceptData
@@ -53,14 +54,14 @@ export interface Concept {
   drawing: Stroke[]
 }
 
-type Detail = {
+export interface ConceptDetail {
   link: Link
   concept: Concept
 }
 
 /** Concept Interface. */
 export const Concept = {
-  details(concept: Concept, db: Database): Detail[] {
+  details(concept: Concept, db: DatabaseInterface): ConceptDetail[] {
     return concept.details.map(link => {
       return {
         link,

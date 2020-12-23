@@ -6,19 +6,18 @@
     "home": {
       "id": "home",
       "summary": {
-        "type": "text",
+        "type": "pmtext",
         "data": {
           "initialized": true,
-          "data": [
-            {
-              "type": "paragraph",
-              "children": [
-                {
-                  "text": "Home"
-                }
-              ]
-            }
-          ]
+          "data": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "text",
+                "text": "Home"
+              }
+            ]
+          }
         }
       },
       "details": [],

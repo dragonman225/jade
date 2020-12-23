@@ -1,7 +1,7 @@
 import { ISub } from '../../lib/pubsub'
 import {
-  Concept, ConceptId,
-  InitializedConceptData, UninitializedConceptData
+  Concept, ConceptId, ConceptDetail,
+  InitializedConceptData, UninitializedConceptData,
 } from './concept'
 
 export interface Vec2 {
@@ -86,13 +86,23 @@ export interface State3 {
   }
 }
 
+/** App state v4. */
+export interface State4 {
+  debugging: boolean
+  homeConceptId: ConceptId // The user does not want to get lost!
+  viewingConcept: Concept
+  viewingConceptDetails: ConceptDetail[]
+}
+
 export interface Settings {
   debugging: boolean
   homeConceptId: ConceptId // The user does not want to get lost!
   viewingConceptId: ConceptId
 }
 
-export interface Database {
+export interface DatabaseInterface {
+  isValid: () => boolean
+  init: (settings: Settings, concepts: Concept[]) => void
   getConcept: (id: ConceptId) => Concept | undefined
   getAllConcepts: () => Concept[]
   saveConcept: (concept: Concept) => void

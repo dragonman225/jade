@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
-import { ContentProps, Database } from './interfaces'
+import { ContentProps, DatabaseInterface } from './interfaces'
 import { InitializedConceptData } from './interfaces/concept'
 import { IPubSub } from '../lib/pubsub'
 
@@ -13,7 +13,7 @@ interface Props {
   historySize: number
   /** Index of the latest added. */
   current: number
-  db: Database
+  db: DatabaseInterface
   messageBus: IPubSub
   onExpand: (blockCardId: string) => void
 }

@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom'
 import * as typestyle from 'typestyle'
 import { Content } from '../content/Content'
 import { isPointInRect } from '../lib/utils'
-import { ContentProps, Database, UnifiedEventInfo, Vec2 } from './interfaces'
+import { ContentProps, DatabaseInterface, UnifiedEventInfo, Vec2 } from './interfaces'
 import { Concept, InitializedConceptData } from './interfaces/concept'
 import { IPubSub } from '../lib/pubsub'
 import { Box } from './component/Box'
@@ -33,7 +33,7 @@ const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (prop
 }
 
 interface Props {
-  db: Database
+  db: DatabaseInterface
   portal: React.MutableRefObject<HTMLDivElement>
   onExpand: (conceptId: string) => void
   onRequestLink: (data: { id: string; position: Vec2 }) => void
