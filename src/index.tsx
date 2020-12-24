@@ -1,11 +1,13 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { App } from './core/App'
-import { legacyLoadState, database } from './lib/storage'
+import { database } from './electron/renderer/storage'
+import { legacyLoadState } from './lib/storage'
 
 /** Migrate old state_v3 to the new database. */
 const state3 = legacyLoadState()
 if (!database.isValid() && state3) {
+  console.log('Migrating state_v3 to new format.')
   database.init({
     debugging: state3.debugging,
     homeConceptId: state3.homeConceptId,

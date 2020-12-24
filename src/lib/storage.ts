@@ -36,10 +36,10 @@ export const database: DatabaseInterface = {
   isValid: () => {
     return localStorage.getItem('JADE_DB_LOADED') !== null
   },
-  init: (settings: Settings, concepts: Concept[]) => {
+  init: (settings, concepts) => {
     database.saveSettings(settings)
     concepts.forEach(concept => {
-      database.saveConcept(concept)
+      database.createConcept(concept)
     })
     localStorage.setItem('JADE_DB_LOADED', '')
   },
@@ -63,8 +63,11 @@ export const database: DatabaseInterface = {
     }
     return concepts
   },
-  saveConcept: (concept) => {
-    console.log('save concept', concept)
+  updateConcept: (concept) => {
+    localStorage.setItem(`concept/${concept.id}`, JSON.stringify(concept))
+    markStorageUpdate()
+  },
+  createConcept: (concept) => {
     localStorage.setItem(`concept/${concept.id}`, JSON.stringify(concept))
     markStorageUpdate()
   },

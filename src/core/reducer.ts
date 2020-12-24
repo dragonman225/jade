@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from 'uuid'
-import { database } from '../lib/storage'
 import { DatabaseInterface, State4, Vec2 } from './interfaces'
 import { Concept, BaseConceptData, Link, Stroke } from './interfaces/concept'
 
@@ -74,6 +73,7 @@ type Action =
 
 export function createReducer(db: DatabaseInterface) {
   return function appStateReducer(state: State4, action: Action): State4 {
+    console.log('Action fired:', action.type)
     const defaultBlockWidth = 300
     switch (action.type) {
       case 'concept::create': {
@@ -97,8 +97,8 @@ export function createReducer(db: DatabaseInterface) {
           ...state.viewingConcept,
           details: state.viewingConcept.details.concat([newLink])
         }
-        db.saveConcept(newViewingConcept)
-        db.saveConcept(newConcept)
+        db.updateConcept(newViewingConcept)
+        db.createConcept(newConcept)
         return {
           ...state,
           viewingConcept: newViewingConcept,
@@ -121,7 +121,7 @@ export function createReducer(db: DatabaseInterface) {
             }
           })
         }
-        db.saveConcept(newViewingConcept)
+        db.updateConcept(newViewingConcept)
         return {
           ...state,
           viewingConcept: newViewingConcept,
@@ -144,7 +144,7 @@ export function createReducer(db: DatabaseInterface) {
             }
           })
         }
-        db.saveConcept(newViewingConcept)
+        db.updateConcept(newViewingConcept)
         return {
           ...state,
           viewingConcept: newViewingConcept,
@@ -153,7 +153,7 @@ export function createReducer(db: DatabaseInterface) {
       }
       case 'concept::datachange': {
         const concept = db.getConcept(action.data.id)
-        db.saveConcept({
+        db.updateConcept({
           ...concept,
           summary: {
             type: action.data.type,
@@ -162,7 +162,7 @@ export function createReducer(db: DatabaseInterface) {
         })
         return {
           ...state,
-          viewingConcept: database.getConcept(state.viewingConcept.id),
+          viewingConcept: db.getConcept(state.viewingConcept.id),
           viewingConceptDetails: Concept.details(state.viewingConcept, db)
         }
       }
@@ -172,7 +172,7 @@ export function createReducer(db: DatabaseInterface) {
           ...state.viewingConcept,
           details: state.viewingConcept.details.filter(link => linkId !== link.id)
         }
-        db.saveConcept(newViewingConcept)
+        db.updateConcept(newViewingConcept)
         return {
           ...state,
           viewingConcept: newViewingConcept,
@@ -205,7 +205,7 @@ export function createReducer(db: DatabaseInterface) {
           ...state.viewingConcept,
           details: state.viewingConcept.details.concat([link])
         }
-        db.saveConcept(newViewingConcept)
+        db.updateConcept(newViewingConcept)
         return {
           ...state,
           viewingConcept: newViewingConcept,
@@ -218,7 +218,7 @@ export function createReducer(db: DatabaseInterface) {
           ...concept,
           drawing: action.data
         }
-        db.saveConcept(conceptChanged)
+        db.updateConcept(conceptChanged)
         return {
           ...state,
           viewingConcept: conceptChanged

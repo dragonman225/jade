@@ -70,7 +70,7 @@ export const SlateTextEditor = (props: Props): JSX.Element => {
    */
   useEffect(() => {
     if (props.forceFocus) {
-      console.log('focus programmatically')
+      console.log('Focus Slate programmatically')
       editor.selection = {
         anchor: {
           path: [0, 0],
@@ -128,7 +128,7 @@ export const SlateTextEditor = (props: Props): JSX.Element => {
     console.log(e)
     setLastBeforeInputEvent({ data: e.data, isComposing: e.isComposing })
     if (lastBeforeInputEvent && lastBeforeInputEvent.isComposing && e.isComposing && lastBeforeInputEvent.data === e.data) {
-      console.log('ready to crash')
+      console.log('Slate is ready to crash.')
     }
   }
 

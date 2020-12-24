@@ -67,7 +67,7 @@ export const Concept = {
         link,
         concept: db.getConcept(link.to)
       }
-    })
+    }).filter(d => !!d.concept)
   },
 
   isHighOrder(concept: Concept): boolean {

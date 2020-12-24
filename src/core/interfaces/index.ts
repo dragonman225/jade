@@ -101,12 +101,13 @@ export interface Settings {
 }
 
 export interface DatabaseInterface {
-  isValid: () => boolean
-  init: (settings: Settings, concepts: Concept[]) => void
-  getConcept: (id: ConceptId) => Concept | undefined
-  getAllConcepts: () => Concept[]
-  saveConcept: (concept: Concept) => void
-  getSettings: () => Settings
-  saveSettings: (settings: Settings) => void
-  getLastUpdatedTime: () => number
+  isValid(): boolean
+  init(settings: Settings, concepts: Concept[]): void
+  getConcept(id: ConceptId): Concept | undefined
+  getAllConcepts(): Concept[]
+  createConcept(concept: Concept): void
+  updateConcept(concept: Concept): void
+  getSettings(): Settings
+  saveSettings(settings: Settings): void
+  getLastUpdatedTime(): number
 }

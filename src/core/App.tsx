@@ -22,6 +22,7 @@ import {
 import { Concept } from './interfaces/concept'
 
 function loadAppState(db: DatabaseInterface): State4 {
+  console.log('Loading app state.')
   if (!db.isValid()) {
     db.init({
       debugging: false,
@@ -56,9 +57,6 @@ function loadAppState(db: DatabaseInterface): State4 {
     viewingConceptDetails
   }
 }
-
-// const lastSyncTime = 0
-// const timer: NodeJS.Timeout | undefined = undefined
 
 type Props = {
   db: DatabaseInterface
@@ -101,7 +99,8 @@ export const App: React.FunctionComponent<Props> = (props) => {
     unsubscribe: messenger.unsubscribe
   }
   const appStateReducer = useCallback(createReducer(props.db), [])
-  const [state, dispatchAction] = useReducer(appStateReducer, loadAppState(props.db))
+  const initialState = useMemo(() => loadAppState(props.db), [])
+  const [state, dispatchAction] = useReducer(appStateReducer, initialState)
 
   /** Interaction lock. */
   const [interactionLockOwner, setInteractionLockOwner] = useState<string>('')
@@ -121,27 +120,6 @@ export const App: React.FunctionComponent<Props> = (props) => {
   const resetInteractionLockOwner = () => {
     setInteractionLockOwner('')
   }
-
-  /** LEGACY: State Sync. */
-  // useEffect(() => {
-  //   const now = Date.now()
-  //   const minInterval = 500
-  //   if (now - lastSyncTime > minInterval) {
-  //     console.log('sync immediately')
-  //     saveState(state)
-  //     lastSyncTime = now
-  //   } else {
-  //     if (timer) {
-  //       clearTimeout(timer)
-  //     }
-  //     const t = setTimeout(() => {
-  //       console.log('sync after timeout')
-  //       saveState(state)
-  //       lastSyncTime = now
-  //     }, minInterval)
-  //     timer = t
-  //   }
-  // }, [state])
 
   const toggleDebugging = () => {
     dispatchAction({ type: 'debugging::toggle' })
@@ -163,7 +141,7 @@ export const App: React.FunctionComponent<Props> = (props) => {
       setLast(last + 1)
       expandHistory[(last + 1) % historySize] = blockCardId
       setExpandHistory(expandHistory)
-      console.log(expandHistory)
+      console.log('History:', expandHistory)
       dispatchAction({ type: 'navigation::expand', data: { id: blockCardId } })
       resetInteractionLockOwner()
     }
@@ -198,7 +176,6 @@ export const App: React.FunctionComponent<Props> = (props) => {
   })
 
   const currentConcept = state.viewingConcept
-  console.log(currentConcept)
   const portalRef = useRef<HTMLDivElement>(null)
 
   return (

@@ -173,7 +173,6 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
       setS2lStart({ x: 0, y: 0 })
       setS2lDelta({ x: 0, y: 0 })
       if (s2lBlock.valid) {
-        console.log(s2lBlock, s2lDelta)
         props.onRequestLink({
           id: s2lBlock.id,
           position: {
@@ -255,6 +254,9 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
                                 viewMode="NavItem" messageBus={messenger} />
                             </div>
                           }
+                          default: {
+                            return `Unknown s2lState "${s2lState.description}"`
+                          }
                         }
                       }()
                     }
@@ -271,36 +273,33 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
           onChange={(e) => { setText(e.target.value) }} />
       </div>
       {
-        function () {
-          //console.log(s2lState)
-          if (s2lState === S2LState.Linking && s2lBlock.valid) {
-            const concept = props.db.getConcept(s2lBlock.id)
-            const position = {
-              x: s2lBlock.rect.left + s2lDelta.x,
-              y: s2lBlock.rect.top + s2lDelta.y
-            }
-            return ReactDOM.createPortal(<Block
-              readOnly={true}
-              data={{
-                blockId: concept.id,
-                position,
-                width: 300
-              }}
-              origin={{
-                type: 'TL',
-                top: 0,
-                left: 0
-              }}
-              zIndex={9999}
-              container={Box}
-              onResize={() => { return }}
-              onMove={() => { return }}
-              messenger={messenger}>
-              {() => <SearchItemContent concept={concept} viewMode="Block"
-                messageBus={messenger} />}
-            </Block>, props.portal.current)
+        (s2lState === S2LState.Linking && s2lBlock.valid) ? function () {
+          const concept = props.db.getConcept(s2lBlock.id)
+          const position = {
+            x: s2lBlock.rect.left + s2lDelta.x,
+            y: s2lBlock.rect.top + s2lDelta.y
           }
-        }()
+          return ReactDOM.createPortal(<Block
+            readOnly={true}
+            data={{
+              blockId: concept.id,
+              position,
+              width: 300
+            }}
+            origin={{
+              type: 'TL',
+              top: 0,
+              left: 0
+            }}
+            zIndex={9999}
+            container={Box}
+            onResize={() => { return }}
+            onMove={() => { return }}
+            messenger={messenger}>
+            {() => <SearchItemContent concept={concept} viewMode="Block"
+              messageBus={messenger} />}
+          </Block>, props.portal.current)
+        }() : <></>
       }
     </div>
   )

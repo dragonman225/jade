@@ -75,7 +75,7 @@ export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (pro
     return view
   }
 
-  const [PMState, setPMState] = React.useState(createPMState(props))
+  const [PMState] = React.useState(createPMState(props))
   const [PMView, setPMView] = React.useState<EditorView | undefined>(undefined)
   const [isNewText, setIsNewText] = React.useState(!props.content.initialized)
 

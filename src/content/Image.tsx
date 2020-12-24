@@ -40,7 +40,6 @@ export const Image: React.FunctionComponent<ContentProps<ImageContent>> = (props
       return
     }
     const file = files[0]
-    console.log(file)
     if (file.type && file.type.indexOf('image') === -1) {
       console.log('File is not an image.', file.type, file)
       return
