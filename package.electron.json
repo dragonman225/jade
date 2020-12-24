@@ -36,6 +36,12 @@
   "build": {
     "appId": "com.jade",
     "productName": "Jade",
+    "extraResources": [
+      {
+        "from": "res/512x512.png",
+        "to": "512x512.png"
+      }
+    ],
     "directories": {
       "output": "dist"
     },

@@ -16,7 +16,7 @@
     "electron:build-renderer": "webpack --color --display-modules --sort-modules-by=size --mode production --config webpack.config.electron.js",
     "electron:rebuild-native": "electron-rebuild -f -w better-sqlite3",
     "electron:pack": "electron-builder --dir",
-    "electron:dist": "cp package.electron.json build/electron/package.json && pushd build/electron && yarn && yarn dist && popd"
+    "electron:dist": "mkdir -p build/electron/res && cp package.electron.json build/electron/package.json && cp assets/icon.png build/electron/res/512x512.png && pushd build/electron && yarn && yarn dist && popd"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.1",
@@ -72,21 +72,5 @@
     "styled-jsx": "^3.3.2",
     "typestyle": "^2.1.0",
     "uuid": "^8.3.1"
-  },
-  "build": {
-    "appId": "com.jade",
-    "productName": "Jade",
-    "directories": {
-      "output": "build/electron-dist"
-    },
-    "linux": {
-      "target": "AppImage"
-    },
-    "mac": {
-      "target": "zip"
-    },
-    "win": {
-      "target": "portable"
-    }
   }
 }

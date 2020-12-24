@@ -1,9 +1,12 @@
+import * as path from 'path'
 import { app, BrowserWindow } from 'electron'
 
 function createWindow() {
+  console.log(`Jade runs from ${__dirname} with entry ${__filename}.`)
   const win = new BrowserWindow({
     width: 800,
     height: 600,
+    icon: path.resolve(__dirname, '../512x512.png'),
     webPreferences: {
       nodeIntegration: true
     }
