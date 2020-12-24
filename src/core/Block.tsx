@@ -55,7 +55,13 @@ const styles = stylesheet({
     position: 'absolute',
     borderRadius: '.3rem',
     color: 'rgb(65, 65, 65)',
-    display: 'flex',
+    /* Use below with no "align-items: center" 
+       makes content stretch (discovered: Image) rather than showing 
+       scrollbar when content overflow.
+       Maybe we don't need flexible layout actually since 4 handles are 
+       abs. positioned and ContentArea has "width: 100%".
+       Let's see for a while. */
+    // display: 'flex',
     // alignItems: 'center', // Tend to prduce strange extra space, which disappears on hover, causing layout shift.
     wordBreak: 'break-word',
     userSelect: 'none',
