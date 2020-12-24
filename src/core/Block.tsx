@@ -56,7 +56,7 @@ const styles = stylesheet({
     borderRadius: '.3rem',
     color: 'rgb(65, 65, 65)',
     display: 'flex',
-    alignItems: 'center',
+    // alignItems: 'center', // Tend to prduce strange extra space, which disappears on hover, causing layout shift.
     wordBreak: 'break-word',
     userSelect: 'none',
     overflow: 'hidden', // To enforce borderRadius.
@@ -385,7 +385,7 @@ export class Block extends React.Component<Props, State> {
             </div> : <></>
         }
         <div className={styles.ContentArea} style={{
-          maxHeight: window.innerHeight - this.state.position.y - 24
+          maxHeight: window.innerHeight - this.state.position.y - dragHandleSize
         }}>
           {
             this.props.children

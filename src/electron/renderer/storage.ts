@@ -181,11 +181,14 @@ function createDatabase(path: string): DatabaseInterface {
   function getConcept(id: string): Concept {
     if (conceptCache.has(id)) return conceptCache.get(id)
     try {
+      const start = Date.now()
       const stmt = conceptStmt.select
       const dryConcept = stmt.get<DryConcept>({ id })
-      console.log('getConcept', dryConcept)
+      const mid = Date.now()
       const concept = hydrateConcept(dryConcept)
       conceptCache.set(id, concept)
+      const end = Date.now()
+      console.log(`storage: select concept in ${mid - start}ms, parse json in ${end - mid}ms.`)
       return concept
     } catch (error) {
       console.log(error)
@@ -199,7 +202,7 @@ function createDatabase(path: string): DatabaseInterface {
       const stmt = conceptStmt.selectAll
       const dryConcepts = stmt.all<DryConcept>()
       const end = Date.now()
-      console.log(`storage: getAllConcept in ${end - start} ms`)
+      console.log(`storage: select all concepts in ${end - start} ms`)
       return dryConcepts.map(c => hydrateConcept(c))
     } catch (error) {
       console.log(error)

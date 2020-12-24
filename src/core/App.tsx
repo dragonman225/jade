@@ -299,69 +299,68 @@ export const App: React.FunctionComponent<Props> = (props) => {
             }
           </Block>
           {
-            Concept.details(currentConcept, props.db)
-              .map(result => {
-                const subConcept = result.concept
-                const key = 'ConceptRef-' + result.link.id
-                return (
-                  <Block
-                    messenger={messenger}
-                    readOnly={isInteractionLocked(key)}
-                    data={{
-                      blockId: subConcept.id,
-                      position: result.link.position,
-                      width: result.link.width
-                    }}
-                    origin={{ type: 'TL', top: 0, left: 0 }}
-                    zIndex={1}
-                    onResize={(width) => {
-                      dispatchAction({
-                        type: 'containslink::resize',
-                        data: { id: result.link.id, width }
-                      })
-                    }}
-                    onMove={(position) => {
-                      dispatchAction({
-                        type: 'containslink::move',
-                        data: { id: result.link.id, position }
-                      })
-                    }}
-                    onRemove={() => {
-                      dispatchAction({
-                        type: 'link::remove',
-                        data: { id: result.link.id }
-                      })
-                    }}
-                    onExpand={() => { handleExpand(subConcept.id) }}
-                    onInteractionStart={() => { lockInteraction(key) }}
-                    onInteractionEnd={() => { unlockInteraction(key) }}
-                    key={key}>
-                    {
-                      (contentProps) => <Content
-                        contentType={subConcept.summary.type}
-                        contentProps={{
-                          ...contentProps,
-                          viewMode: 'Block',
-                          content: subConcept.summary.data,
-                          messageBus: readOnlyMessenger,
-                          onChange: content => {
-                            dispatchAction({
-                              type: 'concept::datachange',
-                              data: {
-                                id: subConcept.id,
-                                type: subConcept.summary.type,
-                                content
-                              }
-                            })
-                          },
-                          onReplace: type => {
-                            replaceContentType(subConcept, type)
-                          }
-                        }} />
-                    }
-                  </Block>
-                )
-              })
+            state.viewingConceptDetails.map(result => {
+              const subConcept = result.concept
+              const key = 'ConceptRef-' + result.link.id
+              return (
+                <Block
+                  messenger={messenger}
+                  readOnly={isInteractionLocked(key)}
+                  data={{
+                    blockId: subConcept.id,
+                    position: result.link.position,
+                    width: result.link.width
+                  }}
+                  origin={{ type: 'TL', top: 0, left: 0 }}
+                  zIndex={1}
+                  onResize={(width) => {
+                    dispatchAction({
+                      type: 'containslink::resize',
+                      data: { id: result.link.id, width }
+                    })
+                  }}
+                  onMove={(position) => {
+                    dispatchAction({
+                      type: 'containslink::move',
+                      data: { id: result.link.id, position }
+                    })
+                  }}
+                  onRemove={() => {
+                    dispatchAction({
+                      type: 'link::remove',
+                      data: { id: result.link.id }
+                    })
+                  }}
+                  onExpand={() => { handleExpand(subConcept.id) }}
+                  onInteractionStart={() => { lockInteraction(key) }}
+                  onInteractionEnd={() => { unlockInteraction(key) }}
+                  key={key}>
+                  {
+                    (contentProps) => <Content
+                      contentType={subConcept.summary.type}
+                      contentProps={{
+                        ...contentProps,
+                        viewMode: 'Block',
+                        content: subConcept.summary.data,
+                        messageBus: readOnlyMessenger,
+                        onChange: content => {
+                          dispatchAction({
+                            type: 'concept::datachange',
+                            data: {
+                              id: subConcept.id,
+                              type: subConcept.summary.type,
+                              content
+                            }
+                          })
+                        },
+                        onReplace: type => {
+                          replaceContentType(subConcept, type)
+                        }
+                      }} />
+                  }
+                </Block>
+              )
+            })
           }
           <Canvas
             messenger={messenger}
