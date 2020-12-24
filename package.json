@@ -5,7 +5,6 @@
   "license": "MIT",
   "scripts": {
     "postinstall": "npm run electron:rebuild-native",
-    "rm-build": "rimraf ./build/*",
     "lint": "eslint ./",
     "lint-prof": "cross-env TIMING=1 yarn lint",
     "web:start": "webpack-dev-server --progress --color --mode development --config webpack.config.web.dev.js",
@@ -17,7 +16,7 @@
     "electron:build-renderer": "webpack --color --display-modules --sort-modules-by=size --mode production --config webpack.config.electron.js",
     "electron:rebuild-native": "electron-rebuild -f -w better-sqlite3",
     "electron:pack": "electron-builder --dir",
-    "electron:dist": "electron-builder -mwl"
+    "electron:dist": "cp package.electron.json build/electron/package.json && pushd build/electron && yarn && yarn dist && popd"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.1",

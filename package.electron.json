@@ -1,0 +1,52 @@
+{
+  "name": "jade",
+  "version": "1.0.0",
+  "main": "electron-main.js",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "electron-builder install-app-deps",
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder -l"
+  },
+  "devDependencies": {
+    "electron": "^11.1.1",
+    "electron-builder": "^22.9.1"
+  },
+  "dependencies": {
+    "better-sqlite3": "^7.1.2",
+    "normalize.css": "^8.0.1",
+    "prosemirror-history": "^1.1.3",
+    "prosemirror-keymap": "^1.1.4",
+    "prosemirror-model": "^1.12.0",
+    "prosemirror-schema-basic": "^1.1.2",
+    "prosemirror-state": "^1.3.3",
+    "prosemirror-view": "^1.16.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "sirv": "^1.0.7",
+    "sirv-cli": "^1.0.8",
+    "slate": "^0.59.0",
+    "slate-history": "^0.59.0",
+    "slate-react": "^0.59.0",
+    "styled-jsx": "^3.3.2",
+    "typestyle": "^2.1.0",
+    "uuid": "^8.3.1"
+  },
+  "build": {
+    "appId": "com.jade",
+    "productName": "Jade",
+    "directories": {
+      "output": "dist"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "mac": {
+      "target": "zip"
+    },
+    "win": {
+      "target": "portable"
+    }
+  }
+}
