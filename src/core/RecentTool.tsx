@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as typestyle from 'typestyle'
-import { Content } from '../content/Content'
+import { IPubSub } from './lib/pubsub'
+import { Content } from '../content-plugins'
 import { ContentProps, DatabaseInterface } from './interfaces'
 import { InitializedConceptData } from './interfaces/concept'
-import { IPubSub } from '../lib/pubsub'
 
 interface Props {
   width: number

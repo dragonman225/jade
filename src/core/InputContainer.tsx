@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
 import { useState, useEffect } from 'react'
-import { IPubSub } from '../lib/pubsub'
+import { IPubSub } from './lib/pubsub'
 import { UnifiedEventInfo } from './interfaces'
 
 export interface InputContainerProps {

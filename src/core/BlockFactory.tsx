@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
-import { getMouseOffset } from '../lib/utils'
+import { getMouseOffset } from './lib/utils'
 import { Vec2 } from './interfaces'
 
 interface Props {

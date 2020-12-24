@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "./build/electron",
     "target": "esnext",
     "module": "commonjs",
     "lib": [
@@ -22,7 +22,7 @@
     "noImplicitAny": false // to use untyped modules
   },
   "include": [
-    "src/electron/main/*"
+    "src/electron-main.ts"
   ],
   "exclude": [
     "node_modules",

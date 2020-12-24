@@ -1,4 +1,4 @@
-import { ISub } from '../../lib/pubsub'
+import { ISub } from '../lib/pubsub'
 import {
   Concept, ConceptId, ConceptDetail,
   InitializedConceptData, UninitializedConceptData,

@@ -1,26 +1,21 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path')
 const { BannerPlugin } = require('webpack')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const nodeExternals = require('webpack-node-externals')
 
-const app = [
-  './src/index.tsx'
-]
-
 module.exports = {
-  target: 'node',
-  node: {
-    __dirname: false,
-  },
+  /** Target: @see https://webpack.js.org/configuration/target/ */
+  target: 'electron-renderer',
+  /** Do not bundle external deps, directly "require" from "node_modules". */
   externals: [nodeExternals()],
   context: process.cwd(), // to automatically find tsconfig.json
+  /** Entry & Output: @see https://webpack.js.org/configuration/entry-context/#naming */
   entry: {
-    app
+    'electron-renderer': './src/electron-renderer.ts'
   },
   output: {
-    path: path.join(process.cwd(), 'dist'),
+    path: path.join(process.cwd(), 'build/electron'),
     filename: '[name].js',
   },
   plugins: [
@@ -62,5 +57,5 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js']
   },
-  devtool: 'inline-source-map',
+  devtool: 'inline-source-map'
 }

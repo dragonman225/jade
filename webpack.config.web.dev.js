@@ -1,20 +1,17 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path')
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
-const main = [
-  './src/index.tsx'
-]
-
 module.exports = {
+  /** Target: @see https://webpack.js.org/configuration/target/ */
+  /** target: "web" is default. */
   context: process.cwd(), // to automatically find tsconfig.json
   entry: {
-    main
+    'web-index': './src/web-index.ts'
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'build/web'),
     filename: '[name].js',
     publicPath: '/'
   },
@@ -23,7 +20,7 @@ module.exports = {
       eslint: true
     }),
     new ForkTsCheckerNotifierWebpackPlugin({
-      title: 'TypeScript', excludeWarnings: false
+      title: 'TypeScript Problems', excludeWarnings: false
     }),
     new HtmlWebpackPlugin({
       inject: true,
@@ -60,7 +57,6 @@ module.exports = {
   devtool: 'inline-source-map',
   devServer: {
     clientLogLevel: 'warning',
-    open: true,
     historyApiFallback: true,
     stats: 'errors-only'
   }

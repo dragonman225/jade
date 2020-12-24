@@ -1,20 +1,17 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path')
 const { BannerPlugin } = require('webpack')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
-const main = [
-  './src/index.tsx'
-]
-
 module.exports = {
+  /** Target: @see https://webpack.js.org/configuration/target/ */
+  /** target: "web" is default. */
   context: process.cwd(), // to automatically find tsconfig.json
   entry: {
-    main: main
+    'web-index': './src/web-index.ts'
   },
   output: {
-    path: path.join(process.cwd(), 'dist'),
+    path: path.join(process.cwd(), 'build/web'),
     filename: '[name].js',
   },
   plugins: [

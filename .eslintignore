@@ -1,3 +1,4 @@
-dist/*
+build/*
 *.json
 .eslintrc.js
+webpack.config.*

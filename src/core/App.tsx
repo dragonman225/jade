@@ -14,8 +14,8 @@ import { SearchTool } from './SearchTool'
 import { HeaderTool } from './HeaderTool'
 import { Box } from './component/Box'
 import { Portal } from './component/Portal'
-import { Content } from '../content/Content'
-import { PubSub } from '../lib/pubsub'
+import { Content } from '../content-plugins'
+import { PubSub } from './lib/pubsub'
 import {
   OriginBottomLeft, OriginTopRight, OriginTopLeft, DatabaseInterface, State4
 } from './interfaces'

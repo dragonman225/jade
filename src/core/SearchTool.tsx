@@ -1,13 +1,15 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as typestyle from 'typestyle'
-import { Content } from '../content/Content'
-import { isPointInRect } from '../lib/utils'
-import { ContentProps, DatabaseInterface, UnifiedEventInfo, Vec2 } from './interfaces'
-import { Concept, InitializedConceptData } from './interfaces/concept'
-import { IPubSub } from '../lib/pubsub'
-import { Box } from './component/Box'
 import { Block } from './Block'
+import { Box } from './component/Box'
+import { isPointInRect } from './lib/utils'
+import { IPubSub } from './lib/pubsub'
+import { Content } from '../content-plugins'
+import {
+  ContentProps, DatabaseInterface, UnifiedEventInfo, Vec2
+} from './interfaces'
+import { Concept, InitializedConceptData } from './interfaces/concept'
 
 interface SearchItemContentProps
   extends Pick<ContentProps<InitializedConceptData>, 'viewMode' | 'messageBus'> {

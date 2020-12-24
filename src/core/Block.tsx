@@ -1,14 +1,14 @@
 import * as React from 'react'
 import { stylesheet, classes } from 'typestyle'
-import { IPubSub } from '../lib/pubsub'
 import { IconDragHandle } from './component/IconDragHandle'
 import { IconCross } from './component/IconCross'
 import { IconExpand } from './component/IconExpand'
+import { isPointInRect } from './lib/utils'
+import { IPubSub } from './lib/pubsub'
 import {
   UnifiedEventInfo, ContentProps, Vec2, Origin
 } from './interfaces'
 import { InitializedConceptData } from './interfaces/concept'
-import { isPointInRect } from '../lib/utils'
 
 type ChildrenProps = Pick<ContentProps<InitializedConceptData>,
 'readOnly' | 'onInteractionStart' | 'onInteractionEnd'> & {

@@ -4,18 +4,20 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "webpack-dev-server --progress --color --mode development --config webpack.config.development.js",
-    "prebuild": "rimraf ./dist/*",
-    "build": "webpack --color --display-modules --sort-modules-by=size --mode production --config webpack.config.production.js",
+    "postinstall": "npm run electron:rebuild-native",
+    "rm-build": "rimraf ./build/*",
     "lint": "eslint ./",
     "lint-prof": "cross-env TIMING=1 yarn lint",
-    "serve": "sirv dist --dev -H 10.0.0.3",
-    "electron:start": "electron ./dist/main.js",
-    "electron:pack": "electron-builder --dir",
-    "electron:dist": "electron-builder -mwl",
+    "web:start": "webpack-dev-server --progress --color --mode development --config webpack.config.web.dev.js",
+    "web:build": "webpack --color --display-modules --sort-modules-by=size --mode production --config webpack.config.web.prod.js",
+    "web:serve": "sirv build/web --dev -H 10.0.0.3",
+    "electron:start": "electron ./build/electron/electron-main.js",
+    "electron:build": "npm run electron:build-main && npm run electron:build-renderer",
     "electron:build-main": "tsc -p tsconfig.electron.json",
     "electron:build-renderer": "webpack --color --display-modules --sort-modules-by=size --mode production --config webpack.config.electron.js",
-    "electron:rebuild-native": "electron-rebuild -f -w better-sqlite3"
+    "electron:rebuild-native": "electron-rebuild -f -w better-sqlite3",
+    "electron:pack": "electron-builder --dir",
+    "electron:dist": "electron-builder -mwl"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.1",
@@ -76,7 +78,7 @@
     "appId": "com.jade",
     "productName": "Jade",
     "directories": {
-      "output": "dist/electron"
+      "output": "build/electron-dist"
     },
     "linux": {
       "target": "AppImage"

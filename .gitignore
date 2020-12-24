@@ -26,5 +26,5 @@ yarn.lock
 
 # Project
 *.log
-dist/
+build/
 typedoc/
