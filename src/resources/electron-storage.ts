@@ -4,9 +4,11 @@ import { Concept } from '../core/interfaces/concept'
 
 interface SQLiteDatabase {
   prepare(sql: string): SQLiteStatement
-  transaction(func: (...args: unknown[]) => void): () => void
+  transaction(fn: (...args: unknown[]) => void): (...args: unknown[]) => void
+  transaction<T>(fn: (arg: T) => void): (arg: T) => void
   pragma(name: string, options?: { simple: boolean }): unknown
   pragma<T>(name: string, options?: { simple: boolean }): T
+  inTransaction: boolean
 }
 
 interface SQLiteDatabaseConstructor {
@@ -44,7 +46,7 @@ function createDatabase(path: string): DatabaseInterface {
   const db = new SQLiteDatabase(path)
   const conceptsTableName = 'concepts'
   const settingsTableName = 'settings'
-  const writeBuffer: WriteBufferItem[] = []
+  let writeBuffer: WriteBufferItem[] = []
   const minUpdateInterval = 500
   const conceptCache = new Map<string, Concept>()
   let lastUpdatedTime = Date.now()
@@ -124,31 +126,41 @@ function createDatabase(path: string): DatabaseInterface {
 
   function commitBuffer() {
     const start = Date.now()
-    db.transaction(() => {
-      while (writeBuffer.length) {
-        const item = writeBuffer.pop()
-        switch (item.table) {
-          case conceptsTableName: {
-            const stmt = conceptStmt[item.type]
-            if (stmt) {
-              stmt.run({ id: item.id, json: item.data })
-            } else {
-              console.error(`No statement for type "${item.type}".`)
+    const trx = db.transaction<WriteBufferItem[]>((items: WriteBufferItem[]) => {
+      try {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i]
+          switch (item.table) {
+            case conceptsTableName: {
+              const stmt = conceptStmt[item.type]
+              if (stmt) {
+                stmt.run({ id: item.id, json: item.data })
+              } else {
+                console.error(`No statement for type "${item.type}".`)
+              }
+              break
             }
-            break
-          }
-          case settingsTableName: {
-            updateSetting.run({ key: item.id, value: item.data })
-            break
-          }
-          default: {
-            console.log('Unknown data type:', item)
+            case settingsTableName: {
+              updateSetting.run({ key: item.id, value: item.data })
+              break
+            }
+            default: {
+              console.log('Unknown data type:', item)
+            }
           }
         }
+      } catch (error) {
+        if (!db.inTransaction) throw error
       }
-    })()
-    const end = Date.now()
-    console.log(`storage: commit buffer in ${end - start}ms`)
+    })
+    try {
+      trx(writeBuffer)
+      writeBuffer = []
+      const end = Date.now()
+      console.log(`storage: commit buffer in ${end - start}ms`)
+    } catch (error) {
+      console.log('storage: commit failed:', error)
+    }
   }
 
   function queueWriteItem(item: WriteBufferItem) {
