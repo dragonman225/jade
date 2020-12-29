@@ -1,6 +1,6 @@
 {
   "name": "jade",
-  "version": "1.0.0",
+  "version": "0.1.1",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
@@ -64,6 +64,7 @@
     "prosemirror-view": "^1.16.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-window": "^1.8.6",
     "sirv": "^1.0.7",
     "sirv-cli": "^1.0.8",
     "slate": "^0.59.0",
