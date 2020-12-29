@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { style } from 'typestyle'
+import { stylesheet } from 'typestyle'
 import { ContentProps } from '../core/interfaces'
 import { InitializedConceptData } from '../core/interfaces/concept'
 import { EditorState } from 'prosemirror-state'
@@ -26,6 +26,34 @@ interface PMTextContent extends InitializedConceptData {
     [key: string]: any
   }
 }
+
+const styles = stylesheet({
+  PMTextEditor: {
+    $nest: {
+      '& .ProseMirror': {
+        whiteSpace: 'pre-wrap'
+      },
+      '& .ProseMirror:focus': {
+        outline: 'none'
+      }
+    }
+  },
+  NavItem: {
+    fontSize: '.8rem',
+    padding: '.5rem',
+    maxHeight: '100%'
+  },
+  Block: {
+    padding: '0.5rem 1.5rem'
+  },
+  CardTitle: {
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    padding: '.5rem',
+    overflow: 'auto',
+    width: '100%'
+  }
+})
 
 export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (props) => {
   const PMRef = React.useRef<HTMLDivElement>()
@@ -111,43 +139,17 @@ export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (pro
     }
   }, [props.readOnly])
 
-  const PMTextEditorClassName = style({
-    $debugName: 'PMTextEditor',
-    $nest: {
-      '& .ProseMirror': {
-        whiteSpace: 'pre-wrap'
-      },
-      '& .ProseMirror:focus': {
-        outline: 'none'
-      }
-    }
-  })
-  const PMTextEditor = <div ref={PMRef} className={PMTextEditorClassName}></div>
+  const PMTextEditor = <div ref={PMRef} className={styles.PMTextEditor}></div>
 
   switch (props.viewMode) {
     case 'NavItem': {
-      const className = style({
-        fontSize: '.8rem',
-        padding: '.5rem',
-        maxHeight: '100%'
-      })
-      return <div className={className}>{PMTextEditor}</div>
+      return <div className={styles.NavItem}>{PMTextEditor}</div>
     }
     case 'Block': {
-      const className = style({
-        padding: '0.5rem 1.5rem'
-      })
-      return <div className={className}>{PMTextEditor}</div>
+      return <div className={styles.Block}>{PMTextEditor}</div>
     }
     case 'CardTitle': {
-      const className = style({
-        fontSize: '1.2rem',
-        fontWeight: 'bold',
-        padding: '.5rem',
-        overflow: 'auto',
-        width: '100%'
-      })
-      return <div className={className}>{PMTextEditor}</div>
+      return <div className={styles.CardTitle}>{PMTextEditor}</div>
     }
     default:
       return <span>Unknown <code>viewMode</code>: {props.viewMode}</span>
