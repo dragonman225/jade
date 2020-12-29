@@ -1,6 +1,7 @@
 import * as React from 'react'
+import { useState } from 'react'
 import * as ReactDOM from 'react-dom'
-import * as typestyle from 'typestyle'
+import { stylesheet, classes } from 'typestyle'
 import { Block } from './Block'
 import { Box } from './component/Box'
 import { isPointInRect } from './lib/utils'
@@ -10,6 +11,89 @@ import {
   ContentProps, DatabaseInterface, UnifiedEventInfo, Vec2
 } from './interfaces'
 import { Concept, InitializedConceptData } from './interfaces/concept'
+
+const styles = stylesheet({
+  Search: {
+    $nest: {
+      '& hr': {
+        border: '1px solid #ddd',
+        $nest: {
+          '&:last-of-type': {
+            display: 'none'
+          }
+        }
+      }
+    }
+  },
+  'Search--Linking': {
+    cursor: 'grabbing'
+  },
+  SearchInput: {
+    height: 50,
+    padding: '.5rem 22px',
+    $nest: {
+      '&>input': {
+        outline: 'none',
+        border: 'none',
+        width: '100%',
+        height: '100%'
+      }
+    }
+  },
+  SearchResult: {
+    padding: '0 22px 0'
+  },
+  ScrollList: {
+    height: '100%',
+    maxHeight: '500px',
+    overflow: 'auto'
+  },
+  ScrollListItem: {
+    maxHeight: '200px',
+    overflow: 'hidden',
+    margin: 0,
+    borderRadius: '.5rem',
+    transition: 'background 0.1s',
+    $nest: {
+      '&:hover': {
+        background: 'rgba(0, 0, 0, 0.1)'
+      },
+      '&:first-of-type': {
+        marginTop: '.5rem'
+      },
+      '&:last-of-type': {
+        marginBottom: '.5rem'
+      }
+    }
+  },
+  VisualCopy: {
+    width: 300,
+    maxHeight: 200,
+    overflow: 'hidden',
+    zIndex: 99999
+  },
+  'Pager': {
+    display: 'flex',
+    padding: '.5rem',
+    fontSize: '.8rem',
+    textAlign: 'center',
+    color: '#666',
+  },
+  'Arrow': {
+    flex: '0 0 50px',
+    padding: '0px 3px',
+    borderRadius: '8px',
+    transition: 'background 0.1s',
+    $nest: {
+      '&:hover': {
+        background: 'rgba(0, 0, 0, 0.1)'
+      }
+    }
+  },
+  'Info': {
+    flex: '1 1 0px'
+  }
+})
 
 interface SearchItemContentProps
   extends Pick<ContentProps<InitializedConceptData>, 'viewMode' | 'messageBus'> {
@@ -95,67 +179,6 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
   const [s2lStart, setS2lStart] = React.useState<Vec2>({ x: 0, y: 0 })
   const [s2lDelta, setS2lDelta] = React.useState<Vec2>({ x: 0, y: 0 })
 
-  const styles = {
-    Search: typestyle.style({
-      $nest: {
-        '& hr': {
-          border: '1px solid #ddd',
-          $nest: {
-            '&:last-of-type': {
-              display: 'none'
-            }
-          }
-        }
-      }
-    }),
-    'Search--Linking': typestyle.style({
-      cursor: 'grabbing'
-    }),
-    SearchInput: typestyle.style({
-      height: 50,
-      padding: '.5rem 22px',
-      $nest: {
-        '&>input': {
-          outline: 'none',
-          border: 'none',
-          width: '100%',
-          height: '100%'
-        }
-      }
-    }),
-    SearchResult: typestyle.style({
-      padding: '0 22px 0'
-    }),
-    ScrollList: typestyle.style({
-      height: '100%',
-      maxHeight: '500px',
-      overflow: 'auto'
-    }),
-    ScrollListItem: typestyle.style({
-      maxHeight: '200px',
-      overflow: 'hidden',
-      margin: 0,
-      borderRadius: '.5rem',
-      $nest: {
-        '&:hover': {
-          background: 'rgba(0, 0, 0, 0.1)'
-        },
-        '&:first-of-type': {
-          marginTop: '.5rem'
-        },
-        '&:last-of-type': {
-          marginBottom: '.5rem'
-        }
-      }
-    }),
-    VisualCopy: typestyle.style({
-      width: 300,
-      maxHeight: 200,
-      overflow: 'hidden',
-      zIndex: 99999
-    }),
-  }
-
   const handleDragStart = (e: UnifiedEventInfo) => {
     if (s2lState === S2LState.Idle && s2lBlock.valid) {
       setMinimized(true)
@@ -213,9 +236,22 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
     }
   })
 
+  const [pageNum, setPage] = useState<number>(0)
+  const itemsPerPage = 20
+  const startItemIndex = pageNum * itemsPerPage
+  const nextStartItemIndex = (pageNum + 1) * itemsPerPage
+
+  function isFirstPage() {
+    return pageNum === 0
+  }
+
+  function isLastPage() {
+    return nextStartItemIndex > resultConcepts.length - 1
+  }
+
   return (
     <div
-      className={typestyle.classes(
+      className={classes(
         styles.Search,
         s2lState === S2LState.Linking && styles['Search--Linking'])}
       ref={searchRef}
@@ -223,9 +259,9 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
       {
         !minimized ?
           <div className={styles.SearchResult}>
-            <div className={styles.ScrollList}>
+            <div className={styles.ScrollList} key={pageNum}>
               {
-                resultConcepts.map(concept => {
+                resultConcepts.slice(startItemIndex, nextStartItemIndex).map(concept => {
                   return <React.Fragment key={concept.id}>
                     {
                       function () {
@@ -267,12 +303,19 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
                 })
               }
             </div>
+            <div className={styles.Pager}>
+              <div className={styles.Arrow} onClick={() => {
+                if (!isFirstPage()) setPage(pageNum - 1)
+              }}>Prev</div>
+              <div className={styles.Info}>{startItemIndex + 1} ~ {Math.min(startItemIndex + itemsPerPage, resultConcepts.length)} of {resultConcepts.length}</div>
+              <div className={styles.Arrow} onClick={() => { if (!isLastPage()) setPage(pageNum + 1) }}>Next</div>
+            </div>
           </div> :
           <></>
       }
       <div className={styles.SearchInput}>
         <input placeholder="Search here..."
-          onChange={(e) => { setText(e.target.value) }} />
+          onChange={(e) => { setText(e.target.value); setPage(0) }} />
       </div>
       {
         (s2lState === S2LState.Linking && s2lBlock.valid) ? function () {
