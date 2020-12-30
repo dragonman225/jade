@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useState } from 'react'
-import * as ReactDOM from 'react-dom'
 import { stylesheet, classes } from 'typestyle'
 import { Block } from './Block'
 import { Box } from './component/Box'
@@ -120,10 +119,10 @@ const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = (prop
 
 interface Props {
   db: DatabaseInterface
-  portal: React.MutableRefObject<HTMLDivElement>
   onExpand: (conceptId: string) => void
   onRequestLink: (data: { id: string; position: Vec2 }) => void
   messenger: IPubSub
+  createOverlay(children: React.ReactNode): React.ReactPortal
 }
 
 interface S2LBlockValid {
@@ -324,7 +323,7 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
             x: s2lBlock.rect.left + s2lDelta.x,
             y: s2lBlock.rect.top + s2lDelta.y
           }
-          return ReactDOM.createPortal(<Block
+          return props.createOverlay(<Block
             readOnly={true}
             data={{
               blockId: concept.id,
@@ -343,7 +342,7 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
             messenger={messenger}>
             {() => <SearchItemContent concept={concept} viewMode="Block"
               messageBus={messenger} />}
-          </Block>, props.portal.current)
+          </Block>)
         }() : <></>
       }
     </div>

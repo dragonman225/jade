@@ -1,5 +1,6 @@
 /* eslint-disable react/display-name */
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 import {
   useEffect, useReducer, useMemo, useCallback, useState, useRef
 } from 'react'
@@ -13,7 +14,7 @@ import { RecentTool } from './RecentTool'
 import { SearchTool } from './SearchTool'
 import { HeaderTool } from './HeaderTool'
 import { Box } from './component/Box'
-import { Portal } from './component/Portal'
+import { Overlay } from './component/Overlay'
 import { Content } from '../content-plugins'
 import { PubSub } from './lib/pubsub'
 import {
@@ -176,13 +177,17 @@ export const App: React.FunctionComponent<Props> = (props) => {
   })
 
   const currentConcept = state.viewingConcept
-  const portalRef = useRef<HTMLDivElement>(null)
+  const overlayRef = useRef<HTMLDivElement>(null)
+
+  function createOverlay(children: React.ReactNode): React.ReactPortal {
+    return ReactDOM.createPortal(children, overlayRef.current)
+  }
 
   return (
     <div className={styles.App}>
       <div className={styles.Playground}>
         <InputContainer messenger={messenger}>
-          <Portal ref={portalRef} />
+          <Overlay ref={overlayRef} />
           <BlockFactory onRequestCreate={position => {
             dispatchAction({ type: 'concept::create', data: { position } })
           }} />
@@ -211,7 +216,7 @@ export const App: React.FunctionComponent<Props> = (props) => {
             }}
             key="SearchTool">
             {
-              (_contentProps) => <SearchTool portal={portalRef}
+              (_contentProps) => <SearchTool createOverlay={createOverlay}
                 db={props.db} onExpand={handleExpand}
                 messenger={messenger}
                 onRequestLink={data => {

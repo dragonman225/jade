@@ -5,7 +5,7 @@ type Props =
   React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>
 
 const styles = stylesheet({
-  Portal: {
+  Overlay: {
     position: 'absolute',
     top: 0,
     right: 0,
@@ -14,11 +14,11 @@ const styles = stylesheet({
   }
 })
 
-export const Portal = React.forwardRef<HTMLDivElement, Props>(
-  function Portal(props, ref) {
+export const Overlay = React.forwardRef<HTMLDivElement, Props>(
+  function Overlay(props, ref) {
     const { children, className, ...other } = props
     return <div
-      className={classes(styles.Portal, className)}
+      className={classes(styles.Overlay, className)}
       ref={ref} {...other}>{children}</div>
   }
 )
