@@ -340,6 +340,11 @@ export class Block extends React.Component<Props, State> {
         }
       }(),
       width: `${this.state.width}px`,
+      /**
+       * TODO: zIndex war: For "Content" blocks, when block is active it 
+       * should be below canvas (10000), but for "Tool" blocks, it should 
+       * be above canvas.
+       */
       zIndex: this.isActive() ? 9999 : this.props.zIndex
     }
 
