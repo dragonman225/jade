@@ -18,8 +18,9 @@ module.exports = {
     new BannerPlugin('Copyright 2020 Wen-Zhi (Alexander) Wang. All rights reserved.'),
     new ForkTsCheckerWebpackPlugin({
       async: false,
-      useTypescriptIncrementalApi: true,
-      memoryLimit: 4096
+      typescript: {
+        memoryLimit: 4096,
+      }
     }),
     new HtmlWebpackPlugin({
       hash: true,

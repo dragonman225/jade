@@ -5,8 +5,11 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const nodeExternals = require('webpack-node-externals')
 
 module.exports = {
-  /** Target: @see https://webpack.js.org/configuration/target/ */
-  target: 'electron-renderer',
+  /** (Webpack 4) Target: @see https://webpack.js.org/configuration/target/ */
+  // target: 'electron-renderer',
+  /** (Webpack 5) Externals: @see https://webpack.js.org/configuration/externals/#externalspresets */
+  /** Indicate by https://github.com/liady/webpack-node-externals */
+  externalsPresets: { node: true, electronRenderer: true },
   /** Do not bundle external deps, directly "require" from "node_modules". */
   externals: [nodeExternals()],
   context: process.cwd(), // to automatically find tsconfig.json
@@ -22,8 +25,9 @@ module.exports = {
     new BannerPlugin('Copyright 2020 Wen-Zhi (Alexander) Wang. All rights reserved.'),
     new ForkTsCheckerWebpackPlugin({
       async: false,
-      useTypescriptIncrementalApi: true,
-      memoryLimit: 4096
+      typescript: {
+        memoryLimit: 4096,
+      }
     }),
     new HtmlWebpackPlugin({
       inject: true,
