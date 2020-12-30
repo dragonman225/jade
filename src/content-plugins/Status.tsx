@@ -1,10 +1,43 @@
 import * as React from 'react'
+import { stylesheet } from 'typestyle'
 import {
   ContentProps, PubSubStatusMessage, UnifiedEventInfo
 } from '../core/interfaces'
 import { InitializedConceptData } from '../core/interfaces/concept'
 
-export const Status: React.FunctionComponent<ContentProps<InitializedConceptData>> = (props) => {
+const styles = stylesheet({
+  StatNavItem: {
+    fontSize: '.8rem',
+    padding: '.5rem',
+    maxHeight: '100%',
+    background: 'aquamarine'
+  },
+  StatBlock: {
+    userSelect: 'none',
+    padding: '1rem',
+    $nest: {
+      '& span': {
+        whiteSpace: 'pre-wrap',
+        lineHeight: 1.5,
+        userSelect: 'none'
+      }
+    }
+  },
+  MouseData: {
+    $nest: {
+      '&>p': {
+        margin: 0
+      }
+    }
+  },
+  Highlight: {
+    background: 'aquamarine'
+  }
+})
+
+type Props = ContentProps<InitializedConceptData>
+
+export const Status: React.FunctionComponent<Props> = (props) => {
   const [statusText, setStatusText] = React.useState<string>('')
   const [highlightText, setHighlightText] = React.useState<string>('')
   const [mouse, setMouse] = React.useState<UnifiedEventInfo>({
@@ -15,7 +48,7 @@ export const Status: React.FunctionComponent<ContentProps<InitializedConceptData
     setMouse(msg)
   }
 
-  const handlePubSubStatusMessage = (msg: PubSubStatusMessage) => {
+  const handleStatMsg = (msg: PubSubStatusMessage) => {
     const channels = msg.channels
     const newStatusText = Object.values(channels).reduce((result, cv) => {
       return result += `${cv.name}: ${cv.subNum}\n`
@@ -27,44 +60,24 @@ export const Status: React.FunctionComponent<ContentProps<InitializedConceptData
   React.useEffect(() => {
     const messageBus = props.messageBus
     messageBus.subscribe<UnifiedEventInfo>('user::mousemove', handleMousemove)
-    messageBus.subscribe<PubSubStatusMessage>('pubsub::status', handlePubSubStatusMessage)
+    messageBus.subscribe<PubSubStatusMessage>('pubsub::status', handleStatMsg)
     return () => {
       messageBus.unsubscribe('user::mousemove', handleMousemove)
-      messageBus.unsubscribe('pubsub::status', handlePubSubStatusMessage)
+      messageBus.unsubscribe('pubsub::status', handleStatMsg)
     }
   }, [])
 
   switch (props.viewMode) {
     case 'Block':
       return (
-        <div>
-          <style jsx>{`
-            div {
-              user-select: none;
-              padding: 1rem;
-            }
-    
-            span {
-              white-space: pre-wrap;
-              line-height: 1.5;
-              user-select: none;
-            }
-
-            .MouseData > p {
-              margin: 0;
-            }
-
-            .EventData .highlight {
-              background: aquamarine;
-            }
-          `}</style>
-          <section className="MouseData">
+        <div className={styles.StatBlock}>
+          <section className={styles.MouseData}>
             <h3>Mouse</h3>
             <p>Client: ({mouse.clientX.toFixed(0)}, {mouse.clientY.toFixed(0)})</p>
             <p>Origin: ({mouse.originX.toFixed(0)}, {mouse.originY.toFixed(0)})</p>
             <p>Offset: ({mouse.offsetX.toFixed(0)}, {mouse.offsetY.toFixed(0)})</p>
           </section>
-          <section className="EventData">
+          <section>
             <h3>Event</h3>
             <p><strong>Last</strong>: {highlightText}</p>
             {
@@ -77,7 +90,7 @@ export const Status: React.FunctionComponent<ContentProps<InitializedConceptData
                   return (
                     <>
                       <span>{statusText.substring(0, highlightStart)}</span>
-                      <span className="highlight">
+                      <span className={styles.Highlight}>
                         {statusText.substring(highlightStart, highlightEnd)}
                       </span>
                       <span>{statusText.substring(highlightEnd)}</span>
@@ -90,6 +103,6 @@ export const Status: React.FunctionComponent<ContentProps<InitializedConceptData
         </div>
       )
     default:
-      return <span>Status</span>
+      return <div className={styles.StatNavItem}>Status Viewer</div>
   }
 }

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as typestyle from 'typestyle'
+import { stylesheet } from 'typestyle'
 import { IconHome } from './component/IconHome'
 import { ISub } from './lib/pubsub'
 import { Content } from '../content-plugins'
@@ -17,22 +17,21 @@ interface Props {
   onConceptReplace: (typeId: string) => void
 }
 
-const styles = {
-  HeaderTool: typestyle.style({
+const styles = stylesheet({
+  HeaderTool: {
     width: '100%',
-    maxHeight: 200,
     display: 'flex',
     flexWrap: 'nowrap',
     padding: '0px 22px'
-  }),
-  HomeBtnContainer: typestyle.style({
+  },
+  HomeBtnContainer: {
     flex: '0 0 50px',
     height: 50,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center'
-  }),
-  HomeBtn: typestyle.style({
+  },
+  HomeBtn: {
     width: 30,
     height: 30,
     fill: '#000',
@@ -50,13 +49,15 @@ const styles = {
         outline: 'none'
       }
     }
-  }),
-  CardTitleContainer: typestyle.style({
+  },
+  CardTitleContainer: {
     flex: '1 1 50px',
-    overflow: 'hidden',
+    minHeight: 50,
+    maxHeight: 200,
+    overflow: 'auto',
     display: 'flex'
-  })
-}
+  }
+})
 
 export const HeaderTool: React.FunctionComponent<Props> = (props) => {
   return (
