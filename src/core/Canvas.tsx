@@ -101,6 +101,16 @@ function drawEraser(ctx: CanvasRenderingContext2D, position: Point) {
   ctx.stroke()
 }
 
+const styles = {
+  Canvas: typestyle.style({
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 10000,
+    pointerEvents: 'none'
+  })
+}
+
 export class Canvas extends React.Component<CanvasProps, CanvasState> {
   refTmp: React.RefObject<HTMLCanvasElement>
   refCommited: React.RefObject<HTMLCanvasElement>
@@ -134,31 +144,38 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
 
   commitStroke(): void {
     this.strokes.push(this.hotStroke)
-    this.hotStroke = { config: this.state.strokeConfig === 'pencil' ? pencil : eraser, points: [] }
+    this.hotStroke = {
+      config: this.state.strokeConfig === 'pencil' ?
+        pencil : eraser, points: []
+    }
   }
 
-  onResizeWindow = (): void => {
+  resizeAllCanvases = (): void => {
     resizeCanvas(this.refCursor.current, window.innerWidth, window.innerHeight)
     resizeCanvas(this.refTmp.current, window.innerWidth, window.innerHeight)
     resizeCanvas(this.refCommited.current,
       window.innerWidth, window.innerHeight)
-    /**
-     * Immediate redraw does not work. Even when I do not resize the 
-     * canvas, Chrome clears it.
-     */
-    setTimeout(() => {
-      drawStrokes(this.ctxCommited, this.strokes)
-    }, 100)
   }
 
-  onCtrlKeyDown = () => {
+  onResizeWindow = (): void => {
+    /**
+     * A canvas is cleared by the browser when its size changed, 
+     * so a re-draw is needed.
+     * TODO: Throttle re-draw.
+     */
+    console.log('canvas: resize')
+    this.resizeAllCanvases()
+    drawStrokes(this.ctxCommited, this.strokes)
+  }
+
+  onCtrlKeyDown = (): void => {
     if (!this.props.readOnly && this.state.drawState === 'can_edit') {
       this.setState({ drawState: 'can_draw' })
       this.props.onInteractionStart()
     }
   }
 
-  onCtrlKeyUp = () => {
+  onCtrlKeyUp = (): void => {
     if (this.state.drawState === 'drawing') {
       clearCanvas(this.refTmp.current)
       drawStroke(this.ctxCommited, this.hotStroke)
@@ -168,14 +185,14 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
     this.props.onInteractionEnd()
   }
 
-  onDragStart = (msg: UnifiedEventInfo) => {
+  onDragStart = (msg: UnifiedEventInfo): void => {
     if (this.state.drawState === 'can_draw') {
       this.setState({ drawState: 'drawing' })
       this.addHotPoint(msg.offsetX, msg.offsetY)
     }
   }
 
-  onDragging = (msg: UnifiedEventInfo) => {
+  onDragging = (msg: UnifiedEventInfo): void => {
     if (this.state.drawState === 'drawing') {
       this.props.messenger.publish('canvas::drawing')
       this.addHotPoint(msg.offsetX, msg.offsetY)
@@ -192,7 +209,7 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
     }
   }
 
-  onDragEnd = (msg: UnifiedEventInfo) => {
+  onDragEnd = (msg: UnifiedEventInfo): void => {
     if (this.state.drawState === 'drawing') {
       this.setState({ drawState: 'can_draw' })
       this.addHotPoint(msg.offsetX, msg.offsetY)
@@ -219,6 +236,7 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
     this.ctxCommited = this.refCommited.current.getContext('2d')
     this.ctxCursor = this.refCursor.current.getContext('2d')
 
+    this.resizeAllCanvases()
     drawStrokes(this.ctxCommited, this.strokes)
 
     this.props.messenger.subscribe('user::resizewindow', this.onResizeWindow)
@@ -251,31 +269,11 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
   }
 
   render(): JSX.Element {
-    const styles = {
-      Canvas: typestyle.style({
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        zIndex: 10000,
-        pointerEvents: 'none'
-      })
-    }
+    console.log('canvas: render')
     return <>
-      <canvas
-        ref={this.refCommited}
-        className={styles.Canvas}
-        width={window.innerWidth}
-        height={window.innerHeight} />
-      <canvas
-        ref={this.refTmp}
-        className={styles.Canvas}
-        width={window.innerWidth}
-        height={window.innerHeight} />
-      <canvas
-        ref={this.refCursor}
-        className={styles.Canvas}
-        width={window.innerWidth}
-        height={window.innerHeight} />
+      <canvas ref={this.refCommited} className={styles.Canvas} />
+      <canvas ref={this.refTmp} className={styles.Canvas} />
+      <canvas ref={this.refCursor} className={styles.Canvas} />
       {
         (
           this.state.drawState === 'can_draw' ||
