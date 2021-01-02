@@ -106,11 +106,11 @@ export const App: React.FunctionComponent<Props> = (props) => {
   /** Interaction lock. */
   const [interactionLockOwner, setInteractionLockOwner] = useState<string>('')
   const lockInteraction = (requester: string) => {
-    console.log(requester, 'requests lock')
+    console.log('app: lock:', requester, 'requests lock')
     if (interactionLockOwner === '') setInteractionLockOwner(requester)
   }
   const unlockInteraction = (requester: string) => {
-    console.log(requester, 'requests unlock')
+    console.log('app: lock', requester, 'requests unlock')
     if (interactionLockOwner === requester ||
       interactionLockOwner === '') setInteractionLockOwner('')
     // HACK: if I don't check interactionLockOwner === '', although interactionLockOwner is '', blocks are readOnly
@@ -142,7 +142,7 @@ export const App: React.FunctionComponent<Props> = (props) => {
       setLast(last + 1)
       expandHistory[(last + 1) % historySize] = blockCardId
       setExpandHistory(expandHistory)
-      console.log('History:', expandHistory)
+      console.log('app: history:', expandHistory)
       dispatchAction({ type: 'navigation::expand', data: { id: blockCardId } })
       resetInteractionLockOwner()
     }
