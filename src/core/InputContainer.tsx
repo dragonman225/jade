@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { IPubSub } from './lib/pubsub'
 import { UnifiedEventInfo } from './interfaces'
 
@@ -38,6 +38,11 @@ export function InputContainer(
   props: React.PropsWithChildren<InputContainerProps>): JSX.Element {
   const messenger = props.messenger
   const [dragState, setDragState] = useState(DragState.Idle)
+  const mouseInfo = useRef<UnifiedEventInfo>({
+    clientX: 0, clientY: 0,
+    offsetX: 0, offsetY: 0,
+    originX: 0, originY: 0
+  })
 
   useEffect(() => {
     window.onresize = () => {
@@ -45,7 +50,7 @@ export function InputContainer(
     }
     window.onkeydown = (e: KeyboardEvent) => {
       if (e.key === 'Control') {
-        messenger.publish('user::ctrlkeydown')
+        messenger.publish<UnifiedEventInfo>('user::ctrlkeydown', mouseInfo.current)
       } else if (e.ctrlKey && e.shiftKey && e.altKey && e.key === 'D') {
         messenger.publish('user::toggleDebugging')
       }
@@ -64,6 +69,7 @@ export function InputContainer(
    */
   const pointerMove = (info: UnifiedEventInfo) => {
     messenger.publish('user::mousemove', info)
+    mouseInfo.current = info
   }
 
   const handleEvent = (type: Event, info: UnifiedEventInfo) => {
