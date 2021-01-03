@@ -13,6 +13,7 @@ import { InitializedConceptData } from './interfaces/concept'
 type ChildrenProps = Pick<ContentProps<InitializedConceptData>,
 'readOnly' | 'onInteractionStart' | 'onInteractionEnd'> & {
   width: number
+  mouseIsInside: boolean
 }
 
 interface Props {
@@ -404,7 +405,8 @@ export class Block extends React.Component<Props, State> {
                 readOnly: this.props.readOnly,
                 onInteractionStart: this.handleContentInteractionStart,
                 onInteractionEnd: this.handleContentInteractionEnd,
-                width: this.state.width
+                width: this.state.width,
+                mouseIsInside: this.state.mouseIsInside
               })
               : <></>}
         </div>

@@ -7,9 +7,9 @@ import {
 import { cssRaw, stylesheet } from 'typestyle'
 import { createReducer } from './reducer'
 import { Block } from './Block'
-import { Canvas } from './Canvas'
 import { BlockFactory } from './BlockFactory'
 import { InputContainer } from './InputContainer'
+import { CanvasTool } from './CanvasTool'
 import { RecentTool } from './RecentTool'
 import { SearchTool } from './SearchTool'
 import { HeaderTool } from './HeaderTool'
@@ -175,6 +175,12 @@ export const App: React.FunctionComponent<Props> = (props) => {
     origin: { type: 'BL', bottom: 0, left: 0 } as OriginBottomLeft,
     position: { x: 20, y: -20 },
     width: 300
+  })
+
+  const [canvasToolState, setCanvasToolState] = useState({
+    origin: { type: 'TR', top: 0, right: 0 } as OriginTopRight,
+    position: { x: -20, y: 200 },
+    width: 50
   })
 
   const currentConcept = state.viewingConcept
@@ -368,15 +374,47 @@ export const App: React.FunctionComponent<Props> = (props) => {
               )
             })
           }
-          <Canvas
+          <Block
             messenger={messenger}
-            readOnly={isInteractionLocked('canvas' + state.viewingConcept.id)}
-            value={currentConcept.drawing}
-            onChange={data => dispatchAction({ type: 'concept::drawingchange', data })}
-            onInteractionStart={() => { lockInteraction('canvas' + state.viewingConcept.id) }}
-            onInteractionEnd={() => { unlockInteraction('canvas' + state.viewingConcept.id) }}
-            /** Use key to remount Canvas when currentBlockCard changes. */
-            key={'canvas-' + state.viewingConcept.id} />
+            readOnly={false}
+            data={{
+              blockId: 'CanvasTool',
+              position: canvasToolState.position,
+              width: canvasToolState.width
+            }}
+            origin={canvasToolState.origin}
+            // HACK: Use z-index to hide canvas ctrl block.
+            zIndex={interactionLockOwner === 'canvas' + state.viewingConcept.id ? 2 : -999}
+            container={Box}
+            onResize={(width) => {
+              setCanvasToolState({
+                ...canvasToolState,
+                width
+              })
+            }}
+            onMove={(position) => {
+              setCanvasToolState({
+                ...canvasToolState,
+                position
+              })
+            }}
+            key="CanvasTool">
+            {
+              (contentProps) => <CanvasTool
+                messenger={messenger}
+                readOnly={isInteractionLocked('canvas' + state.viewingConcept.id)}
+                value={currentConcept.drawing}
+                onChange={data => dispatchAction({ type: 'concept::drawingchange', data })}
+                onInteractionStart={() => { lockInteraction('canvas' + state.viewingConcept.id) }}
+                onInteractionEnd={() => { unlockInteraction('canvas' + state.viewingConcept.id) }}
+                scheduleCanvasInsertion={(cb) => {
+                  cb(overlayRef.current)
+                }}
+                mouseIsInsideBlock={contentProps.mouseIsInside}
+                /** Use key to remount Canvas when currentBlockCard changes. */
+                key={'canvas-' + state.viewingConcept.id} />
+            }
+          </Block>
         </InputContainer>
       </div>
     </div>

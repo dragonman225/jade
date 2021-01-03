@@ -1,5 +1,7 @@
 import * as React from 'react'
-import * as typestyle from 'typestyle'
+import { classes, stylesheet } from 'typestyle'
+import { IconEraser } from './component/IconEraser'
+import { IconPencil } from './component/IconPencil'
 import { IPubSub } from './lib/pubsub'
 import { UnifiedEventInfo } from './interfaces'
 import { Stroke, StrokeConfig, Point } from './interfaces/concept'
@@ -12,6 +14,8 @@ interface CanvasProps {
   onInteractionStart?: () => void
   onInteractionEnd?: () => void
   messenger: IPubSub
+  scheduleCanvasInsertion(cb: (containerEl: HTMLElement) => void): void
+  mouseIsInsideBlock: boolean
 }
 
 interface CanvasState {
@@ -101,17 +105,44 @@ function drawEraser(ctx: CanvasRenderingContext2D, position: Point) {
   ctx.stroke()
 }
 
-const styles = {
-  Canvas: typestyle.style({
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    zIndex: 10000,
-    pointerEvents: 'none'
-  })
-}
+const styles = stylesheet({
+  'InkItemContainer': {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 22
+  },
+  'InkItem': {
+    width: 40,
+    height: 40,
+    $nest: {
+      '&>button': {
+        width: '100%',
+        height: '100%',
+        background: 'none',
+        border: 'none',
+        borderRadius: 8,
+        outline: 'none',
+        fill: '#c5c5c5',
+        transition: 'fill 0.1s, background 0.1s'
+      },
+      '&>button:hover': {
+        background: 'var(--bg-hover)'
+      }
+    }
+  },
+  'InkItem--Active': {
+    $nest: {
+      '&>button': {
+        fill: '#000'
+      }
+    }
+  }
+})
 
-export class Canvas extends React.Component<CanvasProps, CanvasState> {
+export class CanvasTool extends React.Component<CanvasProps, CanvasState> {
   refTmp: React.RefObject<HTMLCanvasElement>
   refCommited: React.RefObject<HTMLCanvasElement>
   refCursor: React.RefObject<HTMLCanvasElement>
@@ -168,10 +199,14 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
     drawStrokes(this.ctxCommited, this.strokes)
   }
 
-  onCtrlKeyDown = (): void => {
+  onCtrlKeyDown = (msg: UnifiedEventInfo): void => {
     if (!this.props.readOnly && this.state.drawState === 'can_edit') {
+      console.log('canvas: state: can_draw')
       this.setState({ drawState: 'can_draw' })
       this.props.onInteractionStart()
+    }
+    if (this.state.strokeConfig === 'eraser') {
+      drawEraser(this.ctxCursor, { x: msg.clientX, y: msg.clientY })
     }
   }
 
@@ -181,12 +216,15 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
       drawStroke(this.ctxCommited, this.hotStroke)
       this.commitStroke()
     }
+    clearCanvas(this.refCursor.current)
+    console.log('canvas: state: can_edit')
     this.setState({ drawState: 'can_edit' })
     this.props.onInteractionEnd()
   }
 
   onDragStart = (msg: UnifiedEventInfo): void => {
-    if (this.state.drawState === 'can_draw') {
+    if (this.state.drawState === 'can_draw' && !this.props.mouseIsInsideBlock) {
+      console.log('canvas: state: drawing')
       this.setState({ drawState: 'drawing' })
       this.addHotPoint(msg.offsetX, msg.offsetY)
     }
@@ -211,6 +249,7 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
 
   onDragEnd = (msg: UnifiedEventInfo): void => {
     if (this.state.drawState === 'drawing') {
+      console.log('canvas: state: can_draw')
       this.setState({ drawState: 'can_draw' })
       this.addHotPoint(msg.offsetX, msg.offsetY)
       clearCanvas(this.refTmp.current)
@@ -232,10 +271,31 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
   }
 
   componentDidMount(): void {
+    this.refTmp = { current: document.createElement('canvas') }
+    this.refCommited = { current: document.createElement('canvas') }
+    this.refCursor = { current: document.createElement('canvas') }
+
+    const canvasStyle = '\
+      position: absolute;\
+      top: 0;\
+      left: 0;\
+      z-index: 10000;\
+      pointer-events: none;'
+
+    this.refTmp.current.setAttribute('style', canvasStyle)
+    this.refCommited.current.setAttribute('style', canvasStyle)
+    this.refCursor.current.setAttribute('style', canvasStyle)
+
+    this.props.scheduleCanvasInsertion((containerEl) => {
+      containerEl.append(this.refTmp.current)
+      containerEl.append(this.refCommited.current)
+      containerEl.append(this.refCursor.current)
+    })
+
     this.ctxTmp = this.refTmp.current.getContext('2d')
     this.ctxCommited = this.refCommited.current.getContext('2d')
     this.ctxCursor = this.refCursor.current.getContext('2d')
-
+    console.log('canvas: mount')
     this.resizeAllCanvases()
     drawStrokes(this.ctxCommited, this.strokes)
 
@@ -249,6 +309,10 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
   }
 
   componentWillUnmount(): void {
+    this.refTmp.current.remove()
+    this.refCommited.current.remove()
+    this.refCursor.current.remove()
+
     this.props.messenger.unsubscribe('user::resizewindow', this.onResizeWindow)
     this.props.messenger.unsubscribe('user::ctrlkeydown', this.onCtrlKeyDown)
     this.props.messenger.unsubscribe('user::ctrlkeyup', this.onCtrlKeyUp)
@@ -270,65 +334,42 @@ export class Canvas extends React.Component<CanvasProps, CanvasState> {
 
   render(): JSX.Element {
     console.log('canvas: render')
+    const cursor = this.state.drawState === 'can_draw'
+      || this.state.drawState === 'drawing'
+      ? this.state.strokeConfig === 'eraser'
+        ? 'none' : 'crosshair'
+      : 'auto'
     return <>
-      <canvas ref={this.refCommited} className={styles.Canvas} />
-      <canvas ref={this.refTmp} className={styles.Canvas} />
-      <canvas ref={this.refCursor} className={styles.Canvas} />
       {
         (
           this.state.drawState === 'can_draw' ||
           this.state.drawState === 'drawing'
         ) ?
           (
-            <div
-              className="toolbar"
-              /** Prevent drawing under toolbar. */
+            <div className={styles.InkItemContainer}
+              /** HACK: Prevent drawing under toolbar. */
               onMouseDown={(e) => { e.stopPropagation() }}>
               <style jsx>{`
                 :global(body) {
-                  cursor: ${this.state.drawState === 'can_draw' || this.state.drawState === 'drawing' ? this.state.strokeConfig === 'eraser' ? 'none' : 'crosshair' : 'auto'}
-                }
-
-                .toolbar {
-                  position: absolute;
-                  top: 1rem;
-                  right: 1rem;
-                  font-size: 1rem;
-                  background: rgba(0, 0, 0, 0);
-                }
-
-                .toolbar button {
-                  padding: .2em .5em;
-                  transition: background 0.25s;
-                }
-
-                .toolbar button, .toolbar button:active {
-                  outline: none;
-                  border: none;
-                }
-
-                .toolbar button:first-child {
-                  border-radius: .5rem 0 0 .5rem;
-                }
-
-                .toolbar button:last-child {
-                  border-radius: 0 .5rem .5rem 0;
-                }
-
-                .toolbar button.active {
-                  background: aquamarine;
+                  cursor: ${cursor}
                 }
               `}</style>
-              <button
-                className={this.state.strokeConfig === 'pencil' ? 'active' : ''}
-                onClick={this.toggleStroke}>
-                Pencil
-              </button>
-              <button
-                className={this.state.strokeConfig === 'eraser' ? 'active' : ''}
-                onClick={this.toggleStroke}>
-                Eraser
-              </button>
+              <div className={classes(
+                styles.InkItem,
+                this.state.strokeConfig === 'pencil' ?
+                  styles['InkItem--Active'] : undefined)}>
+                <button onClick={this.toggleStroke}>
+                  <IconPencil />
+                </button>
+              </div>
+              <div className={classes(
+                styles.InkItem,
+                this.state.strokeConfig === 'eraser' ?
+                  styles['InkItem--Active'] : undefined)}>
+                <button onClick={this.toggleStroke}>
+                  <IconEraser />
+                </button>
+              </div>
             </div>
           ) : <></>
       }
