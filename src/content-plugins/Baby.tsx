@@ -22,8 +22,8 @@ export const Baby: React.FunctionComponent<Props> = (props) => {
     case 'Block': {
       return <div className={styles.Baby}>
         <p>Which to turn into?</p>
-        <button onClick={() => { props.onReplace('text') }}>Text</button>
-        <button onClick={() => { props.onReplace('pmtext') }}>PMText</button>
+        {/* <button onClick={() => { props.onReplace('text') }}>Text</button> */}
+        <button onClick={() => { props.onReplace('pmtext') }}>Text</button>
         <button onClick={() => { props.onReplace('image') }}>Image</button>
         <button onClick={() => { props.onReplace('status') }}>Status</button>
       </div>
