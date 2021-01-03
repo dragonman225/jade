@@ -21,6 +21,8 @@ import {
   OriginBottomLeft, OriginTopRight, OriginTopLeft, DatabaseInterface, State4
 } from './interfaces'
 import { Concept } from './interfaces/concept'
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+const initialConcepts = require('../initial-concepts.json')
 
 function loadAppState(db: DatabaseInterface): State4 {
   console.log('Loading app state.')
@@ -29,24 +31,7 @@ function loadAppState(db: DatabaseInterface): State4 {
       debugging: false,
       homeConceptId: 'home',
       viewingConceptId: 'home'
-    }, [{
-      id: 'home',
-      summary: {
-        type: 'pmtext',
-        data: {
-          initialized: true,
-          data: {
-            type: 'doc',
-            content: [{
-              type: 'text',
-              text: 'Home'
-            }]
-          }
-        }
-      },
-      drawing: [],
-      details: []
-    }])
+    }, initialConcepts)
   }
   const settings = db.getSettings()
   const viewingConcept = db.getConcept(settings.viewingConceptId)
