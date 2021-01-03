@@ -55,7 +55,7 @@ const styles = stylesheet({
     transition: 'background 0.1s',
     $nest: {
       '&:hover': {
-        background: 'rgba(0, 0, 0, 0.1)'
+        background: 'var(--bg-hover)'
       },
       '&:first-of-type': {
         marginTop: '.5rem'
@@ -85,7 +85,7 @@ const styles = stylesheet({
     transition: 'background 0.1s',
     $nest: {
       '&:hover': {
-        background: 'rgba(0, 0, 0, 0.1)'
+        background: 'var(--bg-hover)'
       }
     }
   },

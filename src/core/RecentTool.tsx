@@ -61,14 +61,14 @@ export const RecentTool: React.FunctionComponent<Props> = (props) => {
         }
 
         .RecentBtn:hover {
-          background: rgba(0, 0, 0, 0.1);
+          background: var(--bg-hover);
           /* flex: 1 0 200px; */
           overflow-y: scroll;
           padding-right: 0;
         }
 
         .RecentBtn:active {
-          background: rgba(0, 0, 0, 0.1);
+          background: var(--bg-hover);
         }
       `}</style>
       {

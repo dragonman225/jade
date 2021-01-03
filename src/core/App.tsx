@@ -85,7 +85,8 @@ const styles = stylesheet({
   App: {
     overflow: 'hidden',
     height: '100%',
-    background: '#e5e5e5'
+    background: '#e5e5e5',
+    '--bg-hover': 'rgba(0, 0, 0, 0.1)'
   },
   Playground: {
     position: 'relative',
