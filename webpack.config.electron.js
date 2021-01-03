@@ -22,7 +22,7 @@ module.exports = {
     filename: '[name].js',
   },
   plugins: [
-    new BannerPlugin('Copyright 2020 Wen-Zhi (Alexander) Wang. All rights reserved.'),
+    new BannerPlugin('Jade v0.1.3 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'),
     new ForkTsCheckerWebpackPlugin({
       async: false,
       typescript: {
