@@ -12,11 +12,16 @@ interface SQLiteDatabase {
 }
 
 interface SQLiteDatabaseConstructor {
-  new(path: string, options?: { verbose: (...args: unknown[]) => void }): SQLiteDatabase
+  new(path: string, options?: {
+    verbose: (...args: unknown[]) => void
+  }): SQLiteDatabase
 }
 
 interface SQLiteStatement {
-  run(...bindParameters: unknown[]): { changes: number; lastInsertRowid: number }
+  run(...bindParameters: unknown[]): {
+    changes: number
+    lastInsertRowid: number
+  }
   get(...bindParameters: unknown[]): unknown
   get<T>(...bindParameters: unknown[]): T
   all(...bindParameters: unknown[]): unknown[]
@@ -126,7 +131,7 @@ function createDatabase(path: string): DatabaseInterface {
 
   function commitBuffer() {
     const start = Date.now()
-    const trx = db.transaction<WriteBufferItem[]>((items: WriteBufferItem[]) => {
+    const trx = db.transaction<WriteBufferItem[]>((items) => {
       try {
         for (let i = 0; i < items.length; i++) {
           const item = items[i]
@@ -200,7 +205,8 @@ function createDatabase(path: string): DatabaseInterface {
       const concept = hydrateConcept(dryConcept)
       conceptCache.set(id, concept)
       const end = Date.now()
-      console.log(`storage: select concept in ${mid - start}ms, parse json in ${end - mid}ms.`)
+      console.log(`storage: select concept in ${mid - start}ms, \
+parse json in ${end - mid}ms.`)
       return concept
     } catch (error) {
       console.log(error)

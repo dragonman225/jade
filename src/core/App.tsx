@@ -62,7 +62,9 @@ html, body, #react-root {
 
 :root {
   font-size: 18px;
-  font-family: 'Noto Sans CJK TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Noto Sans CJK TC', -apple-system, BlinkMacSystemFont, \
+               'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', \
+               'Helvetica Neue', sans-serif;
   line-height: 1.6;
 }`)
 
@@ -99,7 +101,8 @@ export const App: React.FunctionComponent<Props> = (props) => {
     console.log('app: lock', requester, 'requests unlock')
     if (interactionLockOwner === requester ||
       interactionLockOwner === '') setInteractionLockOwner('')
-    // HACK: if I don't check interactionLockOwner === '', although interactionLockOwner is '', blocks are readOnly
+    /* HACK: if I don't check interactionLockOwner === '', 
+       although interactionLockOwner is '', blocks are readOnly */
   }
   const isInteractionLocked = (requester: string) => {
     return !!interactionLockOwner && interactionLockOwner !== requester
@@ -369,7 +372,8 @@ export const App: React.FunctionComponent<Props> = (props) => {
             }}
             origin={canvasToolState.origin}
             // HACK: Use z-index to hide canvas ctrl block.
-            zIndex={interactionLockOwner === 'canvas' + state.viewingConcept.id ? 2 : -999}
+            zIndex={interactionLockOwner === 'canvas' + state.viewingConcept.id
+              ? 2 : -999}
             container={Box}
             onResize={(width) => {
               setCanvasToolState({
