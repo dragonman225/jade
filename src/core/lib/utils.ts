@@ -23,12 +23,6 @@ interface CaretCoordinates {
 }
 
 export function getCaretCoordinates(r: Range): CaretCoordinates {
-  const emptyCoords = {
-    top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0
-  }
-
-  if (!r) return emptyCoords
-
   if (r.collapsed && r.getClientRects) {
     const rect = r.getClientRects()[0]
     if (rect) {
@@ -54,7 +48,7 @@ export function getCaretCoordinates(r: Range): CaretCoordinates {
   }
 
   if (r.startContainer.nodeType === Node.ELEMENT_NODE) {
-    if (0 === r.startOffset /*|| 1 === r.startOffset*/) {
+    if (0 === r.startOffset) {
       const rect = (r.startContainer as Element).getBoundingClientRect()
       return {
         top: rect.top,
@@ -103,5 +97,10 @@ export function getCaretCoordinates(r: Range): CaretCoordinates {
         height: rect.height
       }
     }
+  }
+
+  console.log('util: cannot get caret coordinates')
+  return {
+    top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0
   }
 }
