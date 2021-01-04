@@ -149,7 +149,7 @@ export const App: React.FunctionComponent<Props> = (props) => {
 
   const [headerToolState, setHeaderToolState] = useState({
     origin: { type: 'TL', top: 0, left: 0 } as OriginTopLeft,
-    position: { x: 20, y: 20 },
+    position: { x: window.innerWidth / 2 - 250, y: 20 },
     width: 500
   })
 
@@ -160,8 +160,8 @@ export const App: React.FunctionComponent<Props> = (props) => {
   })
 
   const [searchToolState, setSearchToolState] = useState({
-    origin: { type: 'BL', bottom: 0, left: 0 } as OriginBottomLeft,
-    position: { x: 20, y: -20 },
+    origin: { type: 'TL', top: 0, left: 0 } as OriginTopLeft,
+    position: { x: 20, y: 20 },
     width: 300
   })
 
