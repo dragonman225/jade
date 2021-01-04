@@ -32,8 +32,8 @@ interface PMTextContent extends InitializedConceptData {
 type Props = ContentProps<PMTextContent>
 
 const styles = stylesheet({
-  PMTextEditor: {
-    /** For placeholder to reference position. */
+  EditorContainer: {
+    /** For Placeholder to reference position. */
     position: 'relative',
     $nest: {
       '& .ProseMirror': {
@@ -44,15 +44,15 @@ const styles = stylesheet({
       }
     }
   },
-  NavItem: {
+  PMTextNavItem: {
     fontSize: '.8rem',
     padding: '.5rem',
     maxHeight: '100%'
   },
-  Block: {
+  PMTextBlock: {
     padding: '0.5rem 1.5rem'
   },
-  CardTitle: {
+  PMTextCardTitle: {
     fontSize: '1.2rem',
     fontWeight: 'bold',
     padding: '.3rem .5rem',
@@ -62,15 +62,35 @@ const styles = stylesheet({
     overflow: 'auto',
     width: '100%'
   },
-  Menu: {
+  SlashMenu: {
     width: 150,
-    padding: '.5rem'
+    padding: '.3rem',
+    position: 'absolute',
+    zIndex: 10000,
+    background: '#fff',
+    boxShadow: 'var(--shadow-light)',
+    borderRadius: 'var(--border-radius-small)',
+    $nest: {
+      '&>p': {
+        margin: '.2rem .5rem .5rem',
+        fontSize: 12,
+        opacity: 0.7
+      }
+    }
   },
-  MenuItem: {
-    padding: '.5rem'
+  SlashMenuItem: {
+    padding: '.3rem .5rem',
+    borderRadius: 'var(--border-radius-small)'
   },
-  'MenuItem--Chosen': {
+  'SlashMenuItem--Chosen': {
     background: 'var(--bg-hover)'
+  },
+  Placeholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    opacity: 0.7,
+    pointerEvents: 'none'
   }
 })
 
@@ -92,8 +112,6 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
   const [isEmpty, setIsEmpty] = useState(true)
 
   function onKeyDown(_view: EditorView<any>, event: KeyboardEvent) {
-    console.log(event)
-    console.log('isEmpty:', isEmpty)
     if (event.key === 'ArrowUp') {
       /**
        * Use keydown here so that we can preventDefault(), on keyup, default  
@@ -137,14 +155,16 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
       const s = window.getSelection()
       if (s && s.rangeCount > 0) {
         const r = s.getRangeAt(0)
-        console.log(r)
         const caretCoord = getCaretCoordinates(r)
-        console.log('coord:', caretCoord)
         setShowMenu(true)
         setMenuPos({ x: caretCoord.right, y: caretCoord.bottom })
       }
     }
     return false
+  }
+
+  function isDocEmpty(state: EditorState) {
+    return state.doc.content.size === 0
   }
 
   function createEditorState(props: Props) {
@@ -162,11 +182,10 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
       dispatchTransaction: (transaction) => {
         const newState = view.state.apply(transaction)
         view.updateState(newState)
-        console.log(newState.doc)
-        if (newState.doc.content.size > 0) {
-          setIsEmpty(false)
-        } else {
+        if (isDocEmpty(newState)) {
           setIsEmpty(true)
+        } else {
+          setIsEmpty(false)
         }
         /** Submit changes only when the transaction modifies the doc. */
         if (transaction.steps.length > 0)
@@ -221,7 +240,7 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
       view.focus()
       setIsNewText(false)
     }
-    if (state.doc.content.size > 0) {
+    if (!isDocEmpty(state)) {
       setIsEmpty(false)
     }
     editorState.current = state
@@ -271,45 +290,43 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
   }, [props.readOnly])
 
   const editorContainer =
-    <div ref={editorContainerRef} className={styles.PMTextEditor}>{
-      isEmpty ? <div style={{
-        position: 'absolute',
-        top: '0',
-        left: '0',
-        opacity: '0.7',
-        pointerEvents: 'none'
-      }}>Type &#39;/&#39; for commands</div> : <></>
-    }</div>
+    <div ref={editorContainerRef} className={styles.EditorContainer}>
+      {
+        isEmpty ? <div className={styles.Placeholder}>
+          Type &#39;/&#39; for commands</div> : <></>
+      }
+    </div>
 
   switch (props.viewMode) {
     case 'NavItem': {
-      return <div className={styles.NavItem}>{editorContainer}</div>
+      return <div className={styles.PMTextNavItem}>{editorContainer}</div>
     }
     case 'Block': {
-      return <div className={styles.Block}>{editorContainer}
+      return <div className={styles.PMTextBlock}>{editorContainer}
         {
-          showMenu ? props.createOverlay(<div className={styles.Menu} style={{
-            position: 'absolute',
-            top: menuPos.y,
-            left: menuPos.x,
-            zIndex: 10000,
-            background: '#fff'
-          }}>
-            {
-              menuItems.map(item => <div
-                className={classes(
-                  styles.MenuItem, item.name === menuItems[chosenItemIndex].name
-                    ? styles['MenuItem--Chosen'] : undefined)}
-                key={item.name}>
-                {item.name}
-              </div>)
-            }
-          </div>) : <></>
+          showMenu ? props.createOverlay(
+            <div className={styles.SlashMenu} style={{
+              top: menuPos.y + 5,
+              left: menuPos.x
+            }}>
+              <p>BLOCKS</p>
+              {
+                menuItems.map((item, index) => <div
+                  className={classes(
+                    styles.SlashMenuItem,
+                    index === chosenItemIndex
+                      ? styles['SlashMenuItem--Chosen'] : undefined)}
+                  key={item.name}>
+                  {item.name}
+                </div>)
+              }
+            </div>
+          ) : <></>
         }
       </div>
     }
     case 'CardTitle': {
-      return <div className={styles.CardTitle}>{editorContainer}</div>
+      return <div className={styles.PMTextCardTitle}>{editorContainer}</div>
     }
     default:
       return <span>Unknown <code>viewMode</code>: {props.viewMode}</span>

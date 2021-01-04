@@ -54,7 +54,7 @@ const dragHandleSize = 22
 const styles = stylesheet({
   Block: {
     position: 'absolute',
-    borderRadius: '.3rem',
+    borderRadius: 'var(--border-radius-small)',
     color: 'rgb(65, 65, 65)',
     /* Use below with no "align-items: center" 
        makes content stretch (discovered: Image) rather than showing 
@@ -75,7 +75,7 @@ const styles = stylesheet({
     height: dragHandleSize,
     fill: '#aaa',
     padding: '.3rem',
-    background: 'rgba(0, 0, 0, 0)',
+    borderRadius: 'var(--border-radius-small)',
     $nest: {
       '&:hover, &:active': {
         background: 'rgba(182, 182, 182, 0.7)',
@@ -358,9 +358,7 @@ export class Block extends React.Component<Props, State> {
         style={this.props.container ? commonStyle : {
           ...commonStyle,
           background: this.isActive() ? '#eeeeee' : 'inherit',
-          boxShadow: this.isActive() ? `\
-            rgba(15, 15, 15, 0.1) 0px 0px 3px, 
-            rgba(15, 15, 15, 0.1) 0px 0px 9px` : 'inherit'
+          boxShadow: this.isActive() ? 'var(--shadow-light)' : 'inherit'
         }}>
         <span className={styles.DebugId}>{this.props.data.blockId}</span>
         <div className={classes(

@@ -73,7 +73,11 @@ const styles = stylesheet({
     overflow: 'hidden',
     height: '100%',
     background: '#e5e5e5',
-    '--bg-hover': 'rgba(0, 0, 0, 0.1)'
+    '--bg-hover': 'rgba(0, 0, 0, 0.1)',
+    '--shadow-light': `\
+      rgba(15, 15, 15, 0.1) 0px 0px 3px, 
+      rgba(15, 15, 15, 0.1) 0px 0px 9px`,
+    '--border-radius-small': '.3rem'
   },
   Playground: {
     position: 'relative',
