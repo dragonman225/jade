@@ -255,6 +255,10 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
         s2lState === S2LState.Linking && styles['Search--Linking'])}
       ref={searchRef}
       onFocus={() => { setMinimized(false) }}>
+      <div className={styles.SearchInput}>
+        <input placeholder="Search here..."
+          onChange={(e) => { setText(e.target.value); setPage(0) }} />
+      </div>
       {
         !minimized ?
           <div className={styles.SearchResult}>
@@ -312,10 +316,6 @@ export const SearchTool: React.FunctionComponent<Props> = (props) => {
           </div> :
           <></>
       }
-      <div className={styles.SearchInput}>
-        <input placeholder="Search here..."
-          onChange={(e) => { setText(e.target.value); setPage(0) }} />
-      </div>
       {
         (s2lState === S2LState.Linking && s2lBlock.valid) ? function () {
           const concept = props.db.getConcept(s2lBlock.id)
