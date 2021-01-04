@@ -74,6 +74,7 @@ export interface ContentProps<T extends InitializedConceptData> {
   onReplace: (type: string) => void
   onInteractionStart: () => void
   onInteractionEnd: () => void
+  createOverlay?(children: React.ReactNode): React.ReactPortal
 }
 
 /** App state v3. */

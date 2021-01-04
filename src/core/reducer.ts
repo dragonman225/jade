@@ -80,7 +80,7 @@ export function createReducer(db: DatabaseInterface) {
         const newConcept: Concept = {
           id: uuidv4(),
           summary: {
-            type: 'baby',
+            type: 'pmtext',
             data: { initialized: false }
           },
           details: [],

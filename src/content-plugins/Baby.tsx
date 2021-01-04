@@ -32,7 +32,6 @@ export const Baby: React.FunctionComponent<Props> = (props) => {
       return <div className={styles.Baby}>
         <p>Which to turn into?</p>
         <button>Text</button>
-        <button>PMText</button>
         <button>Image</button>
         <button>Status</button>
       </div>

@@ -1,10 +1,12 @@
 import * as React from 'react'
-import { stylesheet } from 'typestyle'
-import { ContentProps } from '../core/interfaces'
+import { useState, useEffect, useRef } from 'react'
+import { classes, stylesheet } from 'typestyle'
+import { ContentProps, Vec2 } from '../core/interfaces'
 import { InitializedConceptData } from '../core/interfaces/concept'
 import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { Schema, Node } from 'prosemirror-model'
+import { getCaretCoordinates } from '../core/lib/utils'
 
 /**
  * Problems of ProseMirror:
@@ -27,8 +29,12 @@ interface PMTextContent extends InitializedConceptData {
   }
 }
 
+type Props = ContentProps<PMTextContent>
+
 const styles = stylesheet({
   PMTextEditor: {
+    /** For placeholder to reference position. */
+    position: 'relative',
     $nest: {
       '& .ProseMirror': {
         whiteSpace: 'pre-wrap'
@@ -55,13 +61,93 @@ const styles = stylesheet({
     margin: 'auto',
     overflow: 'auto',
     width: '100%'
+  },
+  Menu: {
+    width: 150,
+    padding: '.5rem'
+  },
+  MenuItem: {
+    padding: '.5rem'
+  },
+  'MenuItem--Chosen': {
+    background: 'var(--bg-hover)'
   }
 })
 
-export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (props) => {
-  const PMRef = React.useRef<HTMLDivElement>()
+const menuItems = [
+  {
+    name: 'Image',
+    type: 'image'
+  },
+  {
+    name: 'Status',
+    type: 'status'
+  }
+]
 
-  const createPMState = (props: ContentProps<PMTextContent>) => {
+export const PMText: React.FunctionComponent<Props> = (props) => {
+  const [showMenu, setShowMenu] = useState(false)
+  const [menuPos, setMenuPos] = useState<Vec2>({ x: 0, y: 0 })
+  const [chosenItemIndex, setChosenItemIndex] = useState(0)
+  const [isEmpty, setIsEmpty] = useState(true)
+
+  function onKeyDown(_view: EditorView<any>, event: KeyboardEvent) {
+    console.log(event)
+    console.log('isEmpty:', isEmpty)
+    if (event.key === 'ArrowUp') {
+      /**
+       * Use keydown here so that we can preventDefault(), on keyup, default  
+       * actions would already happen.
+       */
+      if (showMenu) {
+        event.preventDefault()
+        if (chosenItemIndex > 0) {
+          setChosenItemIndex(chosenItemIndex - 1)
+        }
+      }
+    } else if (event.key === 'ArrowDown') {
+      if (showMenu) {
+        event.preventDefault()
+        if (chosenItemIndex < menuItems.length - 1) {
+          setChosenItemIndex(chosenItemIndex + 1)
+        }
+      }
+    } else if (event.key === 'Enter') {
+      if (showMenu) {
+        setShowMenu(false)
+        /** The "blur" event will not fire after replace, so we need to 
+            signal interaction end here. */
+        props.onInteractionEnd()
+        props.onReplace(menuItems[chosenItemIndex].type)
+      }
+    } else {
+      setShowMenu(false)
+    }
+    return false
+  }
+
+  function onKeyUp(_view: EditorView<any>, event: KeyboardEvent) {
+    if (event.key === '/') {
+      /**
+       * Get caret coordinates and show menu on keyup, since for keys that 
+       * modify content (visible chars, backspace), they do it "after" 
+       * keydown. So, to show menu at the right location, we need to get 
+       * caret coordinates after that, and keyup is a good place.
+       */
+      const s = window.getSelection()
+      if (s && s.rangeCount > 0) {
+        const r = s.getRangeAt(0)
+        console.log(r)
+        const caretCoord = getCaretCoordinates(r)
+        console.log('coord:', caretCoord)
+        setShowMenu(true)
+        setMenuPos({ x: caretCoord.right, y: caretCoord.bottom })
+      }
+    }
+    return false
+  }
+
+  function createEditorState(props: Props) {
     return EditorState.create({
       schema,
       doc: props.content.initialized
@@ -69,23 +155,35 @@ export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (pro
     })
   }
 
-  const createPMView = (props: ContentProps<PMTextContent>, PMState: EditorState) => {
-    const view = new EditorView(PMRef.current, {
-      state: PMState,
+  function createEditorView(props: Props, containerEl: HTMLElement,
+    editorState: EditorState) {
+    const view = new EditorView(containerEl, {
+      state: editorState,
       dispatchTransaction: (transaction) => {
         const newState = view.state.apply(transaction)
         view.updateState(newState)
-        props.onChange({
-          initialized: true,
-          data: newState.doc.toJSON()
-        })
+        console.log(newState.doc)
+        if (newState.doc.content.size > 0) {
+          setIsEmpty(false)
+        } else {
+          setIsEmpty(true)
+        }
+        /** Submit changes only when the transaction modifies the doc. */
+        if (transaction.steps.length > 0)
+          props.onChange({
+            initialized: true,
+            data: newState.doc.toJSON()
+          })
       },
       handleDOMEvents: {
         focus: () => {
+          console.log('pmtext: focus')
           props.onInteractionStart()
           return false
         },
         blur: (_view, event) => {
+          console.log('pmtext: blur')
+          setShowMenu(false)
           if (event.target !== document.activeElement) {
             window.getSelection().removeAllRanges()
             /**
@@ -106,53 +204,112 @@ export const PMText: React.FunctionComponent<ContentProps<PMTextContent>> = (pro
     return view
   }
 
-  const [PMState] = React.useState(createPMState(props))
-  const [PMView, setPMView] = React.useState<EditorView | undefined>(undefined)
-  const [isNewText, setIsNewText] = React.useState(!props.content.initialized)
+  const editorContainerRef = useRef<HTMLDivElement>(null)
+  const editorState = useRef<EditorState>(null)
+  const editorView = useRef<EditorView>(null)
+  const [isNewText, setIsNewText] = useState(!props.content.initialized)
+  const [mounted, setMounted] = useState(false)
 
-  /** Create an editor when the component mounts. */
-  React.useLayoutEffect(() => {
-    const view = createPMView(props, PMState)
+  /** Init the ProseMirror editor when the component mounts. */
+  useEffect(() => {
+    console.log('pmtext: mount')
+    const state = createEditorState(props)
+    const view = createEditorView(props, editorContainerRef.current, state)
+    view.props.handleDOMEvents.keydown = onKeyDown
+    view.props.handleDOMEvents.keyup = onKeyUp
     if (isNewText) {
       view.focus()
       setIsNewText(false)
     }
-    setPMView(view)
+    if (state.doc.content.size > 0) {
+      setIsEmpty(false)
+    }
+    editorState.current = state
+    editorView.current = view
+    setMounted(true)
+
+    return () => {
+      view.destroy()
+    }
   }, [])
 
   /**
-   * Update the content of the editor when props change.
-   * Ignore the editor that is currently producing the changes.
+   * Since ProseMirror's view is not managed by React, when it uses 
+   * variables that are React state, we need to update it on state change. */
+  useEffect(() => {
+    if (mounted) {
+      editorView.current.props.handleDOMEvents.keydown = onKeyDown
+    }
+  }, [showMenu, chosenItemIndex, isEmpty])
+
+  /**
+   * Update content of the editor when props change.
    */
-  React.useEffect(() => {
-    /** Create a clean state. */
-    const cleanPMState = createPMState(props)
-    /** Update the doc part of the existing state. */
-    PMState.doc = cleanPMState.doc
-    /** Update the view if it exists and is not editing (hasFocus). */
-    if (PMView && !PMView.hasFocus()) PMView.updateState(PMState)
+  useEffect(() => {
+    if (mounted) {
+      console.log('pmtext: update content')
+      /** Ignore the editor that is currently producing changes (hasFocus). */
+      if (!editorView.current.hasFocus()) {
+        /** Create a clean state. */
+        const cleanEditorState = createEditorState(props)
+        /** Update the doc part of the existing state. */
+        editorState.current.doc = cleanEditorState.doc
+        /** Update the view. */
+        editorView.current.updateState(editorState.current)
+      }
+    }
   }, [props.content])
 
   /**
-   * Update editable of prosemirror view when props change.
+   * Update "editable" prop of the editor view.
    */
-  React.useEffect(() => {
-    if (PMView) {
-      PMView.setProps({ editable: () => !props.readOnly })
+  useEffect(() => {
+    if (mounted) {
+      console.log('pmtext: update readOnly')
+      editorView.current.setProps({ editable: () => !props.readOnly })
     }
   }, [props.readOnly])
 
-  const PMTextEditor = <div ref={PMRef} className={styles.PMTextEditor}></div>
+  const editorContainer =
+    <div ref={editorContainerRef} className={styles.PMTextEditor}>{
+      isEmpty ? <div style={{
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        opacity: '0.7',
+        pointerEvents: 'none'
+      }}>Type &#39;/&#39; for commands</div> : <></>
+    }</div>
 
   switch (props.viewMode) {
     case 'NavItem': {
-      return <div className={styles.NavItem}>{PMTextEditor}</div>
+      return <div className={styles.NavItem}>{editorContainer}</div>
     }
     case 'Block': {
-      return <div className={styles.Block}>{PMTextEditor}</div>
+      return <div className={styles.Block}>{editorContainer}
+        {
+          showMenu ? props.createOverlay(<div className={styles.Menu} style={{
+            position: 'absolute',
+            top: menuPos.y,
+            left: menuPos.x,
+            zIndex: 10000,
+            background: '#fff'
+          }}>
+            {
+              menuItems.map(item => <div
+                className={classes(
+                  styles.MenuItem, item.name === menuItems[chosenItemIndex].name
+                    ? styles['MenuItem--Chosen'] : undefined)}
+                key={item.name}>
+                {item.name}
+              </div>)
+            }
+          </div>) : <></>
+        }
+      </div>
     }
     case 'CardTitle': {
-      return <div className={styles.CardTitle}>{PMTextEditor}</div>
+      return <div className={styles.CardTitle}>{editorContainer}</div>
     }
     default:
       return <span>Unknown <code>viewMode</code>: {props.viewMode}</span>

@@ -355,7 +355,8 @@ export const App: React.FunctionComponent<Props> = (props) => {
                         },
                         onReplace: type => {
                           replaceContentType(subConcept, type)
-                        }
+                        },
+                        createOverlay
                       }} />
                   }
                 </Block>
