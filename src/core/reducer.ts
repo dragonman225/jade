@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import { config } from '../content-plugins/config'
 import { DatabaseInterface, State4, Vec2 } from './interfaces'
 import { Concept, BaseConceptData, Link, Stroke } from './interfaces/concept'
 
@@ -80,7 +81,7 @@ export function createReducer(db: DatabaseInterface) {
         const newConcept: Concept = {
           id: uuidv4(),
           summary: {
-            type: 'pmtext',
+            type: config.defaultType,
             data: { initialized: false }
           },
           details: [],

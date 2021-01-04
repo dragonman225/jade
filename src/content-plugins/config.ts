@@ -11,12 +11,14 @@ interface ContentType {
 }
 
 interface ContentConfig {
+  defaultType: string
   contentTypeRegistry: {
     [key: string]: ContentType
   }
 }
 
 export const config: ContentConfig = {
+  defaultType: 'pmtext',
   contentTypeRegistry: {
     'image': {
       name: 'Image',
