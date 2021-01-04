@@ -18,7 +18,7 @@ import { Overlay } from './component/Overlay'
 import { Content } from '../content-plugins'
 import { PubSub } from './lib/pubsub'
 import {
-  OriginBottomLeft, OriginTopRight, OriginTopLeft, DatabaseInterface, State4
+  OriginTopRight, OriginTopLeft, DatabaseInterface, State4
 } from './interfaces'
 import { Concept } from './interfaces/concept'
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
