@@ -7,7 +7,7 @@ type Props =
 const styles = stylesheet({
   Box: {
     background: '#fff',
-    borderRadius: '.5rem',
+    borderRadius: 'var(--border-radius-large)',
     boxShadow: `
       rgba(15, 15, 15, 0.05) 0px 0px 0px 1px,
       rgba(15, 15, 15, 0.075) 0px 2px 6px,

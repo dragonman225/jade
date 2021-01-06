@@ -78,7 +78,8 @@ const styles = stylesheet({
     '--shadow-light': `\
       rgba(15, 15, 15, 0.1) 0px 0px 3px, 
       rgba(15, 15, 15, 0.1) 0px 0px 9px`,
-    '--border-radius-small': '.3rem'
+    '--border-radius-small': '.3rem',
+    '--border-radius-large': '.5rem'
   },
   Playground: {
     position: 'relative',

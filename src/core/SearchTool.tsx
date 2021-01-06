@@ -44,14 +44,14 @@ const styles = stylesheet({
   },
   ScrollList: {
     height: '100%',
-    maxHeight: '500px',
+    maxHeight: 500,
     overflow: 'auto'
   },
   ScrollListItem: {
-    maxHeight: '200px',
+    maxHeight: 200,
     overflow: 'hidden',
     margin: 0,
-    borderRadius: '.5rem',
+    borderRadius: 'var(--border-radius-large)',
     transition: 'background 0.1s',
     $nest: {
       '&:hover': {

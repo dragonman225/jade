@@ -73,7 +73,7 @@ const styles = stylesheet({
     $nest: {
       '&>p': {
         margin: '.2rem .5rem .5rem',
-        fontSize: 12,
+        fontSize: '.7rem',
         opacity: 0.7
       }
     }
