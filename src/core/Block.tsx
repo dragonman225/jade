@@ -240,17 +240,21 @@ export class Block extends React.Component<Props, State> {
       const deltaX = msg.offsetX - this.state.lastMovePosition.x
       const newW = this.state.width + deltaX
       const minW = dragHandleSize * 2
+      const originType = this.props.origin.type
+      const newPos = originType === 'TR' || originType === 'BR' ? {
+        x: this.state.position.x + deltaX,
+        y: this.state.position.y
+      } : this.state.position
 
       if (newW > minW) {
         this.setState({
           width: newW,
+          position: newPos,
           lastMovePosition: {
             x: msg.offsetX,
             y: msg.offsetY
           }
         })
-      } else {
-        this.setState({ width: minW })
       }
 
       this.props.messenger.publish('block::resizing')
@@ -260,7 +264,10 @@ export class Block extends React.Component<Props, State> {
   handleDragEnd = (): void => {
     if (this.state.moving || this.state.resizing) {
       if (this.state.moving) this.props.onMove(this.state.position)
-      else if (this.state.resizing) this.props.onResize(this.state.width)
+      else if (this.state.resizing) {
+        this.props.onResize(this.state.width)
+        this.props.onMove(this.state.position)
+      }
       this.setState({ moving: false, resizing: false })
       if (typeof this.props.onInteractionEnd === 'function')
         this.props.onInteractionEnd()
