@@ -19,8 +19,8 @@ import { getCaretCoordinates } from '../core/lib/utils'
 const schema = new Schema({
   nodes: {
     doc: { content: 'text*' },
-    text: { inline: true }
-  }
+    text: { inline: true },
+  },
 })
 
 interface PMTextContent extends InitializedConceptData {
@@ -37,20 +37,20 @@ const styles = stylesheet({
     position: 'relative',
     $nest: {
       '& .ProseMirror': {
-        whiteSpace: 'pre-wrap'
+        whiteSpace: 'pre-wrap',
       },
       '& .ProseMirror:focus': {
-        outline: 'none'
-      }
-    }
+        outline: 'none',
+      },
+    },
   },
   PMTextNavItem: {
     fontSize: '.8rem',
     padding: '.5rem',
-    maxHeight: '100%'
+    maxHeight: '100%',
   },
   PMTextBlock: {
-    padding: '0.5rem 1.5rem'
+    padding: '0.5rem 1.5rem',
   },
   PMTextCardTitle: {
     fontSize: '1.2rem',
@@ -60,7 +60,7 @@ const styles = stylesheet({
         min-height. */
     margin: 'auto',
     overflow: 'auto',
-    width: '100%'
+    width: '100%',
   },
   SlashMenu: {
     width: 150,
@@ -74,38 +74,38 @@ const styles = stylesheet({
       '&>p': {
         margin: '.2rem .5rem .5rem',
         fontSize: '.7rem',
-        opacity: 0.7
-      }
-    }
+        opacity: 0.7,
+      },
+    },
   },
   SlashMenuItem: {
     padding: '.3rem .5rem',
-    borderRadius: 'var(--border-radius-small)'
+    borderRadius: 'var(--border-radius-small)',
   },
   'SlashMenuItem--Chosen': {
-    background: 'var(--bg-hover)'
+    background: 'var(--bg-hover)',
   },
   Placeholder: {
     position: 'absolute',
     top: 0,
     left: 0,
     opacity: 0.7,
-    pointerEvents: 'none'
-  }
+    pointerEvents: 'none',
+  },
 })
 
 const menuItems = [
   {
     name: 'Image',
-    type: 'image'
+    type: 'image',
   },
   {
     name: 'Status',
-    type: 'status'
-  }
+    type: 'status',
+  },
 ]
 
-export const PMText: React.FunctionComponent<Props> = (props) => {
+export const PMText: React.FunctionComponent<Props> = props => {
   const [showMenu, setShowMenu] = useState(false)
   const [menuPos, setMenuPos] = useState<Vec2>({ x: 0, y: 0 })
   const [chosenItemIndex, setChosenItemIndex] = useState(0)
@@ -114,7 +114,7 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
   function onKeyDown(_view: EditorView<any>, event: KeyboardEvent) {
     if (event.key === 'ArrowUp') {
       /**
-       * Use keydown here so that we can preventDefault(), on keyup, default  
+       * Use keydown here so that we can preventDefault(), on keyup, default
        * actions would already happen.
        */
       if (showMenu) {
@@ -147,9 +147,9 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
   function onKeyUp(_view: EditorView<any>, event: KeyboardEvent) {
     if (event.key === '/') {
       /**
-       * Get caret coordinates and show menu on keyup, since for keys that 
-       * modify content (visible chars, backspace), they do it "after" 
-       * keydown. So, to show menu at the right location, we need to get 
+       * Get caret coordinates and show menu on keyup, since for keys that
+       * modify content (visible chars, backspace), they do it "after"
+       * keydown. So, to show menu at the right location, we need to get
        * caret coordinates after that, and keyup is a good place.
        */
       const s = window.getSelection()
@@ -171,15 +171,19 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
     return EditorState.create({
       schema,
       doc: props.content.initialized
-        ? Node.fromJSON(schema, props.content.data) : undefined
+        ? Node.fromJSON(schema, props.content.data)
+        : undefined,
     })
   }
 
-  function createEditorView(props: Props, containerEl: HTMLElement,
-    editorState: EditorState) {
+  function createEditorView(
+    props: Props,
+    containerEl: HTMLElement,
+    editorState: EditorState
+  ) {
     const view = new EditorView(containerEl, {
       state: editorState,
-      dispatchTransaction: (transaction) => {
+      dispatchTransaction: transaction => {
         const newState = view.state.apply(transaction)
         view.updateState(newState)
         if (isDocEmpty(newState)) {
@@ -191,7 +195,7 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
         if (transaction.steps.length > 0)
           props.onChange({
             initialized: true,
-            data: newState.doc.toJSON()
+            data: newState.doc.toJSON(),
           })
       },
       handleDOMEvents: {
@@ -206,9 +210,9 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
           if (event.target !== document.activeElement) {
             window.getSelection().removeAllRanges()
             /**
-             * Below is not working. The old selection persists in the view 
-             * until future focus, and the future focus shows the 
-             * selection being set in setSelection() instead of 
+             * Below is not working. The old selection persists in the view
+             * until future focus, and the future focus shows the
+             * selection being set in setSelection() instead of
              * responding to the intention of the mouse.
              */
             // const state = view.state
@@ -216,9 +220,9 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
             props.onInteractionEnd()
           }
           return false
-        }
+        },
       },
-      editable: () => !props.readOnly
+      editable: () => !props.readOnly,
     })
     return view
   }
@@ -253,7 +257,7 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
   }, [])
 
   /**
-   * Since ProseMirror's view is not managed by React, when it uses 
+   * Since ProseMirror's view is not managed by React, when it uses
    * variables that are React state, we need to update it on state change. */
   useEffect(() => {
     if (mounted) {
@@ -289,46 +293,61 @@ export const PMText: React.FunctionComponent<Props> = (props) => {
     }
   }, [props.readOnly])
 
-  const editorContainer =
+  const editorContainer = (
     <div ref={editorContainerRef} className={styles.EditorContainer}>
-      {
-        isEmpty ? <div className={styles.Placeholder}>
-          Type &#39;/&#39; for commands</div> : <></>
-      }
+      {isEmpty ? (
+        <div className={styles.Placeholder}>Type &#39;/&#39; for commands</div>
+      ) : (
+        <></>
+      )}
     </div>
+  )
 
   switch (props.viewMode) {
     case 'NavItem': {
       return <div className={styles.PMTextNavItem}>{editorContainer}</div>
     }
     case 'Block': {
-      return <div className={styles.PMTextBlock}>{editorContainer}
-        {
-          showMenu ? props.createOverlay(
-            <div className={styles.SlashMenu} style={{
-              top: menuPos.y + 5,
-              left: menuPos.x
-            }}>
-              <p>BLOCKS</p>
-              {
-                menuItems.map((item, index) => <div
-                  className={classes(
-                    styles.SlashMenuItem,
-                    index === chosenItemIndex
-                      ? styles['SlashMenuItem--Chosen'] : undefined)}
-                  key={item.name}>
-                  {item.name}
-                </div>)
-              }
-            </div>
-          ) : <></>
-        }
-      </div>
+      return (
+        <div className={styles.PMTextBlock}>
+          {editorContainer}
+          {showMenu ? (
+            props.createOverlay(
+              <div
+                className={styles.SlashMenu}
+                style={{
+                  top: menuPos.y + 5,
+                  left: menuPos.x,
+                }}>
+                <p>BLOCKS</p>
+                {menuItems.map((item, index) => (
+                  <div
+                    className={classes(
+                      styles.SlashMenuItem,
+                      index === chosenItemIndex
+                        ? styles['SlashMenuItem--Chosen']
+                        : undefined
+                    )}
+                    key={item.name}>
+                    {item.name}
+                  </div>
+                ))}
+              </div>
+            )
+          ) : (
+            <></>
+          )}
+        </div>
+      )
     }
     case 'CardTitle': {
       return <div className={styles.PMTextCardTitle}>{editorContainer}</div>
     }
     default:
-      return <span>Unknown <code>viewMode</code>: {props.viewMode}</span>
+      return (
+        <span>
+          Unknown <code>viewMode</code>: {props.viewMode}
+        </span>
+      )
   }
 }

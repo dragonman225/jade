@@ -12,13 +12,18 @@ interface SQLiteDatabase {
 }
 
 interface SQLiteDatabaseConstructor {
-  new(path: string, options?: {
-    verbose: (...args: unknown[]) => void
-  }): SQLiteDatabase
+  new (
+    path: string,
+    options?: {
+      verbose: (...args: unknown[]) => void
+    }
+  ): SQLiteDatabase
 }
 
 interface SQLiteStatement {
-  run(...bindParameters: unknown[]): {
+  run(
+    ...bindParameters: unknown[]
+  ): {
     changes: number
     lastInsertRowid: number
   }
@@ -73,7 +78,7 @@ function createDatabase(path: string): DatabaseInterface {
   })()
 
   /**
-   * Enhance performance. 
+   * Enhance performance.
    * @see https://github.com/JoshuaWise/better-sqlite3/blob/master/docs/benchmark.md
    */
   db.pragma('cache_size = -16000')
@@ -92,7 +97,7 @@ function createDatabase(path: string): DatabaseInterface {
       WHERE concept_id = @id`),
     create: db.prepare(`
       INSERT INTO ${conceptsTableName} (concept_id, json)
-      VALUES (@id, @json)`)
+      VALUES (@id, @json)`),
   }
 
   const selectSetting = db.prepare(`
@@ -131,7 +136,7 @@ function createDatabase(path: string): DatabaseInterface {
 
   function commitBuffer() {
     const start = Date.now()
-    const trx = db.transaction<WriteBufferItem[]>((items) => {
+    const trx = db.transaction<WriteBufferItem[]>(items => {
       try {
         for (let i = 0; i < items.length; i++) {
           const item = items[i]
@@ -235,7 +240,7 @@ parse json in ${end - mid}ms.`)
       table: conceptsTableName,
       id: concept.id,
       type,
-      data
+      data,
     })
   }
 
@@ -255,7 +260,7 @@ parse json in ${end - mid}ms.`)
       table: settingsTableName,
       id: 'settings',
       type: 'update',
-      data: JSON.stringify(settings)
+      data: JSON.stringify(settings),
     })
   }
 
@@ -268,11 +273,15 @@ parse json in ${end - mid}ms.`)
     init,
     getConcept,
     getAllConcepts,
-    createConcept: (concept) => { saveConcept(concept, 'create') },
-    updateConcept: (concept) => { saveConcept(concept, 'update') },
+    createConcept: concept => {
+      saveConcept(concept, 'create')
+    },
+    updateConcept: concept => {
+      saveConcept(concept, 'update')
+    },
     getSettings,
     saveSettings,
-    getLastUpdatedTime
+    getLastUpdatedTime,
   }
 }
 

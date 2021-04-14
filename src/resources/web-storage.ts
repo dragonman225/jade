@@ -1,10 +1,10 @@
 import { DatabaseInterface, Settings } from '../core/interfaces'
 import { Concept } from '../core/interfaces/concept'
 
-/** 
+/**
  * New database interface.
  * TODO: Add frontend LRU cache, update on write.
- * TODO: Add write buffer that queue writes and use transaction to write 
+ * TODO: Add write buffer that queue writes and use transaction to write
  *       a batch.
  */
 function markStorageUpdate() {
@@ -22,7 +22,7 @@ export const database: DatabaseInterface = {
     })
     localStorage.setItem('JADE_DB_LOADED', '')
   },
-  getConcept: (id) => {
+  getConcept: id => {
     try {
       const item = localStorage.getItem(`concept/${id}`)
       const concept = JSON.parse(item) as Concept
@@ -42,11 +42,11 @@ export const database: DatabaseInterface = {
     }
     return concepts
   },
-  updateConcept: (concept) => {
+  updateConcept: concept => {
     localStorage.setItem(`concept/${concept.id}`, JSON.stringify(concept))
     markStorageUpdate()
   },
-  createConcept: (concept) => {
+  createConcept: concept => {
     localStorage.setItem(`concept/${concept.id}`, JSON.stringify(concept))
     markStorageUpdate()
   },
@@ -58,11 +58,11 @@ export const database: DatabaseInterface = {
       return undefined
     }
   },
-  saveSettings: (settings) => {
+  saveSettings: settings => {
     localStorage.setItem('settings', JSON.stringify(settings))
     markStorageUpdate()
   },
   getLastUpdatedTime: () => {
     return parseInt(localStorage.getItem('lastUpdatedAt'))
-  }
+  },
 }

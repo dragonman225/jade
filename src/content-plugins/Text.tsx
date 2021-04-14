@@ -3,7 +3,8 @@ import { SlateTextEditor } from './SlateTextEditor'
 import * as Slate from 'slate'
 import { ContentProps } from '../core/interfaces'
 import {
-  InitializedConceptData, UninitializedConceptData
+  InitializedConceptData,
+  UninitializedConceptData,
 } from '../core/interfaces/concept'
 
 /**
@@ -29,11 +30,13 @@ export class Text extends React.Component<ContentProps<TextContent>, State> {
     this.state = {
       slateData: this.getValidSlateData(props.content),
       isNewText: !props.content.initialized,
-      prevPropsContent: props.content
+      prevPropsContent: props.content,
     }
   }
 
-  getValidSlateData(content: TextContent | UninitializedConceptData): Slate.Element[] {
+  getValidSlateData(
+    content: TextContent | UninitializedConceptData
+  ): Slate.Element[] {
     const initialContent = [{ type: 'paragraph', children: [{ text: '' }] }]
     return content.initialized ? content.data : initialContent
   }
@@ -53,14 +56,17 @@ export class Text extends React.Component<ContentProps<TextContent>, State> {
   }
 
   render(): JSX.Element {
-    const slateTextEditor = <SlateTextEditor
-      readOnly={this.props.readOnly}
-      // Cannot type Japanese in programmatically focused editor when the text block is newly created.
-      forceFocus={this.state.isNewText}
-      content={this.state.slateData}
-      onChange={this.onChange}
-      onFocus={this.props.onInteractionStart}
-      onBlur={this.props.onInteractionEnd} />
+    const slateTextEditor = (
+      <SlateTextEditor
+        readOnly={this.props.readOnly}
+        // Cannot type Japanese in programmatically focused editor when the text block is newly created.
+        forceFocus={this.state.isNewText}
+        content={this.state.slateData}
+        onChange={this.onChange}
+        onFocus={this.props.onInteractionStart}
+        onBlur={this.props.onInteractionEnd}
+      />
+    )
 
     switch (this.props.viewMode) {
       case 'NavItem':
@@ -95,7 +101,7 @@ export class Text extends React.Component<ContentProps<TextContent>, State> {
               .CardTitle {
                 font-size: 1.2rem;
                 font-weight: bold;
-                padding: .5rem;
+                padding: 0.5rem;
                 overflow: auto;
                 width: 100%;
               }
@@ -104,7 +110,11 @@ export class Text extends React.Component<ContentProps<TextContent>, State> {
           </>
         )
       default:
-        return <span>Unknown <code>viewMode</code>: {this.props.viewMode}</span>
+        return (
+          <span>
+            Unknown <code>viewMode</code>: {this.props.viewMode}
+          </span>
+        )
     }
   }
 }

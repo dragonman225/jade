@@ -4,5 +4,5 @@ export const iconStyle = style({
   display: 'block',
   fill: 'inherit',
   flexShrink: 0,
-  backfaceVisibility: 'hidden'
+  backfaceVisibility: 'hidden',
 })

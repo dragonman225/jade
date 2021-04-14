@@ -10,11 +10,14 @@ export function renderApp(database: DatabaseInterface): void {
   const state3 = legacyLoadState()
   if (!database.isValid() && state3) {
     console.log('Migrating state_v3 to new format.')
-    database.init({
-      debugging: state3.debugging,
-      homeConceptId: state3.homeConceptId,
-      viewingConceptId: state3.viewingConceptId
-    }, Object.values(state3.conceptMap))
+    database.init(
+      {
+        debugging: state3.debugging,
+        homeConceptId: state3.homeConceptId,
+        viewingConceptId: state3.viewingConceptId,
+      },
+      Object.values(state3.conceptMap)
+    )
   }
 
   ReactDOM.render(

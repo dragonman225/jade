@@ -62,12 +62,14 @@ export interface ConceptDetail {
 /** Concept Interface. */
 export const Concept = {
   details(concept: Concept, db: DatabaseInterface): ConceptDetail[] {
-    return concept.details.map(link => {
-      return {
-        link,
-        concept: db.getConcept(link.to)
-      }
-    }).filter(d => !!d.concept)
+    return concept.details
+      .map(link => {
+        return {
+          link,
+          concept: db.getConcept(link.to),
+        }
+      })
+      .filter(d => !!d.concept)
   },
 
   isHighOrder(concept: Concept): boolean {
@@ -76,10 +78,11 @@ export const Concept = {
 
   includesText(concept: Concept, text: string): boolean {
     /**
-     * HACK: Each content type should be able to decide 
+     * HACK: Each content type should be able to decide
      * how to search its content!
      */
     return JSON.stringify(concept.summary.data)
-      .toLocaleLowerCase().includes(text.toLocaleLowerCase())
-  }
+      .toLocaleLowerCase()
+      .includes(text.toLocaleLowerCase())
+  },
 }

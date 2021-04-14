@@ -1,7 +1,10 @@
 import { ISub } from '../lib/pubsub'
 import {
-  Concept, ConceptId, ConceptDetail,
-  InitializedConceptData, UninitializedConceptData,
+  Concept,
+  ConceptId,
+  ConceptDetail,
+  InitializedConceptData,
+  UninitializedConceptData,
 } from './concept'
 
 export interface Vec2 {
@@ -10,9 +13,9 @@ export interface Vec2 {
 }
 
 export interface Rect {
-  left: number   // min x
-  right: number  // max x
-  top: number    // min y
+  left: number // min x
+  right: number // max x
+  top: number // min y
   bottom: number // max y
 }
 
@@ -41,8 +44,10 @@ export interface OriginBottomRight {
 }
 
 export type Origin =
-  OriginTopLeft | OriginTopRight |
-  OriginBottomLeft | OriginBottomRight
+  | OriginTopLeft
+  | OriginTopRight
+  | OriginBottomLeft
+  | OriginBottomRight
 
 export interface UnifiedEventInfo {
   clientX: number

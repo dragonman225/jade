@@ -8,13 +8,15 @@ interface Props {
   contentProps: ContentProps<InitializedConceptData>
 }
 
-export const Content: React.FunctionComponent<Props> = (props) => {
+export const Content: React.FunctionComponent<Props> = props => {
   const contentTypeConfig = config.contentTypeRegistry[props.contentType]
 
   if (!contentTypeConfig) {
-    return <span>
-      Content type &quot;{props.contentType}&quot; does not exist in registry.
-    </span>
+    return (
+      <span>
+        Content type &quot;{props.contentType}&quot; does not exist in registry.
+      </span>
+    )
   }
 
   const Component = contentTypeConfig.component

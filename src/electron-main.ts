@@ -9,9 +9,9 @@ and the entry script is "${__filename}".`)
     height: 800,
     icon: path.resolve(__dirname, '../512x512.png'),
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
     },
-    autoHideMenuBar: true
+    autoHideMenuBar: true,
   })
 
   void win.loadFile('index.html')

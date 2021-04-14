@@ -26,8 +26,8 @@ export class PubSub implements IPubSub {
 
   /**
    * Publish to a channel.
-   * @param channel 
-   * @param content 
+   * @param channel
+   * @param content
    */
   publish = <T>(channel: string, content?: T): void => {
     const subscribers = this.subscriberMap[channel]
@@ -39,16 +39,15 @@ export class PubSub implements IPubSub {
     const now = Date.now()
     if (now - this.lastEmitTime > 16) {
       /** Exclude the status channel to prevent infinite loops. */
-      if (channel !== this.statusChannel)
-        this.emitStatus('publish', channel)
+      if (channel !== this.statusChannel) this.emitStatus('publish', channel)
     }
     this.lastEmitTime = now
   }
 
   /**
    * Subscribe to a channel.
-   * @param channel 
-   * @param callback 
+   * @param channel
+   * @param callback
    */
   subscribe = <T>(channel: string, callback: (arg: T) => void): void => {
     const subscribers = this.subscriberMap[channel]
@@ -80,13 +79,13 @@ export class PubSub implements IPubSub {
     const channels = Object.entries(this.subscriberMap).map(channelInfo => {
       return {
         name: channelInfo[0],
-        subNum: channelInfo[1].length
+        subNum: channelInfo[1].length,
       }
     })
     this.publish<PubSubStatusMessage>(this.statusChannel, {
       activeChannel: channel,
       action,
-      channels
+      channels,
     })
   }
 }

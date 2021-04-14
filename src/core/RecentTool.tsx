@@ -22,11 +22,11 @@ const styles = {
   Recent: typestyle.style({
     height: 50,
     display: 'flex',
-    padding: '0px 22px'
-  })
+    padding: '0px 22px',
+  }),
 }
 
-export const RecentTool: React.FunctionComponent<Props> = (props) => {
+export const RecentTool: React.FunctionComponent<Props> = props => {
   return (
     <div className={styles.Recent} style={{ width: props.width }}>
       <style jsx>{`
@@ -71,51 +71,66 @@ export const RecentTool: React.FunctionComponent<Props> = (props) => {
           background: var(--bg-hover);
         }
       `}</style>
-      {
-        function () {
-          const historyToShow: string[] = []
-          const maxNumToShow = Math.floor(props.width / 100)
+      {(function () {
+        const historyToShow: string[] = []
+        const maxNumToShow = Math.floor(props.width / 100)
 
-          for (let i = props.current - 1 + props.historySize; i > props.current; i--) {
-            const blockCardId = props.history[i % props.historySize]
-            /** Ignore when history is unpopulated. */
-            if (!blockCardId) continue
-            /** Count once for repeated visits. */
-            if (typeof historyToShow.find(id => id === blockCardId) === 'undefined') {
-              historyToShow.push(blockCardId)
-              if (historyToShow.length >= maxNumToShow) break
-            }
+        for (
+          let i = props.current - 1 + props.historySize;
+          i > props.current;
+          i--
+        ) {
+          const blockCardId = props.history[i % props.historySize]
+          /** Ignore when history is unpopulated. */
+          if (!blockCardId) continue
+          /** Count once for repeated visits. */
+          if (
+            typeof historyToShow.find(id => id === blockCardId) === 'undefined'
+          ) {
+            historyToShow.push(blockCardId)
+            if (historyToShow.length >= maxNumToShow) break
           }
+        }
 
-          return historyToShow.map(conceptId => {
-            const concept = props.db.getConcept(conceptId)
-            const contentProps: ContentProps<InitializedConceptData> = {
-              viewMode: 'NavItem',
-              readOnly: true,
-              content: concept.summary.data,
-              messageBus: {
-                subscribe: props.messageBus.subscribe,
-                unsubscribe: props.messageBus.unsubscribe
-              },
-              onChange: () => { return },
-              onReplace: () => { return },
-              onInteractionStart: () => { return },
-              onInteractionEnd: () => { return },
-            }
-            return (
-              <button
-                className="RecentBtn"
-                onClick={() => { props.onExpand(conceptId) }}
-                key={conceptId}>
-                <Content
-                  contentType={concept.summary.type}
-                  contentProps={contentProps}
-                  key={concept.id} />
-              </button>
-            )
-          })
-        }()
-      }
+        return historyToShow.map(conceptId => {
+          const concept = props.db.getConcept(conceptId)
+          const contentProps: ContentProps<InitializedConceptData> = {
+            viewMode: 'NavItem',
+            readOnly: true,
+            content: concept.summary.data,
+            messageBus: {
+              subscribe: props.messageBus.subscribe,
+              unsubscribe: props.messageBus.unsubscribe,
+            },
+            onChange: () => {
+              return
+            },
+            onReplace: () => {
+              return
+            },
+            onInteractionStart: () => {
+              return
+            },
+            onInteractionEnd: () => {
+              return
+            },
+          }
+          return (
+            <button
+              className="RecentBtn"
+              onClick={() => {
+                props.onExpand(conceptId)
+              }}
+              key={conceptId}>
+              <Content
+                contentType={concept.summary.type}
+                contentProps={contentProps}
+                key={concept.id}
+              />
+            </button>
+          )
+        })
+      })()}
     </div>
   )
 }

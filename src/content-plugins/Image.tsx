@@ -6,11 +6,11 @@ import { InitializedConceptData } from '../core/interfaces/concept'
 function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.addEventListener('load', (event) => {
+    reader.addEventListener('load', event => {
       const img = event.target.result.toString() // a data-url
       resolve(img)
     })
-    reader.addEventListener('error', (e) => {
+    reader.addEventListener('error', e => {
       reject(e)
     })
     reader.readAsDataURL(file)
@@ -20,7 +20,7 @@ function readAsDataUrl(file: File): Promise<string> {
 const ImgState = {
   NotLoaded: Symbol('notloaded'),
   Loaded: Symbol('loaded'),
-  Error: Symbol('error')
+  Error: Symbol('error'),
 }
 
 const styles = stylesheet({
@@ -33,38 +33,38 @@ const styles = stylesheet({
         width: '100%',
         height: '100%',
         maxHeight: 'inherit',
-        objectFit: 'contain'
-      }
-    }
+        objectFit: 'contain',
+      },
+    },
   },
   ImageErrorMsg: {
     fontSize: '.8rem',
     padding: '.5rem',
-    maxHeight: '100%'
+    maxHeight: '100%',
   },
   ImageBlockViewer: {
-    display: 'flex', /* Remove extra space below img. */
+    display: 'flex' /* Remove extra space below img. */,
     height: '100%',
     overflow: 'hidden',
     $nest: {
       '&>img': {
-        width: '100%'
+        width: '100%',
       },
-      '&>img[data-view-mode=\'CardTitle\']': {
+      "&>img[data-view-mode='CardTitle']": {
         height: '100%',
         objectFit: 'contain',
-        objectPosition: 'left center'
-      }
-    }
+        objectPosition: 'left center',
+      },
+    },
   },
   ImageBlockChooser: {
     padding: '.5rem 1.5rem',
     $nest: {
       '&>input': {
-        width: '100%'
-      }
-    }
-  }
+        width: '100%',
+      },
+    },
+  },
 })
 
 interface ImageContent extends InitializedConceptData {
@@ -74,7 +74,7 @@ interface ImageContent extends InitializedConceptData {
 
 type Props = ContentProps<ImageContent>
 
-export const Image: React.FunctionComponent<Props> = (props) => {
+export const Image: React.FunctionComponent<Props> = props => {
   const content = props.content
   const [imgState, setImgState] = React.useState(ImgState.NotLoaded)
   const [img, setImg] = React.useState('')
@@ -92,16 +92,16 @@ export const Image: React.FunctionComponent<Props> = (props) => {
       return
     }
     readAsDataUrl(file)
-      .then((img) => {
+      .then(img => {
         setImg(img)
         setImgState(ImgState.Loaded)
         props.onChange({
           initialized: true,
           valid: true,
-          imgData: img
+          imgData: img,
         })
       })
-      .catch((err) => {
+      .catch(err => {
         setError(err)
         setImgState(ImgState.Error)
       })
@@ -118,28 +118,40 @@ export const Image: React.FunctionComponent<Props> = (props) => {
   switch (props.viewMode) {
     case 'NavItem': {
       if (imgState === ImgState.Loaded)
-        return <div className={styles.ImageNavItem}>
-          <img src={img} draggable={false} />
-        </div>
+        return (
+          <div className={styles.ImageNavItem}>
+            <img src={img} draggable={false} />
+          </div>
+        )
       else
-        return <div className={styles.ImageErrorMsg}>
-          Image not loaded or error occurred.
-        </div>
+        return (
+          <div className={styles.ImageErrorMsg}>
+            Image not loaded or error occurred.
+          </div>
+        )
     }
     default: {
       switch (imgState) {
         case ImgState.Loaded:
-          return <div className={styles.ImageBlockViewer}>
-            <img
-              src={img}
-              draggable={false}
-              data-view-mode={props.viewMode} />
-          </div>
+          return (
+            <div className={styles.ImageBlockViewer}>
+              <img
+                src={img}
+                draggable={false}
+                data-view-mode={props.viewMode}
+              />
+            </div>
+          )
         case ImgState.NotLoaded:
-          return <div className={styles.ImageBlockChooser}>
-            <input type="file" accept=".jpg, .jpeg, .png"
-              onChange={handleFileSelect} />
-          </div>
+          return (
+            <div className={styles.ImageBlockChooser}>
+              <input
+                type="file"
+                accept=".jpg, .jpeg, .png"
+                onChange={handleFileSelect}
+              />
+            </div>
+          )
         default:
           return <div className={styles.ImageErrorMsg}>{error}</div>
       }

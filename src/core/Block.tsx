@@ -5,13 +5,13 @@ import { IconCross } from './component/IconCross'
 import { IconExpand } from './component/IconExpand'
 import { isPointInRect } from './lib/utils'
 import { IPubSub } from './lib/pubsub'
-import {
-  UnifiedEventInfo, ContentProps, Vec2, Origin
-} from './interfaces'
+import { UnifiedEventInfo, ContentProps, Vec2, Origin } from './interfaces'
 import { InitializedConceptData } from './interfaces/concept'
 
-type ChildrenProps = Pick<ContentProps<InitializedConceptData>,
-'readOnly' | 'onInteractionStart' | 'onInteractionEnd'> & {
+type ChildrenProps = Pick<
+  ContentProps<InitializedConceptData>,
+  'readOnly' | 'onInteractionStart' | 'onInteractionEnd'
+> & {
   width: number
   mouseIsInside: boolean
 }
@@ -67,7 +67,7 @@ const styles = stylesheet({
     wordBreak: 'break-word',
     userSelect: 'none',
     overflow: 'hidden', // To enforce borderRadius.
-    transition: 'background 0.1s, box-shadow 0.1s'
+    transition: 'background 0.1s, box-shadow 0.1s',
   },
   Handle: {
     position: 'absolute',
@@ -79,40 +79,40 @@ const styles = stylesheet({
     $nest: {
       '&:hover, &:active': {
         background: 'rgba(182, 182, 182, 0.7)',
-        fill: '#7c7c7c'
-      }
-    }
+        fill: '#7c7c7c',
+      },
+    },
   },
   HandleHide: {
-    display: 'none'
+    display: 'none',
   },
   DragArea: {
     top: 0,
     left: 0,
-    cursor: 'grab'
+    cursor: 'grab',
   },
   DragAreaMoving: {
-    cursor: 'grabbing'
+    cursor: 'grabbing',
   },
   ExpandArea: {
     top: 0,
     right: 0,
-    cursor: 'default'
+    cursor: 'default',
   },
   ResizeArea: {
     bottom: 0,
     right: 0,
-    cursor: 'ew-resize'
+    cursor: 'ew-resize',
   },
   RemoveArea: {
     bottom: 0,
     left: 0,
-    cursor: 'default'
+    cursor: 'default',
   },
   ContentArea: {
     width: '100%',
     minHeight: 2 * dragHandleSize,
-    overflow: 'auto'
+    overflow: 'auto',
   },
   DebugId: {
     display: 'none',
@@ -121,8 +121,8 @@ const styles = stylesheet({
     top: 0,
     left: 0,
     color: '#050c9c',
-    whiteSpace: 'nowrap'
-  }
+    whiteSpace: 'nowrap',
+  },
 })
 
 export class Block extends React.Component<Props, State> {
@@ -140,7 +140,7 @@ export class Block extends React.Component<Props, State> {
       position: props.data.position,
       moveDelta: { x: 0, y: 0 },
       dragOffset: { x: 0, y: 0 },
-      lastMovePosition: { x: 0, y: 0 }
+      lastMovePosition: { x: 0, y: 0 },
     }
 
     /** For inResizeArea() to getBoundingClientRect(). */
@@ -153,7 +153,7 @@ export class Block extends React.Component<Props, State> {
       top: blockRect.top,
       left: blockRect.left,
       bottom: blockRect.top + dragHandleSize,
-      right: blockRect.left + dragHandleSize
+      right: blockRect.left + dragHandleSize,
     }
     if (isPointInRect(mousePoint, dragRect)) return true
     else return false
@@ -165,7 +165,7 @@ export class Block extends React.Component<Props, State> {
       top: blockRect.bottom - dragHandleSize,
       left: blockRect.right - dragHandleSize,
       bottom: blockRect.bottom,
-      right: blockRect.right
+      right: blockRect.right,
     }
     if (isPointInRect(mousePoint, resizeRect)) return true
     else return false
@@ -188,12 +188,12 @@ export class Block extends React.Component<Props, State> {
       blockRectOnDragStart: blockRect,
       dragOffset: {
         x: msg.offsetX - this.state.position.x,
-        y: msg.offsetY - this.state.position.y
+        y: msg.offsetY - this.state.position.y,
       },
       lastMovePosition: {
         x: msg.offsetX,
-        y: msg.offsetY
-      }
+        y: msg.offsetY,
+      },
     })
   }
 
@@ -201,11 +201,11 @@ export class Block extends React.Component<Props, State> {
     if (this.state.moving) {
       const moveDelta = {
         x: msg.offsetX - this.state.lastMovePosition.x,
-        y: msg.offsetY - this.state.lastMovePosition.y
+        y: msg.offsetY - this.state.lastMovePosition.y,
       }
       const newPos = {
         x: this.state.position.x + moveDelta.x,
-        y: this.state.position.y + moveDelta.y
+        y: this.state.position.y + moveDelta.y,
       }
 
       const blockWidth = this.state.width
@@ -214,10 +214,22 @@ export class Block extends React.Component<Props, State> {
 
       const originType = this.props.origin.type
       const posLimit = {
-        left: (originType === 'TL' || originType === 'BL') ? dragHandleSize : -window.innerWidth + dragHandleSize + blockWidth,
-        right: (originType === 'TL' || originType === 'BL') ? window.innerWidth - dragHandleSize - blockWidth : -dragHandleSize,
-        top: (originType === 'TL' || originType === 'TR') ? dragHandleSize : -window.innerHeight + dragHandleSize + blockHeight,
-        bottom: (originType === 'TL' || originType === 'TR') ? window.innerHeight - dragHandleSize - blockHeight : -dragHandleSize
+        left:
+          originType === 'TL' || originType === 'BL'
+            ? dragHandleSize
+            : -window.innerWidth + dragHandleSize + blockWidth,
+        right:
+          originType === 'TL' || originType === 'BL'
+            ? window.innerWidth - dragHandleSize - blockWidth
+            : -dragHandleSize,
+        top:
+          originType === 'TL' || originType === 'TR'
+            ? dragHandleSize
+            : -window.innerHeight + dragHandleSize + blockHeight,
+        bottom:
+          originType === 'TL' || originType === 'TR'
+            ? window.innerHeight - dragHandleSize - blockHeight
+            : -dragHandleSize,
       }
 
       /** Limit newPos in allowed range. */
@@ -230,8 +242,8 @@ export class Block extends React.Component<Props, State> {
         position: newPos,
         lastMovePosition: {
           x: newPos.x + this.state.dragOffset.x,
-          y: newPos.y + this.state.dragOffset.y
-        }
+          y: newPos.y + this.state.dragOffset.y,
+        },
       })
       this.props.messenger.publish('block::moving')
     }
@@ -241,10 +253,13 @@ export class Block extends React.Component<Props, State> {
       const newW = this.state.width + deltaX
       const minW = dragHandleSize * 2
       const originType = this.props.origin.type
-      const newPos = originType === 'TR' || originType === 'BR' ? {
-        x: this.state.position.x + deltaX,
-        y: this.state.position.y
-      } : this.state.position
+      const newPos =
+        originType === 'TR' || originType === 'BR'
+          ? {
+              x: this.state.position.x + deltaX,
+              y: this.state.position.y,
+            }
+          : this.state.position
 
       if (newW > minW) {
         this.setState({
@@ -252,8 +267,8 @@ export class Block extends React.Component<Props, State> {
           position: newPos,
           lastMovePosition: {
             x: msg.offsetX,
-            y: msg.offsetY
-          }
+            y: msg.offsetY,
+          },
         })
       }
 
@@ -290,7 +305,7 @@ export class Block extends React.Component<Props, State> {
 
   componentWillReceiveProps(props: Props): void {
     this.setState({
-      position: props.data.position
+      position: props.data.position,
     })
   }
 
@@ -303,9 +318,9 @@ export class Block extends React.Component<Props, State> {
   handleMouseLeave = (): void => {
     /**
      * HACK: Not checking readOnly here, considering this case:
-     * mouseEnter -> ctrlDown (activate canvas, lock blocks) -> 
+     * mouseEnter -> ctrlDown (activate canvas, lock blocks) ->
      * mouseLeave -> ctrlUp (deactivate canvas, unlock blocks)
-     * The desire behavior is the background being reseted, so we need to 
+     * The desire behavior is the background being reseted, so we need to
      * detect that "mouseLeave" even when locked.
      */
     this.setState({ mouseIsInside: false })
@@ -324,9 +339,13 @@ export class Block extends React.Component<Props, State> {
   }
 
   isActive = (): boolean => {
-    return !this.props.readOnly &&
-      (this.state.mouseIsInside || this.state.resizing ||
-        this.state.moving || this.state.editing)
+    return (
+      !this.props.readOnly &&
+      (this.state.mouseIsInside ||
+        this.state.resizing ||
+        this.state.moving ||
+        this.state.editing)
+    )
   }
 
   render(): JSX.Element {
@@ -335,7 +354,7 @@ export class Block extends React.Component<Props, State> {
     const commonStyle: React.CSSProperties = {
       ...origin,
       transform: `translate(${this.state.position.x}px, ${this.state.position.y}px)`,
-      transformOrigin: function () {
+      transformOrigin: (function () {
         switch (type) {
           case 'TL':
             return 'top left'
@@ -346,74 +365,97 @@ export class Block extends React.Component<Props, State> {
           default:
             return 'bottom right'
         }
-      }(),
+      })(),
       width: `${this.state.width}px`,
       /**
-       * TODO: zIndex war: For "Content" blocks, when block is active it 
-       * should be below canvas (10000), but for "Tool" blocks, it should 
+       * TODO: zIndex war: For "Content" blocks, when block is active it
+       * should be below canvas (10000), but for "Tool" blocks, it should
        * be above canvas.
        */
-      zIndex: this.isActive() ? 9999 : this.props.zIndex
+      zIndex: this.isActive() ? 9999 : this.props.zIndex,
     }
 
     return (
       <Container
-        className={styles.Block} ref={this.ref}
+        className={styles.Block}
+        ref={this.ref}
         onMouseEnter={this.handleMouseEnter}
         onMouseLeave={this.handleMouseLeave}
         onClick={this.handleMouseEnter}
-        style={this.props.container ? commonStyle : {
-          ...commonStyle,
-          background: this.isActive() ? '#eeeeee' : 'inherit',
-          boxShadow: this.isActive() ? 'var(--shadow-light)' : 'inherit'
-        }}>
+        style={
+          this.props.container
+            ? commonStyle
+            : {
+                ...commonStyle,
+                background: this.isActive() ? '#eeeeee' : 'inherit',
+                boxShadow: this.isActive() ? 'var(--shadow-light)' : 'inherit',
+              }
+        }>
         <span className={styles.DebugId}>{this.props.data.blockId}</span>
-        <div className={classes(
-          styles.Handle,
-          (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
-          styles.DragArea,
-          this.state.moving && styles.DragAreaMoving)}>
+        <div
+          className={classes(
+            styles.Handle,
+            (this.props.readOnly || !this.state.mouseIsInside) &&
+              styles.HandleHide,
+            styles.DragArea,
+            this.state.moving && styles.DragAreaMoving
+          )}>
           <IconDragHandle />
         </div>
-        {
-          typeof this.props.onExpand === 'function' ?
-            <div className={classes(
+        {typeof this.props.onExpand === 'function' ? (
+          <div
+            className={classes(
               styles.Handle,
-              (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
-              styles.ExpandArea)}
+              (this.props.readOnly || !this.state.mouseIsInside) &&
+                styles.HandleHide,
+              styles.ExpandArea
+            )}
             onClick={this.props.onExpand}>
-              <IconExpand />
-            </div> : <></>
-        }
-        <div className={classes(
-          styles.Handle,
-          (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
-          styles.ResizeArea)}>
+            <IconExpand />
+          </div>
+        ) : (
+          <></>
+        )}
+        <div
+          className={classes(
+            styles.Handle,
+            (this.props.readOnly || !this.state.mouseIsInside) &&
+              styles.HandleHide,
+            styles.ResizeArea
+          )}>
           <IconDragHandle />
         </div>
-        {
-          typeof this.props.onRemove === 'function' ?
-            <div className={classes(
+        {typeof this.props.onRemove === 'function' ? (
+          <div
+            className={classes(
               styles.Handle,
-              (this.props.readOnly || !this.state.mouseIsInside) && styles.HandleHide,
-              styles.RemoveArea)}
+              (this.props.readOnly || !this.state.mouseIsInside) &&
+                styles.HandleHide,
+              styles.RemoveArea
+            )}
             onClick={this.props.onRemove}>
-              <IconCross />
-            </div> : <></>
-        }
-        <div className={styles.ContentArea} style={{
-          maxHeight: window.innerHeight - this.state.position.y - dragHandleSize
-        }}>
-          {
-            this.props.children
-              ? this.props.children({
-                readOnly: this.props.readOnly,
-                onInteractionStart: this.handleContentInteractionStart,
-                onInteractionEnd: this.handleContentInteractionEnd,
-                width: this.state.width,
-                mouseIsInside: this.state.mouseIsInside
-              })
-              : <></>}
+            <IconCross />
+          </div>
+        ) : (
+          <></>
+        )}
+        <div
+          className={styles.ContentArea}
+          style={{
+            maxHeight:
+              window.innerHeight - this.state.position.y - dragHandleSize,
+          }}>
+          {this.props.children ? (
+            this.props.children({
+              readOnly: this.props.readOnly,
+              onInteractionStart: this.handleContentInteractionStart,
+              onInteractionEnd: this.handleContentInteractionEnd,
+              width: this.state.width,
+              mouseIsInside: this.state.mouseIsInside,
+            })
+          ) : (
+            <></>
+          )}
         </div>
       </Container>
     )

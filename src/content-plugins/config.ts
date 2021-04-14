@@ -20,25 +20,25 @@ interface ContentConfig {
 export const config: ContentConfig = {
   defaultType: 'pmtext',
   contentTypeRegistry: {
-    'image': {
+    image: {
       name: 'Image',
-      component: Image
+      component: Image,
     },
-    'pmtext': {
+    pmtext: {
       name: 'PMText',
-      component: PMText
+      component: PMText,
     },
-    'status': {
+    status: {
       name: 'Status',
-      component: Status
+      component: Status,
     },
-    'text': {
+    text: {
       name: 'Text',
-      component: Text
+      component: Text,
     },
-    'baby': {
+    baby: {
       name: 'Baby',
-      component: Baby
-    }
-  }
+      component: Baby,
+    },
+  },
 }

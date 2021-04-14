@@ -4,7 +4,9 @@ import { stylesheet } from 'typestyle'
 import { Content } from '../content-plugins'
 import { DatabaseInterface } from './interfaces'
 
-const noop = function () { return }
+const noop = function () {
+  return
+}
 
 interface Props {
   db: DatabaseInterface
@@ -21,34 +23,34 @@ const styles = stylesheet({
         color: '#000',
         opacity: 0.7,
         fontSize: '.7rem',
-        fontWeight: 'normal'
+        fontWeight: 'normal',
       },
       '&>hr': {
         border: '1px solid #ddd',
         $nest: {
           '&:last-of-type': {
-            display: 'none'
-          }
-        }
+            display: 'none',
+          },
+        },
       },
       '&>p': {
         fontSize: '.8rem',
         padding: '.5rem',
-        margin: 0
-      }
-    }
+        margin: 0,
+      },
+    },
   },
   InsightItem: {
     maxHeight: 200,
     overflow: 'hidden',
     borderRadius: 'var(--border-radius-large)',
     '&:hover': {
-      background: 'var(--bg-hover)'
-    }
-  }
+      background: 'var(--bg-hover)',
+    },
+  },
 })
 
-export const InsightTool: React.FunctionComponent<Props> = (props) => {
+export const InsightTool: React.FunctionComponent<Props> = props => {
   const parentConcepts = useMemo(() => {
     const allConcepts = props.db.getAllConcepts()
     return allConcepts.filter(concept => {
@@ -56,15 +58,16 @@ export const InsightTool: React.FunctionComponent<Props> = (props) => {
     })
   }, [props.currentConceptId, props.db.getLastUpdatedTime()])
 
-  return <div className={styles.Insight}>
-    {
-      parentConcepts.length ?
+  return (
+    <div className={styles.Insight}>
+      {parentConcepts.length ? (
         <>
           <h3>Embedded in</h3>
-          {
-            parentConcepts.map(concept => {
-              return <React.Fragment key={concept.id}>
-                <div className={styles.InsightItem}
+          {parentConcepts.map(concept => {
+            return (
+              <React.Fragment key={concept.id}>
+                <div
+                  className={styles.InsightItem}
                   onClick={() => props.onExpand(concept.id)}>
                   <Content
                     contentType={concept.summary.type}
@@ -77,15 +80,17 @@ export const InsightTool: React.FunctionComponent<Props> = (props) => {
                       onReplace: noop,
                       onInteractionStart: noop,
                       onInteractionEnd: noop,
-                    }} />
+                    }}
+                  />
                 </div>
                 <hr />
               </React.Fragment>
-            })
-          }
-        </> :
+            )
+          })}
+        </>
+      ) : (
         <p>This concept is not embedded in any concepts.</p>
-    }
-  </div>
-
+      )}
+    </div>
+  )
 }

@@ -28,7 +28,7 @@ const pencil: StrokeConfig = {
   shadowBlur: 1,
   shadowColor: 'rgb(0, 0, 0)',
   strokeStyle: 'black',
-  compositeOperation: 'source-over'
+  compositeOperation: 'source-over',
 }
 
 const eraser: StrokeConfig = {
@@ -36,7 +36,7 @@ const eraser: StrokeConfig = {
   shadowBlur: 0,
   shadowColor: 'rgb(0, 0, 0)',
   strokeStyle: 'white',
-  compositeOperation: 'destination-out'
+  compositeOperation: 'destination-out',
 }
 
 function resizeCanvas(el: HTMLCanvasElement, width: number, height: number) {
@@ -53,7 +53,7 @@ function clearCanvas(el: HTMLCanvasElement) {
 function calcMidPoint(p1: Point, p2: Point): Point {
   return {
     x: (p1.x + p2.x) / 2,
-    y: (p1.y + p2.y) / 2
+    y: (p1.y + p2.y) / 2,
   }
 }
 
@@ -82,8 +82,7 @@ function drawStroke(ctx: CanvasRenderingContext2D, path: Stroke) {
     const midPoint = calcMidPoint(lastPoint, currentPoint)
 
     /** To midPoint, using lastPoint as the control point. */
-    ctx.quadraticCurveTo(
-      lastPoint.x, lastPoint.y, midPoint.x, midPoint.y)
+    ctx.quadraticCurveTo(lastPoint.x, lastPoint.y, midPoint.x, midPoint.y)
   }
 
   /** Draw to the last point. */
@@ -106,15 +105,15 @@ function drawEraser(ctx: CanvasRenderingContext2D, position: Point) {
 }
 
 const styles = stylesheet({
-  'InkItemContainer': {
+  InkItemContainer: {
     width: '100%',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 22
+    padding: 22,
   },
-  'InkItem': {
+  InkItem: {
     width: 40,
     height: 40,
     $nest: {
@@ -126,20 +125,20 @@ const styles = stylesheet({
         borderRadius: 8,
         outline: 'none',
         fill: '#c5c5c5',
-        transition: 'fill 0.1s, background 0.1s'
+        transition: 'fill 0.1s, background 0.1s',
       },
       '&>button:hover': {
-        background: 'var(--bg-hover)'
-      }
-    }
+        background: 'var(--bg-hover)',
+      },
+    },
   },
   'InkItem--Active': {
     $nest: {
       '&>button': {
-        fill: '#000'
-      }
-    }
-  }
+        fill: '#000',
+      },
+    },
+  },
 })
 
 export class CanvasTool extends React.Component<CanvasProps, CanvasState> {
@@ -165,7 +164,7 @@ export class CanvasTool extends React.Component<CanvasProps, CanvasState> {
 
     this.state = {
       drawState: 'can_edit',
-      strokeConfig: 'pencil'
+      strokeConfig: 'pencil',
     }
   }
 
@@ -176,21 +175,24 @@ export class CanvasTool extends React.Component<CanvasProps, CanvasState> {
   commitStroke(): void {
     this.strokes.push(this.hotStroke)
     this.hotStroke = {
-      config: this.state.strokeConfig === 'pencil' ?
-        pencil : eraser, points: []
+      config: this.state.strokeConfig === 'pencil' ? pencil : eraser,
+      points: [],
     }
   }
 
   resizeAllCanvases = (): void => {
     resizeCanvas(this.refCursor.current, window.innerWidth, window.innerHeight)
     resizeCanvas(this.refTmp.current, window.innerWidth, window.innerHeight)
-    resizeCanvas(this.refCommited.current,
-      window.innerWidth, window.innerHeight)
+    resizeCanvas(
+      this.refCommited.current,
+      window.innerWidth,
+      window.innerHeight
+    )
   }
 
   onResizeWindow = (): void => {
     /**
-     * A canvas is cleared by the browser when its size changed, 
+     * A canvas is cleared by the browser when its size changed,
      * so a re-draw is needed.
      * TODO: Throttle re-draw.
      */
@@ -239,7 +241,7 @@ export class CanvasTool extends React.Component<CanvasProps, CanvasState> {
         drawStroke(this.ctxTmp, this.hotStroke)
       } else {
         /**
-         * HACK: Since the eraser uses 'destination-out', it must be drawn 
+         * HACK: Since the eraser uses 'destination-out', it must be drawn
          * on the ctxCommited to take effect.
          */
         drawStroke(this.ctxCommited, this.hotStroke)
@@ -261,12 +263,14 @@ export class CanvasTool extends React.Component<CanvasProps, CanvasState> {
 
   onMouseMove = (msg: UnifiedEventInfo): void => {
     clearCanvas(this.refCursor.current)
-    if ((this.state.drawState === 'can_draw'
-      || this.state.drawState === 'drawing')
-      && this.state.strokeConfig === 'eraser')
+    if (
+      (this.state.drawState === 'can_draw' ||
+        this.state.drawState === 'drawing') &&
+      this.state.strokeConfig === 'eraser'
+    )
       drawEraser(this.ctxCursor, {
         x: msg.offsetX,
-        y: msg.offsetY
+        y: msg.offsetY,
       })
   }
 
@@ -275,7 +279,8 @@ export class CanvasTool extends React.Component<CanvasProps, CanvasState> {
     this.refCommited = { current: document.createElement('canvas') }
     this.refCursor = { current: document.createElement('canvas') }
 
-    const canvasStyle = '\
+    const canvasStyle =
+      '\
       position: absolute;\
       top: 0;\
       left: 0;\
@@ -286,7 +291,7 @@ export class CanvasTool extends React.Component<CanvasProps, CanvasState> {
     this.refCommited.current.setAttribute('style', canvasStyle)
     this.refCursor.current.setAttribute('style', canvasStyle)
 
-    this.props.scheduleCanvasInsertion((containerEl) => {
+    this.props.scheduleCanvasInsertion(containerEl => {
       containerEl.append(this.refTmp.current)
       containerEl.append(this.refCommited.current)
       containerEl.append(this.refCursor.current)
@@ -334,45 +339,54 @@ export class CanvasTool extends React.Component<CanvasProps, CanvasState> {
 
   render(): JSX.Element {
     console.log('canvas: render')
-    const cursor = this.state.drawState === 'can_draw'
-      || this.state.drawState === 'drawing'
-      ? this.state.strokeConfig === 'eraser'
-        ? 'none' : 'crosshair'
-      : 'auto'
-    return <>
-      {
-        (
-          this.state.drawState === 'can_draw' ||
-          this.state.drawState === 'drawing'
-        ) ?
-          (
-            <div className={styles.InkItemContainer}
-              /** HACK: Prevent drawing under toolbar. */
-              onMouseDown={(e) => { e.stopPropagation() }}>
-              <style jsx>{`
-                :global(body) {
-                  cursor: ${cursor}
-                }
-              `}</style>
-              <div className={classes(
+    const cursor =
+      this.state.drawState === 'can_draw' || this.state.drawState === 'drawing'
+        ? this.state.strokeConfig === 'eraser'
+          ? 'none'
+          : 'crosshair'
+        : 'auto'
+    return (
+      <>
+        {this.state.drawState === 'can_draw' ||
+        this.state.drawState === 'drawing' ? (
+          <div
+            className={styles.InkItemContainer}
+            /** HACK: Prevent drawing under toolbar. */
+            onMouseDown={e => {
+              e.stopPropagation()
+            }}>
+            <style jsx>{`
+              :global(body) {
+                cursor: ${cursor};
+              }
+            `}</style>
+            <div
+              className={classes(
                 styles.InkItem,
-                this.state.strokeConfig === 'pencil' ?
-                  styles['InkItem--Active'] : undefined)}>
-                <button onClick={this.toggleStroke}>
-                  <IconPencil />
-                </button>
-              </div>
-              <div className={classes(
-                styles.InkItem,
-                this.state.strokeConfig === 'eraser' ?
-                  styles['InkItem--Active'] : undefined)}>
-                <button onClick={this.toggleStroke}>
-                  <IconEraser />
-                </button>
-              </div>
+                this.state.strokeConfig === 'pencil'
+                  ? styles['InkItem--Active']
+                  : undefined
+              )}>
+              <button onClick={this.toggleStroke}>
+                <IconPencil />
+              </button>
             </div>
-          ) : <></>
-      }
-    </>
+            <div
+              className={classes(
+                styles.InkItem,
+                this.state.strokeConfig === 'eraser'
+                  ? styles['InkItem--Active']
+                  : undefined
+              )}>
+              <button onClick={this.toggleStroke}>
+                <IconEraser />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <></>
+        )}
+      </>
+    )
   }
 }

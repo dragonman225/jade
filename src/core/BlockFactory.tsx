@@ -13,8 +13,8 @@ const styles = stylesheet({
     top: 0,
     right: 0,
     bottom: 0,
-    left: 0
-  }
+    left: 0,
+  },
 })
 
 export class BlockFactory extends React.Component<Props> {
@@ -26,14 +26,16 @@ export class BlockFactory extends React.Component<Props> {
     const offset = getMouseOffset(e)
     this.props.onRequestCreate({
       x: offset.x,
-      y: offset.y
+      y: offset.y,
     })
   }
 
   render(): JSX.Element {
     return (
-      <div className={styles.BlockFactory}
-        onDoubleClick={this.handleDoubleClick} />
+      <div
+        className={styles.BlockFactory}
+        onDoubleClick={this.handleDoubleClick}
+      />
     )
   }
 }

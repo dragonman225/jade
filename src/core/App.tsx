@@ -2,7 +2,12 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import {
-  useEffect, useReducer, useMemo, useCallback, useState, useRef
+  useEffect,
+  useReducer,
+  useMemo,
+  useCallback,
+  useState,
+  useRef,
 } from 'react'
 import { cssRaw, stylesheet } from 'typestyle'
 import { createReducer } from './reducer'
@@ -18,7 +23,11 @@ import { Overlay } from './component/Overlay'
 import { Content } from '../content-plugins'
 import { PubSub } from './lib/pubsub'
 import {
-  OriginTopRight, OriginTopLeft, DatabaseInterface, State4, OriginBottomLeft
+  OriginTopRight,
+  OriginTopLeft,
+  DatabaseInterface,
+  State4,
+  OriginBottomLeft,
 } from './interfaces'
 import { Concept } from './interfaces/concept'
 import { InsightTool } from './InsightTool'
@@ -28,11 +37,14 @@ const initialConcepts = require('../initial-concepts.json')
 function loadAppState(db: DatabaseInterface): State4 {
   console.log('Loading app state.')
   if (!db.isValid()) {
-    db.init({
-      debugging: false,
-      homeConceptId: 'home',
-      viewingConceptId: 'home'
-    }, initialConcepts)
+    db.init(
+      {
+        debugging: false,
+        homeConceptId: 'home',
+        viewingConceptId: 'home',
+      },
+      initialConcepts
+    )
   }
   const settings = db.getSettings()
   const viewingConcept = db.getConcept(settings.viewingConceptId)
@@ -41,7 +53,7 @@ function loadAppState(db: DatabaseInterface): State4 {
     debugging: settings.debugging,
     homeConceptId: settings.homeConceptId,
     viewingConcept,
-    viewingConceptDetails
+    viewingConceptDetails,
   }
 }
 
@@ -80,19 +92,19 @@ const styles = stylesheet({
       rgba(15, 15, 15, 0.1) 0px 0px 3px, 
       rgba(15, 15, 15, 0.1) 0px 0px 9px`,
     '--border-radius-small': '.3rem',
-    '--border-radius-large': '.5rem'
+    '--border-radius-large': '.5rem',
   },
   Playground: {
     position: 'relative',
-    height: '100%'
-  }
+    height: '100%',
+  },
 })
 
-export const App: React.FunctionComponent<Props> = (props) => {
+export const App: React.FunctionComponent<Props> = props => {
   const messenger = useMemo(() => new PubSub(), [])
   const readOnlyMessenger = {
     subscribe: messenger.subscribe,
-    unsubscribe: messenger.unsubscribe
+    unsubscribe: messenger.unsubscribe,
   }
   const appStateReducer = useCallback(createReducer(props.db), [])
   const initialState = useMemo(() => loadAppState(props.db), [])
@@ -106,8 +118,8 @@ export const App: React.FunctionComponent<Props> = (props) => {
   }
   const unlockInteraction = (requester: string) => {
     console.log('app: lock', requester, 'requests unlock')
-    if (interactionLockOwner === requester ||
-      interactionLockOwner === '') setInteractionLockOwner('')
+    if (interactionLockOwner === requester || interactionLockOwner === '')
+      setInteractionLockOwner('')
     /* HACK: if I don't check interactionLockOwner === '', 
        although interactionLockOwner is '', blocks are readOnly */
   }
@@ -146,42 +158,43 @@ export const App: React.FunctionComponent<Props> = (props) => {
 
   const replaceContentType = (blockCard: Concept, newType: string) => {
     dispatchAction({
-      type: 'concept::datachange', data: {
+      type: 'concept::datachange',
+      data: {
         id: blockCard.id,
         type: newType,
-        content: { initialized: false }
-      }
+        content: { initialized: false },
+      },
     })
   }
 
   const [headerToolState, setHeaderToolState] = useState({
     origin: { type: 'TL', top: 0, left: 0 } as OriginTopLeft,
     position: { x: window.innerWidth / 2 - 250, y: 20 },
-    width: 500
+    width: 500,
   })
 
   const [recentToolState, setRecentToolState] = useState({
     origin: { type: 'TR', top: 0, right: 0 } as OriginTopRight,
     position: { x: -20, y: 20 },
-    width: 500
+    width: 500,
   })
 
   const [searchToolState, setSearchToolState] = useState({
     origin: { type: 'TL', top: 0, left: 0 } as OriginTopLeft,
     position: { x: 20, y: 20 },
-    width: 300
+    width: 300,
   })
 
   const [canvasToolState, setCanvasToolState] = useState({
     origin: { type: 'TR', top: 0, right: 0 } as OriginTopRight,
     position: { x: -20, y: 200 },
-    width: 50
+    width: 50,
   })
 
   const [insightToolState, setInsightToolState] = useState({
     origin: { type: 'BL', bottom: 0, left: 0 } as OriginBottomLeft,
     position: { x: 20, y: -20 },
-    width: 170
+    width: 170,
   })
 
   const currentConcept = state.viewingConcept
@@ -196,41 +209,46 @@ export const App: React.FunctionComponent<Props> = (props) => {
       <div className={styles.Playground}>
         <InputContainer messenger={messenger}>
           <Overlay ref={overlayRef} />
-          <BlockFactory onRequestCreate={position => {
-            dispatchAction({ type: 'concept::create', data: { position } })
-          }} />
+          <BlockFactory
+            onRequestCreate={position => {
+              dispatchAction({ type: 'concept::create', data: { position } })
+            }}
+          />
           <Block
             messenger={messenger}
             readOnly={false}
             data={{
               blockId: 'SearchTool',
               position: searchToolState.position,
-              width: searchToolState.width
+              width: searchToolState.width,
             }}
             origin={searchToolState.origin}
             zIndex={2}
             container={Box}
-            onResize={(width) => {
+            onResize={width => {
               setSearchToolState({
                 ...searchToolState,
-                width
+                width,
               })
             }}
-            onMove={(position) => {
+            onMove={position => {
               setSearchToolState({
                 ...searchToolState,
-                position
+                position,
               })
             }}
             key="SearchTool">
-            {
-              (_contentProps) => <SearchTool createOverlay={createOverlay}
-                db={props.db} onExpand={handleExpand}
+            {_contentProps => (
+              <SearchTool
+                createOverlay={createOverlay}
+                db={props.db}
+                onExpand={handleExpand}
                 messenger={messenger}
                 onRequestLink={data => {
                   dispatchAction({ type: 'link::create', data })
-                }} />
-            }
+                }}
+              />
+            )}
           </Block>
           <Block
             messenger={messenger}
@@ -238,43 +256,46 @@ export const App: React.FunctionComponent<Props> = (props) => {
             data={{
               blockId: 'HeaderTool',
               position: headerToolState.position,
-              width: headerToolState.width
+              width: headerToolState.width,
             }}
             origin={headerToolState.origin}
             zIndex={2}
             container={Box}
-            onResize={(width) => {
+            onResize={width => {
               setHeaderToolState({
                 ...headerToolState,
-                width
+                width,
               })
             }}
-            onMove={(position) => {
+            onMove={position => {
               setHeaderToolState({
                 ...headerToolState,
-                position
+                position,
               })
             }}
             key="HeaderTool">
-            {
-              (_contentProps) => <HeaderTool
+            {_contentProps => (
+              <HeaderTool
                 concept={currentConcept}
                 readOnlyMessenger={readOnlyMessenger}
-                onHomeClick={() => { handleExpand(state.homeConceptId) }}
-                onConceptEdit={(data) => {
+                onHomeClick={() => {
+                  handleExpand(state.homeConceptId)
+                }}
+                onConceptEdit={data => {
                   dispatchAction({
                     type: 'concept::datachange',
                     data: {
                       id: currentConcept.id,
                       type: currentConcept.summary.type,
-                      content: data
-                    }
+                      content: data,
+                    },
                   })
                 }}
-                onConceptReplace={(typeId) => {
+                onConceptReplace={typeId => {
                   replaceContentType(currentConcept, typeId)
-                }} />
-            }
+                }}
+              />
+            )}
           </Block>
           <Block
             messenger={messenger}
@@ -282,34 +303,35 @@ export const App: React.FunctionComponent<Props> = (props) => {
             data={{
               blockId: 'RecentTool',
               position: recentToolState.position,
-              width: recentToolState.width
+              width: recentToolState.width,
             }}
             origin={recentToolState.origin}
             zIndex={2}
             container={Box}
-            onResize={(width) => {
+            onResize={width => {
               setRecentToolState({
                 ...recentToolState,
-                width
+                width,
               })
             }}
-            onMove={(position) => {
+            onMove={position => {
               setRecentToolState({
                 ...recentToolState,
-                position
+                position,
               })
             }}
             key="RecentTool">
-            {
-              (contentProps) => <RecentTool
+            {contentProps => (
+              <RecentTool
                 width={contentProps.width}
                 history={expandHistory}
                 historySize={historySize}
                 current={last}
                 db={props.db}
                 messageBus={messenger}
-                onExpand={handleExpand} />
-            }
+                onExpand={handleExpand}
+              />
+            )}
           </Block>
           <Block
             messenger={messenger}
@@ -317,137 +339,155 @@ export const App: React.FunctionComponent<Props> = (props) => {
             data={{
               blockId: 'InsightTool',
               position: insightToolState.position,
-              width: insightToolState.width
+              width: insightToolState.width,
             }}
             origin={insightToolState.origin}
             zIndex={2}
             container={Box}
-            onResize={(width) => {
+            onResize={width => {
               setInsightToolState({
                 ...insightToolState,
-                width
+                width,
               })
             }}
-            onMove={(position) => {
+            onMove={position => {
               setInsightToolState({
                 ...insightToolState,
-                position
+                position,
               })
             }}
             key="InsightTool">
-            {
-              (_contentProps) => <InsightTool
+            {_contentProps => (
+              <InsightTool
                 db={props.db}
                 currentConceptId={currentConcept.id}
-                onExpand={handleExpand} />
-            }
+                onExpand={handleExpand}
+              />
+            )}
           </Block>
-          {
-            state.viewingConceptDetails.map(result => {
-              const subConcept = result.concept
-              const key = 'ConceptRef-' + result.link.id
-              return (
-                <Block
-                  messenger={messenger}
-                  readOnly={isInteractionLocked(key)}
-                  data={{
-                    blockId: subConcept.id,
-                    position: result.link.position,
-                    width: result.link.width
-                  }}
-                  origin={{ type: 'TL', top: 0, left: 0 }}
-                  zIndex={1}
-                  onResize={(width) => {
-                    dispatchAction({
-                      type: 'containslink::resize',
-                      data: { id: result.link.id, width }
-                    })
-                  }}
-                  onMove={(position) => {
-                    dispatchAction({
-                      type: 'containslink::move',
-                      data: { id: result.link.id, position }
-                    })
-                  }}
-                  onRemove={() => {
-                    dispatchAction({
-                      type: 'link::remove',
-                      data: { id: result.link.id }
-                    })
-                  }}
-                  onExpand={() => { handleExpand(subConcept.id) }}
-                  onInteractionStart={() => { lockInteraction(key) }}
-                  onInteractionEnd={() => { unlockInteraction(key) }}
-                  key={key}>
-                  {
-                    (contentProps) => <Content
-                      contentType={subConcept.summary.type}
-                      contentProps={{
-                        ...contentProps,
-                        viewMode: 'Block',
-                        content: subConcept.summary.data,
-                        messageBus: readOnlyMessenger,
-                        onChange: content => {
-                          dispatchAction({
-                            type: 'concept::datachange',
-                            data: {
-                              id: subConcept.id,
-                              type: subConcept.summary.type,
-                              content
-                            }
-                          })
-                        },
-                        onReplace: type => {
-                          replaceContentType(subConcept, type)
-                        },
-                        createOverlay
-                      }} />
-                  }
-                </Block>
-              )
-            })
-          }
+          {state.viewingConceptDetails.map(result => {
+            const subConcept = result.concept
+            const key = 'ConceptRef-' + result.link.id
+            return (
+              <Block
+                messenger={messenger}
+                readOnly={isInteractionLocked(key)}
+                data={{
+                  blockId: subConcept.id,
+                  position: result.link.position,
+                  width: result.link.width,
+                }}
+                origin={{ type: 'TL', top: 0, left: 0 }}
+                zIndex={1}
+                onResize={width => {
+                  dispatchAction({
+                    type: 'containslink::resize',
+                    data: { id: result.link.id, width },
+                  })
+                }}
+                onMove={position => {
+                  dispatchAction({
+                    type: 'containslink::move',
+                    data: { id: result.link.id, position },
+                  })
+                }}
+                onRemove={() => {
+                  dispatchAction({
+                    type: 'link::remove',
+                    data: { id: result.link.id },
+                  })
+                }}
+                onExpand={() => {
+                  handleExpand(subConcept.id)
+                }}
+                onInteractionStart={() => {
+                  lockInteraction(key)
+                }}
+                onInteractionEnd={() => {
+                  unlockInteraction(key)
+                }}
+                key={key}>
+                {contentProps => (
+                  <Content
+                    contentType={subConcept.summary.type}
+                    contentProps={{
+                      ...contentProps,
+                      viewMode: 'Block',
+                      content: subConcept.summary.data,
+                      messageBus: readOnlyMessenger,
+                      onChange: content => {
+                        dispatchAction({
+                          type: 'concept::datachange',
+                          data: {
+                            id: subConcept.id,
+                            type: subConcept.summary.type,
+                            content,
+                          },
+                        })
+                      },
+                      onReplace: type => {
+                        replaceContentType(subConcept, type)
+                      },
+                      createOverlay,
+                    }}
+                  />
+                )}
+              </Block>
+            )
+          })}
           <Block
             messenger={messenger}
             readOnly={false}
             data={{
               blockId: 'CanvasTool',
               position: canvasToolState.position,
-              width: canvasToolState.width
+              width: canvasToolState.width,
             }}
             origin={canvasToolState.origin}
             // HACK: Use z-index to hide canvas ctrl block.
-            zIndex={interactionLockOwner === 'canvas' + state.viewingConcept.id
-              ? 2 : -999}
+            zIndex={
+              interactionLockOwner === 'canvas' + state.viewingConcept.id
+                ? 2
+                : -999
+            }
             container={Box}
-            onResize={(width) => {
+            onResize={width => {
               setCanvasToolState({
                 ...canvasToolState,
-                width
+                width,
               })
             }}
-            onMove={(position) => {
+            onMove={position => {
               setCanvasToolState({
                 ...canvasToolState,
-                position
+                position,
               })
             }}
             key="CanvasTool">
-            {
-              (contentProps) => <CanvasTool
+            {contentProps => (
+              <CanvasTool
                 messenger={messenger}
-                readOnly={isInteractionLocked('canvas' + state.viewingConcept.id)}
+                readOnly={isInteractionLocked(
+                  'canvas' + state.viewingConcept.id
+                )}
                 value={currentConcept.drawing}
-                onChange={data => dispatchAction({ type: 'concept::drawingchange', data })}
-                onInteractionStart={() => { lockInteraction('canvas' + state.viewingConcept.id) }}
-                onInteractionEnd={() => { unlockInteraction('canvas' + state.viewingConcept.id) }}
-                scheduleCanvasInsertion={(cb) => {
+                onChange={data =>
+                  dispatchAction({ type: 'concept::drawingchange', data })
+                }
+                onInteractionStart={() => {
+                  lockInteraction('canvas' + state.viewingConcept.id)
+                }}
+                onInteractionEnd={() => {
+                  unlockInteraction('canvas' + state.viewingConcept.id)
+                }}
+                scheduleCanvasInsertion={cb => {
                   cb(overlayRef.current)
                 }}
                 mouseIsInsideBlock={contentProps.mouseIsInside}
                 /** Use key to remount Canvas when currentBlockCard changes. */
-                key={'canvas-' + state.viewingConcept.id} />
-            }
+                key={'canvas-' + state.viewingConcept.id}
+              />
+            )}
           </Block>
         </InputContainer>
       </div>
