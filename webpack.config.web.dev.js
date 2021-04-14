@@ -1,5 +1,4 @@
 const path = require('path')
-const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
@@ -8,25 +7,22 @@ module.exports = {
   /** target: "web" is default. */
   context: process.cwd(), // to automatically find tsconfig.json
   entry: {
-    'web-index': './src/web-index.ts'
+    'web-index': './src/web-index.ts',
   },
   output: {
     path: path.resolve(__dirname, 'build/web'),
     filename: '[name].js',
-    publicPath: '/'
+    publicPath: '/',
   },
   plugins: [
     new ForkTsCheckerWebpackPlugin({
       eslint: {
-        files: './src/**/*.{ts,tsx,js,jsx}'
-      }
-    }),
-    new ForkTsCheckerNotifierWebpackPlugin({
-      title: 'TypeScript Problems', excludeWarnings: false
+        files: './src/**/*.{ts,tsx,js,jsx}',
+      },
     }),
     new HtmlWebpackPlugin({
       inject: true,
-      template: 'src/index.html'
+      template: 'src/index.html',
     }),
   ],
   module: {
@@ -37,29 +33,25 @@ module.exports = {
           {
             loader: 'babel-loader',
             options: {
-              'presets': [
-                '@babel/env',
-                '@babel/typescript',
-                '@babel/react'
-              ],
-              'plugins': [
+              presets: ['@babel/env', '@babel/typescript', '@babel/react'],
+              plugins: [
                 '@babel/proposal-class-properties',
                 '@babel/proposal-object-rest-spread',
-                'styled-jsx/babel'
-              ]
-            }
-          }
-        ]
-      }
-    ]
+                'styled-jsx/babel',
+              ],
+            },
+          },
+        ],
+      },
+    ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js']
+    extensions: ['.tsx', '.ts', '.js'],
   },
   devtool: 'inline-source-map',
   devServer: {
     clientLogLevel: 'warning',
     historyApiFallback: true,
-    stats: 'errors-only'
-  }
+    stats: 'errors-only',
+  },
 }
