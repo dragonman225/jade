@@ -94,15 +94,21 @@ export interface State3 {
 
 /** App state v4. */
 export interface State4 {
+  /** Persistent, load from `DatabaseInterface.getSettings()`. */
   debugging: boolean
-  homeConceptId: ConceptId // The user does not want to get lost!
+  /** Persistent, load from `DatabaseInterface.getSettings()`. */
+  homeConceptId: ConceptId
+  /** Persistent, load from `DatabaseInterface.getConcept()`. */
   viewingConcept: Concept
+  /** Persistent, load from `Concept.details()`. */
   viewingConceptDetails: ConceptDetail[]
+  /** Volatile. */
+  expandHistory: (ConceptId | undefined)[]
 }
 
 export interface Settings {
   debugging: boolean
-  homeConceptId: ConceptId // The user does not want to get lost!
+  homeConceptId: ConceptId
   viewingConceptId: ConceptId
 }
 

@@ -190,6 +190,11 @@ export function createReducer(db: DatabaseInterface) {
       }
       case 'navigation::expand': {
         const toConceptId = action.data.id
+
+        if (toConceptId === state.viewingConcept.id) {
+          return state
+        }
+
         db.saveSettings({
           debugging: state.debugging,
           homeConceptId: state.homeConceptId,
@@ -200,6 +205,7 @@ export function createReducer(db: DatabaseInterface) {
           ...state,
           viewingConcept: concept,
           viewingConceptDetails: Concept.details(concept, db),
+          expandHistory: state.expandHistory.slice(1).concat(toConceptId),
         }
       }
       case 'link::create': {

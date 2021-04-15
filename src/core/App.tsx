@@ -29,7 +29,7 @@ import {
   State4,
   OriginBottomLeft,
 } from './interfaces'
-import { Concept } from './interfaces/concept'
+import { Concept, ConceptId } from './interfaces/concept'
 import { InsightTool } from './InsightTool'
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const initialConcepts = require('../initial-concepts.json')
@@ -54,6 +54,10 @@ function loadAppState(db: DatabaseInterface): State4 {
     homeConceptId: settings.homeConceptId,
     viewingConcept,
     viewingConceptDetails,
+    expandHistory: new Array(99).concat(viewingConcept.id) as (
+      | ConceptId
+      | undefined
+    )[],
   }
 }
 
@@ -141,17 +145,11 @@ export const App: React.FunctionComponent<Props> = props => {
     }
   }, [])
 
-  const historySize = 15
-  const [expandHistory, setExpandHistory] = useState([state.viewingConcept.id])
-  const [last, setLast] = useState(0)
+  console.log('app render:', state.expandHistory)
 
-  const handleExpand = (blockCardId: string) => {
-    if (blockCardId !== expandHistory[last]) {
-      setLast(last + 1)
-      expandHistory[(last + 1) % historySize] = blockCardId
-      setExpandHistory(expandHistory)
-      console.log('app: history:', expandHistory)
-      dispatchAction({ type: 'navigation::expand', data: { id: blockCardId } })
+  const handleExpand = (toConceptId: string) => {
+    if (toConceptId !== state.viewingConcept.id) {
+      dispatchAction({ type: 'navigation::expand', data: { id: toConceptId } })
       resetInteractionLockOwner()
     }
   }
@@ -324,9 +322,9 @@ export const App: React.FunctionComponent<Props> = props => {
             {contentProps => (
               <RecentTool
                 width={contentProps.width}
-                history={expandHistory}
-                historySize={historySize}
-                current={last}
+                history={state.expandHistory}
+                historySize={state.expandHistory.length}
+                current={state.expandHistory.length - 1}
                 db={props.db}
                 messageBus={messenger}
                 onExpand={handleExpand}
