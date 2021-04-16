@@ -9,9 +9,15 @@ import {
 import { PMTextFactory } from './PMText'
 import { ImageFactory } from './Image'
 import { SearchToolFactory } from './SearchTool'
+import { HeaderToolFactory } from './HeaderTool'
 
 class AlexFactoryRegistry implements FactoryRegistry {
-  private factories = [PMTextFactory, ImageFactory, SearchToolFactory]
+  private factories = [
+    PMTextFactory,
+    ImageFactory,
+    SearchToolFactory,
+    HeaderToolFactory,
+  ]
   private default = PMTextFactory
 
   getDefault = (): Factory => this.default

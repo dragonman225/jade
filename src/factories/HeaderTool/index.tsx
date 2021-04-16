@@ -1,8 +1,11 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
 import { IconHome } from '../../core/component/IconHome'
-import { Content } from '..'
-import { ContentProps, InitializedConceptData } from '../../core/interfaces'
+import {
+  ContentProps,
+  Factory,
+  InitializedConceptData,
+} from '../../core/interfaces'
 
 type Props = ContentProps<undefined>
 
@@ -48,7 +51,7 @@ const styles = stylesheet({
   },
 })
 
-export const HeaderTool: React.FunctionComponent<Props> = props => {
+const HeaderTool: React.FunctionComponent<Props> = props => {
   return (
     <div className={styles.HeaderTool}>
       <div className={styles.HomeBtnContainer}>
@@ -71,6 +74,7 @@ export const HeaderTool: React.FunctionComponent<Props> = props => {
             viewMode: 'CardTitle',
             readOnly: false,
             app: props.app,
+            factoryRegistry: props.factoryRegistry,
             database: props.database,
             content: props.app.state.viewingConcept.summary.data,
             messageBus: props.messageBus,
@@ -100,14 +104,19 @@ export const HeaderTool: React.FunctionComponent<Props> = props => {
             },
             key: 'CardTitle-' + props.app.state.viewingConcept.id,
           }
-          return (
-            <Content
-              contentType={props.app.state.viewingConcept.summary.type}
-              contentProps={contentProps}
-            />
+          return props.factoryRegistry.produceConcept(
+            props.app.state.viewingConcept.summary.type,
+            contentProps
           )
         })()}
       </div>
     </div>
   )
+}
+
+export const HeaderToolFactory: Factory = {
+  id: 'headertool',
+  name: 'Header Tool',
+  pinned: true,
+  component: HeaderTool,
 }
