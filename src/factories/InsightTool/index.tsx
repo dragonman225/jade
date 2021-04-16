@@ -2,13 +2,13 @@ import * as React from 'react'
 import { useMemo } from 'react'
 import { stylesheet } from 'typestyle'
 import { Content } from '..'
-import { ContentProps } from '../../core/interfaces'
+import { ConceptDisplayProps } from '../../core/interfaces'
 
 const noop = function () {
   return
 }
 
-type Props = ContentProps<undefined>
+type Props = ConceptDisplayProps<undefined>
 
 const styles = stylesheet({
   Insight: {

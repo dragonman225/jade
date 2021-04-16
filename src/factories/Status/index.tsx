@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
 import {
-  ContentProps,
+  ConceptDisplayProps,
   PubSubStatusMessage,
   UnifiedEventInfo,
 } from '../../core/interfaces'
@@ -37,7 +37,7 @@ const styles = stylesheet({
   },
 })
 
-type Props = ContentProps<InitializedConceptData>
+type Props = ConceptDisplayProps<InitializedConceptData>
 
 export const Status: React.FunctionComponent<Props> = props => {
   const [statusText, setStatusText] = React.useState<string>('')

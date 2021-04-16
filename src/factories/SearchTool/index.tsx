@@ -6,7 +6,7 @@ import { Box } from '../../core/component/Box'
 import { isPointInRect } from '../../core/lib/utils'
 import { factoryRegistry } from '..'
 import {
-  ContentProps,
+  ConceptDisplayProps,
   Factory,
   UnifiedEventInfo,
   Vec2,
@@ -98,7 +98,7 @@ const styles = stylesheet({
 
 interface SearchItemContentProps
   extends Pick<
-    ContentProps<InitializedConceptData>,
+    ConceptDisplayProps<InitializedConceptData>,
     'viewMode' | 'messageBus' | 'app' | 'database'
   > {
   concept: Concept
@@ -106,7 +106,7 @@ interface SearchItemContentProps
 
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props => {
   const { concept, viewMode, messageBus, app, database } = props
-  return factoryRegistry.produceConcept(concept.summary.type, {
+  return factoryRegistry.createConceptDisplay(concept.summary.type, {
     viewMode,
     readOnly: true,
     content: concept.summary.data,
@@ -129,7 +129,7 @@ const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props
   })
 }
 
-type Props = ContentProps<undefined>
+type Props = ConceptDisplayProps<undefined>
 
 interface S2LBlockValid {
   valid: true

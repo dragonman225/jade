@@ -2,12 +2,12 @@ import * as React from 'react'
 import { stylesheet } from 'typestyle'
 import { IconHome } from '../../core/component/IconHome'
 import {
-  ContentProps,
+  ConceptDisplayProps,
   Factory,
   InitializedConceptData,
 } from '../../core/interfaces'
 
-type Props = ContentProps<undefined>
+type Props = ConceptDisplayProps<undefined>
 
 const styles = stylesheet({
   HeaderTool: {
@@ -68,7 +68,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
       </div>
       <div className={styles.CardTitleContainer}>
         {(function () {
-          const contentProps: ContentProps<InitializedConceptData> & {
+          const contentProps: ConceptDisplayProps<InitializedConceptData> & {
             key: string
           } = {
             viewMode: 'CardTitle',
@@ -104,7 +104,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
             },
             key: 'CardTitle-' + props.app.state.viewingConcept.id,
           }
-          return props.factoryRegistry.produceConcept(
+          return props.factoryRegistry.createConceptDisplay(
             props.app.state.viewingConcept.summary.type,
             contentProps
           )

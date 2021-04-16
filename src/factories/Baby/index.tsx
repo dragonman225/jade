@@ -1,6 +1,9 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
-import { ContentProps, InitializedConceptData } from '../../core/interfaces'
+import {
+  ConceptDisplayProps,
+  InitializedConceptData,
+} from '../../core/interfaces'
 
 const styles = stylesheet({
   Baby: {
@@ -13,7 +16,7 @@ const styles = stylesheet({
   },
 })
 
-type Props = ContentProps<InitializedConceptData>
+type Props = ConceptDisplayProps<InitializedConceptData>
 
 export const Baby: React.FunctionComponent<Props> = props => {
   switch (props.viewMode) {

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { SlateTextEditor } from './SlateTextEditor'
 import * as Slate from 'slate'
-import { ContentProps } from '../../core/interfaces'
+import { ConceptDisplayProps } from '../../core/interfaces'
 import {
   InitializedConceptData,
   UninitializedConceptData,
@@ -25,10 +25,10 @@ interface State {
 }
 
 export class SlateText extends React.Component<
-  ContentProps<TextContent>,
+  ConceptDisplayProps<TextContent>,
   State
 > {
-  constructor(props: ContentProps<TextContent>) {
+  constructor(props: ConceptDisplayProps<TextContent>) {
     super(props)
     this.state = {
       slateData: this.getValidSlateData(props.content),

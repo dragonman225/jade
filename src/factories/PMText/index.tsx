@@ -6,7 +6,7 @@ import { EditorView } from 'prosemirror-view'
 import { Schema, Node } from 'prosemirror-model'
 import { getCaretCoordinates } from '../../core/lib/utils'
 import {
-  ContentProps,
+  ConceptDisplayProps,
   Vec2,
   InitializedConceptData,
   Factory,
@@ -33,7 +33,7 @@ interface PMTextContent extends InitializedConceptData {
   }
 }
 
-type Props = ContentProps<PMTextContent>
+type Props = ConceptDisplayProps<PMTextContent>
 
 const styles = stylesheet({
   EditorContainer: {

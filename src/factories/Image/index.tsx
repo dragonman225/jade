@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
 import {
-  ContentProps,
+  ConceptDisplayProps,
   Factory,
   InitializedConceptData,
 } from '../../core/interfaces'
@@ -75,7 +75,7 @@ interface ImageContent extends InitializedConceptData {
   imgData: string
 }
 
-type Props = ContentProps<ImageContent>
+type Props = ConceptDisplayProps<ImageContent>
 
 const Image: React.FunctionComponent<Props> = props => {
   const content = props.content

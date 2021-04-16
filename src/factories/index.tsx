@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {
-  ContentProps,
+  ConceptDisplayProps,
   Factory,
   FactoryId,
   FactoryRegistry,
@@ -27,9 +27,9 @@ class AlexFactoryRegistry implements FactoryRegistry {
   get = (factoryId: FactoryId): Factory | undefined =>
     this.factories.find(f => f.id === factoryId)
 
-  produceConcept = (
+  createConceptDisplay = (
     factoryId: FactoryId,
-    props: ContentProps<InitializedConceptData>
+    props: ConceptDisplayProps<InitializedConceptData>
   ): JSX.Element => {
     const factory = this.get(factoryId)
 

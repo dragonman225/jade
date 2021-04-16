@@ -7,14 +7,14 @@ import { isPointInRect } from './lib/utils'
 import { IPubSub } from './lib/pubsub'
 import {
   UnifiedEventInfo,
-  ContentProps,
+  ConceptDisplayProps,
   Vec2,
   Origin,
   InitializedConceptData,
 } from './interfaces'
 
 type ChildrenProps = Pick<
-  ContentProps<InitializedConceptData>,
+  ConceptDisplayProps<InitializedConceptData>,
   'readOnly' | 'onInteractionStart' | 'onInteractionEnd' | 'physicalInfo'
 > & {
   mouseIsInside: boolean

@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as typestyle from 'typestyle'
 import { Content } from '..'
-import { ContentProps } from '../../core/interfaces'
+import { ConceptDisplayProps } from '../../core/interfaces'
 import { InitializedConceptData } from '../../core/interfaces/concept'
 
-type Props = ContentProps<undefined>
+type Props = ConceptDisplayProps<undefined>
 
 const styles = {
   Recent: typestyle.style({
@@ -79,7 +79,7 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
 
         return historyToShow.map(conceptId => {
           const concept = database.getConcept(conceptId)
-          const contentProps: ContentProps<InitializedConceptData> = {
+          const contentProps: ConceptDisplayProps<InitializedConceptData> = {
             viewMode: 'NavItem',
             readOnly: true,
             content: concept.summary.data,

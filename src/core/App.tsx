@@ -227,32 +227,35 @@ export const App: React.FunctionComponent<Props> = props => {
                 }}
                 key={key}>
                 {contentProps =>
-                  factoryRegistry.produceConcept(subConcept.summary.type, {
-                    ...contentProps,
-                    viewMode: 'Block',
-                    content: subConcept.summary.data,
-                    messageBus: messenger,
-                    app: {
-                      state,
-                      dispatch: dispatchAction,
-                    },
-                    factoryRegistry,
-                    database: props.db,
-                    onChange: content => {
-                      dispatchAction({
-                        type: 'concept::datachange',
-                        data: {
-                          id: subConcept.id,
-                          type: subConcept.summary.type,
-                          content,
-                        },
-                      })
-                    },
-                    onReplace: type => {
-                      replaceContentType(subConcept, type)
-                    },
-                    createOverlay,
-                  })
+                  factoryRegistry.createConceptDisplay(
+                    subConcept.summary.type,
+                    {
+                      ...contentProps,
+                      viewMode: 'Block',
+                      content: subConcept.summary.data,
+                      messageBus: messenger,
+                      app: {
+                        state,
+                        dispatch: dispatchAction,
+                      },
+                      factoryRegistry,
+                      database: props.db,
+                      onChange: content => {
+                        dispatchAction({
+                          type: 'concept::datachange',
+                          data: {
+                            id: subConcept.id,
+                            type: subConcept.summary.type,
+                            content,
+                          },
+                        })
+                      },
+                      onReplace: type => {
+                        replaceContentType(subConcept, type)
+                      },
+                      createOverlay,
+                    }
+                  )
                 }
               </Block>
             )

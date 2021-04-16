@@ -18,14 +18,13 @@ export interface FactoryRegistry {
   getDefault: () => Factory
   getList: () => Factory[]
   get: (factoryId: FactoryId) => Factory
-  produceConcept: (
+  createConceptDisplay: (
     factoryId: FactoryId,
-    props: ContentProps<InitializedConceptData>
+    props: ConceptDisplayProps<InitializedConceptData>
   ) => JSX.Element
 }
 
-/** Content Plugin Interface. */
-export interface ContentProps<T extends InitializedConceptData> {
+export interface ConceptDisplayProps<T extends InitializedConceptData> {
   readOnly: boolean
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
   content: T | UninitializedConceptData
