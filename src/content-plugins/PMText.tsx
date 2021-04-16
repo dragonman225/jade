@@ -115,6 +115,10 @@ const menuItems = [
     name: 'InsightTool',
     type: 'insighttool',
   },
+  {
+    name: 'RecentTool',
+    type: 'recenttool',
+  },
 ]
 
 export const PMText: React.FunctionComponent<Props> = props => {

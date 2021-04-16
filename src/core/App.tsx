@@ -15,7 +15,6 @@ import { Block } from './Block'
 import { BlockFactory } from './BlockFactory'
 import { InputContainer } from './InputContainer'
 import { CanvasTool } from './CanvasTool'
-import { RecentTool } from './RecentTool'
 import { Box } from './component/Box'
 import { Overlay } from './component/Overlay'
 import { Content } from '../content-plugins'
@@ -152,12 +151,6 @@ export const App: React.FunctionComponent<Props> = props => {
     })
   }
 
-  const [recentToolState, setRecentToolState] = useState({
-    origin: { type: 'TR', top: 0, right: 0 } as OriginTopRight,
-    position: { x: -20, y: 20 },
-    width: 500,
-  })
-
   const [canvasToolState, setCanvasToolState] = useState({
     origin: { type: 'TR', top: 0, right: 0 } as OriginTopRight,
     position: { x: -20, y: 200 },
@@ -181,42 +174,6 @@ export const App: React.FunctionComponent<Props> = props => {
               dispatchAction({ type: 'concept::create', data: { position } })
             }}
           />
-          <Block
-            messenger={messenger}
-            readOnly={false}
-            data={{
-              blockId: 'RecentTool',
-              position: recentToolState.position,
-              width: recentToolState.width,
-            }}
-            origin={recentToolState.origin}
-            zIndex={2}
-            container={Box}
-            onResize={width => {
-              setRecentToolState({
-                ...recentToolState,
-                width,
-              })
-            }}
-            onMove={position => {
-              setRecentToolState({
-                ...recentToolState,
-                position,
-              })
-            }}
-            key="RecentTool">
-            {contentProps => (
-              <RecentTool
-                width={contentProps.width}
-                history={state.expandHistory}
-                historySize={state.expandHistory.length}
-                current={state.expandHistory.length - 1}
-                db={props.db}
-                messageBus={messenger}
-                onExpand={handleExpand}
-              />
-            )}
-          </Block>
           {state.viewingConceptDetails.map(result => {
             const subConcept = result.concept
             const key = 'ConceptRef-' + result.link.id

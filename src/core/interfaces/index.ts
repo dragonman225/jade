@@ -81,6 +81,11 @@ export interface ContentProps<T extends InitializedConceptData> {
     state: State4
     dispatch: React.Dispatch<Action>
   }
+  physicalInfo?: {
+    origin: Origin
+    position: Vec2
+    width: number
+  }
   database: DatabaseInterface
   onChange: (content: T) => void
   onReplace: (type: string) => void

@@ -10,9 +10,8 @@ import { InitializedConceptData } from './interfaces/concept'
 
 type ChildrenProps = Pick<
   ContentProps<InitializedConceptData>,
-  'readOnly' | 'onInteractionStart' | 'onInteractionEnd'
+  'readOnly' | 'onInteractionStart' | 'onInteractionEnd' | 'physicalInfo'
 > & {
-  width: number
   mouseIsInside: boolean
 }
 
@@ -450,7 +449,11 @@ export class Block extends React.Component<Props, State> {
               readOnly: this.props.readOnly,
               onInteractionStart: this.handleContentInteractionStart,
               onInteractionEnd: this.handleContentInteractionEnd,
-              width: this.state.width,
+              physicalInfo: {
+                origin: this.props.origin,
+                position: this.state.position,
+                width: this.state.width,
+              },
               mouseIsInside: this.state.mouseIsInside,
             })
           ) : (

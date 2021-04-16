@@ -6,6 +6,7 @@ import { Text } from './Text'
 import { HeaderTool } from './HeaderTool'
 import { SearchTool } from './SearchTool'
 import { InsightTool } from './InsightTool'
+import { RecentTool } from './RecentTool'
 
 interface ContentType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,6 +55,10 @@ export const config: ContentConfig = {
     insighttool: {
       name: 'InsightTool',
       component: InsightTool,
+    },
+    recenttool: {
+      name: 'RecentTool',
+      component: RecentTool,
     },
   },
 }

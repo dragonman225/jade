@@ -1,22 +1,10 @@
 import * as React from 'react'
 import * as typestyle from 'typestyle'
-import { IPubSub } from './lib/pubsub'
-import { Content } from '../content-plugins'
-import { ContentProps, DatabaseInterface } from './interfaces'
-import { InitializedConceptData } from './interfaces/concept'
+import { Content } from '.'
+import { ContentProps } from '../core/interfaces'
+import { InitializedConceptData } from '../core/interfaces/concept'
 
-interface Props {
-  width: number
-  /** A ring buffer. */
-  history: string[]
-  /** The size of the ring buffer. */
-  historySize: number
-  /** Index of the latest added. */
-  current: number
-  db: DatabaseInterface
-  messageBus: IPubSub
-  onExpand: (blockCardId: string) => void
-}
+type Props = ContentProps<undefined>
 
 const styles = {
   Recent: typestyle.style({
@@ -27,8 +15,9 @@ const styles = {
 }
 
 export const RecentTool: React.FunctionComponent<Props> = props => {
+  const { app, database, messageBus, physicalInfo } = props
   return (
-    <div className={styles.Recent} style={{ width: props.width }}>
+    <div className={styles.Recent} style={{ width: physicalInfo.width }}>
       <style jsx>{`
         button {
           border: none;
@@ -73,35 +62,30 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
       `}</style>
       {(function () {
         const historyToShow: string[] = []
-        const maxNumToShow = Math.floor(props.width / 100)
+        const maxNumToShow = Math.floor(physicalInfo.width / 100)
 
-        for (
-          let i = props.current - 1 + props.historySize;
-          i > props.current;
-          i--
-        ) {
-          const blockCardId = props.history[i % props.historySize]
-          /** Ignore when history is unpopulated. */
-          if (!blockCardId) continue
-          /** Count once for repeated visits. */
-          if (
-            typeof historyToShow.find(id => id === blockCardId) === 'undefined'
-          ) {
-            historyToShow.push(blockCardId)
+        for (let i = app.state.expandHistory.length - 2; i >= 0; i--) {
+          const conceptId = app.state.expandHistory[i]
+
+          /** Ignore if the slot is unpopulated. */
+          if (!conceptId) continue
+
+          /** Ignore repeated visits. */
+          if (!historyToShow.find(id => id === conceptId)) {
+            historyToShow.push(conceptId)
             if (historyToShow.length >= maxNumToShow) break
           }
         }
 
         return historyToShow.map(conceptId => {
-          const concept = props.db.getConcept(conceptId)
+          const concept = database.getConcept(conceptId)
           const contentProps: ContentProps<InitializedConceptData> = {
             viewMode: 'NavItem',
             readOnly: true,
             content: concept.summary.data,
-            messageBus: {
-              subscribe: props.messageBus.subscribe,
-              unsubscribe: props.messageBus.unsubscribe,
-            },
+            messageBus,
+            app,
+            database,
             onChange: () => {
               return
             },
@@ -119,7 +103,10 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
             <button
               className="RecentBtn"
               onClick={() => {
-                props.onExpand(conceptId)
+                app.dispatch({
+                  type: 'navigation::expand',
+                  data: { id: conceptId },
+                })
               }}
               key={conceptId}>
               <Content
