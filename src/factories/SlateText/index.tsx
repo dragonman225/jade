@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { SlateTextEditor } from './SlateTextEditor'
 import * as Slate from 'slate'
-import { ContentProps } from '../core/interfaces'
+import { ContentProps } from '../../core/interfaces'
 import {
   InitializedConceptData,
   UninitializedConceptData,
-} from '../core/interfaces/concept'
+} from '../../core/interfaces/concept'
 
 /**
  * Slate CJK bugs
@@ -24,7 +24,10 @@ interface State {
   prevPropsContent: TextContent | UninitializedConceptData
 }
 
-export class Text extends React.Component<ContentProps<TextContent>, State> {
+export class SlateText extends React.Component<
+  ContentProps<TextContent>,
+  State
+> {
   constructor(props: ContentProps<TextContent>) {
     super(props)
     this.state = {

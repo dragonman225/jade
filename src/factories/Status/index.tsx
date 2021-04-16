@@ -4,8 +4,8 @@ import {
   ContentProps,
   PubSubStatusMessage,
   UnifiedEventInfo,
-} from '../core/interfaces'
-import { InitializedConceptData } from '../core/interfaces/concept'
+} from '../../core/interfaces'
+import { InitializedConceptData } from '../../core/interfaces/concept'
 
 const styles = stylesheet({
   StatNavItem: {

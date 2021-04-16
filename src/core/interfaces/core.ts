@@ -1,0 +1,43 @@
+import { ConceptId, Concept, ConceptDetail } from './concept'
+
+/** App state v3. */
+export interface State3 {
+  debugging: boolean
+  homeConceptId: ConceptId // The user does not want to get lost!
+  viewingConceptId: ConceptId
+  conceptMap: {
+    [id: string]: Concept
+  }
+}
+
+/** App state v4. */
+export interface State4 {
+  /** Persistent, load from `DatabaseInterface.getSettings()`. */
+  debugging: boolean
+  /** Persistent, load from `DatabaseInterface.getSettings()`. */
+  homeConceptId: ConceptId
+  /** Persistent, load from `DatabaseInterface.getConcept()`. */
+  viewingConcept: Concept
+  /** Persistent, load from `Concept.details()`. */
+  viewingConceptDetails: ConceptDetail[]
+  /** Volatile. */
+  expandHistory: (ConceptId | undefined)[]
+}
+
+export interface Settings {
+  debugging: boolean
+  homeConceptId: ConceptId
+  viewingConceptId: ConceptId
+}
+
+export interface DatabaseInterface {
+  isValid(): boolean
+  init(settings: Settings, concepts: Concept[]): void
+  getConcept(id: ConceptId): Concept | undefined
+  getAllConcepts(): Concept[]
+  createConcept(concept: Concept): void
+  updateConcept(concept: Concept): void
+  getSettings(): Settings
+  saveSettings(settings: Settings): void
+  getLastUpdatedTime(): number
+}

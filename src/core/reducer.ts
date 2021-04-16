@@ -1,7 +1,15 @@
 import { v4 as uuidv4 } from 'uuid'
-import { config } from '../content-plugins/config'
-import { DatabaseInterface, State4, Vec2 } from './interfaces'
-import { Concept, BaseConceptData, Link, Stroke } from './interfaces/concept'
+import { factoryRegistry } from '../factories'
+import {
+  DatabaseInterface,
+  State4,
+  Vec2,
+  Concept,
+  BaseConceptData,
+  Link,
+  Stroke,
+  ConceptDetail,
+} from './interfaces'
 
 interface ConceptCreateAction {
   type: 'concept::create'
@@ -77,6 +85,18 @@ export type Action =
   | ExpandAction
   | DebuggingToggleAction
 
+export function synthesizeView(
+  viewingConcept: Concept,
+  db: DatabaseInterface
+): ConceptDetail[] {
+  const overlayId = '__overlay__'
+  return Concept.details(viewingConcept, db).concat(
+    viewingConcept.id !== overlayId
+      ? Concept.details(db.getConcept(overlayId), db)
+      : []
+  )
+}
+
 export function createReducer(db: DatabaseInterface) {
   return function appStateReducer(state: State4, action: Action): State4 {
     console.log('Action fired:', action.type)
@@ -86,7 +106,7 @@ export function createReducer(db: DatabaseInterface) {
         const newConcept: Concept = {
           id: uuidv4(),
           summary: {
-            type: config.defaultType,
+            type: factoryRegistry.getDefault().id,
             data: { initialized: false },
           },
           details: [],
@@ -108,7 +128,7 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          viewingConceptDetails: Concept.details(newViewingConcept, db),
+          viewingConceptDetails: synthesizeView(newViewingConcept, db),
         }
       }
       case 'containslink::move': {
@@ -131,7 +151,7 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          viewingConceptDetails: Concept.details(newViewingConcept, db),
+          viewingConceptDetails: synthesizeView(newViewingConcept, db),
         }
       }
       case 'containslink::resize': {
@@ -154,22 +174,27 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          viewingConceptDetails: Concept.details(newViewingConcept, db),
+          viewingConceptDetails: synthesizeView(newViewingConcept, db),
         }
       }
       case 'concept::datachange': {
+        const newType = action.data.type
+        const newData = action.data.content
+
         const concept = db.getConcept(action.data.id)
+
         db.updateConcept({
           ...concept,
           summary: {
-            type: action.data.type,
-            data: action.data.content,
+            type: newType,
+            data: newData,
           },
         })
+
         return {
           ...state,
           viewingConcept: db.getConcept(state.viewingConcept.id),
-          viewingConceptDetails: Concept.details(state.viewingConcept, db),
+          viewingConceptDetails: synthesizeView(state.viewingConcept, db),
         }
       }
       case 'link::remove': {
@@ -185,7 +210,7 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          viewingConceptDetails: Concept.details(newViewingConcept, db),
+          viewingConceptDetails: synthesizeView(newViewingConcept, db),
         }
       }
       case 'navigation::expand': {
@@ -204,7 +229,7 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: concept,
-          viewingConceptDetails: Concept.details(concept, db),
+          viewingConceptDetails: synthesizeView(concept, db),
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
         }
       }
@@ -224,7 +249,7 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          viewingConceptDetails: Concept.details(newViewingConcept, db),
+          viewingConceptDetails: synthesizeView(newViewingConcept, db),
         }
       }
       case 'concept::drawingchange': {

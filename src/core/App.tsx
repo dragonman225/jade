@@ -10,17 +10,22 @@ import {
   useRef,
 } from 'react'
 import { cssRaw, stylesheet } from 'typestyle'
-import { createReducer } from './reducer'
+import { createReducer, synthesizeView } from './reducer'
 import { Block } from './Block'
 import { BlockFactory } from './BlockFactory'
 import { InputContainer } from './InputContainer'
 import { CanvasTool } from './CanvasTool'
 import { Box } from './component/Box'
 import { Overlay } from './component/Overlay'
-import { Content } from '../content-plugins'
+import { factoryRegistry } from '../factories'
 import { PubSub } from './lib/pubsub'
-import { OriginTopRight, DatabaseInterface, State4 } from './interfaces'
-import { Concept, ConceptId } from './interfaces/concept'
+import {
+  OriginTopRight,
+  DatabaseInterface,
+  State4,
+  ConceptId,
+  Concept,
+} from './interfaces'
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const initialConcepts = require('../initial-concepts.json')
 
@@ -38,7 +43,7 @@ function loadAppState(db: DatabaseInterface): State4 {
   }
   const settings = db.getSettings()
   const viewingConcept = db.getConcept(settings.viewingConceptId)
-  const viewingConceptDetails = Concept.details(viewingConcept, db)
+  const viewingConceptDetails = synthesizeView(viewingConcept, db)
   return {
     debugging: settings.debugging,
     homeConceptId: settings.homeConceptId,
@@ -188,6 +193,11 @@ export const App: React.FunctionComponent<Props> = props => {
                 }}
                 origin={{ type: 'TL', top: 0, left: 0 }}
                 zIndex={1}
+                container={
+                  factoryRegistry.get(subConcept.summary.type)?.pinned
+                    ? Box
+                    : undefined
+                }
                 onResize={width => {
                   dispatchAction({
                     type: 'containslink::resize',
@@ -216,36 +226,34 @@ export const App: React.FunctionComponent<Props> = props => {
                   unlockInteraction(key)
                 }}
                 key={key}>
-                {contentProps => (
-                  <Content
-                    contentType={subConcept.summary.type}
-                    contentProps={{
-                      ...contentProps,
-                      viewMode: 'Block',
-                      content: subConcept.summary.data,
-                      messageBus: messenger,
-                      app: {
-                        state,
-                        dispatch: dispatchAction,
-                      },
-                      database: props.db,
-                      onChange: content => {
-                        dispatchAction({
-                          type: 'concept::datachange',
-                          data: {
-                            id: subConcept.id,
-                            type: subConcept.summary.type,
-                            content,
-                          },
-                        })
-                      },
-                      onReplace: type => {
-                        replaceContentType(subConcept, type)
-                      },
-                      createOverlay,
-                    }}
-                  />
-                )}
+                {contentProps =>
+                  factoryRegistry.produceConcept(subConcept.summary.type, {
+                    ...contentProps,
+                    viewMode: 'Block',
+                    content: subConcept.summary.data,
+                    messageBus: messenger,
+                    app: {
+                      state,
+                      dispatch: dispatchAction,
+                    },
+                    factoryRegistry,
+                    database: props.db,
+                    onChange: content => {
+                      dispatchAction({
+                        type: 'concept::datachange',
+                        data: {
+                          id: subConcept.id,
+                          type: subConcept.summary.type,
+                          content,
+                        },
+                      })
+                    },
+                    onReplace: type => {
+                      replaceContentType(subConcept, type)
+                    },
+                    createOverlay,
+                  })
+                }
               </Block>
             )
           })}

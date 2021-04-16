@@ -1,7 +1,10 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
-import { ContentProps } from '../core/interfaces'
-import { InitializedConceptData } from '../core/interfaces/concept'
+import {
+  ContentProps,
+  Factory,
+  InitializedConceptData,
+} from '../../core/interfaces'
 
 function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -74,7 +77,7 @@ interface ImageContent extends InitializedConceptData {
 
 type Props = ContentProps<ImageContent>
 
-export const Image: React.FunctionComponent<Props> = props => {
+const Image: React.FunctionComponent<Props> = props => {
   const content = props.content
   const [imgState, setImgState] = React.useState(ImgState.NotLoaded)
   const [img, setImg] = React.useState('')
@@ -157,4 +160,10 @@ export const Image: React.FunctionComponent<Props> = props => {
       }
     }
   }
+}
+
+export const ImageFactory: Factory = {
+  id: 'image',
+  name: 'Image',
+  component: Image,
 }

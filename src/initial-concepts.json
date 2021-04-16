@@ -5033,5 +5033,11 @@
         "width": 225
       }
     ]
+  },
+  {
+    "id": "__overlay__",
+    "summary": { "type": "workspace", "data": { "initialized": false } },
+    "drawing": [],
+    "details": []
   }
 ]

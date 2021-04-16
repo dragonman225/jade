@@ -1,12 +1,16 @@
 import * as React from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { classes, stylesheet } from 'typestyle'
-import { ContentProps, Vec2 } from '../core/interfaces'
-import { InitializedConceptData } from '../core/interfaces/concept'
 import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { Schema, Node } from 'prosemirror-model'
-import { getCaretCoordinates } from '../core/lib/utils'
+import { getCaretCoordinates } from '../../core/lib/utils'
+import {
+  ContentProps,
+  Vec2,
+  InitializedConceptData,
+  Factory,
+} from '../../core/interfaces'
 
 /**
  * Problems of ProseMirror:
@@ -94,38 +98,14 @@ const styles = stylesheet({
   },
 })
 
-const menuItems = [
-  {
-    name: 'Image',
-    type: 'image',
-  },
-  {
-    name: 'Status',
-    type: 'status',
-  },
-  {
-    name: 'HeaderTool',
-    type: 'headertool',
-  },
-  {
-    name: 'SearchTool',
-    type: 'searchtool',
-  },
-  {
-    name: 'InsightTool',
-    type: 'insighttool',
-  },
-  {
-    name: 'RecentTool',
-    type: 'recenttool',
-  },
-]
-
-export const PMText: React.FunctionComponent<Props> = props => {
+const PMText: React.FunctionComponent<Props> = props => {
   const [showMenu, setShowMenu] = useState(false)
   const [menuPos, setMenuPos] = useState<Vec2>({ x: 0, y: 0 })
   const [chosenItemIndex, setChosenItemIndex] = useState(0)
   const [isEmpty, setIsEmpty] = useState(true)
+  const menuItems = props.factoryRegistry
+    .getList()
+    .map(f => ({ name: f.name, type: f.id }))
 
   function onKeyDown(_view: EditorView<any>, event: KeyboardEvent) {
     if (event.key === 'ArrowUp') {
@@ -366,4 +346,10 @@ export const PMText: React.FunctionComponent<Props> = props => {
         </span>
       )
   }
+}
+
+export const PMTextFactory: Factory = {
+  id: 'pmtext',
+  name: 'PMText',
+  component: PMText,
 }

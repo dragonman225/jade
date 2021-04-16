@@ -1,9 +1,8 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
-import { IconHome } from '../core/component/IconHome'
-import { Content } from '.'
-import { ContentProps } from '../core/interfaces'
-import { InitializedConceptData } from '../core/interfaces/concept'
+import { IconHome } from '../../core/component/IconHome'
+import { Content } from '..'
+import { ContentProps, InitializedConceptData } from '../../core/interfaces'
 
 type Props = ContentProps<undefined>
 
@@ -72,6 +71,7 @@ export const HeaderTool: React.FunctionComponent<Props> = props => {
             viewMode: 'CardTitle',
             readOnly: false,
             app: props.app,
+            database: props.database,
             content: props.app.state.viewingConcept.summary.data,
             messageBus: props.messageBus,
             onChange: data =>

@@ -1,12 +1,17 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { stylesheet, classes } from 'typestyle'
-import { Block } from '../core/Block'
-import { Box } from '../core/component/Box'
-import { isPointInRect } from '../core/lib/utils'
-import { Content } from '.'
-import { ContentProps, UnifiedEventInfo, Vec2 } from '../core/interfaces'
-import { Concept, InitializedConceptData } from '../core/interfaces/concept'
+import { Block } from '../../core/Block'
+import { Box } from '../../core/component/Box'
+import { isPointInRect } from '../../core/lib/utils'
+import { factoryRegistry } from '..'
+import {
+  ContentProps,
+  Factory,
+  UnifiedEventInfo,
+  Vec2,
+} from '../../core/interfaces'
+import { Concept, InitializedConceptData } from '../../core/interfaces/concept'
 
 const styles = stylesheet({
   Search: {
@@ -101,40 +106,28 @@ interface SearchItemContentProps
 
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props => {
   const { concept, viewMode, messageBus, app, database } = props
-  return (
-    <Content
-      contentType={concept.summary.type}
-      contentProps={{
-        viewMode,
-        readOnly: true,
-        content: concept.summary.data,
-        messageBus,
-        app,
-        database,
-        onChange: () => {
-          return
-        },
-        onReplace: () => {
-          return
-        },
-        onInteractionStart: () => {
-          return
-        },
-        onInteractionEnd: () => {
-          return
-        },
-      }}
-    />
-  )
+  return factoryRegistry.produceConcept(concept.summary.type, {
+    viewMode,
+    readOnly: true,
+    content: concept.summary.data,
+    messageBus,
+    app,
+    factoryRegistry,
+    database,
+    onChange: () => {
+      return
+    },
+    onReplace: () => {
+      return
+    },
+    onInteractionStart: () => {
+      return
+    },
+    onInteractionEnd: () => {
+      return
+    },
+  })
 }
-
-// interface Props {
-//   db: DatabaseInterface
-//   onExpand: (conceptId: string) => void
-//   onRequestLink: (data: { id: string; position: Vec2 }) => void
-//   messageBus: IPubSub
-//   createOverlay(children: React.ReactNode): React.ReactPortal
-// }
 
 type Props = ContentProps<undefined>
 
@@ -155,7 +148,7 @@ const S2LState = {
   Linking: Symbol('linking'),
 }
 
-export const SearchTool: React.FunctionComponent<Props> = props => {
+const SearchTool: React.FunctionComponent<Props> = props => {
   const { app, messageBus, database } = props
   const searchRef = React.useRef<HTMLDivElement>()
   const getSearchRect = () => {
@@ -416,4 +409,11 @@ export const SearchTool: React.FunctionComponent<Props> = props => {
       )}
     </div>
   )
+}
+
+export const SearchToolFactory: Factory = {
+  id: 'searchtool',
+  name: 'Search Tool',
+  pinned: true,
+  component: SearchTool,
 }

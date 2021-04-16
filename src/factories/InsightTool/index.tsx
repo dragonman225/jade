@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useMemo } from 'react'
 import { stylesheet } from 'typestyle'
-import { Content } from '.'
-import { ContentProps } from '../core/interfaces'
+import { Content } from '..'
+import { ContentProps } from '../../core/interfaces'
 
 const noop = function () {
   return

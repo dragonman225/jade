@@ -1,4 +1,5 @@
-import { DatabaseInterface, Vec2 } from '.'
+import { Vec2 } from './common'
+import { DatabaseInterface } from './core'
 
 /** Summary. */
 export interface UninitializedConceptData {

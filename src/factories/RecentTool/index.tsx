@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as typestyle from 'typestyle'
-import { Content } from '.'
-import { ContentProps } from '../core/interfaces'
-import { InitializedConceptData } from '../core/interfaces/concept'
+import { Content } from '..'
+import { ContentProps } from '../../core/interfaces'
+import { InitializedConceptData } from '../../core/interfaces/concept'
 
 type Props = ContentProps<undefined>
 

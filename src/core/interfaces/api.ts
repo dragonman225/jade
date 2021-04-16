@@ -1,0 +1,49 @@
+import { IPubSub } from '../lib/pubsub'
+import { Action } from '../reducer'
+import { Origin, Vec2 } from './common'
+import { InitializedConceptData, UninitializedConceptData } from './concept'
+import { DatabaseInterface, State4 } from './core'
+
+export type FactoryId = string
+
+export interface Factory {
+  id: FactoryId
+  name: string
+  pinned?: boolean
+  origin?: Origin
+  component: React.ComponentClass<any> | React.FunctionComponent<any>
+}
+
+export interface FactoryRegistry {
+  getDefault: () => Factory
+  getList: () => Factory[]
+  get: (factoryId: FactoryId) => Factory
+  produceConcept: (
+    factoryId: FactoryId,
+    props: ContentProps<InitializedConceptData>
+  ) => JSX.Element
+}
+
+/** Content Plugin Interface. */
+export interface ContentProps<T extends InitializedConceptData> {
+  readOnly: boolean
+  viewMode: 'Block' | 'CardTitle' | 'NavItem'
+  content: T | UninitializedConceptData
+  messageBus: IPubSub
+  app: {
+    state: State4
+    dispatch: React.Dispatch<Action>
+  }
+  physicalInfo?: {
+    origin: Origin
+    position: Vec2
+    width: number
+  }
+  factoryRegistry: FactoryRegistry
+  database: DatabaseInterface
+  onChange: (content: T) => void
+  onReplace: (type: string) => void
+  onInteractionStart: () => void
+  onInteractionEnd: () => void
+  createOverlay?(children: React.ReactNode): React.ReactPortal
+}

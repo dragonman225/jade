@@ -1,5 +1,4 @@
-import { DatabaseInterface, Settings } from '../core/interfaces'
-import { Concept } from '../core/interfaces/concept'
+import { DatabaseInterface, Settings, Concept } from '../core/interfaces'
 
 /**
  * New database interface.

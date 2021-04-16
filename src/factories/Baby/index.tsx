@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
-import { ContentProps } from '../core/interfaces'
-import { InitializedConceptData } from '../core/interfaces/concept'
+import { ContentProps, InitializedConceptData } from '../../core/interfaces'
 
 const styles = stylesheet({
   Baby: {

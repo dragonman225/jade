@@ -3,8 +3,7 @@ import { classes, stylesheet } from 'typestyle'
 import { IconEraser } from './component/IconEraser'
 import { IconPencil } from './component/IconPencil'
 import { IPubSub } from './lib/pubsub'
-import { UnifiedEventInfo } from './interfaces'
-import { Stroke, StrokeConfig, Point } from './interfaces/concept'
+import { UnifiedEventInfo, Stroke, StrokeConfig, Point } from './interfaces'
 
 interface CanvasProps {
   value: Stroke[] /** Value representing a drawing. */
