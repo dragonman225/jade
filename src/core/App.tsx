@@ -20,14 +20,8 @@ import { Box } from './component/Box'
 import { Overlay } from './component/Overlay'
 import { Content } from '../content-plugins'
 import { PubSub } from './lib/pubsub'
-import {
-  OriginTopRight,
-  DatabaseInterface,
-  State4,
-  OriginBottomLeft,
-} from './interfaces'
+import { OriginTopRight, DatabaseInterface, State4 } from './interfaces'
 import { Concept, ConceptId } from './interfaces/concept'
-import { InsightTool } from './InsightTool'
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const initialConcepts = require('../initial-concepts.json')
 
@@ -170,12 +164,6 @@ export const App: React.FunctionComponent<Props> = props => {
     width: 50,
   })
 
-  const [insightToolState, setInsightToolState] = useState({
-    origin: { type: 'BL', bottom: 0, left: 0 } as OriginBottomLeft,
-    position: { x: 20, y: -20 },
-    width: 170,
-  })
-
   const currentConcept = state.viewingConcept
   const overlayRef = useRef<HTMLDivElement>(null)
 
@@ -225,38 +213,6 @@ export const App: React.FunctionComponent<Props> = props => {
                 current={state.expandHistory.length - 1}
                 db={props.db}
                 messageBus={messenger}
-                onExpand={handleExpand}
-              />
-            )}
-          </Block>
-          <Block
-            messenger={messenger}
-            readOnly={false}
-            data={{
-              blockId: 'InsightTool',
-              position: insightToolState.position,
-              width: insightToolState.width,
-            }}
-            origin={insightToolState.origin}
-            zIndex={2}
-            container={Box}
-            onResize={width => {
-              setInsightToolState({
-                ...insightToolState,
-                width,
-              })
-            }}
-            onMove={position => {
-              setInsightToolState({
-                ...insightToolState,
-                position,
-              })
-            }}
-            key="InsightTool">
-            {_contentProps => (
-              <InsightTool
-                db={props.db}
-                currentConceptId={currentConcept.id}
                 onExpand={handleExpand}
               />
             )}

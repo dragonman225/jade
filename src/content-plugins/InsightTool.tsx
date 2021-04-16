@@ -1,18 +1,14 @@
 import * as React from 'react'
 import { useMemo } from 'react'
 import { stylesheet } from 'typestyle'
-import { Content } from '../content-plugins'
-import { DatabaseInterface } from './interfaces'
+import { Content } from '.'
+import { ContentProps } from '../core/interfaces'
 
 const noop = function () {
   return
 }
 
-interface Props {
-  db: DatabaseInterface
-  currentConceptId: string
-  onExpand: (conceptId: string) => void
-}
+type Props = ContentProps<undefined>
 
 const styles = stylesheet({
   Insight: {
@@ -51,12 +47,15 @@ const styles = stylesheet({
 })
 
 export const InsightTool: React.FunctionComponent<Props> = props => {
+  const { app, database } = props
   const parentConcepts = useMemo(() => {
-    const allConcepts = props.db.getAllConcepts()
+    const allConcepts = database.getAllConcepts()
     return allConcepts.filter(concept => {
-      return !!concept.details.find(link => link.to === props.currentConceptId)
+      return !!concept.details.find(
+        link => link.to === app.state.viewingConcept.id
+      )
     })
-  }, [props.currentConceptId, props.db.getLastUpdatedTime()])
+  }, [app.state.viewingConcept.id, database.getLastUpdatedTime()])
 
   return (
     <div className={styles.Insight}>
@@ -68,14 +67,25 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
               <React.Fragment key={concept.id}>
                 <div
                   className={styles.InsightItem}
-                  onClick={() => props.onExpand(concept.id)}>
+                  onClick={() =>
+                    app.dispatch({
+                      type: 'navigation::expand',
+                      data: { id: concept.id },
+                    })
+                  }>
                   <Content
                     contentType={concept.summary.type}
                     contentProps={{
                       viewMode: 'NavItem',
                       readOnly: true,
                       content: concept.summary.data,
-                      messageBus: { subscribe: noop, unsubscribe: noop },
+                      messageBus: {
+                        subscribe: noop,
+                        unsubscribe: noop,
+                        publish: noop,
+                      },
+                      app,
+                      database,
                       onChange: noop,
                       onReplace: noop,
                       onInteractionStart: noop,

@@ -111,6 +111,10 @@ const menuItems = [
     name: 'SearchTool',
     type: 'searchtool',
   },
+  {
+    name: 'InsightTool',
+    type: 'insighttool',
+  },
 ]
 
 export const PMText: React.FunctionComponent<Props> = props => {
