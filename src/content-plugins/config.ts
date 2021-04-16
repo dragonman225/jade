@@ -4,6 +4,7 @@ import { PMText } from './PMText'
 import { Status } from './Status'
 import { Text } from './Text'
 import { HeaderTool } from './HeaderTool'
+import { SearchTool } from './SearchTool'
 
 interface ContentType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,6 +45,10 @@ export const config: ContentConfig = {
     headertool: {
       name: 'HeaderTool',
       component: HeaderTool,
+    },
+    searchtool: {
+      name: 'SearchTool',
+      component: SearchTool,
     },
   },
 }

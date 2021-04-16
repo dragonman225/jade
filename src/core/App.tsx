@@ -16,14 +16,12 @@ import { BlockFactory } from './BlockFactory'
 import { InputContainer } from './InputContainer'
 import { CanvasTool } from './CanvasTool'
 import { RecentTool } from './RecentTool'
-import { SearchTool } from './SearchTool'
 import { Box } from './component/Box'
 import { Overlay } from './component/Overlay'
 import { Content } from '../content-plugins'
 import { PubSub } from './lib/pubsub'
 import {
   OriginTopRight,
-  OriginTopLeft,
   DatabaseInterface,
   State4,
   OriginBottomLeft,
@@ -105,10 +103,6 @@ const styles = stylesheet({
 
 export const App: React.FunctionComponent<Props> = props => {
   const messenger = useMemo(() => new PubSub(), [])
-  const readOnlyMessenger = {
-    subscribe: messenger.subscribe,
-    unsubscribe: messenger.unsubscribe,
-  }
   const appStateReducer = useCallback(createReducer(props.db), [])
   const initialState = useMemo(() => loadAppState(props.db), [])
   const [state, dispatchAction] = useReducer(appStateReducer, initialState)
@@ -170,12 +164,6 @@ export const App: React.FunctionComponent<Props> = props => {
     width: 500,
   })
 
-  const [searchToolState, setSearchToolState] = useState({
-    origin: { type: 'TL', top: 0, left: 0 } as OriginTopLeft,
-    position: { x: 20, y: 20 },
-    width: 300,
-  })
-
   const [canvasToolState, setCanvasToolState] = useState({
     origin: { type: 'TR', top: 0, right: 0 } as OriginTopRight,
     position: { x: -20, y: 200 },
@@ -205,42 +193,6 @@ export const App: React.FunctionComponent<Props> = props => {
               dispatchAction({ type: 'concept::create', data: { position } })
             }}
           />
-          <Block
-            messenger={messenger}
-            readOnly={false}
-            data={{
-              blockId: 'SearchTool',
-              position: searchToolState.position,
-              width: searchToolState.width,
-            }}
-            origin={searchToolState.origin}
-            zIndex={2}
-            container={Box}
-            onResize={width => {
-              setSearchToolState({
-                ...searchToolState,
-                width,
-              })
-            }}
-            onMove={position => {
-              setSearchToolState({
-                ...searchToolState,
-                position,
-              })
-            }}
-            key="SearchTool">
-            {_contentProps => (
-              <SearchTool
-                createOverlay={createOverlay}
-                db={props.db}
-                onExpand={handleExpand}
-                messenger={messenger}
-                onRequestLink={data => {
-                  dispatchAction({ type: 'link::create', data })
-                }}
-              />
-            )}
-          </Block>
           <Block
             messenger={messenger}
             readOnly={false}
@@ -358,11 +310,12 @@ export const App: React.FunctionComponent<Props> = props => {
                       ...contentProps,
                       viewMode: 'Block',
                       content: subConcept.summary.data,
-                      messageBus: readOnlyMessenger,
+                      messageBus: messenger,
                       app: {
                         state,
                         dispatch: dispatchAction,
                       },
+                      database: props.db,
                       onChange: content => {
                         dispatchAction({
                           type: 'concept::datachange',

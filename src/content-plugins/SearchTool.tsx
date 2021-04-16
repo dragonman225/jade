@@ -1,18 +1,12 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { stylesheet, classes } from 'typestyle'
-import { Block } from './Block'
-import { Box } from './component/Box'
-import { isPointInRect } from './lib/utils'
-import { IPubSub } from './lib/pubsub'
-import { Content } from '../content-plugins'
-import {
-  ContentProps,
-  DatabaseInterface,
-  UnifiedEventInfo,
-  Vec2,
-} from './interfaces'
-import { Concept, InitializedConceptData } from './interfaces/concept'
+import { Block } from '../core/Block'
+import { Box } from '../core/component/Box'
+import { isPointInRect } from '../core/lib/utils'
+import { Content } from '.'
+import { ContentProps, UnifiedEventInfo, Vec2 } from '../core/interfaces'
+import { Concept, InitializedConceptData } from '../core/interfaces/concept'
 
 const styles = stylesheet({
   Search: {
@@ -100,13 +94,13 @@ const styles = stylesheet({
 interface SearchItemContentProps
   extends Pick<
     ContentProps<InitializedConceptData>,
-    'viewMode' | 'messageBus'
+    'viewMode' | 'messageBus' | 'app' | 'database'
   > {
   concept: Concept
 }
 
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props => {
-  const { concept, viewMode, messageBus } = props
+  const { concept, viewMode, messageBus, app, database } = props
   return (
     <Content
       contentType={concept.summary.type}
@@ -115,6 +109,8 @@ const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props
         readOnly: true,
         content: concept.summary.data,
         messageBus,
+        app,
+        database,
         onChange: () => {
           return
         },
@@ -132,13 +128,15 @@ const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props
   )
 }
 
-interface Props {
-  db: DatabaseInterface
-  onExpand: (conceptId: string) => void
-  onRequestLink: (data: { id: string; position: Vec2 }) => void
-  messenger: IPubSub
-  createOverlay(children: React.ReactNode): React.ReactPortal
-}
+// interface Props {
+//   db: DatabaseInterface
+//   onExpand: (conceptId: string) => void
+//   onRequestLink: (data: { id: string; position: Vec2 }) => void
+//   messageBus: IPubSub
+//   createOverlay(children: React.ReactNode): React.ReactPortal
+// }
+
+type Props = ContentProps<undefined>
 
 interface S2LBlockValid {
   valid: true
@@ -158,7 +156,7 @@ const S2LState = {
 }
 
 export const SearchTool: React.FunctionComponent<Props> = props => {
-  const { messenger } = props
+  const { app, messageBus, database } = props
   const searchRef = React.useRef<HTMLDivElement>()
   const getSearchRect = () => {
     return searchRef.current.getBoundingClientRect()
@@ -167,12 +165,12 @@ export const SearchTool: React.FunctionComponent<Props> = props => {
   const [minimized, setMinimized] = React.useState(true)
 
   const [higherOrderConcepts, leafConcepts] = React.useMemo(() => {
-    const allConcepts = props.db.getAllConcepts()
+    const allConcepts = database.getAllConcepts()
     return [
       allConcepts.filter(concept => Concept.isHighOrder(concept)),
       allConcepts.filter(concept => !Concept.isHighOrder(concept)),
     ]
-  }, [text, props.db.getLastUpdatedTime()])
+  }, [text, database.getLastUpdatedTime()])
 
   const resultConcepts = React.useMemo(() => {
     if (text) {
@@ -212,11 +210,14 @@ export const SearchTool: React.FunctionComponent<Props> = props => {
       setS2lStart({ x: 0, y: 0 })
       setS2lDelta({ x: 0, y: 0 })
       if (s2lBlock.valid) {
-        props.onRequestLink({
-          id: s2lBlock.id,
-          position: {
-            x: s2lBlock.rect.left + s2lDelta.x,
-            y: s2lBlock.rect.top + s2lDelta.y - e.originY,
+        app.dispatch({
+          type: 'link::create',
+          data: {
+            id: s2lBlock.id,
+            position: {
+              x: s2lBlock.rect.left + s2lDelta.x,
+              y: s2lBlock.rect.top + s2lDelta.y - e.originY,
+            },
           },
         })
       } else console.log('s2lBlock is invalid')
@@ -236,15 +237,15 @@ export const SearchTool: React.FunctionComponent<Props> = props => {
   }
 
   React.useEffect(() => {
-    messenger.subscribe('user::dragstart', handleDragStart)
-    messenger.subscribe('user::dragging', handleDragging)
-    messenger.subscribe('user::dragend', handleDragEnd)
-    messenger.subscribe('user::tap', handleTap)
+    messageBus.subscribe('user::dragstart', handleDragStart)
+    messageBus.subscribe('user::dragging', handleDragging)
+    messageBus.subscribe('user::dragend', handleDragEnd)
+    messageBus.subscribe('user::tap', handleTap)
     return () => {
-      messenger.unsubscribe('user::dragstart', handleDragStart)
-      messenger.unsubscribe('user::dragging', handleDragging)
-      messenger.unsubscribe('user::dragend', handleDragEnd)
-      messenger.unsubscribe('user::tap', handleTap)
+      messageBus.unsubscribe('user::dragstart', handleDragStart)
+      messageBus.unsubscribe('user::dragging', handleDragging)
+      messageBus.unsubscribe('user::dragend', handleDragEnd)
+      messageBus.unsubscribe('user::tap', handleTap)
     }
   })
 
@@ -306,12 +307,17 @@ export const SearchTool: React.FunctionComponent<Props> = props => {
                                 setS2lBlock({ valid: false })
                               }}
                               onMouseUp={() => {
-                                props.onExpand(concept.id)
+                                app.dispatch({
+                                  type: 'navigation::expand',
+                                  data: { id: concept.id },
+                                })
                               }}>
                               <SearchItemContent
                                 concept={concept}
                                 viewMode="NavItem"
-                                messageBus={messenger}
+                                messageBus={messageBus}
+                                app={app}
+                                database={database}
                               />
                             </div>
                           )
@@ -322,7 +328,9 @@ export const SearchTool: React.FunctionComponent<Props> = props => {
                               <SearchItemContent
                                 concept={concept}
                                 viewMode="NavItem"
-                                messageBus={messenger}
+                                messageBus={messageBus}
+                                app={app}
+                                database={database}
                               />
                             </div>
                           )
@@ -364,7 +372,7 @@ export const SearchTool: React.FunctionComponent<Props> = props => {
       )}
       {s2lState === S2LState.Linking && s2lBlock.valid ? (
         (function () {
-          const concept = props.db.getConcept(s2lBlock.id)
+          const concept = database.getConcept(s2lBlock.id)
           const position = {
             x: s2lBlock.rect.left + s2lDelta.x,
             y: s2lBlock.rect.top + s2lDelta.y,
@@ -390,12 +398,14 @@ export const SearchTool: React.FunctionComponent<Props> = props => {
               onMove={() => {
                 return
               }}
-              messenger={messenger}>
+              messenger={messageBus}>
               {() => (
                 <SearchItemContent
                   concept={concept}
                   viewMode="Block"
-                  messageBus={messenger}
+                  messageBus={messageBus}
+                  app={app}
+                  database={database}
                 />
               )}
             </Block>

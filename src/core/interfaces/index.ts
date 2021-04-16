@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ISub } from '../lib/pubsub'
+import { IPubSub } from '../lib/pubsub'
 import { Action } from '../reducer'
 import {
   Concept,
@@ -76,11 +76,12 @@ export interface ContentProps<T extends InitializedConceptData> {
   readOnly: boolean
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
   content: T | UninitializedConceptData
-  messageBus: ISub
+  messageBus: IPubSub
   app: {
     state: State4
     dispatch: React.Dispatch<Action>
   }
+  database: DatabaseInterface
   onChange: (content: T) => void
   onReplace: (type: string) => void
   onInteractionStart: () => void
