@@ -17,7 +17,6 @@ import { InputContainer } from './InputContainer'
 import { CanvasTool } from './CanvasTool'
 import { RecentTool } from './RecentTool'
 import { SearchTool } from './SearchTool'
-import { HeaderTool } from './HeaderTool'
 import { Box } from './component/Box'
 import { Overlay } from './component/Overlay'
 import { Content } from '../content-plugins'
@@ -165,12 +164,6 @@ export const App: React.FunctionComponent<Props> = props => {
     })
   }
 
-  const [headerToolState, setHeaderToolState] = useState({
-    origin: { type: 'TL', top: 0, left: 0 } as OriginTopLeft,
-    position: { x: window.innerWidth / 2 - 250, y: 20 },
-    width: 500,
-  })
-
   const [recentToolState, setRecentToolState] = useState({
     origin: { type: 'TR', top: 0, right: 0 } as OriginTopRight,
     position: { x: -20, y: 20 },
@@ -244,53 +237,6 @@ export const App: React.FunctionComponent<Props> = props => {
                 messenger={messenger}
                 onRequestLink={data => {
                   dispatchAction({ type: 'link::create', data })
-                }}
-              />
-            )}
-          </Block>
-          <Block
-            messenger={messenger}
-            readOnly={false}
-            data={{
-              blockId: 'HeaderTool',
-              position: headerToolState.position,
-              width: headerToolState.width,
-            }}
-            origin={headerToolState.origin}
-            zIndex={2}
-            container={Box}
-            onResize={width => {
-              setHeaderToolState({
-                ...headerToolState,
-                width,
-              })
-            }}
-            onMove={position => {
-              setHeaderToolState({
-                ...headerToolState,
-                position,
-              })
-            }}
-            key="HeaderTool">
-            {_contentProps => (
-              <HeaderTool
-                concept={currentConcept}
-                readOnlyMessenger={readOnlyMessenger}
-                onHomeClick={() => {
-                  handleExpand(state.homeConceptId)
-                }}
-                onConceptEdit={data => {
-                  dispatchAction({
-                    type: 'concept::datachange',
-                    data: {
-                      id: currentConcept.id,
-                      type: currentConcept.summary.type,
-                      content: data,
-                    },
-                  })
-                }}
-                onConceptReplace={typeId => {
-                  replaceContentType(currentConcept, typeId)
                 }}
               />
             )}
@@ -413,6 +359,10 @@ export const App: React.FunctionComponent<Props> = props => {
                       viewMode: 'Block',
                       content: subConcept.summary.data,
                       messageBus: readOnlyMessenger,
+                      app: {
+                        state,
+                        dispatch: dispatchAction,
+                      },
                       onChange: content => {
                         dispatchAction({
                           type: 'concept::datachange',

@@ -3,6 +3,7 @@ import { Image } from './Image'
 import { PMText } from './PMText'
 import { Status } from './Status'
 import { Text } from './Text'
+import { HeaderTool } from './HeaderTool'
 
 interface ContentType {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,6 +40,10 @@ export const config: ContentConfig = {
     baby: {
       name: 'Baby',
       component: Baby,
+    },
+    headertool: {
+      name: 'HeaderTool',
+      component: HeaderTool,
     },
   },
 }

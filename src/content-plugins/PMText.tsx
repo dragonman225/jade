@@ -103,6 +103,10 @@ const menuItems = [
     name: 'Status',
     type: 'status',
   },
+  {
+    name: 'HeaderTool',
+    type: 'headertool',
+  },
 ]
 
 export const PMText: React.FunctionComponent<Props> = props => {

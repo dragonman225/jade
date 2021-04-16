@@ -1,22 +1,11 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
-import { IconHome } from './component/IconHome'
-import { ISub } from './lib/pubsub'
-import { Content } from '../content-plugins'
-import { ContentProps } from './interfaces'
-import {
-  Concept,
-  BaseConceptData,
-  InitializedConceptData,
-} from './interfaces/concept'
+import { IconHome } from '../core/component/IconHome'
+import { Content } from '.'
+import { ContentProps } from '../core/interfaces'
+import { InitializedConceptData } from '../core/interfaces/concept'
 
-interface Props {
-  concept: Concept
-  readOnlyMessenger: ISub
-  onHomeClick: () => void
-  onConceptEdit: (data: BaseConceptData) => void
-  onConceptReplace: (typeId: string) => void
-}
+type Props = ContentProps<undefined>
 
 const styles = stylesheet({
   HeaderTool: {
@@ -64,7 +53,14 @@ export const HeaderTool: React.FunctionComponent<Props> = props => {
   return (
     <div className={styles.HeaderTool}>
       <div className={styles.HomeBtnContainer}>
-        <button className={styles.HomeBtn} onClick={props.onHomeClick}>
+        <button
+          className={styles.HomeBtn}
+          onClick={() =>
+            props.app.dispatch({
+              type: 'navigation::expand',
+              data: { id: props.app.state.homeConceptId },
+            })
+          }>
           <IconHome />
         </button>
       </div>
@@ -75,21 +71,38 @@ export const HeaderTool: React.FunctionComponent<Props> = props => {
           } = {
             viewMode: 'CardTitle',
             readOnly: false,
-            content: props.concept.summary.data,
-            messageBus: props.readOnlyMessenger,
-            onChange: props.onConceptEdit,
-            onReplace: props.onConceptReplace,
+            app: props.app,
+            content: props.app.state.viewingConcept.summary.data,
+            messageBus: props.messageBus,
+            onChange: data =>
+              props.app.dispatch({
+                type: 'concept::datachange',
+                data: {
+                  id: props.app.state.viewingConcept.id,
+                  type: props.app.state.viewingConcept.summary.type,
+                  content: data,
+                },
+              }),
+            onReplace: typeId =>
+              props.app.dispatch({
+                type: 'concept::datachange',
+                data: {
+                  id: props.app.state.viewingConcept.id,
+                  type: typeId,
+                  content: { initialized: false },
+                },
+              }),
             onInteractionStart: () => {
               return
             },
             onInteractionEnd: () => {
               return
             },
-            key: 'CardTitle-' + props.concept.id,
+            key: 'CardTitle-' + props.app.state.viewingConcept.id,
           }
           return (
             <Content
-              contentType={props.concept.summary.type}
+              contentType={props.app.state.viewingConcept.summary.type}
               contentProps={contentProps}
             />
           )

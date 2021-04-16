@@ -66,7 +66,7 @@ interface DebuggingToggleAction {
   type: 'debugging::toggle'
 }
 
-type Action =
+export type Action =
   | ConceptCreateAction
   | ConceptDataChangeAction
   | ConceptDrawingChangeAction

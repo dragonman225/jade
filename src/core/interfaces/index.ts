@@ -1,4 +1,6 @@
+import * as React from 'react'
 import { ISub } from '../lib/pubsub'
+import { Action } from '../reducer'
 import {
   Concept,
   ConceptId,
@@ -75,6 +77,10 @@ export interface ContentProps<T extends InitializedConceptData> {
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
   content: T | UninitializedConceptData
   messageBus: ISub
+  app: {
+    state: State4
+    dispatch: React.Dispatch<Action>
+  }
   onChange: (content: T) => void
   onReplace: (type: string) => void
   onInteractionStart: () => void
