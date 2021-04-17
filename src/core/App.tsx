@@ -10,6 +10,7 @@ import {
   useRef,
 } from 'react'
 import { cssRaw, stylesheet } from 'typestyle'
+import { v4 as uuidv4 } from 'uuid'
 import { createReducer, synthesizeView } from './reducer'
 import { Block } from './Block'
 import { BlockFactory } from './BlockFactory'
@@ -27,18 +28,52 @@ import {
   Concept,
 } from './interfaces'
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
-const initialConcepts = require('../initial-concepts.json')
+const initialConcepts = require('../initial-concepts.json') as Concept[]
 
 function loadAppState(db: DatabaseInterface): State4 {
   console.log('Loading app state.')
   if (!db.isValid()) {
+    const toolConcepts: Concept[] = factoryRegistry
+      .getToolFactories()
+      .map(f => ({
+        id: uuidv4(),
+        summary: { type: f.id, data: { initialized: false } },
+        details: [],
+        drawing: [],
+      }))
+    const toolMaskConcept: Concept = {
+      id: '__tool_mask__',
+      summary: { type: 'toolmask', data: { initialized: false } },
+      details: toolConcepts.map(c => ({
+        id: uuidv4(),
+        type: 'contains',
+        to: c.id,
+        position: (() => {
+          switch (c.summary.type) {
+            case 'headertool':
+              return { x: 50, y: 50 }
+            default:
+              return { x: 50, y: 200 }
+          }
+        })(),
+        width: (() => {
+          switch (c.summary.type) {
+            case 'headertool':
+              return 500
+            default:
+              return 300
+          }
+        })(),
+      })),
+      drawing: [],
+    }
     db.init(
       {
         debugging: false,
         homeConceptId: 'home',
         viewingConceptId: 'home',
       },
-      initialConcepts
+      initialConcepts.concat(toolConcepts, toolMaskConcept)
     )
   }
   const settings = db.getSettings()
@@ -194,7 +229,7 @@ export const App: React.FunctionComponent<Props> = props => {
                 origin={{ type: 'TL', top: 0, left: 0 }}
                 zIndex={1}
                 container={
-                  factoryRegistry.get(subConcept.summary.type)?.pinned
+                  factoryRegistry.getFactory(subConcept.summary.type)?.isTool
                     ? Box
                     : undefined
                 }

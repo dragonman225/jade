@@ -9,15 +9,18 @@ export type FactoryId = string
 export interface Factory {
   id: FactoryId
   name: string
-  pinned?: boolean
+  /** `true` to treat the products of this factory tools, otherwise content. */
+  isTool?: boolean
+  /** Ignore to position the products absolutely. */
   origin?: Origin
   component: React.ComponentClass<any> | React.FunctionComponent<any>
 }
 
 export interface FactoryRegistry {
-  getDefault: () => Factory
-  getList: () => Factory[]
-  get: (factoryId: FactoryId) => Factory
+  getDefaultContentFactory: () => Factory
+  getContentFactories: () => Factory[]
+  getToolFactories: () => Factory[]
+  getFactory: (factoryId: FactoryId) => Factory | undefined
   createConceptDisplay: (
     factoryId: FactoryId,
     props: ConceptDisplayProps<InitializedConceptData>

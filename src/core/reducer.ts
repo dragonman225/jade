@@ -43,6 +43,7 @@ interface LinkCreateAction {
 interface LinkRemoveAction {
   type: 'link::remove'
   data: {
+    /** Link id. */
     id: string
   }
 }
@@ -50,6 +51,7 @@ interface LinkRemoveAction {
 interface ContainsLinkMoveAction {
   type: 'containslink::move'
   data: {
+    /** Link id. */
     id: string
     position: Vec2
   }
@@ -58,6 +60,7 @@ interface ContainsLinkMoveAction {
 interface ContainsLinkResizeAction {
   type: 'containslink::resize'
   data: {
+    /** Link id. */
     id: string
     width: number
   }
@@ -89,7 +92,7 @@ export function synthesizeView(
   viewingConcept: Concept,
   db: DatabaseInterface
 ): ConceptDetail[] {
-  const overlayId = '__overlay__'
+  const overlayId = '__tool_mask__'
   return Concept.details(viewingConcept, db).concat(
     viewingConcept.id !== overlayId
       ? Concept.details(db.getConcept(overlayId), db)
@@ -106,7 +109,7 @@ export function createReducer(db: DatabaseInterface) {
         const newConcept: Concept = {
           id: uuidv4(),
           summary: {
-            type: factoryRegistry.getDefault().id,
+            type: factoryRegistry.getDefaultContentFactory().id,
             data: { initialized: false },
           },
           details: [],

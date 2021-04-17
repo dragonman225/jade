@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {
   ConceptDisplayProps,
-  Factory,
   FactoryId,
   FactoryRegistry,
   InitializedConceptData,
@@ -20,18 +19,20 @@ class AlexFactoryRegistry implements FactoryRegistry {
   ]
   private default = PMTextFactory
 
-  getDefault = (): Factory => this.default
+  getDefaultContentFactory = () => this.default
 
-  getList = (): Factory[] => this.factories
+  getContentFactories = () => this.factories.filter(f => !f.isTool)
 
-  get = (factoryId: FactoryId): Factory | undefined =>
+  getToolFactories = () => this.factories.filter(f => f.isTool)
+
+  getFactory = (factoryId: FactoryId) =>
     this.factories.find(f => f.id === factoryId)
 
   createConceptDisplay = (
     factoryId: FactoryId,
     props: ConceptDisplayProps<InitializedConceptData>
-  ): JSX.Element => {
-    const factory = this.get(factoryId)
+  ) => {
+    const factory = this.getFactory(factoryId)
 
     if (!factory) {
       return (

@@ -117,6 +117,6 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
 export const HeaderToolFactory: Factory = {
   id: 'headertool',
   name: 'Header Tool',
-  pinned: true,
+  isTool: true,
   component: HeaderTool,
 }

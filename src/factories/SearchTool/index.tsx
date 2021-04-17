@@ -414,6 +414,6 @@ const SearchTool: React.FunctionComponent<Props> = props => {
 export const SearchToolFactory: Factory = {
   id: 'searchtool',
   name: 'Search Tool',
-  pinned: true,
+  isTool: true,
   component: SearchTool,
 }

@@ -104,7 +104,7 @@ const PMText: React.FunctionComponent<Props> = props => {
   const [chosenItemIndex, setChosenItemIndex] = useState(0)
   const [isEmpty, setIsEmpty] = useState(true)
   const menuItems = props.factoryRegistry
-    .getList()
+    .getContentFactories()
     .map(f => ({ name: f.name, type: f.id }))
 
   function onKeyDown(_view: EditorView<any>, event: KeyboardEvent) {

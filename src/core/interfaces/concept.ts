@@ -58,6 +58,7 @@ export interface Concept {
 export interface ConceptDetail {
   link: Link
   concept: Concept
+  fromConcept: Concept
 }
 
 /** Concept Interface. */
@@ -68,6 +69,7 @@ export const Concept = {
         return {
           link,
           concept: db.getConcept(link.to),
+          fromConcept: concept,
         }
       })
       .filter(d => !!d.concept)
