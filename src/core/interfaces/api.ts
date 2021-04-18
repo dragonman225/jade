@@ -1,6 +1,6 @@
 import { IPubSub } from '../lib/pubsub'
 import { Action } from '../reducer'
-import { Origin, Vec2 } from './common'
+import { Origin, Vec2 } from './util'
 import { InitializedConceptData, UninitializedConceptData } from './concept'
 import { DatabaseInterface, State4 } from './core'
 

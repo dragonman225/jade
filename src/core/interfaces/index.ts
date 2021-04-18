@@ -1,4 +1,4 @@
 export * from './api'
-export * from './common'
+export * from './util'
 export * from './concept'
 export * from './core'

@@ -1,4 +1,4 @@
-import { Vec2 } from './common'
+import { Vec2 } from './util'
 import { DatabaseInterface } from './core'
 
 /** Summary. */
