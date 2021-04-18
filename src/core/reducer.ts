@@ -66,6 +66,11 @@ interface RefResizeAction {
   }
 }
 
+interface CameraMoveDeltaAction {
+  type: 'cam::movedelta'
+  data: Vec2
+}
+
 interface ExpandAction {
   type: 'navigation::expand'
   data: {
@@ -85,6 +90,7 @@ export type Action =
   | RefRemoveAction
   | RefMoveAction
   | RefResizeAction
+  | CameraMoveDeltaAction
   | ExpandAction
   | DebuggingToggleAction
 
@@ -214,6 +220,18 @@ export function createReducer(db: DatabaseInterface) {
           ...state,
           viewingConcept: newViewingConcept,
           viewingConceptDetails: synthesizeView(newViewingConcept, db),
+        }
+      }
+      case 'cam::movedelta': {
+        const delta = action.data
+        return {
+          ...state,
+          camera: {
+            focus: {
+              x: state.camera.focus.x - delta.x,
+              y: state.camera.focus.y - delta.y,
+            },
+          },
         }
       }
       case 'navigation::expand': {

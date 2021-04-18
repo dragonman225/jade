@@ -88,6 +88,9 @@ function loadAppState(db: DatabaseInterface): State4 {
       | ConceptId
       | undefined
     )[],
+    camera: {
+      focus: { x: 0, y: 0 },
+    },
   }
 }
 
@@ -204,97 +207,117 @@ export const App: React.FunctionComponent<Props> = props => {
     return ReactDOM.createPortal(children, overlayRef.current)
   }
 
+  console.log(state.camera)
+
   return (
     <div className={styles.App}>
       <div className={styles.Playground}>
         <InputContainer messenger={messenger}>
           <Overlay ref={overlayRef} />
           <Base
-            onRequestCreate={position => {
-              dispatchAction({ type: 'concept::create', data: { position } })
+            onRequestCreate={rawPos => {
+              dispatchAction({
+                type: 'concept::create',
+                data: {
+                  position: {
+                    x: rawPos.x + state.camera.focus.x,
+                    y: rawPos.y + state.camera.focus.y,
+                  },
+                },
+              })
             }}
+            onPan={delta =>
+              dispatchAction({ type: 'cam::movedelta', data: delta })
+            }
           />
-          {state.viewingConceptDetails.map(result => {
-            const subConcept = result.concept
-            const key = 'ConceptRef-' + result.link.id
-            return (
-              <Block
-                messenger={messenger}
-                readOnly={isInteractionLocked(key)}
-                data={{
-                  blockId: subConcept.id,
-                  position: result.link.position,
-                  width: result.link.width,
-                }}
-                origin={{ type: 'TL', top: 0, left: 0 }}
-                zIndex={1}
-                container={
-                  factoryRegistry.getFactory(subConcept.summary.type)?.isTool
-                    ? Box
-                    : undefined
-                }
-                onResize={width => {
-                  dispatchAction({
-                    type: 'ref::resize',
-                    data: { id: result.link.id, width },
-                  })
-                }}
-                onMove={position => {
-                  dispatchAction({
-                    type: 'ref::move',
-                    data: { id: result.link.id, position },
-                  })
-                }}
-                onRemove={() => {
-                  dispatchAction({
-                    type: 'ref::remove',
-                    data: { id: result.link.id },
-                  })
-                }}
-                onExpand={() => {
-                  handleExpand(subConcept.id)
-                }}
-                onInteractionStart={() => {
-                  lockInteraction(key)
-                }}
-                onInteractionEnd={() => {
-                  unlockInteraction(key)
-                }}
-                key={key}>
-                {contentProps =>
-                  factoryRegistry.createConceptDisplay(
-                    subConcept.summary.type,
-                    {
-                      ...contentProps,
-                      viewMode: 'Block',
-                      content: subConcept.summary.data,
-                      messageBus: messenger,
-                      app: {
-                        state,
-                        dispatch: dispatchAction,
-                      },
-                      factoryRegistry,
-                      database: props.db,
-                      onChange: content => {
-                        dispatchAction({
-                          type: 'concept::datachange',
-                          data: {
-                            id: subConcept.id,
-                            type: subConcept.summary.type,
-                            content,
-                          },
-                        })
-                      },
-                      onReplace: type => {
-                        replaceContentType(subConcept, type)
-                      },
-                      createOverlay,
-                    }
-                  )
-                }
-              </Block>
-            )
-          })}
+          <div
+            style={{
+              transform: `translate(${-state.camera.focus.x}px, ${-state.camera
+                .focus.y}px)`,
+            }}>
+            {state.viewingConceptDetails.map(result => {
+              const subConcept = result.concept
+              const key = 'ConceptRef-' + result.link.id
+              return (
+                <Block
+                  messenger={messenger}
+                  readOnly={isInteractionLocked(key)}
+                  data={{
+                    blockId: subConcept.id,
+                    position: result.link.position,
+                    width: result.link.width,
+                  }}
+                  origin={{ type: 'TL', top: 0, left: 0 }}
+                  zIndex={1}
+                  camera={state.camera}
+                  container={
+                    factoryRegistry.getFactory(subConcept.summary.type)?.isTool
+                      ? Box
+                      : undefined
+                  }
+                  onResize={width => {
+                    dispatchAction({
+                      type: 'ref::resize',
+                      data: { id: result.link.id, width },
+                    })
+                  }}
+                  onMove={position => {
+                    dispatchAction({
+                      type: 'ref::move',
+                      data: { id: result.link.id, position },
+                    })
+                  }}
+                  onRemove={() => {
+                    dispatchAction({
+                      type: 'ref::remove',
+                      data: { id: result.link.id },
+                    })
+                  }}
+                  onExpand={() => {
+                    handleExpand(subConcept.id)
+                  }}
+                  onInteractionStart={() => {
+                    lockInteraction(key)
+                  }}
+                  onInteractionEnd={() => {
+                    unlockInteraction(key)
+                  }}
+                  key={key}>
+                  {contentProps =>
+                    factoryRegistry.createConceptDisplay(
+                      subConcept.summary.type,
+                      {
+                        ...contentProps,
+                        viewMode: 'Block',
+                        content: subConcept.summary.data,
+                        messageBus: messenger,
+                        app: {
+                          state,
+                          dispatch: dispatchAction,
+                        },
+                        factoryRegistry,
+                        database: props.db,
+                        onChange: content => {
+                          dispatchAction({
+                            type: 'concept::datachange',
+                            data: {
+                              id: subConcept.id,
+                              type: subConcept.summary.type,
+                              content,
+                            },
+                          })
+                        },
+                        onReplace: type => {
+                          replaceContentType(subConcept, type)
+                        },
+                        createOverlay,
+                      }
+                    )
+                  }
+                </Block>
+              )
+            })}
+          </div>
           <Block
             messenger={messenger}
             readOnly={false}
@@ -310,6 +333,7 @@ export const App: React.FunctionComponent<Props> = props => {
                 ? 2
                 : -999
             }
+            camera={state.camera}
             container={Box}
             onResize={width => {
               setCanvasToolState({

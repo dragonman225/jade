@@ -59,3 +59,7 @@ export interface PubSubStatusMessage {
     subNum: number
   }[]
 }
+
+export interface Camera {
+  focus: Vec2
+}

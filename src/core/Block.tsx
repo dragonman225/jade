@@ -11,6 +11,7 @@ import {
   Vec2,
   Origin,
   InitializedConceptData,
+  Camera,
 } from './interfaces'
 
 type ChildrenProps = Pick<
@@ -29,6 +30,7 @@ interface Props {
   }
   origin: Origin
   zIndex: number
+  camera: Camera
   container?: React.ComponentClass<any> | React.FunctionComponent<any>
   onResize: (width: number) => void
   onMove: (position: Vec2) => void
@@ -217,23 +219,24 @@ export class Block extends React.Component<Props, State> {
       const blockHeight = 52 /** min height */
 
       const originType = this.props.origin.type
+      const focus = this.props.camera.focus
       const posLimit = {
         left:
           originType === 'TL' || originType === 'BL'
-            ? dragHandleSize
-            : -window.innerWidth + dragHandleSize + blockWidth,
+            ? dragHandleSize + focus.x
+            : -window.innerWidth + dragHandleSize + blockWidth + focus.x,
         right:
           originType === 'TL' || originType === 'BL'
-            ? window.innerWidth - dragHandleSize - blockWidth
-            : -dragHandleSize,
+            ? window.innerWidth - dragHandleSize - blockWidth + focus.x
+            : -dragHandleSize + focus.x,
         top:
           originType === 'TL' || originType === 'TR'
-            ? dragHandleSize
-            : -window.innerHeight + dragHandleSize + blockHeight,
+            ? dragHandleSize + focus.y
+            : -window.innerHeight + dragHandleSize + blockHeight + focus.y,
         bottom:
           originType === 'TL' || originType === 'TR'
-            ? window.innerHeight - dragHandleSize - blockHeight
-            : -dragHandleSize,
+            ? window.innerHeight - dragHandleSize - blockHeight + focus.y
+            : -dragHandleSize + focus.y,
       }
 
       /** Limit newPos in allowed range. */
@@ -447,7 +450,8 @@ export class Block extends React.Component<Props, State> {
           className={styles.ContentArea}
           style={{
             maxHeight:
-              window.innerHeight - this.state.position.y - dragHandleSize,
+              // window.innerHeight - this.state.position.y - dragHandleSize
+              (window.innerHeight / 4) * 3,
           }}>
           {this.props.children ? (
             this.props.children({

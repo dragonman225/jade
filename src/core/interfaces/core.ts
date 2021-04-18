@@ -1,4 +1,5 @@
 import { ConceptId, Concept, ConceptDetail } from './concept'
+import { Camera } from './util'
 
 /** App state v3. */
 export interface State3 {
@@ -22,6 +23,8 @@ export interface State4 {
   viewingConceptDetails: ConceptDetail[]
   /** Volatile. */
   expandHistory: (ConceptId | undefined)[]
+  /** Volatile. */
+  camera: Camera
 }
 
 export interface Settings {
