@@ -32,24 +32,24 @@ interface ConceptDrawingChangeAction {
   data: Stroke[]
 }
 
-interface LinkCreateAction {
-  type: 'link::create'
+interface RefCreateAction {
+  type: 'ref::create'
   data: {
     id: string
     position: Vec2
   }
 }
 
-interface LinkRemoveAction {
-  type: 'link::remove'
+interface RefRemoveAction {
+  type: 'ref::remove'
   data: {
     /** Link id. */
     id: string
   }
 }
 
-interface ContainsLinkMoveAction {
-  type: 'containslink::move'
+interface RefMoveAction {
+  type: 'ref::move'
   data: {
     /** Link id. */
     id: string
@@ -57,8 +57,8 @@ interface ContainsLinkMoveAction {
   }
 }
 
-interface ContainsLinkResizeAction {
-  type: 'containslink::resize'
+interface RefResizeAction {
+  type: 'ref::resize'
   data: {
     /** Link id. */
     id: string
@@ -81,10 +81,10 @@ export type Action =
   | ConceptCreateAction
   | ConceptDataChangeAction
   | ConceptDrawingChangeAction
-  | LinkCreateAction
-  | LinkRemoveAction
-  | ContainsLinkMoveAction
-  | ContainsLinkResizeAction
+  | RefCreateAction
+  | RefRemoveAction
+  | RefMoveAction
+  | RefResizeAction
   | ExpandAction
   | DebuggingToggleAction
 
@@ -134,7 +134,7 @@ export function createReducer(db: DatabaseInterface) {
           viewingConceptDetails: synthesizeView(newViewingConcept, db),
         }
       }
-      case 'containslink::move': {
+      case 'ref::move': {
         const linkId = action.data.id
         const newPosition = action.data.position
         const newViewingConcept: Concept = {
@@ -157,7 +157,7 @@ export function createReducer(db: DatabaseInterface) {
           viewingConceptDetails: synthesizeView(newViewingConcept, db),
         }
       }
-      case 'containslink::resize': {
+      case 'ref::resize': {
         const linkId = action.data.id
         const newWidth = action.data.width
         const newViewingConcept = {
@@ -200,7 +200,7 @@ export function createReducer(db: DatabaseInterface) {
           viewingConceptDetails: synthesizeView(state.viewingConcept, db),
         }
       }
-      case 'link::remove': {
+      case 'ref::remove': {
         // remove link only
         const linkId = action.data.id
         const newViewingConcept = {
@@ -236,7 +236,7 @@ export function createReducer(db: DatabaseInterface) {
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
         }
       }
-      case 'link::create': {
+      case 'ref::create': {
         const link: Link = {
           id: uuidv4(),
           type: 'contains',

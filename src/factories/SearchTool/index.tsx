@@ -204,7 +204,7 @@ const SearchTool: React.FunctionComponent<Props> = props => {
       setS2lDelta({ x: 0, y: 0 })
       if (s2lBlock.valid) {
         app.dispatch({
-          type: 'link::create',
+          type: 'ref::create',
           data: {
             id: s2lBlock.id,
             position: {

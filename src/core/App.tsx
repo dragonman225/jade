@@ -235,19 +235,19 @@ export const App: React.FunctionComponent<Props> = props => {
                 }
                 onResize={width => {
                   dispatchAction({
-                    type: 'containslink::resize',
+                    type: 'ref::resize',
                     data: { id: result.link.id, width },
                   })
                 }}
                 onMove={position => {
                   dispatchAction({
-                    type: 'containslink::move',
+                    type: 'ref::move',
                     data: { id: result.link.id, position },
                   })
                 }}
                 onRemove={() => {
                   dispatchAction({
-                    type: 'link::remove',
+                    type: 'ref::remove',
                     data: { id: result.link.id },
                   })
                 }}
