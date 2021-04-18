@@ -17,7 +17,7 @@ const styles = stylesheet({
   },
 })
 
-export class BlockFactory extends React.Component<Props> {
+export class Base extends React.Component<Props> {
   constructor(props: Props) {
     super(props)
   }

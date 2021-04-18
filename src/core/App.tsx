@@ -13,7 +13,7 @@ import { cssRaw, stylesheet } from 'typestyle'
 import { v4 as uuidv4 } from 'uuid'
 import { createReducer, synthesizeView } from './reducer'
 import { Block } from './Block'
-import { BlockFactory } from './BlockFactory'
+import { Base } from './Base'
 import { InputContainer } from './InputContainer'
 import { CanvasTool } from './CanvasTool'
 import { Box } from './component/Box'
@@ -209,7 +209,7 @@ export const App: React.FunctionComponent<Props> = props => {
       <div className={styles.Playground}>
         <InputContainer messenger={messenger}>
           <Overlay ref={overlayRef} />
-          <BlockFactory
+          <Base
             onRequestCreate={position => {
               dispatchAction({ type: 'concept::create', data: { position } })
             }}
