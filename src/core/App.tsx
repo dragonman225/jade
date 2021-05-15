@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { cssRaw, stylesheet } from 'typestyle'
 import { v4 as uuidv4 } from 'uuid'
-import { createReducer, synthesizeView } from './reducer'
+import { Action, createReducer, synthesizeView } from './reducer'
 import { Block } from './Block'
 import { Base } from './Base'
 import { InputContainer } from './InputContainer'
@@ -27,6 +27,7 @@ import {
   ConceptId,
   Concept,
 } from './interfaces'
+import { useAnimationFrame } from './useAnimationFrame'
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const initialConcepts = require('../initial-concepts.json') as Concept[]
 
@@ -207,7 +208,11 @@ export const App: React.FunctionComponent<Props> = props => {
     return ReactDOM.createPortal(children, overlayRef.current)
   }
 
-  console.log(state.camera)
+  const actionQueueRef = useRef<Action[]>([])
+  useAnimationFrame(() => {
+    actionQueueRef.current.forEach(action => dispatchAction(action))
+    actionQueueRef.current = []
+  })
 
   return (
     <div className={styles.App}>
@@ -227,7 +232,10 @@ export const App: React.FunctionComponent<Props> = props => {
               })
             }}
             onPan={delta =>
-              dispatchAction({ type: 'cam::movedelta', data: delta })
+              actionQueueRef.current.push({
+                type: 'cam::movedelta',
+                data: delta,
+              })
             }
           />
           <div
