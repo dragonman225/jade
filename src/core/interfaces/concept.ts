@@ -37,10 +37,26 @@ export interface Stroke {
 /** Link. */
 export type LinkId = string
 
+export enum PositionType {
+  /** Not positioned, the `position` property has no meaning. */
+  None,
+  /** Position relative to environment origin. */
+  Normal,
+  /**
+   * Position relative to viewport top-left, top-right, bottom-left,
+   * bottom-right.
+   */
+  PinnedTL,
+  PinnedTR,
+  PinnedBL,
+  PinnedBR,
+}
+
 export interface Link {
   id: LinkId
   to: ConceptId
   type: 'contains'
+  posType: PositionType
   position: Vec2
   width: number
 }

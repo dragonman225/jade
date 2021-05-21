@@ -9,6 +9,7 @@ import {
   Link,
   Stroke,
   ConceptDetail,
+  PositionType,
 } from './interfaces'
 import { viewportCoordsToEnvCoords, vecDiv, vecSub, vecMul } from './lib/utils'
 
@@ -108,10 +109,10 @@ export function synthesizeView(
   viewingConcept: Concept,
   db: DatabaseInterface
 ): ConceptDetail[] {
-  const overlayId = '__tool_mask__'
+  const conceptId = '__tool_mask__'
   return Concept.details(viewingConcept, db).concat(
-    viewingConcept.id !== overlayId
-      ? Concept.details(db.getConcept(overlayId), db)
+    viewingConcept.id !== conceptId
+      ? Concept.details(db.getConcept(conceptId), db)
       : []
   )
 }
@@ -135,6 +136,7 @@ export function createReducer(db: DatabaseInterface) {
           id: uuidv4(),
           type: 'contains',
           to: newConcept.id,
+          posType: PositionType.Normal,
           position: viewportCoordsToEnvCoords(
             action.data.position,
             state.camera
@@ -317,6 +319,7 @@ export function createReducer(db: DatabaseInterface) {
           id: uuidv4(),
           type: 'contains',
           to: action.data.id,
+          posType: PositionType.Normal,
           position: action.data.position,
           width: defaultBlockWidth,
         }
