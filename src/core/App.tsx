@@ -10,7 +10,7 @@ import {
   useRef,
 } from 'react'
 import { cssRaw, stylesheet } from 'typestyle'
-import { Action, createReducer, synthesizeView } from './reducer'
+import { Action, createReducer, loadAppState } from './reducer'
 import { Block } from './Block'
 import { InputContainer } from './InputContainer'
 import { CanvasTool } from './CanvasTool'
@@ -19,48 +19,14 @@ import { Overlay } from './component/Overlay'
 import { factoryRegistry } from '../factories'
 import { PubSub } from './lib/pubsub'
 import {
-  OriginTopRight,
-  DatabaseInterface,
-  State4,
-  ConceptId,
   Concept,
   ConceptDetail,
+  DatabaseInterface,
+  OriginTopRight,
   Vec2,
 } from './interfaces'
 import { useAnimationFrame } from './useAnimationFrame'
 import { vecSub } from './lib/utils'
-import initialConcepts from '../resources/initial-condition'
-
-function loadAppState(db: DatabaseInterface): State4 {
-  console.log('Loading app state.')
-  if (!db.isValid()) {
-    db.init(
-      {
-        debugging: false,
-        homeConceptId: 'home',
-        viewingConceptId: 'home',
-      },
-      initialConcepts
-    )
-  }
-  const settings = db.getSettings()
-  const viewingConcept = db.getConcept(settings.viewingConceptId)
-  const viewingConceptDetails = synthesizeView(viewingConcept, db)
-  return {
-    debugging: settings.debugging,
-    homeConceptId: settings.homeConceptId,
-    viewingConcept,
-    viewingConceptDetails,
-    expandHistory: new Array(99).concat(viewingConcept.id) as (
-      | ConceptId
-      | undefined
-    )[],
-    camera: {
-      focus: { x: 0, y: 0 },
-      scale: 1,
-    },
-  }
-}
 
 type Props = {
   db: DatabaseInterface

@@ -1,17 +1,19 @@
 import { v4 as uuidv4 } from 'uuid'
 import { factoryRegistry } from '../factories'
 import {
-  DatabaseInterface,
-  State4,
-  Vec2,
-  Concept,
   BaseConceptData,
-  Link,
-  Stroke,
+  Concept,
+  ConceptId,
   ConceptDetail,
+  DatabaseInterface,
+  Link,
   PositionType,
+  State4,
+  Stroke,
+  Vec2,
 } from './interfaces'
-import { viewportCoordsToEnvCoords, vecDiv, vecSub, vecMul } from './lib/utils'
+import { viewportCoordsToEnvCoords, vecDiv, vecSub } from './lib/utils'
+import initialConcepts from '../resources/initial-condition'
 
 interface ConceptCreateAction {
   type: 'concept::create'
@@ -117,9 +119,41 @@ export function synthesizeView(
   )
 }
 
+export function loadAppState(db: DatabaseInterface): State4 {
+  console.log('Loading app state.')
+  if (!db.isValid()) {
+    db.init(
+      {
+        debugging: false,
+        homeConceptId: 'home',
+        viewingConceptId: 'home',
+      },
+      initialConcepts
+    )
+  }
+  const settings = db.getSettings()
+  const viewingConcept = db.getConcept(settings.viewingConceptId)
+  const viewingConceptDetails = synthesizeView(viewingConcept, db)
+  return {
+    debugging: settings.debugging,
+    homeConceptId: settings.homeConceptId,
+    viewingConcept,
+    viewingConceptDetails,
+    expandHistory: new Array(99).concat(viewingConcept.id) as (
+      | ConceptId
+      | undefined
+    )[],
+    camera: {
+      focus: { x: 0, y: 0 },
+      scale: 1,
+    },
+    selectedConcepts: [],
+  }
+}
+
 export function createReducer(db: DatabaseInterface) {
   return function appStateReducer(state: State4, action: Action): State4 {
-    console.log('Action fired:', action.type)
+    console.log(`reducer: "${action.type}"`)
     const defaultBlockWidth = 300
     switch (action.type) {
       case 'concept::create': {
@@ -273,17 +307,6 @@ export function createReducer(db: DatabaseInterface) {
           vecDiv(action.data.focus, nextScale)
         )
         if (nextScale === state.camera.scale) nextFocus = state.camera.focus
-
-        console.log(
-          nextScale,
-          vecMul(
-            vecSub(
-              viewportCoordsToEnvCoords(action.data.focus, state.camera),
-              vecDiv(action.data.focus, nextScale)
-            ),
-            nextScale
-          )
-        )
 
         return {
           ...state,

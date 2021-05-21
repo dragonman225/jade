@@ -25,6 +25,8 @@ export interface State4 {
   expandHistory: (ConceptId | undefined)[]
   /** Volatile. */
   camera: Camera
+  /** Volatile. */
+  selectedConcepts: ConceptId[]
 }
 
 export interface Settings {
