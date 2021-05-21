@@ -13,7 +13,6 @@ import { cssRaw, stylesheet } from 'typestyle'
 import { v4 as uuidv4 } from 'uuid'
 import { Action, createReducer, synthesizeView } from './reducer'
 import { Block } from './Block'
-import { Base } from './Base'
 import { InputContainer } from './InputContainer'
 import { CanvasTool } from './CanvasTool'
 import { Box } from './component/Box'
@@ -27,8 +26,10 @@ import {
   ConceptId,
   Concept,
   ConceptDetail,
+  Vec2,
 } from './interfaces'
 import { useAnimationFrame } from './useAnimationFrame'
+import { vecSub } from './lib/utils'
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const initialConcepts = require('../initial-concepts.json') as Concept[]
 
@@ -309,62 +310,153 @@ export const App: React.FunctionComponent<Props> = props => {
    */
   const cameraElRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    console.log(cameraElRef)
-
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey) {
-        console.log(e)
         e.preventDefault()
-        dispatchAction({
+        actionQueueRef.current.push({
           type: 'cam::scaledelta',
           data: {
             focus: { x: e.clientX, y: e.clientY },
             wheelDelta: e.deltaY,
           },
         })
+      } else {
+        actionQueueRef.current.push({
+          type: 'cam::movedelta',
+          data: {
+            x: -e.deltaX,
+            y: -e.deltaY,
+          },
+        })
       }
     }
 
-    cameraElRef.current.addEventListener('wheel', handleWheel)
+    const handleDoubleClick = (e: MouseEvent) => {
+      if (e.target === cameraElRef.current) {
+        const viewportCoords: Vec2 = { x: e.clientX, y: e.clientY }
+        dispatchAction({
+          type: 'concept::create',
+          data: {
+            position: viewportCoords,
+          },
+        })
+      }
+    }
 
-    return () => cameraElRef.current.removeEventListener('wheel', handleWheel)
+    const panDetector = (() => {
+      const getUnifiedClientCoords = (e: MouseEvent | TouchEvent) => {
+        return e instanceof MouseEvent
+          ? { x: e.clientX, y: e.clientY }
+          : { x: e.touches[0].clientX, y: e.touches[0].clientY }
+      }
+
+      let panning = false
+      let lastClientCoords = { x: 0, y: 0 }
+
+      return {
+        handlePointerDown: (e: MouseEvent | TouchEvent) => {
+          if (e instanceof MouseEvent) {
+            if (e.button === 0) {
+              /** Using primary button requires starting from an empty area. */
+              if (e.target !== cameraElRef.current) return
+            } else if (e.button !== 1) {
+              /** Using wheel button allows starting from anywhere. */
+              return
+            }
+          } else {
+            /** Ignore touches with more than one point. */
+            if (e.target !== cameraElRef.current || e.touches.length > 1) return
+          }
+
+          panning = true
+          lastClientCoords = getUnifiedClientCoords(e)
+        },
+        handlePointerMove: (e: MouseEvent | TouchEvent) => {
+          if (panning) {
+            const clientCoords = getUnifiedClientCoords(e)
+            const movement = vecSub(clientCoords, lastClientCoords)
+            lastClientCoords = clientCoords
+            actionQueueRef.current.push({
+              type: 'cam::movedelta',
+              data: movement,
+            })
+          }
+        },
+        handlePointerUp: () => {
+          panning = false
+          lastClientCoords = { x: 0, y: 0 }
+        },
+      }
+    })()
+
+    cameraElRef.current.addEventListener('wheel', handleWheel)
+    cameraElRef.current.addEventListener('dblclick', handleDoubleClick)
+    cameraElRef.current.addEventListener(
+      'mousedown',
+      panDetector.handlePointerDown
+    )
+    cameraElRef.current.addEventListener(
+      'mousemove',
+      panDetector.handlePointerMove
+    )
+    cameraElRef.current.addEventListener('mouseup', panDetector.handlePointerUp)
+    cameraElRef.current.addEventListener(
+      'touchstart',
+      panDetector.handlePointerDown
+    )
+    cameraElRef.current.addEventListener(
+      'touchmove',
+      panDetector.handlePointerMove
+    )
+    cameraElRef.current.addEventListener(
+      'touchend',
+      panDetector.handlePointerUp
+    )
+
+    return () => {
+      cameraElRef.current.removeEventListener('wheel', handleWheel)
+      cameraElRef.current.removeEventListener('dblclick', handleDoubleClick)
+      cameraElRef.current.removeEventListener(
+        'mousedown',
+        panDetector.handlePointerDown
+      )
+      cameraElRef.current.removeEventListener(
+        'mousemove',
+        panDetector.handlePointerMove
+      )
+      cameraElRef.current.removeEventListener(
+        'mouseup',
+        panDetector.handlePointerUp
+      )
+      cameraElRef.current.removeEventListener(
+        'touchstart',
+        panDetector.handlePointerDown
+      )
+      cameraElRef.current.removeEventListener(
+        'touchmove',
+        panDetector.handlePointerMove
+      )
+      cameraElRef.current.removeEventListener(
+        'touchend',
+        panDetector.handlePointerUp
+      )
+    }
   }, [cameraElRef.current])
 
   return (
-    // <div
-    //   ref={wheelDetectorRef}
-    //   style={{
-    //     width: 100,
-    //     height: 100,
-    //     background: 'red',
-    //   }}
-    // />
     <div className={styles.App}>
       <div className={styles.Playground}>
         <InputContainer messenger={messenger}>
           <Overlay ref={overlayRef} />
-          <Base
-            onRequestCreate={rawPos => {
-              dispatchAction({
-                type: 'concept::create',
-                data: {
-                  position: {
-                    x: rawPos.x + state.camera.focus.x,
-                    y: rawPos.y + state.camera.focus.y,
-                  },
-                },
-              })
-            }}
-            onPan={delta =>
-              actionQueueRef.current.push({
-                type: 'cam::movedelta',
-                data: delta,
-              })
-            }
-          />
           <div
             ref={cameraElRef}
-            style={{ position: 'absolute', width: '100%', height: '100%' }}>
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+            }}>
             <div
               style={{
                 position: 'relative',

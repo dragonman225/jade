@@ -135,7 +135,10 @@ export function createReducer(db: DatabaseInterface) {
           id: uuidv4(),
           type: 'contains',
           to: newConcept.id,
-          position: action.data.position,
+          position: viewportCoordsToEnvCoords(
+            action.data.position,
+            state.camera
+          ),
           width: defaultBlockWidth,
         }
         const newViewingConcept: Concept = {
@@ -233,7 +236,7 @@ export function createReducer(db: DatabaseInterface) {
         }
       }
       case 'cam::movedelta': {
-        const delta = action.data
+        const delta = vecDiv(action.data, state.camera.scale)
         return {
           ...state,
           camera: {
@@ -264,11 +267,7 @@ export function createReducer(db: DatabaseInterface) {
         }
 
         let nextFocus = vecSub(
-          viewportCoordsToEnvCoords(
-            action.data.focus,
-            state.camera.focus,
-            state.camera.scale
-          ),
+          viewportCoordsToEnvCoords(action.data.focus, state.camera),
           vecDiv(action.data.focus, nextScale)
         )
         if (nextScale === state.camera.scale) nextFocus = state.camera.focus
@@ -277,11 +276,7 @@ export function createReducer(db: DatabaseInterface) {
           nextScale,
           vecMul(
             vecSub(
-              viewportCoordsToEnvCoords(
-                action.data.focus,
-                state.camera.focus,
-                state.camera.scale
-              ),
+              viewportCoordsToEnvCoords(action.data.focus, state.camera),
               vecDiv(action.data.focus, nextScale)
             ),
             nextScale

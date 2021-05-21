@@ -1,4 +1,4 @@
-import { Vec2, Rect } from '../interfaces'
+import { Vec2, Rect, Camera } from '../interfaces'
 
 export function getMouseOffset(e: React.MouseEvent): Vec2 {
   const rect = e.currentTarget.getBoundingClientRect()
@@ -39,10 +39,9 @@ export function vecDiv(v: Vec2, n: number): Vec2 {
 
 export function viewportCoordsToEnvCoords(
   viewportCoords: Vec2,
-  camFocus: Vec2,
-  camScale: number
+  camera: Camera
 ): Vec2 {
-  return vecAdd(camFocus, vecDiv(viewportCoords, camScale))
+  return vecAdd(camera.focus, vecDiv(viewportCoords, camera.scale))
 }
 
 interface CaretCoordinates {
