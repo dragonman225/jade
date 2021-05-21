@@ -17,6 +17,34 @@ export function isPointInRect(point: Vec2, domRect: Rect): boolean {
   )
 }
 
+/** v1 + v2 */
+export function vecAdd(v1: Vec2, v2: Vec2): Vec2 {
+  return { x: v1.x + v2.x, y: v1.y + v2.y }
+}
+
+/** v1 - v2 */
+export function vecSub(v1: Vec2, v2: Vec2): Vec2 {
+  return { x: v1.x - v2.x, y: v1.y - v2.y }
+}
+
+/** v * n */
+export function vecMul(v: Vec2, n: number): Vec2 {
+  return { x: v.x * n, y: v.y * n }
+}
+
+/** v / n */
+export function vecDiv(v: Vec2, n: number): Vec2 {
+  return { x: v.x / n, y: v.y / n }
+}
+
+export function viewportCoordsToEnvCoords(
+  viewportCoords: Vec2,
+  camFocus: Vec2,
+  camScale: number
+): Vec2 {
+  return vecAdd(camFocus, vecDiv(viewportCoords, camScale))
+}
+
 interface CaretCoordinates {
   top: number
   bottom: number

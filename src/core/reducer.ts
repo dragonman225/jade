@@ -10,6 +10,7 @@ import {
   Stroke,
   ConceptDetail,
 } from './interfaces'
+import { viewportCoordsToEnvCoords, vecDiv, vecSub, vecMul } from './lib/utils'
 
 interface ConceptCreateAction {
   type: 'concept::create'
@@ -71,6 +72,14 @@ interface CameraMoveDeltaAction {
   data: Vec2
 }
 
+interface CameraScaleDeltaAction {
+  type: 'cam::scaledelta'
+  data: {
+    focus: Vec2
+    wheelDelta: number
+  }
+}
+
 interface ExpandAction {
   type: 'navigation::expand'
   data: {
@@ -91,6 +100,7 @@ export type Action =
   | RefMoveAction
   | RefResizeAction
   | CameraMoveDeltaAction
+  | CameraScaleDeltaAction
   | ExpandAction
   | DebuggingToggleAction
 
@@ -227,10 +237,63 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           camera: {
+            ...state.camera,
             focus: {
               x: state.camera.focus.x - delta.x,
               y: state.camera.focus.y - delta.y,
             },
+          },
+        }
+      }
+      case 'cam::scaledelta': {
+        const minScale = 0.4
+        const maxScale = 2
+        /** Fibonacci scaling. */
+        const ratio = Math.sqrt(1.618)
+        /**
+         * Calculate how many golden ratio (1.618) is going to be * or /.
+         * Let's set 48px = 1 golden ratio.
+         */
+        const ratioExp = -action.data.wheelDelta / 48
+
+        let nextScale = state.camera.scale * Math.pow(ratio, ratioExp)
+        if (nextScale > maxScale) {
+          nextScale = maxScale
+        } else if (nextScale < minScale) {
+          nextScale = minScale
+        }
+
+        let nextFocus = vecSub(
+          viewportCoordsToEnvCoords(
+            action.data.focus,
+            state.camera.focus,
+            state.camera.scale
+          ),
+          vecDiv(action.data.focus, nextScale)
+        )
+        if (nextScale === state.camera.scale) nextFocus = state.camera.focus
+
+        console.log(
+          nextScale,
+          vecMul(
+            vecSub(
+              viewportCoordsToEnvCoords(
+                action.data.focus,
+                state.camera.focus,
+                state.camera.scale
+              ),
+              vecDiv(action.data.focus, nextScale)
+            ),
+            nextScale
+          )
+        )
+
+        return {
+          ...state,
+          camera: {
+            ...state.camera,
+            focus: nextFocus,
+            scale: nextScale,
           },
         }
       }

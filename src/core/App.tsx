@@ -26,6 +26,7 @@ import {
   State4,
   ConceptId,
   Concept,
+  ConceptDetail,
 } from './interfaces'
 import { useAnimationFrame } from './useAnimationFrame'
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
@@ -91,6 +92,7 @@ function loadAppState(db: DatabaseInterface): State4 {
     )[],
     camera: {
       focus: { x: 0, y: 0 },
+      scale: 1,
     },
   }
 }
@@ -139,9 +141,11 @@ const styles = stylesheet({
 })
 
 export const App: React.FunctionComponent<Props> = props => {
+  const { db } = props
+
   const messenger = useMemo(() => new PubSub(), [])
-  const appStateReducer = useCallback(createReducer(props.db), [])
-  const initialState = useMemo(() => loadAppState(props.db), [])
+  const appStateReducer = useCallback(createReducer(db), [])
+  const initialState = useMemo(() => loadAppState(db), [])
   const [state, dispatchAction] = useReducer(appStateReducer, initialState)
 
   /** Interaction lock. */
@@ -174,8 +178,6 @@ export const App: React.FunctionComponent<Props> = props => {
       messenger.unsubscribe('user::toggleDebugging', toggleDebugging)
     }
   }, [])
-
-  console.log('app render:', state.expandHistory)
 
   const handleExpand = (toConceptId: string) => {
     if (toConceptId !== state.viewingConcept.id) {
@@ -214,7 +216,129 @@ export const App: React.FunctionComponent<Props> = props => {
     actionQueueRef.current = []
   })
 
+  function toBlock(conceptDetail: ConceptDetail) {
+    const subConcept = conceptDetail.concept
+    const key = 'ConceptRef-' + conceptDetail.link.id
+    return (
+      <Block
+        messenger={messenger}
+        readOnly={isInteractionLocked(key)}
+        data={{
+          blockId: subConcept.id,
+          position: conceptDetail.link.position,
+          width: conceptDetail.link.width,
+        }}
+        origin={{ type: 'TL', top: 0, left: 0 }}
+        zIndex={1}
+        camera={state.camera}
+        container={
+          factoryRegistry.getFactory(subConcept.summary.type)?.isTool
+            ? Box
+            : undefined
+        }
+        onResize={width => {
+          dispatchAction({
+            type: 'ref::resize',
+            data: { id: conceptDetail.link.id, width },
+          })
+        }}
+        onMove={position => {
+          dispatchAction({
+            type: 'ref::move',
+            data: { id: conceptDetail.link.id, position },
+          })
+        }}
+        onRemove={() => {
+          dispatchAction({
+            type: 'ref::remove',
+            data: { id: conceptDetail.link.id },
+          })
+        }}
+        onExpand={() => {
+          handleExpand(subConcept.id)
+        }}
+        onInteractionStart={() => {
+          lockInteraction(key)
+        }}
+        onInteractionEnd={() => {
+          unlockInteraction(key)
+        }}
+        key={key}>
+        {contentProps =>
+          factoryRegistry.createConceptDisplay(subConcept.summary.type, {
+            ...contentProps,
+            viewMode: 'Block',
+            content: subConcept.summary.data,
+            messageBus: messenger,
+            app: {
+              state,
+              dispatch: dispatchAction,
+            },
+            factoryRegistry,
+            database: db,
+            onChange: content => {
+              dispatchAction({
+                type: 'concept::datachange',
+                data: {
+                  id: subConcept.id,
+                  type: subConcept.summary.type,
+                  content,
+                },
+              })
+            },
+            onReplace: type => {
+              replaceContentType(subConcept, type)
+            },
+            createOverlay,
+          })
+        }
+      </Block>
+    )
+  }
+
+  /**
+   * React set `{ passive: true }` for its real WheelEvent handler, making
+   * it unable to call `event.preventDefault()` to disable browser's
+   * "Ctrl + Wheel" zoom feature in the handler set with `onWheel` prop,
+   * so we have to fallback to the native API.
+   *
+   * If we try to call `event.preventDefault()` inside the handler set
+   * with `onWheel` prop, we'll get the error:
+   * "Unable to preventDefault inside passive event listener due to target
+   * being treated as passive."
+   */
+  const cameraElRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    console.log(cameraElRef)
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        console.log(e)
+        e.preventDefault()
+        dispatchAction({
+          type: 'cam::scaledelta',
+          data: {
+            focus: { x: e.clientX, y: e.clientY },
+            wheelDelta: e.deltaY,
+          },
+        })
+      }
+    }
+
+    cameraElRef.current.addEventListener('wheel', handleWheel)
+
+    return () => cameraElRef.current.removeEventListener('wheel', handleWheel)
+  }, [cameraElRef.current])
+
   return (
+    // <div
+    //   ref={wheelDetectorRef}
+    //   style={{
+    //     width: 100,
+    //     height: 100,
+    //     background: 'red',
+    //   }}
+    // />
     <div className={styles.App}>
       <div className={styles.Playground}>
         <InputContainer messenger={messenger}>
@@ -239,93 +363,31 @@ export const App: React.FunctionComponent<Props> = props => {
             }
           />
           <div
-            style={{
-              transform: `translate(${-state.camera.focus.x}px, ${-state.camera
-                .focus.y}px)`,
-            }}>
-            {state.viewingConceptDetails.map(result => {
-              const subConcept = result.concept
-              const key = 'ConceptRef-' + result.link.id
-              return (
-                <Block
-                  messenger={messenger}
-                  readOnly={isInteractionLocked(key)}
-                  data={{
-                    blockId: subConcept.id,
-                    position: result.link.position,
-                    width: result.link.width,
-                  }}
-                  origin={{ type: 'TL', top: 0, left: 0 }}
-                  zIndex={1}
-                  camera={state.camera}
-                  container={
-                    factoryRegistry.getFactory(subConcept.summary.type)?.isTool
-                      ? Box
-                      : undefined
-                  }
-                  onResize={width => {
-                    dispatchAction({
-                      type: 'ref::resize',
-                      data: { id: result.link.id, width },
-                    })
-                  }}
-                  onMove={position => {
-                    dispatchAction({
-                      type: 'ref::move',
-                      data: { id: result.link.id, position },
-                    })
-                  }}
-                  onRemove={() => {
-                    dispatchAction({
-                      type: 'ref::remove',
-                      data: { id: result.link.id },
-                    })
-                  }}
-                  onExpand={() => {
-                    handleExpand(subConcept.id)
-                  }}
-                  onInteractionStart={() => {
-                    lockInteraction(key)
-                  }}
-                  onInteractionEnd={() => {
-                    unlockInteraction(key)
-                  }}
-                  key={key}>
-                  {contentProps =>
-                    factoryRegistry.createConceptDisplay(
-                      subConcept.summary.type,
-                      {
-                        ...contentProps,
-                        viewMode: 'Block',
-                        content: subConcept.summary.data,
-                        messageBus: messenger,
-                        app: {
-                          state,
-                          dispatch: dispatchAction,
-                        },
-                        factoryRegistry,
-                        database: props.db,
-                        onChange: content => {
-                          dispatchAction({
-                            type: 'concept::datachange',
-                            data: {
-                              id: subConcept.id,
-                              type: subConcept.summary.type,
-                              content,
-                            },
-                          })
-                        },
-                        onReplace: type => {
-                          replaceContentType(subConcept, type)
-                        },
-                        createOverlay,
-                      }
-                    )
-                  }
-                </Block>
-              )
-            })}
+            ref={cameraElRef}
+            style={{ position: 'absolute', width: '100%', height: '100%' }}>
+            <div
+              style={{
+                position: 'relative',
+                transformOrigin: 'left top',
+                transform: `translate(${
+                  -state.camera.focus.x * state.camera.scale
+                }px, ${-state.camera.focus.y * state.camera.scale}px) scale(${
+                  state.camera.scale
+                })`,
+              }}>
+              {state.viewingConceptDetails
+                .filter(
+                  c =>
+                    !factoryRegistry.getFactory(c.concept.summary.type)?.isTool
+                )
+                .map(toBlock)}
+            </div>
           </div>
+          {state.viewingConceptDetails
+            .filter(
+              c => factoryRegistry.getFactory(c.concept.summary.type)?.isTool
+            )
+            .map(toBlock)}
           <Block
             messenger={messenger}
             readOnly={false}

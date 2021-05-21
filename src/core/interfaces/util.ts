@@ -62,4 +62,5 @@ export interface PubSubStatusMessage {
 
 export interface Camera {
   focus: Vec2
+  scale: number
 }
