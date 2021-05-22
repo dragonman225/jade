@@ -64,27 +64,28 @@ export function Block(props: Props): JSX.Element {
     db,
     createOverlay,
   } = props
-  const subConcept = block.concept
+  const concept = block.concept
   const blockRef = useRef<HTMLDivElement>(null)
   const resizerRef = useRef<HTMLDivElement>(null)
   const blockStateRef = useRef<BlockState>(block)
+
+  const setMode = (mode: InteractionMode) => {
+    dispatchAction({
+      type: 'block::change',
+      data: {
+        id: block.refId,
+        changes: {
+          mode,
+        },
+      },
+    })
+  }
 
   useEffect(() => {
     blockStateRef.current = block
   }, [block])
 
   useEffect(() => {
-    console.log('update block listener')
-    const setMode = (mode: InteractionMode) => {
-      dispatchAction({
-        type: 'block::change',
-        data: {
-          ...blockStateRef.current,
-          mode,
-        },
-      })
-    }
-
     const gestureDetector = (() => {
       let intent: '' | 'move' | 'resize' = ''
       let lastClientCoords = { x: 0, y: 0 }
@@ -173,8 +174,6 @@ export function Block(props: Props): JSX.Element {
     }
   }, [blockRef.current])
 
-  console.log('render', block.pos, block.refId)
-
   return (
     <div
       ref={blockRef}
@@ -187,7 +186,7 @@ export function Block(props: Props): JSX.Element {
         transformOrigin: 'top left',
         transform: `translate(${block.pos.x}px, ${block.pos.y}px)`,
       }}>
-      {factoryRegistry.createConceptDisplay(subConcept.summary.type, {
+      {factoryRegistry.createConceptDisplay(concept.summary.type, {
         readOnly: block.mode === InteractionMode.Moving,
         viewMode: 'Block',
         physicalInfo: {
@@ -195,7 +194,7 @@ export function Block(props: Props): JSX.Element {
           position: block.pos,
           size: block.size,
         },
-        content: subConcept.summary.data,
+        content: concept.summary.data,
         messageBus,
         app: {
           state,
@@ -207,8 +206,8 @@ export function Block(props: Props): JSX.Element {
           dispatchAction({
             type: 'concept::datachange',
             data: {
-              id: subConcept.id,
-              type: subConcept.summary.type,
+              id: concept.id,
+              type: concept.summary.type,
               content,
             },
           })
@@ -217,23 +216,17 @@ export function Block(props: Props): JSX.Element {
           dispatchAction({
             type: 'concept::datachange',
             data: {
-              id: subConcept.id,
+              id: concept.id,
               type,
               content: { initialized: false },
             },
           })
         },
         onInteractionStart: () => {
-          dispatchAction({
-            type: 'block::change',
-            data: { ...block, mode: InteractionMode.Focusing },
-          })
+          setMode(InteractionMode.Focusing)
         },
         onInteractionEnd: () => {
-          dispatchAction({
-            type: 'block::change',
-            data: { ...block, mode: InteractionMode.Idle },
-          })
+          setMode(InteractionMode.Idle)
         },
         createOverlay,
       })}
@@ -276,10 +269,10 @@ export function Block(props: Props): JSX.Element {
           padding: 4,
         }}
         onClick={() => {
-          if (subConcept.id !== state.viewingConcept.id) {
+          if (concept.id !== state.viewingConcept.id) {
             dispatchAction({
               type: 'navigation::expand',
-              data: { id: subConcept.id },
+              data: { id: concept.id },
             })
           }
         }}>

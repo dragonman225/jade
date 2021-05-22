@@ -12,6 +12,7 @@ import {
   Vec2,
   Block,
   Size,
+  ReferenceId,
 } from './interfaces'
 import { viewportCoordsToEnvCoords, vecDiv, vecSub, vecAdd } from './lib/utils'
 import initialConcepts from '../resources/initial-condition'
@@ -109,7 +110,10 @@ interface ExpandAction {
 
 interface BlockChangeAction {
   type: 'block::change'
-  data: Block
+  data: {
+    id: ReferenceId
+    changes: Partial<Block>
+  }
 }
 
 interface DebuggingToggleAction {
@@ -244,8 +248,6 @@ export function createReducer(db: DatabaseInterface) {
 
         const oldBlockIndex = state.blocks.findIndex(b => b.refId === refId)
         const newBlock: Block = { ...state.blocks[oldBlockIndex], pos: newPos }
-
-        console.log(newPos)
 
         return {
           ...state,
@@ -460,7 +462,10 @@ export function createReducer(db: DatabaseInterface) {
         }
       }
       case 'block::change': {
-        const newBlock = action.data
+        const { id, changes } = action.data
+        const oldBlock = state.blocks.find(b => b.refId === id)
+        const newBlock = { ...oldBlock, ...changes }
+
         return {
           ...state,
           blocks: state.blocks

@@ -264,30 +264,30 @@ const PMText: React.FunctionComponent<Props> = props => {
   /**
    * Update content of the editor when props change.
    */
-  // useEffect(() => {
-  //   if (mounted) {
-  //     console.log('pmtext: update content')
-  //     /** Ignore the editor that is currently producing changes (hasFocus). */
-  //     if (!editorView.current.hasFocus()) {
-  //       /** Create a clean state. */
-  //       const cleanEditorState = createEditorState(props)
-  //       /** Update the doc part of the existing state. */
-  //       editorState.current.doc = cleanEditorState.doc
-  //       /** Update the view. */
-  //       editorView.current.updateState(editorState.current)
-  //     }
-  //   }
-  // }, [props.content])
+  useEffect(() => {
+    if (mounted) {
+      console.log('pmtext: update content')
+      /** Ignore the editor that is currently producing changes (hasFocus). */
+      if (!editorView.current.hasFocus()) {
+        /** Create a clean state. */
+        const cleanEditorState = createEditorState(props)
+        /** Update the doc part of the existing state. */
+        editorState.current.doc = cleanEditorState.doc
+        /** Update the view. */
+        editorView.current.updateState(editorState.current)
+      }
+    }
+  }, [props.content])
 
   /**
    * Update "editable" prop of the editor view.
    */
-  // useEffect(() => {
-  //   if (mounted) {
-  //     console.log('pmtext: update readOnly')
-  //     editorView.current.setProps({ editable: () => !props.readOnly })
-  //   }
-  // }, [props.readOnly])
+  useEffect(() => {
+    if (mounted) {
+      console.log('pmtext: update readOnly')
+      editorView.current.setProps({ editable: () => !props.readOnly })
+    }
+  }, [props.readOnly])
 
   const editorContainer = (
     <div ref={editorContainerRef} className={styles.EditorContainer}>

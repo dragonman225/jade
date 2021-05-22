@@ -11,7 +11,7 @@ import { factoryRegistry } from '../factories'
 import { PubSub } from './lib/pubsub'
 import { DatabaseInterface, Vec2 } from './interfaces'
 import { useAnimationFrame } from './useAnimationFrame'
-import { getUnifiedClientCoords, vecSub } from './lib/utils'
+import { getUnifiedClientCoords, vecAdd, vecSub } from './lib/utils'
 
 type Props = {
   db: DatabaseInterface
