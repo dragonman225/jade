@@ -79,7 +79,32 @@ export const App: React.FunctionComponent<Props> = props => {
 
   const actionQueueRef = useRef<Action[]>([])
   useAnimationFrame(() => {
-    actionQueueRef.current.forEach(action => dispatchAction(action))
+    const aggregatedMoveActions = {}
+    actionQueueRef.current.forEach(a => {
+      if (a.type === 'ref::move') {
+        if (aggregatedMoveActions[a.data.id]) {
+          aggregatedMoveActions[a.data.id] = {
+            ...aggregatedMoveActions[a.data.id],
+            movementInViewportCoords: vecAdd(
+              aggregatedMoveActions[a.data.id].movementInViewportCoords,
+              a.data.movementInViewportCoords
+            ),
+          }
+        } else {
+          aggregatedMoveActions[a.data.id] = a.data
+        }
+      }
+    })
+
+    Object.values(aggregatedMoveActions).forEach(a =>
+      dispatchAction({
+        type: 'ref::move',
+        data: a,
+      })
+    )
+    actionQueueRef.current
+      .filter(a => a.type !== 'ref::move')
+      .forEach(action => dispatchAction(action))
     actionQueueRef.current = []
   })
 
@@ -262,8 +287,9 @@ export const App: React.FunctionComponent<Props> = props => {
                   db={db}
                   dispatchAction={dispatchAction}
                   messageBus={messenger}
-                  scheduleActionForAnimationFrame={action =>
-                    actionQueueRef.current.push(action)
+                  scheduleActionForAnimationFrame={
+                    action => actionQueueRef.current.push(action)
+                    // dispatchAction(action)
                   }
                   state={state}
                 />
