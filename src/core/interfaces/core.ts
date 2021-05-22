@@ -1,5 +1,5 @@
-import { ConceptId, Concept, ConceptDetail, LinkId } from './concept'
-import { Camera } from './util'
+import { ConceptId, Concept, ReferenceId, PositionType } from './concept'
+import { Camera, Size, Vec2 } from './util'
 
 /** App state v3. */
 export interface State3 {
@@ -19,8 +19,13 @@ export enum InteractionMode {
 }
 
 export interface Block {
-  id: LinkId
+  refId: ReferenceId
+  conceptId: ConceptId
+  posType: PositionType
+  pos: Vec2
+  size: Size
   mode: InteractionMode
+  concept: Concept
 }
 
 /** App state v4. */
@@ -31,14 +36,12 @@ export interface State4 {
   homeConceptId: ConceptId
   /** Persistent, load from `DatabaseInterface.getConcept()`. */
   viewingConcept: Concept
-  /** Persistent, load from `Concept.details()`. */
-  viewingConceptDetails: ConceptDetail[]
   /** Volatile. */
   expandHistory: (ConceptId | undefined)[]
   /** Volatile. */
   camera: Camera
   /** Volatile. */
-  selectedConceptRefs: LinkId[]
+  selectedBlocks: ReferenceId[]
   /** Volatile. */
   blocks: Block[]
 }

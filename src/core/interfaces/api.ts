@@ -1,6 +1,6 @@
 import { IPubSub } from '../lib/pubsub'
 import { Action } from '../reducer'
-import { Origin, Vec2 } from './util'
+import { Origin, Size, Vec2 } from './util'
 import { InitializedConceptData, UninitializedConceptData } from './concept'
 import { DatabaseInterface, State4 } from './core'
 
@@ -39,7 +39,7 @@ export interface ConceptDisplayProps<T extends InitializedConceptData> {
   physicalInfo?: {
     origin: Origin
     position: Vec2
-    width: number
+    size: Size
   }
   factoryRegistry: FactoryRegistry
   database: DatabaseInterface

@@ -8,35 +8,33 @@ const toolConcepts: Concept[] = [
   {
     id: uuidv4(),
     summary: { type: 'searchtool', data: { initialized: false } },
-    details: [],
+    references: [],
     drawing: [],
   },
   {
     id: uuidv4(),
     summary: { type: 'headertool', data: { initialized: false } },
-    details: [],
+    references: [],
     drawing: [],
   },
 ]
 const toolMaskConcept: Concept = {
   id: '__tool_mask__',
   summary: { type: 'toolmask', data: { initialized: false } },
-  details: [
+  references: [
     {
       id: uuidv4(),
-      type: 'contains',
       to: toolConcepts[0].id,
       posType: PositionType.PinnedTL,
-      position: { x: 20, y: 20 },
-      width: 300,
+      pos: { x: 20, y: 20 },
+      size: { w: 300, h: 'auto' },
     },
     {
       id: uuidv4(),
-      type: 'contains',
       to: toolConcepts[1].id,
       posType: PositionType.PinnedTL,
-      position: { x: 370, y: 20 },
-      width: 470,
+      pos: { x: 370, y: 20 },
+      size: { w: 470, h: 'auto' },
     },
   ],
   drawing: [],

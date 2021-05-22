@@ -1,5 +1,5 @@
-import { Vec2 } from './util'
-import { DatabaseInterface } from './core'
+import { Size, Vec2 } from './util'
+import { Block, DatabaseInterface, InteractionMode } from './core'
 
 /** Summary. */
 export interface UninitializedConceptData {
@@ -34,8 +34,8 @@ export interface Stroke {
   points: Point[]
 }
 
-/** Link. */
-export type LinkId = string
+/** Reference: References a Concept in a Concept. */
+export type ReferenceId = string
 
 export enum PositionType {
   /** Not positioned, the `position` property has no meaning. */
@@ -52,47 +52,37 @@ export enum PositionType {
   PinnedBR,
 }
 
-export interface Link {
-  id: LinkId
+export interface Reference {
+  id: ReferenceId
   to: ConceptId
-  type: 'contains'
   posType: PositionType
-  position: Vec2
-  width: number
+  pos: Vec2
+  size: Size
 }
 
-/** Concept: Represent an idea of any type. */
+/** Concept: The container of an idea of any type. */
 export type ConceptId = string
 
 export interface Concept {
   id: ConceptId
   summary: ConceptSummary
-  details: Link[]
+  references: Reference[]
   drawing: Stroke[]
 }
 
 export interface ConceptDetail {
-  link: Link
+  reference: Reference
   concept: Concept
-  fromConcept: Concept
 }
 
-/** Concept Interface. */
+/** Concept utils. */
 export const Concept = {
-  details(concept: Concept, db: DatabaseInterface): ConceptDetail[] {
-    return concept.details
-      .map(link => {
-        return {
-          link,
-          concept: db.getConcept(link.to),
-          fromConcept: concept,
-        }
-      })
-      .filter(d => !!d.concept)
+  getSubConcepts(concept: Concept, db: DatabaseInterface): Concept[] {
+    return concept.references.map(ref => db.getConcept(ref.to)).filter(c => !!c)
   },
 
   isHighOrder(concept: Concept): boolean {
-    return concept.details.length > 0
+    return concept.references.length > 0
   },
 
   includesText(concept: Concept, text: string): boolean {
@@ -103,5 +93,20 @@ export const Concept = {
     return JSON.stringify(concept.summary.data)
       .toLocaleLowerCase()
       .includes(text.toLocaleLowerCase())
+  },
+}
+
+/** Reference utils. */
+export const Reference = {
+  toBlock(reference: Reference, db: DatabaseInterface): Block {
+    return {
+      refId: reference.id,
+      conceptId: reference.to,
+      posType: reference.posType,
+      pos: reference.pos,
+      size: reference.size,
+      mode: InteractionMode.Idle,
+      concept: db.getConcept(reference.to),
+    }
   },
 }

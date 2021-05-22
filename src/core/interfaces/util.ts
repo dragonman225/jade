@@ -3,6 +3,11 @@ export interface Vec2 {
   y: number
 }
 
+export interface Size {
+  w: number | 'auto'
+  h: number | 'auto'
+}
+
 export interface Rect {
   left: number // min x
   right: number // max x

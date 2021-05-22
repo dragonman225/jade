@@ -4,15 +4,14 @@ import {
   BaseConceptData,
   Concept,
   ConceptId,
-  ConceptDetail,
   DatabaseInterface,
-  Link,
+  Reference,
   PositionType,
   State4,
   Stroke,
   Vec2,
   Block,
-  InteractionMode,
+  Size,
 } from './interfaces'
 import { viewportCoordsToEnvCoords, vecDiv, vecSub, vecAdd } from './lib/utils'
 import initialConcepts from '../resources/initial-condition'
@@ -69,7 +68,7 @@ interface RefResizeAction {
   data: {
     /** Link id. */
     id: string
-    sizeInEnvCoords?: Vec2
+    sizeInEnvCoords?: Size
     movementInViewportCoords?: Vec2
   }
 }
@@ -137,17 +136,21 @@ export type Action =
 export function synthesizeView(
   viewingConcept: Concept,
   db: DatabaseInterface
-): ConceptDetail[] {
-  const conceptId = '__tool_mask__'
-  return Concept.details(viewingConcept, db).concat(
-    viewingConcept.id !== conceptId
-      ? Concept.details(db.getConcept(conceptId), db)
-      : []
+): Block[] {
+  const overlayConcept = db.getConcept('__tool_mask__')
+  const overlayBlocks = overlayConcept.references.map(ref =>
+    Reference.toBlock(ref, db)
   )
+  const viewingBlocks = viewingConcept.references.map(ref =>
+    Reference.toBlock(ref, db)
+  )
+
+  return overlayBlocks.concat(viewingBlocks)
 }
 
 export function loadAppState(db: DatabaseInterface): State4 {
   console.log('Loading app state.')
+
   if (!db.isValid()) {
     db.init(
       {
@@ -158,14 +161,15 @@ export function loadAppState(db: DatabaseInterface): State4 {
       initialConcepts
     )
   }
+
   const settings = db.getSettings()
   const viewingConcept = db.getConcept(settings.viewingConceptId)
-  const viewingConceptDetails = synthesizeView(viewingConcept, db)
+  const blocks = synthesizeView(viewingConcept, db)
+
   return {
     debugging: settings.debugging,
     homeConceptId: settings.homeConceptId,
     viewingConcept,
-    viewingConceptDetails,
     expandHistory: new Array(99).concat(viewingConcept.id) as (
       | ConceptId
       | undefined
@@ -174,18 +178,15 @@ export function loadAppState(db: DatabaseInterface): State4 {
       focus: { x: 0, y: 0 },
       scale: 1,
     },
-    selectedConceptRefs: [],
-    blocks: viewingConceptDetails.map(l => ({
-      id: l.link.id,
-      mode: InteractionMode.Idle,
-    })),
+    selectedBlocks: [],
+    blocks,
   }
 }
 
 export function createReducer(db: DatabaseInterface) {
   return function appStateReducer(state: State4, action: Action): State4 {
     // console.log(`reducer: "${action.type}"`, action)
-    const defaultBlockWidth = 300
+    const defaultSize: Size = { w: 300, h: 'auto' }
     switch (action.type) {
       case 'concept::create': {
         const newConcept: Concept = {
@@ -194,101 +195,102 @@ export function createReducer(db: DatabaseInterface) {
             type: factoryRegistry.getDefaultContentFactory().id,
             data: { initialized: false },
           },
-          details: [],
+          references: [],
           drawing: [],
         }
-        const newLink: Link = {
+        const newLink: Reference = {
           id: uuidv4(),
-          type: 'contains',
           to: newConcept.id,
           posType: PositionType.Normal,
-          position: viewportCoordsToEnvCoords(
-            action.data.position,
-            state.camera
-          ),
-          width: defaultBlockWidth,
+          pos: viewportCoordsToEnvCoords(action.data.position, state.camera),
+          size: defaultSize,
         }
         const newViewingConcept: Concept = {
           ...state.viewingConcept,
-          details: state.viewingConcept.details.concat([newLink]),
+          references: state.viewingConcept.references.concat([newLink]),
         }
         db.updateConcept(newViewingConcept)
         db.createConcept(newConcept)
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          viewingConceptDetails: synthesizeView(newViewingConcept, db),
-          blocks: state.blocks.concat({
-            id: newLink.id,
-            mode: InteractionMode.Idle,
-          }),
+          blocks: synthesizeView(newViewingConcept, db),
         }
       }
       case 'ref::move': {
         const {
-          id: linkId,
+          id: refId,
           positionInEnvCoords: requestedPos,
           movementInViewportCoords,
         } = action.data
 
-        const oldPos = state.viewingConcept.details.find(l => l.id === linkId)
-          .position
-
+        const oldRef = state.viewingConcept.references.find(r => r.id === refId)
+        const oldPos = oldRef.pos
         const newPos = requestedPos
           ? requestedPos
           : movementInViewportCoords
           ? vecAdd(oldPos, vecDiv(movementInViewportCoords, state.camera.scale))
           : oldPos
+        const newRef: Reference = { ...oldRef, pos: newPos }
 
         const newViewingConcept: Concept = {
           ...state.viewingConcept,
-          details: state.viewingConcept.details.map(link => {
-            if (linkId === link.id) {
-              return {
-                ...link,
-                position: newPos,
-              }
-            } else {
-              return link
-            }
-          }),
+          references: state.viewingConcept.references
+            .filter(r => r.id !== refId)
+            .concat(newRef),
         }
 
         db.updateConcept(newViewingConcept)
 
+        const oldBlockIndex = state.blocks.findIndex(b => b.refId === refId)
+        const newBlock: Block = { ...state.blocks[oldBlockIndex], pos: newPos }
+
+        console.log(newPos)
+
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          viewingConceptDetails: synthesizeView(newViewingConcept, db),
+          blocks: state.blocks
+            .slice(0, oldBlockIndex)
+            .concat(state.blocks.slice(oldBlockIndex + 1))
+            .concat(newBlock),
         }
       }
       case 'ref::resize': {
         const {
-          id: linkId,
+          id: refId,
           sizeInEnvCoords: requestedSize,
           movementInViewportCoords,
         } = action.data
 
-        const oldSize = state.viewingConcept.details.find(l => l.id === linkId)
-          .width
-
-        // TODO: Support height and auto width / height
+        const oldSize = state.viewingConcept.references.find(
+          l => l.id === refId
+        ).size
         const newSize = requestedSize
-          ? requestedSize.x
+          ? requestedSize
           : movementInViewportCoords
-          ? oldSize + movementInViewportCoords.x / state.camera.scale
+          ? {
+              w:
+                typeof oldSize.w === 'number'
+                  ? oldSize.w + movementInViewportCoords.x / state.camera.scale
+                  : oldSize.w,
+              h:
+                typeof oldSize.h === 'number'
+                  ? oldSize.h + movementInViewportCoords.y / state.camera.scale
+                  : oldSize.h,
+            }
           : oldSize
 
         const newViewingConcept = {
           ...state.viewingConcept,
-          details: state.viewingConcept.details.map(link => {
-            if (linkId === link.id) {
+          references: state.viewingConcept.references.map(ref => {
+            if (refId === ref.id) {
               return {
-                ...link,
-                width: newSize,
+                ...ref,
+                size: newSize,
               }
             } else {
-              return link
+              return ref
             }
           }),
         }
@@ -298,7 +300,7 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          viewingConceptDetails: synthesizeView(newViewingConcept, db),
+          blocks: synthesizeView(newViewingConcept, db),
         }
       }
       case 'concept::datachange': {
@@ -318,7 +320,7 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: db.getConcept(state.viewingConcept.id),
-          viewingConceptDetails: synthesizeView(state.viewingConcept, db),
+          blocks: synthesizeView(state.viewingConcept, db),
         }
       }
       case 'ref::remove': {
@@ -326,7 +328,7 @@ export function createReducer(db: DatabaseInterface) {
         const linkId = action.data.id
         const newViewingConcept = {
           ...state.viewingConcept,
-          details: state.viewingConcept.details.filter(
+          references: state.viewingConcept.references.filter(
             link => linkId !== link.id
           ),
         }
@@ -334,7 +336,7 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          viewingConceptDetails: synthesizeView(newViewingConcept, db),
+          blocks: synthesizeView(newViewingConcept, db),
         }
       }
       case 'cam::movedelta': {
@@ -386,18 +388,16 @@ export function createReducer(db: DatabaseInterface) {
       case 'selection::add': {
         return {
           ...state,
-          selectedConceptRefs: state.selectedConceptRefs.concat(
+          selectedBlocks: state.selectedBlocks.concat(
             /** Just add those that are not selected. */
-            action.data.filter(
-              c => !state.selectedConceptRefs.find(sc => (sc = c))
-            )
+            action.data.filter(c => !state.selectedBlocks.find(sc => sc === c))
           ),
         }
       }
       case 'selection::remove': {
         return {
           ...state,
-          selectedConceptRefs: state.selectedConceptRefs.filter(
+          selectedBlocks: state.selectedBlocks.filter(
             sc => !action.data.find(c => c === sc)
           ),
         }
@@ -405,7 +405,7 @@ export function createReducer(db: DatabaseInterface) {
       case 'selection::clear': {
         return {
           ...state,
-          selectedConceptRefs: [],
+          selectedBlocks: [],
         }
       }
       case 'navigation::expand': {
@@ -424,28 +424,27 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: concept,
-          viewingConceptDetails: synthesizeView(concept, db),
+          blocks: synthesizeView(concept, db),
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
         }
       }
       case 'ref::create': {
-        const link: Link = {
+        const ref: Reference = {
           id: uuidv4(),
-          type: 'contains',
           to: action.data.id,
           posType: PositionType.Normal,
-          position: action.data.position,
-          width: defaultBlockWidth,
+          pos: action.data.position,
+          size: defaultSize,
         }
         const newViewingConcept = {
           ...state.viewingConcept,
-          details: state.viewingConcept.details.concat([link]),
+          references: state.viewingConcept.references.concat([ref]),
         }
         db.updateConcept(newViewingConcept)
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          viewingConceptDetails: synthesizeView(newViewingConcept, db),
+          blocks: synthesizeView(newViewingConcept, db),
         }
       }
       case 'concept::drawingchange': {
@@ -465,7 +464,7 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           blocks: state.blocks
-            .filter(b => b.id !== newBlock.id)
+            .filter(b => b.refId !== newBlock.refId)
             .concat(newBlock),
         }
       }

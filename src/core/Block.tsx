@@ -7,7 +7,6 @@ import { IconCross } from './component/IconCross'
 import { IconExpand } from './component/IconExpand'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from './lib/utils'
 import {
-  ConceptDetail,
   Block as BlockState,
   InteractionMode,
   State4,
@@ -47,7 +46,6 @@ const styles = stylesheet({
 
 interface Props {
   block: BlockState
-  conceptDetail: ConceptDetail
   dispatchAction: React.Dispatch<Action>
   scheduleActionForAnimationFrame: (action: Action) => void
   messageBus: PubSub
@@ -59,7 +57,6 @@ interface Props {
 export function Block(props: Props): JSX.Element {
   const {
     block,
-    conceptDetail,
     dispatchAction,
     scheduleActionForAnimationFrame,
     messageBus,
@@ -67,7 +64,7 @@ export function Block(props: Props): JSX.Element {
     db,
     createOverlay,
   } = props
-  const subConcept = conceptDetail.concept
+  const subConcept = block.concept
   const blockRef = useRef<HTMLDivElement>(null)
   const resizerRef = useRef<HTMLDivElement>(null)
   const blockStateRef = useRef<BlockState>(block)
@@ -112,7 +109,7 @@ export function Block(props: Props): JSX.Element {
               scheduleActionForAnimationFrame({
                 type: 'ref::resize',
                 data: {
-                  id: conceptDetail.link.id,
+                  id: block.refId,
                   movementInViewportCoords: movement,
                 },
               })
@@ -121,7 +118,7 @@ export function Block(props: Props): JSX.Element {
               scheduleActionForAnimationFrame({
                 type: 'ref::move',
                 data: {
-                  id: conceptDetail.link.id,
+                  id: block.refId,
                   movementInViewportCoords: movement,
                 },
               })
@@ -176,24 +173,27 @@ export function Block(props: Props): JSX.Element {
     }
   }, [blockRef.current])
 
+  console.log('render', block.pos, block.refId)
+
   return (
     <div
       ref={blockRef}
       className={styles.Block}
       style={{
-        width: conceptDetail.link.width,
+        width: block.size.w,
+        height: block.size.h,
         /** Set to "absolute" so blocks can overlap. */
         position: 'absolute',
         transformOrigin: 'top left',
-        transform: `translate(${conceptDetail.link.position.x}px, ${conceptDetail.link.position.y}px)`,
+        transform: `translate(${block.pos.x}px, ${block.pos.y}px)`,
       }}>
       {factoryRegistry.createConceptDisplay(subConcept.summary.type, {
         readOnly: block.mode === InteractionMode.Moving,
         viewMode: 'Block',
         physicalInfo: {
           origin: { type: 'TL', top: 0, left: 0 },
-          position: conceptDetail.link.position,
-          width: conceptDetail.link.width,
+          position: block.pos,
+          size: block.size,
         },
         content: subConcept.summary.data,
         messageBus,
@@ -237,15 +237,23 @@ export function Block(props: Props): JSX.Element {
         },
         createOverlay,
       })}
-      <span
+      <div
         style={{
           position: 'absolute',
           color: 'blueviolet',
-          bottom: 0,
-          left: 0,
+          top: 0,
+          left: '100%',
+          width: 300,
+          background: 'rgba(211, 211, 211, 0.8)',
+          fontSize: '0.6rem',
+          fontFamily: 'monospace',
         }}>
-        {block.mode}
-      </span>
+        id: {block.refId}
+        <br />
+        mode: {block.mode}
+        <br />
+        pos: {JSON.stringify(block.pos)}
+      </div>
       <div
         ref={resizerRef}
         style={{
@@ -290,7 +298,7 @@ export function Block(props: Props): JSX.Element {
         onClick={() => {
           dispatchAction({
             type: 'ref::remove',
-            data: { id: conceptDetail.link.id },
+            data: { id: block.refId },
           })
         }}>
         <IconCross />

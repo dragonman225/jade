@@ -248,17 +248,16 @@ export const App: React.FunctionComponent<Props> = props => {
               state.camera.scale
             })`,
           }}>
-          {state.viewingConceptDetails
+          {state.blocks
             .filter(
-              c => !factoryRegistry.getFactory(c.concept.summary.type)?.isTool
+              b => !factoryRegistry.getFactory(b.concept.summary.type)?.isTool
             )
-            .map(conceptDetail => {
-              const key = 'ConceptRef-' + conceptDetail.link.id
+            .map(block => {
+              const key = 'Block-' + block.refId
               return (
                 <Block
                   key={key}
-                  block={state.blocks.find(b => b.id === conceptDetail.link.id)}
-                  conceptDetail={conceptDetail}
+                  block={block}
                   createOverlay={createOverlay}
                   db={db}
                   dispatchAction={dispatchAction}
@@ -272,15 +271,14 @@ export const App: React.FunctionComponent<Props> = props => {
             })}
         </div>
       </div>
-      {state.viewingConceptDetails
-        .filter(c => factoryRegistry.getFactory(c.concept.summary.type)?.isTool)
-        .map(conceptDetail => {
-          const key = 'ConceptRef-' + conceptDetail.link.id
+      {state.blocks
+        .filter(b => factoryRegistry.getFactory(b.concept.summary.type)?.isTool)
+        .map(block => {
+          const key = 'Block-' + block.refId
           return (
             <Block
               key={key}
-              block={state.blocks.find(b => b.id === conceptDetail.link.id)}
-              conceptDetail={conceptDetail}
+              block={block}
               createOverlay={createOverlay}
               db={db}
               dispatchAction={dispatchAction}

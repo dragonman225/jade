@@ -51,7 +51,7 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
   const parentConcepts = useMemo(() => {
     const allConcepts = database.getAllConcepts()
     return allConcepts.filter(concept => {
-      return !!concept.details.find(
+      return !!concept.references.find(
         link => link.to === app.state.viewingConcept.id
       )
     })
