@@ -11,8 +11,10 @@ import {
   State4,
   Stroke,
   Vec2,
+  Block,
+  InteractionMode,
 } from './interfaces'
-import { viewportCoordsToEnvCoords, vecDiv, vecSub } from './lib/utils'
+import { viewportCoordsToEnvCoords, vecDiv, vecSub, vecAdd } from './lib/utils'
 import initialConcepts from '../resources/initial-condition'
 
 interface ConceptCreateAction {
@@ -57,7 +59,8 @@ interface RefMoveAction {
   data: {
     /** Link id. */
     id: string
-    position: Vec2
+    positionInEnvCoords?: Vec2
+    movementInViewportCoords?: Vec2
   }
 }
 
@@ -66,7 +69,8 @@ interface RefResizeAction {
   data: {
     /** Link id. */
     id: string
-    width: number
+    sizeInEnvCoords?: Vec2
+    movementInViewportCoords?: Vec2
   }
 }
 
@@ -83,11 +87,30 @@ interface CameraScaleDeltaAction {
   }
 }
 
+interface SelectionAddAction {
+  type: 'selection::add'
+  data: ConceptId[]
+}
+
+interface SelectionRemoveAction {
+  type: 'selection::remove'
+  data: ConceptId[]
+}
+
+interface SelectionClearAction {
+  type: 'selection::clear'
+}
+
 interface ExpandAction {
   type: 'navigation::expand'
   data: {
     id: string
   }
+}
+
+interface BlockChangeAction {
+  type: 'block::change'
+  data: Block
 }
 
 interface DebuggingToggleAction {
@@ -104,7 +127,11 @@ export type Action =
   | RefResizeAction
   | CameraMoveDeltaAction
   | CameraScaleDeltaAction
+  | SelectionAddAction
+  | SelectionRemoveAction
+  | SelectionClearAction
   | ExpandAction
+  | BlockChangeAction
   | DebuggingToggleAction
 
 export function synthesizeView(
@@ -147,13 +174,17 @@ export function loadAppState(db: DatabaseInterface): State4 {
       focus: { x: 0, y: 0 },
       scale: 1,
     },
-    selectedConcepts: [],
+    selectedConceptRefs: [],
+    blocks: viewingConceptDetails.map(l => ({
+      id: l.link.id,
+      mode: InteractionMode.Idle,
+    })),
   }
 }
 
 export function createReducer(db: DatabaseInterface) {
   return function appStateReducer(state: State4, action: Action): State4 {
-    console.log(`reducer: "${action.type}"`)
+    // console.log(`reducer: "${action.type}"`, action)
     const defaultBlockWidth = 300
     switch (action.type) {
       case 'concept::create': {
@@ -187,25 +218,44 @@ export function createReducer(db: DatabaseInterface) {
           ...state,
           viewingConcept: newViewingConcept,
           viewingConceptDetails: synthesizeView(newViewingConcept, db),
+          blocks: state.blocks.concat({
+            id: newLink.id,
+            mode: InteractionMode.Idle,
+          }),
         }
       }
       case 'ref::move': {
-        const linkId = action.data.id
-        const newPosition = action.data.position
+        const {
+          id: linkId,
+          positionInEnvCoords: requestedPos,
+          movementInViewportCoords,
+        } = action.data
+
+        const oldPos = state.viewingConcept.details.find(l => l.id === linkId)
+          .position
+
+        const newPos = requestedPos
+          ? requestedPos
+          : movementInViewportCoords
+          ? vecAdd(oldPos, vecDiv(movementInViewportCoords, state.camera.scale))
+          : oldPos
+
         const newViewingConcept: Concept = {
           ...state.viewingConcept,
           details: state.viewingConcept.details.map(link => {
             if (linkId === link.id) {
               return {
                 ...link,
-                position: newPosition,
+                position: newPos,
               }
             } else {
               return link
             }
           }),
         }
+
         db.updateConcept(newViewingConcept)
+
         return {
           ...state,
           viewingConcept: newViewingConcept,
@@ -213,22 +263,38 @@ export function createReducer(db: DatabaseInterface) {
         }
       }
       case 'ref::resize': {
-        const linkId = action.data.id
-        const newWidth = action.data.width
+        const {
+          id: linkId,
+          sizeInEnvCoords: requestedSize,
+          movementInViewportCoords,
+        } = action.data
+
+        const oldSize = state.viewingConcept.details.find(l => l.id === linkId)
+          .width
+
+        // TODO: Support height and auto width / height
+        const newSize = requestedSize
+          ? requestedSize.x
+          : movementInViewportCoords
+          ? oldSize + movementInViewportCoords.x / state.camera.scale
+          : oldSize
+
         const newViewingConcept = {
           ...state.viewingConcept,
           details: state.viewingConcept.details.map(link => {
             if (linkId === link.id) {
               return {
                 ...link,
-                width: newWidth,
+                width: newSize,
               }
             } else {
               return link
             }
           }),
         }
+
         db.updateConcept(newViewingConcept)
+
         return {
           ...state,
           viewingConcept: newViewingConcept,
@@ -317,6 +383,31 @@ export function createReducer(db: DatabaseInterface) {
           },
         }
       }
+      case 'selection::add': {
+        return {
+          ...state,
+          selectedConceptRefs: state.selectedConceptRefs.concat(
+            /** Just add those that are not selected. */
+            action.data.filter(
+              c => !state.selectedConceptRefs.find(sc => (sc = c))
+            )
+          ),
+        }
+      }
+      case 'selection::remove': {
+        return {
+          ...state,
+          selectedConceptRefs: state.selectedConceptRefs.filter(
+            sc => !action.data.find(c => c === sc)
+          ),
+        }
+      }
+      case 'selection::clear': {
+        return {
+          ...state,
+          selectedConceptRefs: [],
+        }
+      }
       case 'navigation::expand': {
         const toConceptId = action.data.id
 
@@ -367,6 +458,15 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: conceptChanged,
+        }
+      }
+      case 'block::change': {
+        const newBlock = action.data
+        return {
+          ...state,
+          blocks: state.blocks
+            .filter(b => b.id !== newBlock.id)
+            .concat(newBlock),
         }
       }
       case 'debugging::toggle': {

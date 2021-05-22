@@ -1,4 +1,4 @@
-import { ConceptId, Concept, ConceptDetail } from './concept'
+import { ConceptId, Concept, ConceptDetail, LinkId } from './concept'
 import { Camera } from './util'
 
 /** App state v3. */
@@ -9,6 +9,18 @@ export interface State3 {
   conceptMap: {
     [id: string]: Concept
   }
+}
+
+export enum InteractionMode {
+  Idle,
+  Moving,
+  Resizing,
+  Focusing,
+}
+
+export interface Block {
+  id: LinkId
+  mode: InteractionMode
 }
 
 /** App state v4. */
@@ -26,7 +38,9 @@ export interface State4 {
   /** Volatile. */
   camera: Camera
   /** Volatile. */
-  selectedConcepts: ConceptId[]
+  selectedConceptRefs: LinkId[]
+  /** Volatile. */
+  blocks: Block[]
 }
 
 export interface Settings {

@@ -1,32 +1,17 @@
 /* eslint-disable react/display-name */
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import {
-  useEffect,
-  useReducer,
-  useMemo,
-  useCallback,
-  useState,
-  useRef,
-} from 'react'
+import { useEffect, useReducer, useMemo, useCallback, useRef } from 'react'
 import { cssRaw, stylesheet } from 'typestyle'
+
 import { Action, createReducer, loadAppState } from './reducer'
 import { Block } from './Block'
-import { InputContainer } from './InputContainer'
-import { CanvasTool } from './CanvasTool'
-import { Box } from './component/Box'
 import { Overlay } from './component/Overlay'
 import { factoryRegistry } from '../factories'
 import { PubSub } from './lib/pubsub'
-import {
-  Concept,
-  ConceptDetail,
-  DatabaseInterface,
-  OriginTopRight,
-  Vec2,
-} from './interfaces'
+import { DatabaseInterface, Vec2 } from './interfaces'
 import { useAnimationFrame } from './useAnimationFrame'
-import { vecSub } from './lib/utils'
+import { getUnifiedClientCoords, vecSub } from './lib/utils'
 
 type Props = {
   db: DatabaseInterface
@@ -65,10 +50,6 @@ const styles = stylesheet({
     '--border-radius-small': '.3rem',
     '--border-radius-large': '.5rem',
   },
-  Playground: {
-    position: 'relative',
-    height: '100%',
-  },
 })
 
 export const App: React.FunctionComponent<Props> = props => {
@@ -78,26 +59,6 @@ export const App: React.FunctionComponent<Props> = props => {
   const appStateReducer = useCallback(createReducer(db), [])
   const initialState = useMemo(() => loadAppState(db), [])
   const [state, dispatchAction] = useReducer(appStateReducer, initialState)
-
-  /** Interaction lock. */
-  const [interactionLockOwner, setInteractionLockOwner] = useState<string>('')
-  const lockInteraction = (requester: string) => {
-    console.log('app: lock:', requester, 'requests lock')
-    if (interactionLockOwner === '') setInteractionLockOwner(requester)
-  }
-  const unlockInteraction = (requester: string) => {
-    console.log('app: lock', requester, 'requests unlock')
-    if (interactionLockOwner === requester || interactionLockOwner === '')
-      setInteractionLockOwner('')
-    /* HACK: if I don't check interactionLockOwner === '', 
-       although interactionLockOwner is '', blocks are readOnly */
-  }
-  const isInteractionLocked = (requester: string) => {
-    return !!interactionLockOwner && interactionLockOwner !== requester
-  }
-  const resetInteractionLockOwner = () => {
-    setInteractionLockOwner('')
-  }
 
   const toggleDebugging = () => {
     dispatchAction({ type: 'debugging::toggle' })
@@ -110,31 +71,6 @@ export const App: React.FunctionComponent<Props> = props => {
     }
   }, [])
 
-  const handleExpand = (toConceptId: string) => {
-    if (toConceptId !== state.viewingConcept.id) {
-      dispatchAction({ type: 'navigation::expand', data: { id: toConceptId } })
-      resetInteractionLockOwner()
-    }
-  }
-
-  const replaceContentType = (blockCard: Concept, newType: string) => {
-    dispatchAction({
-      type: 'concept::datachange',
-      data: {
-        id: blockCard.id,
-        type: newType,
-        content: { initialized: false },
-      },
-    })
-  }
-
-  const [canvasToolState, setCanvasToolState] = useState({
-    origin: { type: 'TR', top: 0, right: 0 } as OriginTopRight,
-    position: { x: -20, y: 200 },
-    width: 50,
-  })
-
-  const currentConcept = state.viewingConcept
   const overlayRef = useRef<HTMLDivElement>(null)
 
   function createOverlay(children: React.ReactNode): React.ReactPortal {
@@ -146,86 +82,6 @@ export const App: React.FunctionComponent<Props> = props => {
     actionQueueRef.current.forEach(action => dispatchAction(action))
     actionQueueRef.current = []
   })
-
-  function toBlock(conceptDetail: ConceptDetail) {
-    const subConcept = conceptDetail.concept
-    const key = 'ConceptRef-' + conceptDetail.link.id
-    return (
-      <Block
-        messenger={messenger}
-        readOnly={isInteractionLocked(key)}
-        data={{
-          blockId: subConcept.id,
-          position: conceptDetail.link.position,
-          width: conceptDetail.link.width,
-        }}
-        origin={{ type: 'TL', top: 0, left: 0 }}
-        zIndex={1}
-        camera={state.camera}
-        container={
-          factoryRegistry.getFactory(subConcept.summary.type)?.isTool
-            ? Box
-            : undefined
-        }
-        onResize={width => {
-          dispatchAction({
-            type: 'ref::resize',
-            data: { id: conceptDetail.link.id, width },
-          })
-        }}
-        onMove={position => {
-          dispatchAction({
-            type: 'ref::move',
-            data: { id: conceptDetail.link.id, position },
-          })
-        }}
-        onRemove={() => {
-          dispatchAction({
-            type: 'ref::remove',
-            data: { id: conceptDetail.link.id },
-          })
-        }}
-        onExpand={() => {
-          handleExpand(subConcept.id)
-        }}
-        onInteractionStart={() => {
-          lockInteraction(key)
-        }}
-        onInteractionEnd={() => {
-          unlockInteraction(key)
-        }}
-        key={key}>
-        {contentProps =>
-          factoryRegistry.createConceptDisplay(subConcept.summary.type, {
-            ...contentProps,
-            viewMode: 'Block',
-            content: subConcept.summary.data,
-            messageBus: messenger,
-            app: {
-              state,
-              dispatch: dispatchAction,
-            },
-            factoryRegistry,
-            database: db,
-            onChange: content => {
-              dispatchAction({
-                type: 'concept::datachange',
-                data: {
-                  id: subConcept.id,
-                  type: subConcept.summary.type,
-                  content,
-                },
-              })
-            },
-            onReplace: type => {
-              replaceContentType(subConcept, type)
-            },
-            createOverlay,
-          })
-        }
-      </Block>
-    )
-  }
 
   /**
    * React set `{ passive: true }` for its real WheelEvent handler, making
@@ -274,12 +130,6 @@ export const App: React.FunctionComponent<Props> = props => {
     }
 
     const panDetector = (() => {
-      const getUnifiedClientCoords = (e: MouseEvent | TouchEvent) => {
-        return e instanceof MouseEvent
-          ? { x: e.clientX, y: e.clientY }
-          : { x: e.touches[0].clientX, y: e.touches[0].clientY }
-      }
-
       let panning = false
       let lastClientCoords = { x: 0, y: 0 }
 
@@ -375,98 +225,73 @@ export const App: React.FunctionComponent<Props> = props => {
 
   return (
     <div className={styles.App}>
-      <div className={styles.Playground}>
-        <InputContainer messenger={messenger}>
-          <Overlay ref={overlayRef} />
-          <div
-            ref={cameraElRef}
-            style={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0,
-            }}>
-            <div
-              style={{
-                position: 'relative',
-                transformOrigin: 'left top',
-                transform: `translate(${
-                  -state.camera.focus.x * state.camera.scale
-                }px, ${-state.camera.focus.y * state.camera.scale}px) scale(${
-                  state.camera.scale
-                })`,
-              }}>
-              {state.viewingConceptDetails
-                .filter(
-                  c =>
-                    !factoryRegistry.getFactory(c.concept.summary.type)?.isTool
-                )
-                .map(toBlock)}
-            </div>
-          </div>
+      <Overlay ref={overlayRef} />
+      <div
+        /** Fill the viewport to listen for events. */
+        ref={cameraElRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+        }}>
+        <div
+          /** Act as the origin of the environment. */
+          style={{
+            width: 0,
+            height: 0,
+            transformOrigin: 'top left',
+            transform: `translate(${
+              -state.camera.focus.x * state.camera.scale
+            }px, ${-state.camera.focus.y * state.camera.scale}px) scale(${
+              state.camera.scale
+            })`,
+          }}>
           {state.viewingConceptDetails
             .filter(
-              c => factoryRegistry.getFactory(c.concept.summary.type)?.isTool
+              c => !factoryRegistry.getFactory(c.concept.summary.type)?.isTool
             )
-            .map(toBlock)}
-          <Block
-            messenger={messenger}
-            readOnly={false}
-            data={{
-              blockId: 'CanvasTool',
-              position: canvasToolState.position,
-              width: canvasToolState.width,
-            }}
-            origin={canvasToolState.origin}
-            // HACK: Use z-index to hide canvas ctrl block.
-            zIndex={
-              interactionLockOwner === 'canvas' + state.viewingConcept.id
-                ? 2
-                : -999
-            }
-            camera={state.camera}
-            container={Box}
-            onResize={width => {
-              setCanvasToolState({
-                ...canvasToolState,
-                width,
-              })
-            }}
-            onMove={position => {
-              setCanvasToolState({
-                ...canvasToolState,
-                position,
-              })
-            }}
-            key="CanvasTool">
-            {contentProps => (
-              <CanvasTool
-                messenger={messenger}
-                readOnly={isInteractionLocked(
-                  'canvas' + state.viewingConcept.id
-                )}
-                value={currentConcept.drawing}
-                onChange={data =>
-                  dispatchAction({ type: 'concept::drawingchange', data })
-                }
-                onInteractionStart={() => {
-                  lockInteraction('canvas' + state.viewingConcept.id)
-                }}
-                onInteractionEnd={() => {
-                  unlockInteraction('canvas' + state.viewingConcept.id)
-                }}
-                scheduleCanvasInsertion={cb => {
-                  cb(overlayRef.current)
-                }}
-                mouseIsInsideBlock={contentProps.mouseIsInside}
-                /** Use key to remount Canvas when currentBlockCard changes. */
-                key={'canvas-' + state.viewingConcept.id}
-              />
-            )}
-          </Block>
-        </InputContainer>
+            .map(conceptDetail => {
+              const key = 'ConceptRef-' + conceptDetail.link.id
+              return (
+                <Block
+                  key={key}
+                  block={state.blocks.find(b => b.id === conceptDetail.link.id)}
+                  conceptDetail={conceptDetail}
+                  createOverlay={createOverlay}
+                  db={db}
+                  dispatchAction={dispatchAction}
+                  messageBus={messenger}
+                  scheduleActionForAnimationFrame={action =>
+                    actionQueueRef.current.push(action)
+                  }
+                  state={state}
+                />
+              )
+            })}
+        </div>
       </div>
+      {state.viewingConceptDetails
+        .filter(c => factoryRegistry.getFactory(c.concept.summary.type)?.isTool)
+        .map(conceptDetail => {
+          const key = 'ConceptRef-' + conceptDetail.link.id
+          return (
+            <Block
+              key={key}
+              block={state.blocks.find(b => b.id === conceptDetail.link.id)}
+              conceptDetail={conceptDetail}
+              createOverlay={createOverlay}
+              db={db}
+              dispatchAction={dispatchAction}
+              messageBus={messenger}
+              scheduleActionForAnimationFrame={action =>
+                actionQueueRef.current.push(action)
+              }
+              state={state}
+            />
+          )
+        })}
     </div>
   )
 }

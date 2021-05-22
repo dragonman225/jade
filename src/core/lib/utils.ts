@@ -17,6 +17,10 @@ export function isPointInRect(point: Vec2, domRect: Rect): boolean {
   )
 }
 
+export function distance(p1: Vec2, p2: Vec2): number {
+  return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2))
+}
+
 /** v1 + v2 */
 export function vecAdd(v1: Vec2, v2: Vec2): Vec2 {
   return { x: v1.x + v2.x, y: v1.y + v2.y }
@@ -42,6 +46,12 @@ export function viewportCoordsToEnvCoords(
   camera: Camera
 ): Vec2 {
   return vecAdd(camera.focus, vecDiv(viewportCoords, camera.scale))
+}
+
+export const getUnifiedClientCoords = (e: MouseEvent | TouchEvent): Vec2 => {
+  return e instanceof MouseEvent
+    ? { x: e.clientX, y: e.clientY }
+    : { x: e.touches[0].clientX, y: e.touches[0].clientY }
 }
 
 interface CaretCoordinates {
