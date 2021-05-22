@@ -2,6 +2,7 @@ import * as React from 'react'
 import { stylesheet } from 'typestyle'
 import {
   ConceptDisplayProps,
+  Factory,
   PubSubStatusMessage,
   UnifiedEventInfo,
 } from '../../core/interfaces'
@@ -118,4 +119,10 @@ export const Status: React.FunctionComponent<Props> = props => {
     default:
       return <div className={styles.StatNavItem}>Status Viewer</div>
   }
+}
+
+export const StatusFactory: Factory = {
+  id: 'status',
+  name: 'Status',
+  component: Status,
 }

@@ -7,6 +7,7 @@ import {
 } from '../core/interfaces'
 import { PMTextFactory } from './PMText'
 import { ImageFactory } from './Image'
+import { StatusFactory } from './Status'
 import { SearchToolFactory } from './SearchTool'
 import { HeaderToolFactory } from './HeaderTool'
 
@@ -14,6 +15,7 @@ class AlexFactoryRegistry implements FactoryRegistry {
   private factories = [
     PMTextFactory,
     ImageFactory,
+    StatusFactory,
     SearchToolFactory,
     HeaderToolFactory,
   ]
