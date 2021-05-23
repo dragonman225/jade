@@ -299,10 +299,19 @@ export function createReducer(db: DatabaseInterface) {
 
         db.updateConcept(newViewingConcept)
 
+        const oldBlockIndex = state.blocks.findIndex(b => b.refId === refId)
+        const newBlock: Block = {
+          ...state.blocks[oldBlockIndex],
+          size: newSize,
+        }
+
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: synthesizeView(newViewingConcept, db),
+          blocks: state.blocks
+            .slice(0, oldBlockIndex)
+            .concat(state.blocks.slice(oldBlockIndex + 1))
+            .concat(newBlock),
         }
       }
       case 'concept::datachange': {
@@ -414,7 +423,7 @@ export function createReducer(db: DatabaseInterface) {
         const toConceptId = action.data.id
 
         if (toConceptId === state.viewingConcept.id) {
-          return state
+          return { ...state }
         }
 
         db.saveSettings({
