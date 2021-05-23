@@ -1,27 +1,17 @@
 import * as React from 'react'
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect } from 'react'
 
-import { Block } from './Block'
-import { useAnimationFrame } from './useAnimationFrame'
-import { getUnifiedClientCoords, vecAdd, vecSub } from './lib/utils'
-import {
-  Block as BlockState,
-  DatabaseInterface,
-  FactoryRegistry,
-  Vec2,
-} from './interfaces'
+import { getUnifiedClientCoords, vecSub } from './lib/utils'
+import { Block as BlockState, PositionType, Vec2 } from './interfaces'
 import { Action } from './reducer'
-import { PubSub } from './lib/pubsub'
 
 interface Props {
   focus: Vec2
   scale: number
   blocks: BlockState[]
+  renderBlock: (block: BlockState) => JSX.Element
   dispatchAction: React.Dispatch<Action>
-  factoryRegistry: FactoryRegistry
-  // db: DatabaseInterface
-  // createOverlay: (children: React.ReactNode) => React.ReactPortal
-  // messageBus: PubSub
+  scheduleActionForAnimationFrame: (action: Action) => void
 }
 
 export function Viewport(props: Props): JSX.Element {
@@ -29,43 +19,10 @@ export function Viewport(props: Props): JSX.Element {
     focus,
     scale,
     blocks,
+    renderBlock,
     dispatchAction,
-    factoryRegistry,
-    // db,
-    // createOverlay,
-    // messageBus,
+    scheduleActionForAnimationFrame,
   } = props
-
-  const actionQueueRef = useRef<Action[]>([])
-  useAnimationFrame(() => {
-    const aggregatedMoveActions: { [key: string]: Action } = {}
-    actionQueueRef.current.forEach(a => {
-      if (a.type === 'ref::move') {
-        if (aggregatedMoveActions[a.data.id]) {
-          aggregatedMoveActions[a.data.id] = {
-            ...aggregatedMoveActions[a.data.id],
-            movementInViewportCoords: vecAdd(
-              aggregatedMoveActions[a.data.id].movementInViewportCoords,
-              a.data.movementInViewportCoords
-            ),
-          }
-        } else {
-          aggregatedMoveActions[a.data.id] = a.data
-        }
-      }
-    })
-
-    Object.values(aggregatedMoveActions).forEach(a =>
-      dispatchAction({
-        type: 'ref::move',
-        data: a,
-      })
-    )
-    actionQueueRef.current
-      .filter(a => a.type !== 'ref::move')
-      .forEach(action => dispatchAction(action))
-    actionQueueRef.current = []
-  })
 
   /**
    * React set `{ passive: true }` for its real WheelEvent handler, making
@@ -83,7 +40,7 @@ export function Viewport(props: Props): JSX.Element {
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey) {
         e.preventDefault()
-        actionQueueRef.current.push({
+        scheduleActionForAnimationFrame({
           type: 'cam::scaledelta',
           data: {
             focus: { x: e.clientX, y: e.clientY },
@@ -91,7 +48,7 @@ export function Viewport(props: Props): JSX.Element {
           },
         })
       } else {
-        actionQueueRef.current.push({
+        scheduleActionForAnimationFrame({
           type: 'cam::movedelta',
           data: {
             x: -e.deltaX,
@@ -140,7 +97,7 @@ export function Viewport(props: Props): JSX.Element {
             const clientCoords = getUnifiedClientCoords(e)
             const movement = vecSub(clientCoords, lastClientCoords)
             lastClientCoords = clientCoords
-            actionQueueRef.current.push({
+            scheduleActionForAnimationFrame({
               type: 'cam::movedelta',
               data: movement,
             })
@@ -207,11 +164,6 @@ export function Viewport(props: Props): JSX.Element {
     }
   }, [])
 
-  const scheduleActionForAnimationFrame = useCallback(
-    (action: Action) => actionQueueRef.current.push(action),
-    []
-  )
-
   return (
     <>
       <div
@@ -236,44 +188,14 @@ export function Viewport(props: Props): JSX.Element {
           }}>
           {blocks
             .filter(
-              b => !factoryRegistry.getFactory(b.concept.summary.type)?.isTool
+              b =>
+                b.posType === PositionType.Normal ||
+                typeof b.posType === 'undefined'
             )
-            .map(block => {
-              const key = 'Block-' + block.refId
-              return (
-                <Block
-                  key={key}
-                  block={block}
-                  // createOverlay={createOverlay}
-                  // db={db}
-                  dispatchAction={dispatchAction}
-                  // messageBus={messageBus}
-                  scheduleActionForAnimationFrame={
-                    scheduleActionForAnimationFrame
-                  }
-                  // state={state}
-                />
-              )
-            })}
+            .map(renderBlock)}
         </div>
       </div>
-      {blocks
-        .filter(b => factoryRegistry.getFactory(b.concept.summary.type)?.isTool)
-        .map(block => {
-          const key = 'Block-' + block.refId
-          return (
-            <Block
-              key={key}
-              block={block}
-              // createOverlay={createOverlay}
-              // db={db}
-              dispatchAction={dispatchAction}
-              // messageBus={messageBus}
-              scheduleActionForAnimationFrame={scheduleActionForAnimationFrame}
-              // state={state}
-            />
-          )
-        })}
+      {blocks.filter(b => b.posType === PositionType.PinnedTL).map(renderBlock)}
     </>
   )
 }

@@ -2,18 +2,11 @@ import * as React from 'react'
 import { useRef, useEffect } from 'react'
 import { stylesheet } from 'typestyle'
 
-import { factoryRegistry } from '../factories'
 import { IconCross } from './component/IconCross'
 import { IconExpand } from './component/IconExpand'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from './lib/utils'
-import {
-  Block as BlockState,
-  InteractionMode,
-  State4,
-  DatabaseInterface,
-} from './interfaces'
+import { Block as BlockState, InteractionMode } from './interfaces'
 import { Action } from './reducer'
-import { PubSub } from './lib/pubsub'
 
 const styles = stylesheet({
   Block: {
@@ -59,22 +52,11 @@ interface Props {
   block: BlockState
   dispatchAction: React.Dispatch<Action>
   scheduleActionForAnimationFrame: (action: Action) => void
-  // messageBus: PubSub
-  // state: State4
-  // db: DatabaseInterface
-  // createOverlay: (children: React.ReactNode) => React.ReactPortal
+  children?: React.ReactNode
 }
 
 export function Block(props: Props): JSX.Element {
-  const {
-    block,
-    dispatchAction,
-    scheduleActionForAnimationFrame,
-    // messageBus,
-    // state,
-    // db,
-    // createOverlay,
-  } = props
+  const { block, dispatchAction, scheduleActionForAnimationFrame } = props
 
   const concept = block.concept
   const blockRef = useRef<HTMLDivElement>(null)
@@ -198,53 +180,7 @@ export function Block(props: Props): JSX.Element {
         transformOrigin: 'top left',
         transform: `translate(${block.pos.x}px, ${block.pos.y}px)`,
       }}>
-      Block
-      <br />
-      Block
-      {/* {factoryRegistry.createConceptDisplay(concept.summary.type, {
-        readOnly: block.mode === InteractionMode.Moving,
-        viewMode: 'Block',
-        physicalInfo: {
-          origin: { type: 'TL', top: 0, left: 0 },
-          position: block.pos,
-          size: block.size,
-        },
-        content: concept.summary.data,
-        messageBus,
-        app: {
-          state,
-          dispatch: dispatchAction,
-        },
-        factoryRegistry,
-        database: db,
-        onChange: content => {
-          dispatchAction({
-            type: 'concept::datachange',
-            data: {
-              id: concept.id,
-              type: concept.summary.type,
-              content,
-            },
-          })
-        },
-        onReplace: type => {
-          dispatchAction({
-            type: 'concept::datachange',
-            data: {
-              id: concept.id,
-              type,
-              content: { initialized: false },
-            },
-          })
-        },
-        onInteractionStart: () => {
-          setMode(InteractionMode.Focusing)
-        },
-        onInteractionEnd: () => {
-          setMode(InteractionMode.Idle)
-        },
-        createOverlay,
-      })} */}
+      {props.children}
       <div className={styles.Debug}>
         id: {block.refId}
         <br />
@@ -276,12 +212,10 @@ export function Block(props: Props): JSX.Element {
           padding: 4,
         }}
         onClick={() => {
-          // if (concept.id !== state.viewingConcept.id) {
-          //   dispatchAction({
-          //     type: 'navigation::expand',
-          //     data: { id: concept.id },
-          //   })
-          // }
+          dispatchAction({
+            type: 'navigation::expand',
+            data: { id: concept.id },
+          })
         }}>
         <IconExpand />
       </div>

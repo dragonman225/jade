@@ -6,10 +6,17 @@ import { cssRaw, stylesheet } from 'typestyle'
 
 import { Viewport } from './Viewport'
 import { Overlay } from './component/Overlay'
-import { createReducer, loadAppState } from './reducer'
+import { Action, createReducer, loadAppState } from './reducer'
 import { factoryRegistry } from '../factories'
-import { DatabaseInterface } from './interfaces'
+import {
+  Block as BlockState,
+  DatabaseInterface,
+  InteractionMode,
+} from './interfaces'
 import { PubSub } from './lib/pubsub'
+import { Block } from './Block'
+import { useAnimationFrame } from './useAnimationFrame'
+import { vecAdd } from './lib/utils'
 
 cssRaw(`
 * {
@@ -66,6 +73,116 @@ export function App(props: Props): JSX.Element {
     [overlayRef.current]
   )
 
+  const actionQueueRef = useRef<Action[]>([])
+  useAnimationFrame(() => {
+    const aggregatedMoveActions: { [key: string]: Action } = {}
+    actionQueueRef.current.forEach(a => {
+      if (a.type === 'ref::move') {
+        if (aggregatedMoveActions[a.data.id]) {
+          aggregatedMoveActions[a.data.id] = {
+            ...aggregatedMoveActions[a.data.id],
+            movementInViewportCoords: vecAdd(
+              aggregatedMoveActions[a.data.id].movementInViewportCoords,
+              a.data.movementInViewportCoords
+            ),
+          }
+        } else {
+          aggregatedMoveActions[a.data.id] = a.data
+        }
+      }
+    })
+
+    Object.values(aggregatedMoveActions).forEach(a =>
+      dispatchAction({
+        type: 'ref::move',
+        data: a,
+      })
+    )
+    actionQueueRef.current
+      .filter(a => a.type !== 'ref::move')
+      .forEach(action => dispatchAction(action))
+    actionQueueRef.current = []
+  })
+
+  const scheduleActionForAnimationFrame = useCallback(
+    (action: Action) => actionQueueRef.current.push(action),
+    []
+  )
+
+  const renderBlock = (block: BlockState): JSX.Element => {
+    const key = 'Block-' + block.refId
+
+    const setMode = (mode: InteractionMode) => {
+      dispatchAction({
+        type: 'block::change',
+        data: {
+          id: block.refId,
+          changes: {
+            mode,
+          },
+        },
+      })
+    }
+
+    const conceptDisplay = factoryRegistry.createConceptDisplay(
+      block.concept.summary.type,
+      {
+        readOnly: block.mode === InteractionMode.Moving,
+        viewMode: 'Block',
+        physicalInfo: {
+          origin: { type: 'TL', top: 0, left: 0 },
+          position: block.pos,
+          size: block.size,
+        },
+        content: block.concept.summary.data,
+        messageBus,
+        app: {
+          state,
+          dispatch: dispatchAction,
+        },
+        factoryRegistry,
+        database: db,
+        onChange: content => {
+          dispatchAction({
+            type: 'concept::datachange',
+            data: {
+              id: block.concept.id,
+              type: block.concept.summary.type,
+              content,
+            },
+          })
+        },
+        onReplace: type => {
+          dispatchAction({
+            type: 'concept::datachange',
+            data: {
+              id: block.concept.id,
+              type,
+              content: { initialized: false },
+            },
+          })
+        },
+        onInteractionStart: () => {
+          setMode(InteractionMode.Focusing)
+        },
+        onInteractionEnd: () => {
+          setMode(InteractionMode.Idle)
+        },
+        createOverlay,
+      }
+    )
+
+    return (
+      <Block
+        key={key}
+        block={block}
+        dispatchAction={dispatchAction}
+        scheduleActionForAnimationFrame={scheduleActionForAnimationFrame}>
+        {conceptDisplay}
+      </Block>
+    )
+  }
+
   return (
     <div className={styles.App}>
       <Overlay ref={overlayRef} />
@@ -73,11 +190,9 @@ export function App(props: Props): JSX.Element {
         focus={state.camera.focus}
         scale={state.camera.scale}
         blocks={state.blocks}
+        renderBlock={renderBlock}
         dispatchAction={dispatchAction}
-        factoryRegistry={factoryRegistry}
-        // db={db}
-        // createOverlay={createOverlay}
-        // messageBus={messageBus}
+        scheduleActionForAnimationFrame={scheduleActionForAnimationFrame}
       />
     </div>
   )
