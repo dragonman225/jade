@@ -1,4 +1,4 @@
-import { renderApp } from './core'
+import { startApp } from './core'
 import { database } from './resources/electron-storage'
 
-renderApp(database)
+startApp(database)

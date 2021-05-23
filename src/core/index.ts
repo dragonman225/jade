@@ -5,9 +5,10 @@ import { legacyLoadState } from '../resources/web-legacy-storage'
 import { DatabaseInterface } from './interfaces'
 
 /** Render the app with platform-specific resources. */
-export function renderApp(database: DatabaseInterface): void {
+export function startApp(database: DatabaseInterface): void {
   /** Migrate old state_v3 to the new database. */
   const state3 = legacyLoadState()
+
   if (!database.isValid() && state3) {
     console.log('Migrating state_v3 to new format.')
     database.init(
