@@ -94,6 +94,18 @@ export const Concept = {
       .toLocaleLowerCase()
       .includes(text.toLocaleLowerCase())
   },
+
+  toBlock(concept: Concept): Block {
+    return {
+      refId: undefined,
+      conceptId: concept.id,
+      posType: undefined,
+      pos: undefined,
+      size: undefined,
+      mode: InteractionMode.Idle,
+      concept,
+    }
+  },
 }
 
 /** Reference utils. */

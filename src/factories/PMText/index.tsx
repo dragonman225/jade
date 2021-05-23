@@ -166,8 +166,8 @@ const PMText: React.FunctionComponent<Props> = props => {
   function createEditorState(props: Props) {
     return EditorState.create({
       schema,
-      doc: props.content.initialized
-        ? Node.fromJSON(schema, props.content.data)
+      doc: props.block.concept.summary.data.initialized
+        ? Node.fromJSON(schema, props.block.concept.summary.data.data)
         : undefined,
     })
   }
@@ -226,7 +226,9 @@ const PMText: React.FunctionComponent<Props> = props => {
   const editorContainerRef = useRef<HTMLDivElement>(null)
   const editorState = useRef<EditorState>(null)
   const editorView = useRef<EditorView>(null)
-  const [isNewText, setIsNewText] = useState(!props.content.initialized)
+  const [isNewText, setIsNewText] = useState(
+    !props.block.concept.summary.data.initialized
+  )
   const [mounted, setMounted] = useState(false)
 
   /** Init the ProseMirror editor when the component mounts. */
@@ -277,7 +279,7 @@ const PMText: React.FunctionComponent<Props> = props => {
         editorView.current.updateState(editorState.current)
       }
     }
-  }, [props.content])
+  }, [props.block.concept.summary.data])
 
   /**
    * Update "editable" prop of the editor view.

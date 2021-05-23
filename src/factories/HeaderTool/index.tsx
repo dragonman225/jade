@@ -58,9 +58,9 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
         <button
           className={styles.HomeBtn}
           onClick={() =>
-            props.app.dispatch({
+            props.dispatchAction({
               type: 'navigation::expand',
-              data: { id: props.app.state.homeConceptId },
+              data: { id: props.state.homeConceptId },
             })
           }>
           <IconHome />
@@ -73,25 +73,26 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
           } = {
             viewMode: 'CardTitle',
             readOnly: false,
-            app: props.app,
+            state: props.state,
+            dispatchAction: props.dispatchAction,
             factoryRegistry: props.factoryRegistry,
             database: props.database,
-            content: props.app.state.viewingConcept.summary.data,
+            block: props.block,
             messageBus: props.messageBus,
             onChange: data =>
-              props.app.dispatch({
+              props.dispatchAction({
                 type: 'concept::datachange',
                 data: {
-                  id: props.app.state.viewingConcept.id,
-                  type: props.app.state.viewingConcept.summary.type,
+                  id: props.state.viewingConcept.id,
+                  type: props.state.viewingConcept.summary.type,
                   content: data,
                 },
               }),
             onReplace: typeId =>
-              props.app.dispatch({
+              props.dispatchAction({
                 type: 'concept::datachange',
                 data: {
-                  id: props.app.state.viewingConcept.id,
+                  id: props.state.viewingConcept.id,
                   type: typeId,
                   content: { initialized: false },
                 },
@@ -102,10 +103,10 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
             onInteractionEnd: () => {
               return
             },
-            key: 'CardTitle-' + props.app.state.viewingConcept.id,
+            key: 'CardTitle-' + props.state.viewingConcept.id,
           }
           return props.factoryRegistry.createConceptDisplay(
-            props.app.state.viewingConcept.summary.type,
+            props.state.viewingConcept.summary.type,
             contentProps
           )
         })()}

@@ -2,7 +2,7 @@ import { IPubSub } from '../lib/pubsub'
 import { Action } from '../reducer'
 import { Origin, Size, Vec2 } from './util'
 import { InitializedConceptData, UninitializedConceptData } from './concept'
-import { DatabaseInterface, State4 } from './core'
+import { Block, DatabaseInterface, State4 } from './core'
 
 export type FactoryId = string
 
@@ -30,17 +30,10 @@ export interface FactoryRegistry {
 export interface ConceptDisplayProps<T extends InitializedConceptData> {
   readOnly: boolean
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
-  content: T | UninitializedConceptData
+  block: Block
   messageBus: IPubSub
-  app: {
-    state: State4
-    dispatch: React.Dispatch<Action>
-  }
-  physicalInfo?: {
-    origin: Origin
-    position: Vec2
-    size: Size
-  }
+  state: State4
+  dispatchAction: React.Dispatch<Action>
   factoryRegistry: FactoryRegistry
   database: DatabaseInterface
   onChange: (content: T) => void

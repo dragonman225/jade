@@ -129,17 +129,10 @@ export function App(props: Props): JSX.Element {
       {
         readOnly: block.mode === InteractionMode.Moving,
         viewMode: 'Block',
-        physicalInfo: {
-          origin: { type: 'TL', top: 0, left: 0 },
-          position: block.pos,
-          size: block.size,
-        },
-        content: block.concept.summary.data,
+        block,
         messageBus,
-        app: {
-          state,
-          dispatch: dispatchAction,
-        },
+        state,
+        dispatchAction,
         factoryRegistry,
         database: db,
         onChange: content => {

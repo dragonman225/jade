@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { stylesheet, classes } from 'typestyle'
 import { Block } from '../../core/Block'
 import { Box } from '../../core/component/Box'
-import { isPointInRect } from '../../core/lib/utils'
+import { isPointInRect, viewportCoordsToEnvCoords } from '../../core/lib/utils'
 import { factoryRegistry } from '..'
 import {
   ConceptDisplayProps,
@@ -96,22 +96,19 @@ const styles = stylesheet({
   },
 })
 
-interface SearchItemContentProps
-  extends Pick<
-    ConceptDisplayProps<InitializedConceptData>,
-    'viewMode' | 'messageBus' | 'app' | 'database'
-  > {
-  concept: Concept
-}
-
+type SearchItemContentProps = Pick<
+  ConceptDisplayProps<InitializedConceptData>,
+  'viewMode' | 'messageBus' | 'block' | 'database' | 'state' | 'dispatchAction'
+>
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props => {
-  const { concept, viewMode, messageBus, app, database } = props
-  return factoryRegistry.createConceptDisplay(concept.summary.type, {
+  const { viewMode, messageBus, block, database, state, dispatchAction } = props
+  return factoryRegistry.createConceptDisplay(block.concept.summary.type, {
     viewMode,
     readOnly: true,
-    content: concept.summary.data,
+    block,
     messageBus,
-    app,
+    state,
+    dispatchAction,
     factoryRegistry,
     database,
     onChange: () => {
@@ -149,7 +146,8 @@ const S2LState = {
 }
 
 const SearchTool: React.FunctionComponent<Props> = props => {
-  const { app, messageBus, database } = props
+  const { block, state, dispatchAction, messageBus, database } = props
+
   const searchRef = React.useRef<HTMLDivElement>()
   const getSearchRect = () => {
     return searchRef.current.getBoundingClientRect()
@@ -203,7 +201,7 @@ const SearchTool: React.FunctionComponent<Props> = props => {
       setS2lStart({ x: 0, y: 0 })
       setS2lDelta({ x: 0, y: 0 })
       if (s2lBlock.valid) {
-        app.dispatch({
+        dispatchAction({
           type: 'ref::create',
           data: {
             id: s2lBlock.id,
@@ -300,16 +298,17 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                                 setS2lBlock({ valid: false })
                               }}
                               onMouseUp={() => {
-                                app.dispatch({
+                                dispatchAction({
                                   type: 'navigation::expand',
                                   data: { id: concept.id },
                                 })
                               }}>
                               <SearchItemContent
-                                concept={concept}
+                                block={block}
                                 viewMode="NavItem"
                                 messageBus={messageBus}
-                                app={app}
+                                state={state}
+                                dispatchAction={dispatchAction}
                                 database={database}
                               />
                             </div>
@@ -319,10 +318,11 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                           return (
                             <div className={styles.ScrollListItem}>
                               <SearchItemContent
-                                concept={concept}
+                                block={block}
                                 viewMode="NavItem"
                                 messageBus={messageBus}
-                                app={app}
+                                state={state}
+                                dispatchAction={dispatchAction}
                                 database={database}
                               />
                             </div>
@@ -372,35 +372,20 @@ const SearchTool: React.FunctionComponent<Props> = props => {
           }
           return props.createOverlay(
             <Block
-              readOnly={true}
-              data={{
-                blockId: concept.id,
-                position,
-                width: 300,
+              block={{
+                ...block,
+                pos: viewportCoordsToEnvCoords(position, state.camera),
               }}
-              origin={{
-                type: 'TL',
-                top: 0,
-                left: 0,
-              }}
-              zIndex={9999}
-              container={Box}
-              onResize={() => {
-                return
-              }}
-              onMove={() => {
-                return
-              }}
-              messenger={messageBus}>
-              {() => (
-                <SearchItemContent
-                  concept={concept}
-                  viewMode="Block"
-                  messageBus={messageBus}
-                  app={app}
-                  database={database}
-                />
-              )}
+              dispatchAction={dispatchAction}
+              scheduleActionForAnimationFrame={dispatchAction}>
+              <SearchItemContent
+                block={Concept.toBlock(concept)}
+                database={database}
+                dispatchAction={dispatchAction}
+                messageBus={messageBus}
+                state={state}
+                viewMode="Block"
+              />
             </Block>
           )
         })()

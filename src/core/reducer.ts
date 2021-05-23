@@ -228,7 +228,9 @@ export function createReducer(db: DatabaseInterface) {
           movementInViewportCoords,
         } = action.data
 
+        // TODO: Not all concept belongs to viewingConcept.
         const oldRef = state.viewingConcept.references.find(r => r.id === refId)
+        if (!oldRef) return { ...state }
         const oldPos = oldRef.pos
         const newPos = requestedPos
           ? requestedPos
