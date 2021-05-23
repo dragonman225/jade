@@ -18,6 +18,7 @@ import { PubSub } from './lib/pubsub'
 const styles = stylesheet({
   Block: {
     background: 'white',
+    borderRadius: '.3rem',
     $nest: {
       '& > .ActionBtn': {
         opacity: 0,
@@ -42,16 +43,26 @@ const styles = stylesheet({
       },
     },
   },
+  Debug: {
+    position: 'absolute',
+    color: 'blueviolet',
+    top: 0,
+    left: '100%',
+    width: 300,
+    background: 'rgba(211, 211, 211, 0.8)',
+    fontSize: '0.6rem',
+    fontFamily: 'monospace',
+  },
 })
 
 interface Props {
   block: BlockState
   dispatchAction: React.Dispatch<Action>
   scheduleActionForAnimationFrame: (action: Action) => void
-  messageBus: PubSub
-  state: State4
-  db: DatabaseInterface
-  createOverlay: (children: React.ReactNode) => React.ReactPortal
+  // messageBus: PubSub
+  // state: State4
+  // db: DatabaseInterface
+  // createOverlay: (children: React.ReactNode) => React.ReactPortal
 }
 
 export function Block(props: Props): JSX.Element {
@@ -59,11 +70,12 @@ export function Block(props: Props): JSX.Element {
     block,
     dispatchAction,
     scheduleActionForAnimationFrame,
-    messageBus,
-    state,
-    db,
-    createOverlay,
+    // messageBus,
+    // state,
+    // db,
+    // createOverlay,
   } = props
+
   const concept = block.concept
   const blockRef = useRef<HTMLDivElement>(null)
   const resizerRef = useRef<HTMLDivElement>(null)
@@ -90,6 +102,50 @@ export function Block(props: Props): JSX.Element {
       let intent: '' | 'move' | 'resize' = ''
       let lastClientCoords = { x: 0, y: 0 }
 
+      const handlePointerMove = (e: MouseEvent | TouchEvent) => {
+        const clientCoords = getUnifiedClientCoords(e)
+        const movement = vecSub(clientCoords, lastClientCoords)
+        lastClientCoords = clientCoords
+
+        if (intent === 'resize') {
+          scheduleActionForAnimationFrame({
+            type: 'ref::resize',
+            data: {
+              id: block.refId,
+              movementInViewportCoords: movement,
+            },
+          })
+          setMode(InteractionMode.Resizing)
+        } else if (intent === 'move') {
+          scheduleActionForAnimationFrame({
+            type: 'ref::move',
+            data: {
+              id: block.refId,
+              movementInViewportCoords: movement,
+            },
+          })
+          setMode(InteractionMode.Moving)
+        }
+      }
+
+      const handlePointerUp = () => {
+        document.removeEventListener('mousemove', handlePointerMove)
+        document.removeEventListener('touchmove', handlePointerMove)
+        document.removeEventListener('mouseup', handlePointerUp)
+        document.removeEventListener('touchend', handlePointerUp)
+
+        intent = ''
+        lastClientCoords = { x: 0, y: 0 }
+
+        /** "Focusing" is controlled by the concept display. */
+        const mode = blockStateRef.current.mode
+        if (
+          mode === InteractionMode.Moving ||
+          mode === InteractionMode.Resizing
+        )
+          setMode(InteractionMode.Idle)
+      }
+
       return {
         handlePointerDown: (e: MouseEvent | TouchEvent) => {
           const clientCoords = getUnifiedClientCoords(e)
@@ -100,50 +156,6 @@ export function Block(props: Props): JSX.Element {
           if (isPointInRect(clientCoords, resizerRect)) intent = 'resize'
           else if (blockStateRef.current.mode !== InteractionMode.Focusing)
             intent = 'move'
-
-          const handlePointerMove = (e: MouseEvent | TouchEvent) => {
-            const clientCoords = getUnifiedClientCoords(e)
-            const movement = vecSub(clientCoords, lastClientCoords)
-            lastClientCoords = clientCoords
-
-            if (intent === 'resize') {
-              scheduleActionForAnimationFrame({
-                type: 'ref::resize',
-                data: {
-                  id: block.refId,
-                  movementInViewportCoords: movement,
-                },
-              })
-              setMode(InteractionMode.Resizing)
-            } else if (intent === 'move') {
-              scheduleActionForAnimationFrame({
-                type: 'ref::move',
-                data: {
-                  id: block.refId,
-                  movementInViewportCoords: movement,
-                },
-              })
-              setMode(InteractionMode.Moving)
-            }
-          }
-
-          const handlePointerUp = () => {
-            document.removeEventListener('mousemove', handlePointerMove)
-            document.removeEventListener('touchmove', handlePointerMove)
-            document.removeEventListener('mouseup', handlePointerUp)
-            document.removeEventListener('touchend', handlePointerUp)
-
-            intent = ''
-            lastClientCoords = { x: 0, y: 0 }
-
-            /** "Focusing" is controlled by the concept display. */
-            const mode = blockStateRef.current.mode
-            if (
-              mode === InteractionMode.Moving ||
-              mode === InteractionMode.Resizing
-            )
-              setMode(InteractionMode.Idle)
-          }
 
           document.addEventListener('mousemove', handlePointerMove)
           document.addEventListener('touchmove', handlePointerMove)
@@ -172,7 +184,7 @@ export function Block(props: Props): JSX.Element {
         gestureDetector.handlePointerDown
       )
     }
-  }, [blockRef.current])
+  }, [])
 
   return (
     <div
@@ -186,7 +198,10 @@ export function Block(props: Props): JSX.Element {
         transformOrigin: 'top left',
         transform: `translate(${block.pos.x}px, ${block.pos.y}px)`,
       }}>
-      {factoryRegistry.createConceptDisplay(concept.summary.type, {
+      Block
+      <br />
+      Block
+      {/* {factoryRegistry.createConceptDisplay(concept.summary.type, {
         readOnly: block.mode === InteractionMode.Moving,
         viewMode: 'Block',
         physicalInfo: {
@@ -229,23 +244,15 @@ export function Block(props: Props): JSX.Element {
           setMode(InteractionMode.Idle)
         },
         createOverlay,
-      })}
-      <div
-        style={{
-          position: 'absolute',
-          color: 'blueviolet',
-          top: 0,
-          left: '100%',
-          width: 300,
-          background: 'rgba(211, 211, 211, 0.8)',
-          fontSize: '0.6rem',
-          fontFamily: 'monospace',
-        }}>
+      })} */}
+      <div className={styles.Debug}>
         id: {block.refId}
         <br />
         mode: {block.mode}
         <br />
-        pos: {JSON.stringify(block.pos)}
+        posType: {block.posType}
+        <br />
+        pos: {`{ x: ${block.pos.x.toFixed(2)}, y: ${block.pos.y.toFixed(2)} }`}
       </div>
       <div
         ref={resizerRef}
@@ -269,12 +276,12 @@ export function Block(props: Props): JSX.Element {
           padding: 4,
         }}
         onClick={() => {
-          if (concept.id !== state.viewingConcept.id) {
-            dispatchAction({
-              type: 'navigation::expand',
-              data: { id: concept.id },
-            })
-          }
+          // if (concept.id !== state.viewingConcept.id) {
+          //   dispatchAction({
+          //     type: 'navigation::expand',
+          //     data: { id: concept.id },
+          //   })
+          // }
         }}>
         <IconExpand />
       </div>
