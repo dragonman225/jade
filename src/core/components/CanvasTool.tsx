@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { classes, stylesheet } from 'typestyle'
-import { IconEraser } from './component/IconEraser'
-import { IconPencil } from './component/IconPencil'
-import { IPubSub } from './lib/pubsub'
-import { UnifiedEventInfo, Stroke, StrokeConfig, Point } from './interfaces'
+import { Eraser } from './icons/Eraser'
+import { Pencil } from './icons/Pencil'
+import { IPubSub } from '../lib/pubsub'
+import { UnifiedEventInfo, Stroke, StrokeConfig, Point } from '../interfaces'
 
 interface CanvasProps {
   value: Stroke[] /** Value representing a drawing. */
@@ -367,7 +367,7 @@ export class CanvasTool extends React.Component<CanvasProps, CanvasState> {
                   : undefined
               )}>
               <button onClick={this.toggleStroke}>
-                <IconPencil />
+                <Pencil />
               </button>
             </div>
             <div
@@ -378,7 +378,7 @@ export class CanvasTool extends React.Component<CanvasProps, CanvasState> {
                   : undefined
               )}>
               <button onClick={this.toggleStroke}>
-                <IconEraser />
+                <Eraser />
               </button>
             </div>
           </div>

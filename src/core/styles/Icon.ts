@@ -1,6 +1,6 @@
 import { style } from 'typestyle'
 
-export const iconStyle = style({
+export const IconStyle = style({
   display: 'block',
   fill: 'inherit',
   flexShrink: 0,

@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { iconStyle } from './icon-style'
+import { IconStyle } from '../../styles/Icon'
 
-export const IconExpand: React.FunctionComponent = () => {
+export const Expand: React.FunctionComponent = () => {
   return (
     <svg
-      className={iconStyle}
+      className={IconStyle}
       width="100%"
       height="100%"
       viewBox="0 0 18 17"

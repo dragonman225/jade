@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { useRef, useEffect } from 'react'
 
-import { getUnifiedClientCoords, vecSub } from './lib/utils'
-import { Block as BlockState, PositionType, Vec2 } from './interfaces'
-import { Action } from './reducer'
+import { getUnifiedClientCoords, vecSub } from '../lib/utils'
+import { Block as BlockState, PositionType, Vec2 } from '../interfaces'
+import { Action } from '../reducer'
 
 interface Props {
   focus: Vec2

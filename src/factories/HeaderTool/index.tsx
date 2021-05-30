@@ -1,11 +1,10 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
-import { IconHome } from '../../core/component/IconHome'
+import { Home } from '../../core/components/icons/Home'
 import {
   ConceptDisplayProps,
   Factory,
   InitializedConceptData,
-  PositionType,
 } from '../../core/interfaces'
 
 type Props = ConceptDisplayProps<undefined>
@@ -64,7 +63,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
               data: { id: props.state.homeConceptId },
             })
           }>
-          <IconHome />
+          <Home />
         </button>
       </div>
       <div className={styles.CardTitleContainer}>

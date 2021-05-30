@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { iconStyle } from './icon-style'
+import { IconStyle } from '../../styles/Icon'
 
-export const IconDragHandle: React.FunctionComponent = () => {
+export const DragHandle: React.FunctionComponent = () => {
   return (
     <svg
-      className={iconStyle}
+      className={IconStyle}
       viewBox="0 0 60 60"
       xmlns="http://www.w3.org/2000/svg">
       <circle cx="10" cy="10" r="10" />

@@ -1,52 +1,13 @@
 import * as React from 'react'
 import { useRef, useEffect } from 'react'
-import { stylesheet } from 'typestyle'
 
-import { IconCross } from './component/IconCross'
-import { IconExpand } from './component/IconExpand'
-import { getUnifiedClientCoords, isPointInRect, vecSub } from './lib/utils'
-import { Block as BlockState, InteractionMode } from './interfaces'
-import { Action } from './reducer'
-
-const styles = stylesheet({
-  Block: {
-    background: 'white',
-    borderRadius: '.3rem',
-    $nest: {
-      '& > .ActionBtn': {
-        opacity: 0,
-        transition: '0.1s opacity ease-in-out, 0.1s fill ease-in-out',
-        fill: 'silver',
-        cursor: 'pointer',
-        borderRadius: '.3rem',
-        $nest: {
-          '&:hover': {
-            background: '#eee',
-          },
-        },
-      },
-      '&:hover > .ActionBtn': {
-        opacity: 1,
-      },
-      '& > .ActionBtn--Red:hover': {
-        fill: 'lightcoral',
-      },
-      '& > .ActionBtn--Green:hover': {
-        fill: 'mediumaquamarine',
-      },
-    },
-  },
-  Debug: {
-    position: 'absolute',
-    color: 'blueviolet',
-    top: 0,
-    left: '100%',
-    width: 300,
-    background: 'rgba(211, 211, 211, 0.8)',
-    fontSize: '0.6rem',
-    fontFamily: 'monospace',
-  },
-})
+import { Cross } from './icons/Cross'
+import { Expand } from './icons/Expand'
+import { BlockStyle } from '../styles/Block'
+import { DebugLabelStyle } from '../styles/DebugLabel'
+import { getUnifiedClientCoords, isPointInRect, vecSub } from '../lib/utils'
+import { Block as BlockState, InteractionMode } from '../interfaces'
+import { Action } from '../reducer'
 
 interface Props {
   block: BlockState
@@ -176,7 +137,7 @@ export function Block(props: Props): JSX.Element {
   return (
     <div
       ref={blockRef}
-      className={styles.Block}
+      className={BlockStyle}
       style={{
         width: block.size.w,
         height: block.size.h,
@@ -186,7 +147,7 @@ export function Block(props: Props): JSX.Element {
         transform: `translate(${block.pos.x}px, ${block.pos.y}px)`,
       }}>
       {props.children}
-      <div className={styles.Debug}>
+      <div className={DebugLabelStyle}>
         id: {block.refId}
         <br />
         mode: {block.mode}
@@ -222,7 +183,7 @@ export function Block(props: Props): JSX.Element {
             data: { id: concept.id },
           })
         }}>
-        <IconExpand />
+        <Expand />
       </div>
       <div
         className="ActionBtn ActionBtn--Red"
@@ -240,7 +201,7 @@ export function Block(props: Props): JSX.Element {
             data: { id: block.refId },
           })
         }}>
-        <IconCross />
+        <Cross />
       </div>
     </div>
   )

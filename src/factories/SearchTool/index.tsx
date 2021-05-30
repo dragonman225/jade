@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { stylesheet, classes } from 'typestyle'
-import { Block } from '../../core/Block'
+import { Block } from '../../core/components/Block'
 import { isPointInRect, viewportCoordsToEnvCoords } from '../../core/lib/utils'
 import { factoryRegistry } from '..'
 import {
@@ -16,6 +16,7 @@ import {
   InitializedConceptData,
   PositionType,
 } from '../../core/interfaces/concept'
+import { BlockStyle } from '../../core/styles/Block'
 
 const styles = stylesheet({
   Search: {
@@ -162,7 +163,7 @@ const S2LState = {
 }
 
 const SearchTool: React.FunctionComponent<Props> = props => {
-  const { concept, state, dispatchAction, messageBus, database } = props
+  const { state, dispatchAction, messageBus, database } = props
 
   const searchRef = React.useRef<HTMLDivElement>()
   const getSearchRect = () => {
@@ -198,7 +199,7 @@ const SearchTool: React.FunctionComponent<Props> = props => {
   const [s2lStart, setS2lStart] = React.useState<Vec2>({ x: 0, y: 0 })
   const [s2lDelta, setS2lDelta] = React.useState<Vec2>({ x: 0, y: 0 })
 
-  const handleDragStart = (e: UnifiedEventInfo) => {
+  const handleDragStart = (e: MouseEvent | React.MouseEvent) => {
     if (s2lState === S2LState.Idle && s2lBlock.valid) {
       setMinimized(true)
       setS2lState(S2LState.Linking)
@@ -206,13 +207,13 @@ const SearchTool: React.FunctionComponent<Props> = props => {
     }
   }
 
-  const handleDragging = (e: UnifiedEventInfo) => {
+  const handleDragging = (e: MouseEvent) => {
     if (s2lState === S2LState.Linking) {
       setS2lDelta({ x: e.clientX - s2lStart.x, y: e.clientY - s2lStart.y })
     }
   }
 
-  const handleDragEnd = (e: UnifiedEventInfo) => {
+  const handleDragEnd = (e: MouseEvent) => {
     if (s2lState === S2LState.Linking) {
       setS2lStart({ x: 0, y: 0 })
       setS2lDelta({ x: 0, y: 0 })
@@ -221,10 +222,13 @@ const SearchTool: React.FunctionComponent<Props> = props => {
           type: 'ref::create',
           data: {
             id: s2lBlock.id,
-            position: {
-              x: s2lBlock.rect.left + s2lDelta.x,
-              y: s2lBlock.rect.top + s2lDelta.y - e.originY,
-            },
+            position: viewportCoordsToEnvCoords(
+              {
+                x: s2lBlock.rect.left + s2lDelta.x,
+                y: s2lBlock.rect.top + s2lDelta.y,
+              },
+              state.camera
+            ),
           },
         })
       } else console.log('s2lBlock is invalid')
@@ -244,15 +248,14 @@ const SearchTool: React.FunctionComponent<Props> = props => {
   }
 
   React.useEffect(() => {
-    messageBus.subscribe('user::dragstart', handleDragStart)
-    messageBus.subscribe('user::dragging', handleDragging)
-    messageBus.subscribe('user::dragend', handleDragEnd)
-    messageBus.subscribe('user::tap', handleTap)
+    window.addEventListener('mousedown', handleDragStart)
+    window.addEventListener('mousemove', handleDragging)
+    window.addEventListener('mouseup', handleDragEnd)
+
     return () => {
-      messageBus.unsubscribe('user::dragstart', handleDragStart)
-      messageBus.unsubscribe('user::dragging', handleDragging)
-      messageBus.unsubscribe('user::dragend', handleDragEnd)
-      messageBus.unsubscribe('user::tap', handleTap)
+      window.removeEventListener('mousedown', handleDragStart)
+      window.removeEventListener('mousemove', handleDragging)
+      window.removeEventListener('mouseup', handleDragEnd)
     }
   })
 
@@ -313,6 +316,7 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                               onMouseLeave={() => {
                                 setS2lBlock({ valid: false })
                               }}
+                              onMouseDown={handleDragStart}
                               onMouseUp={() => {
                                 dispatchAction({
                                   type: 'navigation::expand',
@@ -386,19 +390,26 @@ const SearchTool: React.FunctionComponent<Props> = props => {
             x: s2lBlock.rect.left + s2lDelta.x,
             y: s2lBlock.rect.top + s2lDelta.y,
           }
+
           return props.createOverlay(
-            <Block
-              block={{
-                concept,
-                conceptId: concept.id,
-                mode: InteractionMode.Moving,
-                posType: PositionType.Normal,
-                pos: viewportCoordsToEnvCoords(position, state.camera),
-                refId: 's2l',
-                size: { w: 300, h: 'auto' },
-              }}
-              dispatchAction={dispatchAction}
-              scheduleActionForAnimationFrame={dispatchAction}>
+            // <Block
+            //   block={{
+            //     concept,
+            //     conceptId: concept.id,
+            //     mode: InteractionMode.Moving,
+            //     posType: PositionType.Normal,
+            //     pos: viewportCoordsToEnvCoords(position, state.camera),
+            //     refId: 's2l',
+            //     size: { w: 300, h: 'auto' },
+            //   }}
+            //   dispatchAction={dispatchAction}
+            //   scheduleActionForAnimationFrame={dispatchAction}>
+            <div
+              className={BlockStyle}
+              style={{
+                transform: `translate(${position.x}px, ${position.y}px)`,
+                width: 300,
+              }}>
               <SearchItemContent
                 concept={concept}
                 database={database}
@@ -407,7 +418,8 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                 state={state}
                 viewMode="Block"
               />
-            </Block>
+            </div>
+            // </Block>
           )
         })()
       ) : (

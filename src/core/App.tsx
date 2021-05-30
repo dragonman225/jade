@@ -4,8 +4,8 @@ import * as ReactDOM from 'react-dom'
 import { useReducer, useMemo, useCallback, useRef } from 'react'
 import { cssRaw, stylesheet } from 'typestyle'
 
-import { Viewport } from './Viewport'
-import { Overlay } from './component/Overlay'
+import { Viewport } from './components/Viewport'
+import { Overlay } from './components/Overlay'
 import { Action, createReducer, loadAppState } from './reducer'
 import { factoryRegistry } from '../factories'
 import {
@@ -14,7 +14,7 @@ import {
   InteractionMode,
 } from './interfaces'
 import { PubSub } from './lib/pubsub'
-import { Block } from './Block'
+import { Block } from './components/Block'
 import { useAnimationFrame } from './useAnimationFrame'
 import { vecAdd } from './lib/utils'
 
