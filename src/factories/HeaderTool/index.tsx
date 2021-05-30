@@ -5,6 +5,7 @@ import {
   ConceptDisplayProps,
   Factory,
   InitializedConceptData,
+  PositionType,
 } from '../../core/interfaces'
 
 type Props = ConceptDisplayProps<undefined>
@@ -77,7 +78,15 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
             dispatchAction: props.dispatchAction,
             factoryRegistry: props.factoryRegistry,
             database: props.database,
-            block: props.block,
+            block: {
+              concept: props.state.viewingConcept,
+              conceptId: props.state.viewingConcept.id,
+              mode: 0,
+              pos: { x: 0, y: 0 },
+              posType: PositionType.None,
+              refId: '',
+              size: { w: 0, h: 0 },
+            },
             messageBus: props.messageBus,
             onChange: data =>
               props.dispatchAction({
@@ -105,6 +114,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
             },
             key: 'CardTitle-' + props.state.viewingConcept.id,
           }
+
           return props.factoryRegistry.createConceptDisplay(
             props.state.viewingConcept.summary.type,
             contentProps
