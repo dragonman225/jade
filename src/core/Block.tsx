@@ -130,6 +130,11 @@ export function Block(props: Props): JSX.Element {
 
       return {
         handlePointerDown: (e: MouseEvent | TouchEvent) => {
+          if (e instanceof MouseEvent) {
+            /** Reject non-primary button. */
+            if (e.button !== 0) return
+          }
+
           const clientCoords = getUnifiedClientCoords(e)
           lastClientCoords = clientCoords
 
