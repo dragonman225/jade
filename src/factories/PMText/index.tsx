@@ -166,8 +166,8 @@ const PMText: React.FunctionComponent<Props> = props => {
   function createEditorState(props: Props) {
     return EditorState.create({
       schema,
-      doc: props.block.concept.summary.data.initialized
-        ? Node.fromJSON(schema, props.block.concept.summary.data.data)
+      doc: props.concept.summary.data.initialized
+        ? Node.fromJSON(schema, props.concept.summary.data.data)
         : undefined,
     })
   }
@@ -227,7 +227,7 @@ const PMText: React.FunctionComponent<Props> = props => {
   const editorState = useRef<EditorState>(null)
   const editorView = useRef<EditorView>(null)
   const [isNewText, setIsNewText] = useState(
-    !props.block.concept.summary.data.initialized
+    !props.concept.summary.data.initialized
   )
   const [mounted, setMounted] = useState(false)
 
@@ -279,7 +279,7 @@ const PMText: React.FunctionComponent<Props> = props => {
         editorView.current.updateState(editorState.current)
       }
     }
-  }, [props.block.concept.summary.data])
+  }, [props.concept.summary.data])
 
   /**
    * Update "editable" prop of the editor view.

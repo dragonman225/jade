@@ -1,8 +1,8 @@
 import { IPubSub } from '../lib/pubsub'
 import { Action } from '../reducer'
-import { Origin, Size, Vec2 } from './util'
-import { InitializedConceptData, UninitializedConceptData } from './concept'
-import { Block, DatabaseInterface, State4 } from './core'
+import { Origin } from './util'
+import { Concept, InitializedConceptData } from './concept'
+import { DatabaseInterface, State4 } from './core'
 
 export type FactoryId = string
 
@@ -30,7 +30,7 @@ export interface FactoryRegistry {
 export interface ConceptDisplayProps<T extends InitializedConceptData> {
   readOnly: boolean
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
-  block: Block
+  concept: Concept
   messageBus: IPubSub
   state: State4
   dispatchAction: React.Dispatch<Action>

@@ -2,16 +2,20 @@ import * as React from 'react'
 import { useState } from 'react'
 import { stylesheet, classes } from 'typestyle'
 import { Block } from '../../core/Block'
-import { Box } from '../../core/component/Box'
 import { isPointInRect, viewportCoordsToEnvCoords } from '../../core/lib/utils'
 import { factoryRegistry } from '..'
 import {
   ConceptDisplayProps,
   Factory,
+  InteractionMode,
   UnifiedEventInfo,
   Vec2,
 } from '../../core/interfaces'
-import { Concept, InitializedConceptData } from '../../core/interfaces/concept'
+import {
+  Concept,
+  InitializedConceptData,
+  PositionType,
+} from '../../core/interfaces/concept'
 
 const styles = stylesheet({
   Search: {
@@ -98,14 +102,26 @@ const styles = stylesheet({
 
 type SearchItemContentProps = Pick<
   ConceptDisplayProps<InitializedConceptData>,
-  'viewMode' | 'messageBus' | 'block' | 'database' | 'state' | 'dispatchAction'
+  | 'viewMode'
+  | 'messageBus'
+  | 'concept'
+  | 'database'
+  | 'state'
+  | 'dispatchAction'
 >
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props => {
-  const { viewMode, messageBus, block, database, state, dispatchAction } = props
-  return factoryRegistry.createConceptDisplay(block.concept.summary.type, {
+  const {
+    viewMode,
+    messageBus,
+    concept,
+    database,
+    state,
+    dispatchAction,
+  } = props
+  return factoryRegistry.createConceptDisplay(concept.summary.type, {
     viewMode,
     readOnly: true,
-    block,
+    concept,
     messageBus,
     state,
     dispatchAction,
@@ -146,7 +162,7 @@ const S2LState = {
 }
 
 const SearchTool: React.FunctionComponent<Props> = props => {
-  const { block, state, dispatchAction, messageBus, database } = props
+  const { concept, state, dispatchAction, messageBus, database } = props
 
   const searchRef = React.useRef<HTMLDivElement>()
   const getSearchRect = () => {
@@ -304,7 +320,7 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                                 })
                               }}>
                               <SearchItemContent
-                                block={block}
+                                concept={concept}
                                 viewMode="NavItem"
                                 messageBus={messageBus}
                                 state={state}
@@ -318,7 +334,7 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                           return (
                             <div className={styles.ScrollListItem}>
                               <SearchItemContent
-                                block={block}
+                                concept={concept}
                                 viewMode="NavItem"
                                 messageBus={messageBus}
                                 state={state}
@@ -373,13 +389,18 @@ const SearchTool: React.FunctionComponent<Props> = props => {
           return props.createOverlay(
             <Block
               block={{
-                ...block,
+                concept,
+                conceptId: concept.id,
+                mode: InteractionMode.Moving,
+                posType: PositionType.Normal,
                 pos: viewportCoordsToEnvCoords(position, state.camera),
+                refId: 's2l',
+                size: { w: 300, h: 'auto' },
               }}
               dispatchAction={dispatchAction}
               scheduleActionForAnimationFrame={dispatchAction}>
               <SearchItemContent
-                block={Concept.toBlock(concept)}
+                concept={concept}
                 database={database}
                 dispatchAction={dispatchAction}
                 messageBus={messageBus}

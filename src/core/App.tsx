@@ -129,7 +129,7 @@ export function App(props: Props): JSX.Element {
       {
         readOnly: block.mode === InteractionMode.Moving,
         viewMode: 'Block',
-        block,
+        concept: block.concept,
         messageBus,
         state,
         dispatchAction,

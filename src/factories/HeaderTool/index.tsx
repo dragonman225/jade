@@ -78,15 +78,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
             dispatchAction: props.dispatchAction,
             factoryRegistry: props.factoryRegistry,
             database: props.database,
-            block: {
-              concept: props.state.viewingConcept,
-              conceptId: props.state.viewingConcept.id,
-              mode: 0,
-              pos: { x: 0, y: 0 },
-              posType: PositionType.None,
-              refId: '',
-              size: { w: 0, h: 0 },
-            },
+            concept: props.state.viewingConcept,
             messageBus: props.messageBus,
             onChange: data =>
               props.dispatchAction({
