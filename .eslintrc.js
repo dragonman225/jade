@@ -24,7 +24,7 @@ module.exports = {
     sourceType: 'module', // Allows for the use of imports
     tsconfigRootDir: __dirname,
   },
-  plugins: ['react', '@typescript-eslint'],
+  plugins: ['react', 'react-hooks', '@typescript-eslint'],
   settings: {
     react: {
       version: 'detect', // Tells eslint-plugin-react to automatically detect the version of React to use
@@ -88,9 +88,13 @@ module.exports = {
     'react/no-string-refs': 'off',
     'react/require-render-return': 'off',
 
-    // we want to check ".tsx" files
+    // We want to check ".tsx" files
     'react/jsx-filename-extension': ['warn', { extensions: ['.jsx', '.tsx'] }],
     'react/prop-types': 'off', // Is this incompatible with TS props type?
+
+    // Check react hooks
+    'react-hooks/rules-of-hooks': 'error', // Checks rules of Hooks
+    'react-hooks/exhaustive-deps': 'warn', // Checks effect dependencies
   },
   overrides: [
     {
