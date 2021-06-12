@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Concept, PositionType } from '../core/interfaces'
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
-const contentConcepts = require('../initial-concepts.json') as Concept[]
+const contentConcepts = require('./initial-concepts.json') as Concept[]
 const toolConcepts: Concept[] = [
   {
     id: uuidv4(),
@@ -14,6 +14,12 @@ const toolConcepts: Concept[] = [
   {
     id: uuidv4(),
     summary: { type: 'headertool', data: { initialized: false } },
+    references: [],
+    drawing: [],
+  },
+  {
+    id: uuidv4(),
+    summary: { type: 'recenttool', data: { initialized: false } },
     references: [],
     drawing: [],
   },
@@ -35,6 +41,13 @@ const toolMaskConcept: Concept = {
       posType: PositionType.PinnedTL,
       pos: { x: 370, y: 20 },
       size: { w: 470, h: 'auto' },
+    },
+    {
+      id: uuidv4(),
+      to: toolConcepts[2].id,
+      posType: PositionType.PinnedTL,
+      pos: { x: 900, y: 20 },
+      size: { w: 500, h: 'auto' },
     },
   ],
   drawing: [],

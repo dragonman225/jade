@@ -10,6 +10,7 @@ import { ImageFactory } from './Image'
 import { StatusFactory } from './Status'
 import { SearchToolFactory } from './SearchTool'
 import { HeaderToolFactory } from './HeaderTool'
+import { RecentToolFactory } from './RecentTool'
 
 class AlexFactoryRegistry implements FactoryRegistry {
   private factories = [
@@ -18,6 +19,7 @@ class AlexFactoryRegistry implements FactoryRegistry {
     StatusFactory,
     SearchToolFactory,
     HeaderToolFactory,
+    RecentToolFactory,
   ]
   private default = PMTextFactory
 

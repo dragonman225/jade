@@ -1,71 +1,28 @@
 import * as React from 'react'
-import * as typestyle from 'typestyle'
-import { Content } from '..'
-import { ConceptDisplayProps } from '../../core/interfaces'
+import { useRef } from 'react'
+
+import { styles } from './index.styles'
+import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 import { InitializedConceptData } from '../../core/interfaces/concept'
 
 type Props = ConceptDisplayProps<undefined>
 
-const styles = {
-  Recent: typestyle.style({
-    height: 50,
-    display: 'flex',
-    padding: '0px 22px',
-  }),
-}
-
 export const RecentTool: React.FunctionComponent<Props> = props => {
-  const { app, database, messageBus, physicalInfo } = props
+  const { state, dispatchAction, database, factoryRegistry } = props
+
+  const recentRef = useRef<HTMLDivElement>(null)
+
   return (
-    <div className={styles.Recent} style={{ width: physicalInfo.width }}>
-      <style jsx>{`
-        button {
-          border: none;
-          background: unset;
-        }
-
-        button:focus {
-          outline: none;
-        }
-
-        .RecentBtn {
-          flex: 1 0 75px;
-          max-width: 300px;
-          height: 100%;
-          overflow: hidden;
-          transition: background 0.2s, flex-basis 0.3s;
-          padding: 0 5px;
-        }
-
-        .RecentBtn ::-webkit-scrollbar {
-          width: 5px;
-        }
-
-        .RecentBtn ::-webkit-scrollbar-thumb {
-          background: #888;
-        }
-
-        .Recent ::-webkit-scrollbar-thumb:hover {
-          background: #555;
-        }
-
-        .RecentBtn:hover {
-          background: var(--bg-hover);
-          /* flex: 1 0 200px; */
-          overflow-y: scroll;
-          padding-right: 0;
-        }
-
-        .RecentBtn:active {
-          background: var(--bg-hover);
-        }
-      `}</style>
+    <div className={styles.Recent} ref={recentRef}>
       {(function () {
         const historyToShow: string[] = []
-        const maxNumToShow = Math.floor(physicalInfo.width / 100)
+        const maxNumToShow = Math.floor(
+          // TODO: Think of a way to pass down block elegantly.
+          recentRef.current?.getBoundingClientRect().width / 100
+        )
 
-        for (let i = app.state.expandHistory.length - 2; i >= 0; i--) {
-          const conceptId = app.state.expandHistory[i]
+        for (let i = state.expandHistory.length - 2; i >= 0; i--) {
+          const conceptId = state.expandHistory[i]
 
           /** Ignore if the slot is unpopulated. */
           if (!conceptId) continue
@@ -82,10 +39,11 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
           const contentProps: ConceptDisplayProps<InitializedConceptData> = {
             viewMode: 'NavItem',
             readOnly: true,
-            content: concept.summary.data,
-            messageBus,
-            app,
+            concept,
+            state,
+            dispatchAction,
             database,
+            factoryRegistry,
             onChange: () => {
               return
             },
@@ -101,23 +59,29 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
           }
           return (
             <button
-              className="RecentBtn"
+              className={styles.RecentBtn}
               onClick={() => {
-                app.dispatch({
+                dispatchAction({
                   type: 'navigation::expand',
                   data: { id: conceptId },
                 })
               }}
               key={conceptId}>
-              <Content
-                contentType={concept.summary.type}
-                contentProps={contentProps}
-                key={concept.id}
-              />
+              {factoryRegistry.createConceptDisplay(
+                concept.summary.type,
+                contentProps
+              )}
             </button>
           )
         })
       })()}
     </div>
   )
+}
+
+export const RecentToolFactory: Factory = {
+  id: 'recenttool',
+  name: 'Recent Tool',
+  isTool: true,
+  component: RecentTool,
 }
