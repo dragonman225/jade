@@ -1,4 +1,4 @@
-import { Vec2, Rect, Camera } from '../interfaces'
+import { Vec2, Rect, Camera, Box } from '../interfaces'
 
 export function getMouseOffset(e: React.MouseEvent): Vec2 {
   const rect = e.currentTarget.getBoundingClientRect()
@@ -41,6 +41,36 @@ export function vecDiv(v: Vec2, n: number): Vec2 {
   return { x: v.x / n, y: v.y / n }
 }
 
+/** Test if two boxes are intersecting. From https://github.com/davidfig/intersects */
+export function isBoxBoxIntersecting(
+  x1: number,
+  y1: number,
+  w1: number,
+  h1: number,
+  x2: number,
+  y2: number,
+  w2: number,
+  h2: number
+): boolean {
+  return x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2
+}
+
+/** Normalize two points to a box. */
+export function normalizeToBox(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+): Box {
+  return {
+    x: x1 < x2 ? x1 : x2,
+    y: y1 < y2 ? y1 : y2,
+    w: Math.abs(x1 - x2),
+    h: Math.abs(y1 - y2),
+  }
+}
+
+/** Convert coords in the viewport to coords in the environment (canvas). */
 export function viewportCoordsToEnvCoords(
   viewportCoords: Vec2,
   camera: Camera

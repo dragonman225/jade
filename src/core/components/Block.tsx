@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { useRef, useEffect } from 'react'
+import { classes } from 'typestyle'
 
 import { Cross } from './icons/Cross'
 import { Expand } from './icons/Expand'
-import { BlockStyle } from '../styles/Block'
+import { BlockStyles } from './Block.styles'
 import { DebugLabelStyle } from '../styles/DebugLabel'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../lib/utils'
 import { Block as BlockState, InteractionMode } from '../interfaces'
@@ -137,7 +138,10 @@ export function Block(props: Props): JSX.Element {
   return (
     <div
       ref={blockRef}
-      className={BlockStyle}
+      className={classes(
+        BlockStyles.Block,
+        block.selected ? BlockStyles['Block--Selected'] : undefined
+      )}
       style={{
         width: block.size.w,
         height: block.size.h,
@@ -155,6 +159,8 @@ export function Block(props: Props): JSX.Element {
         posType: {block.posType}
         <br />
         pos: {`{ x: ${block.pos.x.toFixed(2)}, y: ${block.pos.y.toFixed(2)} }`}
+        <br />
+        selected: {block.selected ? 'true' : 'false'}
       </div>
       <div
         ref={resizerRef}

@@ -2,13 +2,16 @@ import * as React from 'react'
 import { useRef, useEffect } from 'react'
 
 import { getUnifiedClientCoords, vecSub } from '../lib/utils'
-import { Block as BlockState, PositionType, Vec2 } from '../interfaces'
+import { Block as BlockState, Box, PositionType, Vec2 } from '../interfaces'
 import { Action } from '../reducer'
+import { SelectionBox } from './SelectionBox'
 
 interface Props {
   focus: Vec2
   scale: number
   blocks: BlockState[]
+  selecting: boolean
+  selectionBox: Box
   renderBlock: (block: BlockState) => JSX.Element
   dispatchAction: React.Dispatch<Action>
   scheduleActionForAnimationFrame: (action: Action) => void
@@ -19,6 +22,8 @@ export function Viewport(props: Props): JSX.Element {
     focus,
     scale,
     blocks,
+    selecting,
+    selectionBox,
     renderBlock,
     dispatchAction,
     scheduleActionForAnimationFrame,
@@ -72,39 +77,67 @@ export function Viewport(props: Props): JSX.Element {
 
     const panDetector = (() => {
       let panning = false
+      let selecting = false
       let lastClientCoords = { x: 0, y: 0 }
 
       return {
         handlePointerDown: (e: MouseEvent | TouchEvent) => {
+          const clientCoords = getUnifiedClientCoords(e)
+
           if (e instanceof MouseEvent) {
+            /** Interacting with a mouse. */
             if (e.button === 0) {
-              /** Using primary button requires starting from an empty area. */
-              if (e.target !== cameraElRef.current) return
-            } else if (e.button !== 1) {
-              /** Using wheel button allows starting from anywhere. */
-              return
+              if (e.target === cameraElRef.current) {
+                /** Primary button, target not being a Block -> Start selection box. */
+                scheduleActionForAnimationFrame({
+                  type: 'selectionbox::setstart',
+                  data: clientCoords,
+                })
+
+                selecting = true
+              }
+            } else if (e.button === 1) {
+              /** Middle button, target being anything -> Start moving camera. */
+              panning = true
             }
           } else {
-            /** Ignore touches with more than one point. */
-            if (e.target !== cameraElRef.current || e.touches.length > 1) return
+            /** Interacting with a touch device. */
+            /** TODO: Start selection box when holding with one finger for a while. */
+            if (e.target === cameraElRef.current && e.touches.length === 2) {
+              /** Two fingers, target not being a Block -> Start moving camera. */
+              panning = true
+            }
           }
 
-          panning = true
-          lastClientCoords = getUnifiedClientCoords(e)
+          lastClientCoords = clientCoords
         },
         handlePointerMove: (e: MouseEvent | TouchEvent) => {
+          const clientCoords = getUnifiedClientCoords(e)
+
           if (panning) {
-            const clientCoords = getUnifiedClientCoords(e)
             const movement = vecSub(clientCoords, lastClientCoords)
-            lastClientCoords = clientCoords
             scheduleActionForAnimationFrame({
               type: 'cam::movedelta',
               data: movement,
             })
+          } else if (selecting) {
+            scheduleActionForAnimationFrame({
+              type: 'selectionbox::setend',
+              data: clientCoords,
+            })
           }
+
+          lastClientCoords = clientCoords
         },
         handlePointerUp: () => {
           panning = false
+          if (selecting) {
+            scheduleActionForAnimationFrame({
+              type: 'selectionbox::clear',
+            })
+            selecting = false
+          }
+
           lastClientCoords = { x: 0, y: 0 }
         },
       }
@@ -193,6 +226,18 @@ export function Viewport(props: Props): JSX.Element {
                 typeof b.posType === 'undefined'
             )
             .map(renderBlock)}
+          {selecting && (
+            <SelectionBox
+              style={{
+                width: selectionBox.w,
+                height: selectionBox.h,
+                /** Set to "absolute" so blocks can overlap. */
+                position: 'absolute',
+                transformOrigin: 'top left',
+                transform: `translate(${selectionBox.x}px, ${selectionBox.y}px)`,
+              }}
+            />
+          )}
         </div>
       </div>
       {blocks.filter(b => b.posType === PositionType.PinnedTL).map(renderBlock)}

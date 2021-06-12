@@ -1,5 +1,5 @@
 import { ConceptId, Concept, ReferenceId, PositionType } from './concept'
-import { Camera, Size, Vec2 } from './util'
+import { Box, Camera, Size, Vec2 } from './util'
 
 /** App state v3. */
 export interface State3 {
@@ -25,6 +25,7 @@ export interface Block {
   pos: Vec2
   size: Size
   mode: InteractionMode
+  selected: boolean
   concept: Concept
 }
 
@@ -40,6 +41,11 @@ export interface State4 {
   expandHistory: (ConceptId | undefined)[]
   /** Volatile. */
   camera: Camera
+  /** Volatile. */
+  selecting: boolean
+  selectionBoxStart: Vec2
+  selectionBoxEnd: Vec2
+  selectionBox: Box
   /** Volatile. */
   selectedBlocks: ReferenceId[]
   /** Volatile. */

@@ -8,6 +8,13 @@ export interface Size {
   h: number | 'auto'
 }
 
+export interface Box {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
 export interface Rect {
   left: number // min x
   right: number // max x

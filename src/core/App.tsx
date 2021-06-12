@@ -183,6 +183,8 @@ export function App(props: Props): JSX.Element {
         focus={state.camera.focus}
         scale={state.camera.scale}
         blocks={state.blocks}
+        selecting={state.selecting}
+        selectionBox={state.selectionBox}
         renderBlock={renderBlock}
         dispatchAction={dispatchAction}
         scheduleActionForAnimationFrame={scheduleActionForAnimationFrame}

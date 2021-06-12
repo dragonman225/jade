@@ -14,7 +14,14 @@ import {
   Size,
   ReferenceId,
 } from './interfaces'
-import { viewportCoordsToEnvCoords, vecDiv, vecSub, vecAdd } from './lib/utils'
+import {
+  viewportCoordsToEnvCoords,
+  vecDiv,
+  vecSub,
+  vecAdd,
+  normalizeToBox,
+  isBoxBoxIntersecting,
+} from './lib/utils'
 import initialConcepts from '../resources/initial-condition'
 
 interface ConceptCreateAction {
@@ -59,7 +66,6 @@ interface RefMoveAction {
   data: {
     /** Link id. */
     id: string
-    positionInEnvCoords?: Vec2
     movementInViewportCoords?: Vec2
   }
 }
@@ -87,18 +93,32 @@ interface CameraScaleDeltaAction {
   }
 }
 
-interface SelectionAddAction {
+interface SelectedBlocksAddAction {
   type: 'selection::add'
   data: ConceptId[]
 }
 
-interface SelectionRemoveAction {
+interface SelectedBlocksRemoveAction {
   type: 'selection::remove'
   data: ConceptId[]
 }
 
-interface SelectionClearAction {
+interface SelectedBlocksClearAction {
   type: 'selection::clear'
+}
+
+interface SelectionBoxSetStartAction {
+  type: 'selectionbox::setstart'
+  data: Vec2
+}
+
+interface SelectionBoxSetEndAction {
+  type: 'selectionbox::setend'
+  data: Vec2
+}
+
+interface SelectionBoxClearAction {
+  type: 'selectionbox::clear'
 }
 
 interface ExpandAction {
@@ -130,9 +150,12 @@ export type Action =
   | RefResizeAction
   | CameraMoveDeltaAction
   | CameraScaleDeltaAction
-  | SelectionAddAction
-  | SelectionRemoveAction
-  | SelectionClearAction
+  | SelectedBlocksAddAction
+  | SelectedBlocksRemoveAction
+  | SelectedBlocksClearAction
+  | SelectionBoxSetStartAction
+  | SelectionBoxSetEndAction
+  | SelectionBoxClearAction
   | ExpandAction
   | BlockChangeAction
   | DebuggingToggleAction
@@ -168,7 +191,17 @@ export function loadAppState(db: DatabaseInterface): State4 {
 
   const settings = db.getSettings()
   const viewingConcept = db.getConcept(settings.viewingConceptId)
-  const blocks = synthesizeView(viewingConcept, db)
+  const blocks = synthesizeView(viewingConcept, db).map(b => {
+    /** COMPAT: v0.1.4 or lower doesn't have `posType`. */
+    if (typeof b.posType === 'undefined') {
+      return {
+        ...b,
+        posType: PositionType.Normal,
+      }
+    } else {
+      return b
+    }
+  })
 
   return {
     debugging: settings.debugging,
@@ -182,6 +215,10 @@ export function loadAppState(db: DatabaseInterface): State4 {
       focus: { x: 0, y: 0 },
       scale: 1,
     },
+    selecting: false,
+    selectionBoxStart: { x: 0, y: 0 },
+    selectionBoxEnd: { x: 0, y: 0 },
+    selectionBox: { x: 0, y: 0, w: 0, h: 0 },
     selectedBlocks: [],
     blocks,
   }
@@ -222,42 +259,59 @@ export function createReducer(db: DatabaseInterface) {
         }
       }
       case 'ref::move': {
-        const {
-          id: refId,
-          positionInEnvCoords: requestedPos,
-          movementInViewportCoords,
-        } = action.data
+        const { id: refId, movementInViewportCoords } = action.data
+        const { selectedBlocks, blocks, viewingConcept } = state
 
-        // TODO: Not all concept belongs to viewingConcept.
-        const oldRef = state.viewingConcept.references.find(r => r.id === refId)
-        if (!oldRef) return { ...state }
-        const oldPos = oldRef.pos
-        const newPos = requestedPos
-          ? requestedPos
-          : movementInViewportCoords
-          ? vecAdd(oldPos, vecDiv(movementInViewportCoords, state.camera.scale))
-          : oldPos
-        const newRef: Reference = { ...oldRef, pos: newPos }
+        const blocksToUpdate = selectedBlocks.includes(refId)
+          ? selectedBlocks
+          : [refId]
+
+        const newBlockAndRefTuples: [
+          Block,
+          Reference | undefined
+        ][] = blocksToUpdate.map(blockId => {
+          /** Update the block. */
+          const block = blocks.find(b => b.refId === blockId)
+          const ref = viewingConcept.references.find(r => r.id === blockId)
+
+          const newPos = vecAdd(
+            block.pos,
+            vecDiv(movementInViewportCoords, state.camera.scale)
+          )
+
+          return [
+            {
+              ...block,
+              pos: newPos,
+            },
+            // TODO: Not all refs belongs to viewingConcept.
+            ref
+              ? {
+                  ...ref,
+                  pos: newPos,
+                }
+              : undefined,
+          ]
+        })
+
+        const newBlocks = newBlockAndRefTuples.map(t => t[0])
+        const newRefs = newBlockAndRefTuples.map(t => t[1]).filter(r => !!r)
 
         const newViewingConcept: Concept = {
-          ...state.viewingConcept,
-          references: state.viewingConcept.references
-            .filter(r => r.id !== refId)
-            .concat(newRef),
+          ...viewingConcept,
+          references: viewingConcept.references
+            .filter(r => !blocksToUpdate.includes(r.id))
+            .concat(newRefs),
         }
 
         db.updateConcept(newViewingConcept)
 
-        const oldBlockIndex = state.blocks.findIndex(b => b.refId === refId)
-        const newBlock: Block = { ...state.blocks[oldBlockIndex], pos: newPos }
-
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: state.blocks
-            .slice(0, oldBlockIndex)
-            .concat(state.blocks.slice(oldBlockIndex + 1))
-            .concat(newBlock),
+          blocks: blocks
+            .filter(b => !blocksToUpdate.includes(b.refId))
+            .concat(newBlocks),
         }
       }
       case 'ref::resize': {
@@ -419,6 +473,84 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           selectedBlocks: [],
+        }
+      }
+      case 'selectionbox::setstart': {
+        const selectionBoxStart = viewportCoordsToEnvCoords(
+          action.data,
+          state.camera
+        )
+
+        return {
+          ...state,
+          selecting: true,
+          selectionBoxStart,
+          selectionBox: {
+            ...selectionBoxStart,
+            w: 0,
+            h: 0,
+          },
+        }
+      }
+      case 'selectionbox::setend': {
+        const { selectionBoxStart } = state
+        const selectionBoxEnd = viewportCoordsToEnvCoords(
+          action.data,
+          state.camera
+        )
+        const selectionBox = normalizeToBox(
+          selectionBoxStart.x,
+          selectionBoxStart.y,
+          selectionBoxEnd.x,
+          selectionBoxEnd.y
+        )
+        const selectedBlocks = state.blocks
+          .map(b => {
+            /** TODO: Resolve 'auto' to actual size. */
+            const { size } = b
+            return {
+              ...b,
+              size: {
+                w: size.w === 'auto' ? 0 : size.w,
+                h: size.h === 'auto' ? 0 : size.h,
+              },
+            }
+          })
+          .filter(
+            /** Filter out pinned blocks. */
+            b =>
+              b.posType === PositionType.Normal &&
+              isBoxBoxIntersecting(
+                selectionBox.x,
+                selectionBox.y,
+                selectionBox.w,
+                selectionBox.h,
+                b.pos.x,
+                b.pos.y,
+                b.size.w,
+                b.size.h
+              )
+          )
+          .map(b => b.refId)
+
+        return {
+          ...state,
+          selectionBoxEnd,
+          selectionBox,
+          selectedBlocks,
+          blocks: state.blocks.map(b => ({
+            ...b,
+            selected: selectedBlocks.includes(b.refId),
+          })),
+        }
+      }
+      case 'selectionbox::clear': {
+        return {
+          ...state,
+          selecting: false,
+          selectionBoxStart: { x: 0, y: 0 },
+          selectionBoxEnd: { x: 0, y: 0 },
+          selectionBox: { x: 0, y: 0, w: 0, h: 0 },
         }
       }
       case 'navigation::expand': {

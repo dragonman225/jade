@@ -103,6 +103,7 @@ export const Concept = {
       pos: undefined,
       size: undefined,
       mode: InteractionMode.Idle,
+      selected: false,
       concept,
     }
   },
@@ -118,6 +119,7 @@ export const Reference = {
       pos: reference.pos,
       size: reference.size,
       mode: InteractionMode.Idle,
+      selected: false,
       concept: db.getConcept(reference.to),
     }
   },
