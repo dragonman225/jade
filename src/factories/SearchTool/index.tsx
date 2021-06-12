@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { stylesheet, classes } from 'typestyle'
-import { Block } from '../../core/components/Block'
 import { isPointInRect, viewportCoordsToEnvCoords } from '../../core/lib/utils'
 import { factoryRegistry } from '..'
+import { BlockStyles } from '../../core/components/Block.styles'
 import {
   ConceptDisplayProps,
   Factory,
@@ -16,7 +16,6 @@ import {
   InitializedConceptData,
   PositionType,
 } from '../../core/interfaces/concept'
-import { BlockStyle } from '../../core/styles/Block'
 
 const styles = stylesheet({
   Search: {
@@ -405,7 +404,7 @@ const SearchTool: React.FunctionComponent<Props> = props => {
             //   dispatchAction={dispatchAction}
             //   scheduleActionForAnimationFrame={dispatchAction}>
             <div
-              className={BlockStyle}
+              className={BlockStyles.Block}
               style={{
                 transform: `translate(${position.x}px, ${position.y}px)`,
                 width: 300,
