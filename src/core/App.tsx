@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { useReducer, useMemo, useCallback, useRef } from 'react'
+import { useMemo, useCallback, useRef, useState } from 'react'
 import { cssRaw, stylesheet } from 'typestyle'
 
 import { Viewport } from './components/Viewport'
@@ -12,11 +12,10 @@ import {
   Block as BlockState,
   DatabaseInterface,
   InteractionMode,
+  State4,
 } from './interfaces'
-import { PubSub } from './lib/pubsub'
 import { Block } from './components/Block'
 import { useAnimationFrame } from './useAnimationFrame'
-import { vecAdd } from './lib/utils'
 
 cssRaw(`
 * {
@@ -60,52 +59,26 @@ const styles = stylesheet({
 export function App(props: Props): JSX.Element {
   const { db } = props
 
-  const messageBus = useMemo(() => new PubSub(), [])
   const appStateReducer = useCallback(createReducer(db), [])
   const initialState = useMemo(() => loadAppState(db), [])
-  const [state, dispatchAction] = useReducer(appStateReducer, initialState)
+  const [stateSnapshot, setStateSnapshot] = useState<State4>(initialState)
+  const stateRef = useRef<State4>(initialState)
+  const dispatchAction = useCallback<(action: Action) => void>(
+    action => {
+      stateRef.current = appStateReducer(stateRef.current, action)
+    },
+    [appStateReducer]
+  )
+  useAnimationFrame(() => {
+    setStateSnapshot(stateRef.current)
+  })
+
   const overlayRef = useRef<HTMLDivElement>(null)
 
   const createOverlay = useCallback(
     (children: React.ReactNode): React.ReactPortal => {
       return ReactDOM.createPortal(children, overlayRef.current)
     },
-    [overlayRef.current]
-  )
-
-  const actionQueueRef = useRef<Action[]>([])
-  useAnimationFrame(() => {
-    const aggregatedMoveActions: { [key: string]: Action } = {}
-    actionQueueRef.current.forEach(a => {
-      if (a.type === 'ref::move') {
-        if (aggregatedMoveActions[a.data.id]) {
-          aggregatedMoveActions[a.data.id] = {
-            ...aggregatedMoveActions[a.data.id],
-            movementInViewportCoords: vecAdd(
-              aggregatedMoveActions[a.data.id].movementInViewportCoords,
-              a.data.movementInViewportCoords
-            ),
-          }
-        } else {
-          aggregatedMoveActions[a.data.id] = a.data
-        }
-      }
-    })
-
-    Object.values(aggregatedMoveActions).forEach(a =>
-      dispatchAction({
-        type: 'ref::move',
-        data: a,
-      })
-    )
-    actionQueueRef.current
-      .filter(a => a.type !== 'ref::move')
-      .forEach(action => dispatchAction(action))
-    actionQueueRef.current = []
-  })
-
-  const scheduleActionForAnimationFrame = useCallback(
-    (action: Action) => actionQueueRef.current.push(action),
     []
   )
 
@@ -124,54 +97,49 @@ export function App(props: Props): JSX.Element {
       })
     }
 
-    const conceptDisplay = factoryRegistry.createConceptDisplay(
-      block.concept.summary.type,
-      {
-        readOnly: block.mode === InteractionMode.Moving,
-        viewMode: 'Block',
-        concept: block.concept,
-        messageBus,
-        state,
-        dispatchAction,
-        factoryRegistry,
-        database: db,
-        onChange: content => {
-          dispatchAction({
-            type: 'concept::datachange',
-            data: {
-              id: block.concept.id,
-              type: block.concept.summary.type,
-              content,
-            },
-          })
-        },
-        onReplace: type => {
-          dispatchAction({
-            type: 'concept::datachange',
-            data: {
-              id: block.concept.id,
-              type,
-              content: { initialized: false },
-            },
-          })
-        },
-        onInteractionStart: () => {
-          setMode(InteractionMode.Focusing)
-        },
-        onInteractionEnd: () => {
-          setMode(InteractionMode.Idle)
-        },
-        createOverlay,
-      }
-    )
-
     return (
       <Block
         key={key}
+        debug={stateSnapshot.debugging}
         block={block}
         dispatchAction={dispatchAction}
-        scheduleActionForAnimationFrame={scheduleActionForAnimationFrame}>
-        {conceptDisplay}
+        scheduleActionForAnimationFrame={dispatchAction}>
+        {factoryRegistry.createConceptDisplay(block.concept.summary.type, {
+          readOnly: block.mode === InteractionMode.Moving,
+          viewMode: 'Block',
+          concept: block.concept,
+          state: stateSnapshot,
+          dispatchAction,
+          factoryRegistry,
+          database: db,
+          onChange: content => {
+            dispatchAction({
+              type: 'concept::datachange',
+              data: {
+                id: block.concept.id,
+                type: block.concept.summary.type,
+                content,
+              },
+            })
+          },
+          onReplace: type => {
+            dispatchAction({
+              type: 'concept::datachange',
+              data: {
+                id: block.concept.id,
+                type,
+                content: { initialized: false },
+              },
+            })
+          },
+          onInteractionStart: () => {
+            setMode(InteractionMode.Focusing)
+          },
+          onInteractionEnd: () => {
+            setMode(InteractionMode.Idle)
+          },
+          createOverlay,
+        })}
       </Block>
     )
   }
@@ -180,14 +148,14 @@ export function App(props: Props): JSX.Element {
     <div className={styles.App}>
       <Overlay ref={overlayRef} />
       <Viewport
-        focus={state.camera.focus}
-        scale={state.camera.scale}
-        blocks={state.blocks}
-        selecting={state.selecting}
-        selectionBox={state.selectionBox}
+        focus={stateSnapshot.camera.focus}
+        scale={stateSnapshot.camera.scale}
+        blocks={stateSnapshot.blocks}
+        selecting={stateSnapshot.selecting}
+        selectionBox={stateSnapshot.selectionBox}
         renderBlock={renderBlock}
         dispatchAction={dispatchAction}
-        scheduleActionForAnimationFrame={scheduleActionForAnimationFrame}
+        scheduleActionForAnimationFrame={dispatchAction}
       />
     </div>
   )

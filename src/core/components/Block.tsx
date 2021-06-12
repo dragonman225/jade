@@ -11,6 +11,7 @@ import { Block as BlockState, InteractionMode } from '../interfaces'
 import { Action } from '../reducer'
 
 interface Props {
+  debug: boolean
   block: BlockState
   dispatchAction: React.Dispatch<Action>
   scheduleActionForAnimationFrame: (action: Action) => void
@@ -18,7 +19,12 @@ interface Props {
 }
 
 export function Block(props: Props): JSX.Element {
-  const { block, dispatchAction, scheduleActionForAnimationFrame } = props
+  const {
+    debug,
+    block,
+    dispatchAction,
+    scheduleActionForAnimationFrame,
+  } = props
 
   const concept = block.concept
   const blockRef = useRef<HTMLDivElement>(null)
@@ -151,17 +157,20 @@ export function Block(props: Props): JSX.Element {
         transform: `translate(${block.pos.x}px, ${block.pos.y}px)`,
       }}>
       {props.children}
-      <div className={DebugLabelStyle}>
-        id: {block.refId}
-        <br />
-        mode: {block.mode}
-        <br />
-        posType: {block.posType}
-        <br />
-        pos: {`{ x: ${block.pos.x.toFixed(2)}, y: ${block.pos.y.toFixed(2)} }`}
-        <br />
-        selected: {block.selected ? 'true' : 'false'}
-      </div>
+      {debug && (
+        <div className={DebugLabelStyle}>
+          id: {block.refId}
+          <br />
+          mode: {block.mode}
+          <br />
+          posType: {block.posType}
+          <br />
+          pos:{' '}
+          {`{ x: ${block.pos.x.toFixed(2)}, y: ${block.pos.y.toFixed(2)} }`}
+          <br />
+          selected: {block.selected ? 'true' : 'false'}
+        </div>
+      )}
       <div
         ref={resizerRef}
         style={{
