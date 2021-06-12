@@ -102,27 +102,14 @@ const styles = stylesheet({
 
 type SearchItemContentProps = Pick<
   ConceptDisplayProps<InitializedConceptData>,
-  | 'viewMode'
-  | 'messageBus'
-  | 'concept'
-  | 'database'
-  | 'state'
-  | 'dispatchAction'
+  'viewMode' | 'concept' | 'database' | 'state' | 'dispatchAction'
 >
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props => {
-  const {
-    viewMode,
-    messageBus,
-    concept,
-    database,
-    state,
-    dispatchAction,
-  } = props
+  const { viewMode, concept, database, state, dispatchAction } = props
   return factoryRegistry.createConceptDisplay(concept.summary.type, {
     viewMode,
     readOnly: true,
     concept,
-    messageBus,
     state,
     dispatchAction,
     factoryRegistry,
@@ -162,7 +149,7 @@ const S2LState = {
 }
 
 const SearchTool: React.FunctionComponent<Props> = props => {
-  const { state, dispatchAction, messageBus, database } = props
+  const { state, dispatchAction, database } = props
 
   const searchRef = React.useRef<HTMLDivElement>()
   const getSearchRect = () => {
@@ -325,7 +312,6 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                               <SearchItemContent
                                 concept={concept}
                                 viewMode="NavItem"
-                                messageBus={messageBus}
                                 state={state}
                                 dispatchAction={dispatchAction}
                                 database={database}
@@ -339,7 +325,6 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                               <SearchItemContent
                                 concept={concept}
                                 viewMode="NavItem"
-                                messageBus={messageBus}
                                 state={state}
                                 dispatchAction={dispatchAction}
                                 database={database}
@@ -413,7 +398,6 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                 concept={concept}
                 database={database}
                 dispatchAction={dispatchAction}
-                messageBus={messageBus}
                 state={state}
                 viewMode="Block"
               />

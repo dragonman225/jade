@@ -78,7 +78,6 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
             factoryRegistry: props.factoryRegistry,
             database: props.database,
             concept: props.state.viewingConcept,
-            messageBus: props.messageBus,
             onChange: data =>
               props.dispatchAction({
                 type: 'concept::datachange',

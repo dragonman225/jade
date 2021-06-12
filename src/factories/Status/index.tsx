@@ -1,11 +1,6 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
-import {
-  ConceptDisplayProps,
-  Factory,
-  PubSubStatusMessage,
-  UnifiedEventInfo,
-} from '../../core/interfaces'
+import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 import { InitializedConceptData } from '../../core/interfaces/concept'
 
 const styles = stylesheet({
@@ -19,10 +14,13 @@ const styles = stylesheet({
     userSelect: 'none',
     padding: '1rem',
     $nest: {
-      '& span': {
-        whiteSpace: 'pre-wrap',
-        lineHeight: 1.5,
-        userSelect: 'none',
+      '& code': {
+        fontSize: '.9rem',
+        color: 'firebrick',
+        background: 'mistyrose',
+        padding: '.1rem .3rem',
+        borderRadius: '.3rem',
+        cursor: 'pointer',
       },
     },
   },
@@ -41,83 +39,45 @@ const styles = stylesheet({
 type Props = ConceptDisplayProps<InitializedConceptData>
 
 export const Status: React.FunctionComponent<Props> = props => {
-  const [statusText, setStatusText] = React.useState<string>('')
-  const [highlightText, setHighlightText] = React.useState<string>('')
-  const [mouse, setMouse] = React.useState<UnifiedEventInfo>({
-    clientX: 0,
-    clientY: 0,
-    originX: 0,
-    originY: 0,
-    offsetX: 0,
-    offsetY: 0,
-  })
-
-  const handleMousemove = (msg: UnifiedEventInfo) => {
-    setMouse(msg)
-  }
-
-  const handleStatMsg = (msg: PubSubStatusMessage) => {
-    const channels = msg.channels
-    const newStatusText = Object.values(channels).reduce((result, cv) => {
-      return (result += `${cv.name}: ${cv.subNum}\n`)
-    }, '')
-    setStatusText(newStatusText)
-    setHighlightText(msg.activeChannel)
-  }
-
-  React.useEffect(() => {
-    const messageBus = props.messageBus
-    messageBus.subscribe<UnifiedEventInfo>('user::mousemove', handleMousemove)
-    messageBus.subscribe<PubSubStatusMessage>('pubsub::status', handleStatMsg)
-    return () => {
-      messageBus.unsubscribe('user::mousemove', handleMousemove)
-      messageBus.unsubscribe('pubsub::status', handleStatMsg)
-    }
-  }, [])
+  const { state, dispatchAction } = props
 
   switch (props.viewMode) {
     case 'Block':
       return (
         <div className={styles.StatBlock}>
-          <section className={styles.MouseData}>
-            <h3>Mouse</h3>
-            <p>
-              Client: ({mouse.clientX.toFixed(0)}, {mouse.clientY.toFixed(0)})
-            </p>
-            <p>
-              Origin: ({mouse.originX.toFixed(0)}, {mouse.originY.toFixed(0)})
-            </p>
-            <p>
-              Offset: ({mouse.offsetX.toFixed(0)}, {mouse.offsetY.toFixed(0)})
-            </p>
-          </section>
-          <section>
-            <h3>Event</h3>
-            <p>
-              <strong>Last</strong>: {highlightText}
-            </p>
-            {(function () {
-              const highlightStart = statusText.indexOf(highlightText)
-              const highlightEnd = highlightStart + highlightText.length
-              if (highlightStart === -1) {
-                return <span>{statusText}</span>
-              } else {
-                return (
-                  <>
-                    <span>{statusText.substring(0, highlightStart)}</span>
-                    <span className={styles.Highlight}>
-                      {statusText.substring(highlightStart, highlightEnd)}
-                    </span>
-                    <span>{statusText.substring(highlightEnd)}</span>
-                  </>
-                )
-              }
-            })()}
-          </section>
+          <ul>
+            <li>
+              There are <code>{state.blocks.length}</code> blocks on the canvas
+            </li>
+            <li>
+              Focus:{' '}
+              <code>
+                ({state.camera.focus.x.toFixed(2)},{' '}
+                {state.camera.focus.y.toFixed(2)})
+              </code>{' '}
+            </li>
+            <li>
+              Scale: <code>{(state.camera.scale * 100).toFixed(2)}%</code>
+            </li>
+            <li>
+              Debugging:{' '}
+              <code
+                onClick={() =>
+                  dispatchAction({
+                    type: 'debugging::toggle',
+                  })
+                }>
+                {state.debugging ? 'ON' : 'OFF'}
+              </code>
+            </li>
+            <li>
+              <code>{state.selecting ? 'Selecting' : 'Not Selecting'}</code>
+            </li>
+          </ul>
         </div>
       )
     default:
-      return <div className={styles.StatNavItem}>Status Viewer</div>
+      return <div className={styles.StatNavItem}>Status</div>
   }
 }
 
