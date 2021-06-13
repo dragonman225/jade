@@ -21,6 +21,9 @@ import {
   vecAdd,
   normalizeToBox,
   isBoxBoxIntersecting,
+  vecReverseX,
+  vecReverseY,
+  vecReverseXY,
 } from './lib/utils'
 import initialConcepts from '../resources/initial-condition'
 
@@ -264,10 +267,43 @@ export function createReducer(db: DatabaseInterface) {
           const block = blocks.find(b => b.refId === blockId)
           const ref = viewingConcept.references.find(r => r.id === blockId)
 
-          const newPos = vecAdd(
-            block.pos,
-            vecDiv(movementInViewportCoords, state.camera.scale)
-          )
+          const newPos = (() => {
+            switch (block.posType) {
+              case PositionType.PinnedTR: {
+                return vecAdd(
+                  block.pos,
+                  vecDiv(
+                    vecReverseX(movementInViewportCoords),
+                    state.camera.scale
+                  )
+                )
+              }
+              case PositionType.PinnedBL: {
+                return vecAdd(
+                  block.pos,
+                  vecDiv(
+                    vecReverseY(movementInViewportCoords),
+                    state.camera.scale
+                  )
+                )
+              }
+              case PositionType.PinnedBR: {
+                return vecAdd(
+                  block.pos,
+                  vecDiv(
+                    vecReverseXY(movementInViewportCoords),
+                    state.camera.scale
+                  )
+                )
+              }
+              default: {
+                return vecAdd(
+                  block.pos,
+                  vecDiv(movementInViewportCoords, state.camera.scale)
+                )
+              }
+            }
+          })()
 
           return [
             {

@@ -45,8 +45,8 @@ const toolMaskConcept: Concept = {
     {
       id: uuidv4(),
       to: toolConcepts[2].id,
-      posType: PositionType.PinnedTL,
-      pos: { x: 900, y: 20 },
+      posType: PositionType.PinnedTR,
+      pos: { x: 20, y: 20 },
       size: { w: 500, h: 'auto' },
     },
   ],

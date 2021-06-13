@@ -41,6 +41,18 @@ export function vecDiv(v: Vec2, n: number): Vec2 {
   return { x: v.x / n, y: v.y / n }
 }
 
+export function vecReverseX(v: Vec2): Vec2 {
+  return { x: -v.x, y: v.y }
+}
+
+export function vecReverseY(v: Vec2): Vec2 {
+  return { x: v.x, y: -v.y }
+}
+
+export function vecReverseXY(v: Vec2): Vec2 {
+  return { x: -v.x, y: -v.y }
+}
+
 /** Test if two boxes are intersecting. From https://github.com/davidfig/intersects */
 export function isBoxBoxIntersecting(
   x1: number,

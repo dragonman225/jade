@@ -83,8 +83,6 @@ export function App(props: Props): JSX.Element {
   )
 
   const renderBlock = (block: BlockState): JSX.Element => {
-    const key = 'Block-' + block.refId
-
     const setMode = (mode: InteractionMode) => {
       dispatchAction({
         type: 'block::change',
@@ -99,7 +97,6 @@ export function App(props: Props): JSX.Element {
 
     return (
       <Block
-        key={key}
         debug={stateSnapshot.debugging}
         block={block}
         dispatchAction={dispatchAction}

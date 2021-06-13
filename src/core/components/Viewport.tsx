@@ -5,6 +5,7 @@ import { getUnifiedClientCoords, vecSub } from '../lib/utils'
 import { Block as BlockState, Box, PositionType, Vec2 } from '../interfaces'
 import { Action } from '../reducer'
 import { SelectionBox } from './SelectionBox'
+import { ViewObject } from './ViewObject'
 
 interface Props {
   focus: Vec2
@@ -193,9 +194,22 @@ export function Viewport(props: Props): JSX.Element {
                 b.posType === PositionType.Normal ||
                 typeof b.posType === 'undefined'
             )
-            .map(renderBlock)}
+            .map(b => {
+              const key = `ViewObject-${b.refId}`
+
+              return (
+                <ViewObject
+                  key={key}
+                  posType={b.posType}
+                  pos={b.pos}
+                  size={b.size}>
+                  {renderBlock(b)}
+                </ViewObject>
+              )
+            })}
           {selecting && (
             <SelectionBox
+              key="SelectionBox"
               style={{
                 width: selectionBox.w,
                 height: selectionBox.h,
@@ -208,7 +222,17 @@ export function Viewport(props: Props): JSX.Element {
           )}
         </div>
       </div>
-      {blocks.filter(b => b.posType === PositionType.PinnedTL).map(renderBlock)}
+      {blocks
+        .filter(b => b.posType !== PositionType.Normal)
+        .map(b => {
+          const key = `ViewObject-${b.refId}`
+
+          return (
+            <ViewObject key={key} posType={b.posType} pos={b.pos} size={b.size}>
+              {renderBlock(b)}
+            </ViewObject>
+          )
+        })}
     </>
   )
 }

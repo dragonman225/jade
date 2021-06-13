@@ -147,15 +147,7 @@ export function Block(props: Props): JSX.Element {
       className={classes(
         BlockStyles.Block,
         block.selected ? BlockStyles['Block--Selected'] : undefined
-      )}
-      style={{
-        width: block.size.w,
-        height: block.size.h,
-        /** Set to "absolute" so blocks can overlap. */
-        position: 'absolute',
-        transformOrigin: 'top left',
-        transform: `translate(${block.pos.x}px, ${block.pos.y}px)`,
-      }}>
+      )}>
       {props.children}
       {debug && (
         <div className={DebugLabelStyle}>
