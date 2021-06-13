@@ -8,19 +8,21 @@ module.exports = {
   /** target: "web" is default. */
   context: process.cwd(), // to automatically find tsconfig.json
   entry: {
-    'web-index': './src/web-index.ts'
+    'web-index': './src/web-index.ts',
   },
   output: {
     path: path.join(process.cwd(), 'build/web'),
     filename: '[name].js',
   },
   plugins: [
-    new BannerPlugin('Jade v0.1.4 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'),
+    new BannerPlugin(
+      'Jade v0.1.4 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'
+    ),
     new ForkTsCheckerWebpackPlugin({
       async: false,
       typescript: {
         memoryLimit: 4096,
-      }
+      },
     }),
     new HtmlWebpackPlugin({
       hash: true,
@@ -48,23 +50,18 @@ module.exports = {
           {
             loader: 'babel-loader',
             options: {
-              'presets': [
-                '@babel/env',
-                '@babel/typescript',
-                '@babel/react'
-              ],
-              'plugins': [
+              presets: ['@babel/env', '@babel/typescript', '@babel/react'],
+              plugins: [
                 '@babel/proposal-class-properties',
                 '@babel/proposal-object-rest-spread',
-                'styled-jsx/babel'
-              ]
-            }
-          }
-        ]
-      }
-    ]
+              ],
+            },
+          },
+        ],
+      },
+    ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js']
-  }
+    extensions: ['.tsx', '.ts', '.js'],
+  },
 }

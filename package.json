@@ -36,7 +36,6 @@
     "@types/prosemirror-view": "^1.16.1",
     "@types/react": "^16.9.51",
     "@types/react-dom": "^16.9.8",
-    "@types/styled-jsx": "^2.2.8",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
@@ -79,7 +78,6 @@
     "slate": "^0.59.0",
     "slate-history": "^0.59.0",
     "slate-react": "^0.59.0",
-    "styled-jsx": "^3.3.2",
     "typestyle": "^2.1.0",
     "uuid": "^8.3.2"
   }

@@ -15,19 +15,21 @@ module.exports = {
   context: process.cwd(), // to automatically find tsconfig.json
   /** Entry & Output: @see https://webpack.js.org/configuration/entry-context/#naming */
   entry: {
-    'electron-renderer': './src/electron-renderer.ts'
+    'electron-renderer': './src/electron-renderer.ts',
   },
   output: {
     path: path.join(process.cwd(), 'build/electron'),
     filename: '[name].js',
   },
   plugins: [
-    new BannerPlugin('Jade v0.1.4 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'),
+    new BannerPlugin(
+      'Jade v0.1.4 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'
+    ),
     new ForkTsCheckerWebpackPlugin({
       async: false,
       typescript: {
         memoryLimit: 4096,
-      }
+      },
     }),
     new HtmlWebpackPlugin({
       inject: true,
@@ -42,24 +44,19 @@ module.exports = {
           {
             loader: 'babel-loader',
             options: {
-              'presets': [
-                '@babel/env',
-                '@babel/typescript',
-                '@babel/react'
-              ],
-              'plugins': [
+              presets: ['@babel/env', '@babel/typescript', '@babel/react'],
+              plugins: [
                 '@babel/proposal-class-properties',
                 '@babel/proposal-object-rest-spread',
-                'styled-jsx/babel'
-              ]
-            }
-          }
-        ]
-      }
+              ],
+            },
+          },
+        ],
+      },
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js']
+    extensions: ['.tsx', '.ts', '.js'],
   },
-  devtool: 'inline-source-map'
+  devtool: 'inline-source-map',
 }
