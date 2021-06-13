@@ -1,4 +1,3 @@
-import { IPubSub } from '../lib/pubsub'
 import { Action } from '../reducer'
 import { Origin } from './util'
 import { Concept, InitializedConceptData } from './concept'

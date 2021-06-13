@@ -78,7 +78,7 @@ interface ImageContent extends InitializedConceptData {
 type Props = ConceptDisplayProps<ImageContent>
 
 const Image: React.FunctionComponent<Props> = props => {
-  const content = props.concept.summary.data
+  const content = props.concept.summary.data as ImageContent
   const [imgState, setImgState] = React.useState(ImgState.NotLoaded)
   const [img, setImg] = React.useState('')
   const [error, setError] = React.useState('')
@@ -116,7 +116,7 @@ const Image: React.FunctionComponent<Props> = props => {
       setImg(content.imgData)
       setImgState(ImgState.Loaded)
     }
-  }, [props.concept.summary.data])
+  }, [content.imgData, content.initialized, content.valid])
 
   switch (props.viewMode) {
     case 'NavItem': {

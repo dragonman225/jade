@@ -7,15 +7,10 @@ import { BlockStyles } from '../../core/components/Block.styles'
 import {
   ConceptDisplayProps,
   Factory,
-  InteractionMode,
   UnifiedEventInfo,
   Vec2,
 } from '../../core/interfaces'
-import {
-  Concept,
-  InitializedConceptData,
-  PositionType,
-} from '../../core/interfaces/concept'
+import { Concept, InitializedConceptData } from '../../core/interfaces/concept'
 
 const styles = stylesheet({
   Search: {
@@ -151,10 +146,10 @@ const S2LState = {
 const SearchTool: React.FunctionComponent<Props> = props => {
   const { state, dispatchAction, database } = props
 
-  const searchRef = React.useRef<HTMLDivElement>()
-  const getSearchRect = () => {
-    return searchRef.current.getBoundingClientRect()
-  }
+  const searchRef = React.useRef<HTMLDivElement>(null)
+  // const getSearchRect = () => {
+  //   return searchRef.current.getBoundingClientRect()
+  // }
   const [text, setText] = React.useState('')
   const [minimized, setMinimized] = React.useState(true)
 
@@ -177,7 +172,7 @@ const SearchTool: React.FunctionComponent<Props> = props => {
     } else {
       return higherOrderConcepts.concat(leafConcepts)
     }
-  }, [higherOrderConcepts, leafConcepts])
+  }, [text, higherOrderConcepts, leafConcepts])
 
   /** Search-to-Link */
   const [s2lState, setS2lState] = React.useState(S2LState.Idle)
@@ -191,6 +186,12 @@ const SearchTool: React.FunctionComponent<Props> = props => {
       setS2lState(S2LState.Linking)
       setS2lStart({ x: e.clientX, y: e.clientY })
     }
+
+    if (e instanceof MouseEvent && e.target instanceof Node) {
+      if (!searchRef.current.contains(e.target)) {
+        setMinimized(true)
+      }
+    }
   }
 
   const handleDragging = (e: MouseEvent) => {
@@ -199,7 +200,7 @@ const SearchTool: React.FunctionComponent<Props> = props => {
     }
   }
 
-  const handleDragEnd = (e: MouseEvent) => {
+  const handleDragEnd = (_e: MouseEvent) => {
     if (s2lState === S2LState.Linking) {
       setS2lStart({ x: 0, y: 0 })
       setS2lDelta({ x: 0, y: 0 })
@@ -223,15 +224,15 @@ const SearchTool: React.FunctionComponent<Props> = props => {
     }
   }
 
-  const handleTap = (e: UnifiedEventInfo) => {
-    const point = {
-      x: e.clientX,
-      y: e.clientY,
-    }
-    if (!isPointInRect(point, getSearchRect())) {
-      setMinimized(true)
-    }
-  }
+  // const handleTap = (e: UnifiedEventInfo) => {
+  //   const point = {
+  //     x: e.clientX,
+  //     y: e.clientY,
+  //   }
+  //   if (!isPointInRect(point, getSearchRect())) {
+  //     setMinimized(true)
+  //   }
+  // }
 
   React.useEffect(() => {
     window.addEventListener('mousedown', handleDragStart)

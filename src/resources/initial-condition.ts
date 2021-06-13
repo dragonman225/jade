@@ -23,6 +23,12 @@ const toolConcepts: Concept[] = [
     references: [],
     drawing: [],
   },
+  {
+    id: uuidv4(),
+    summary: { type: 'insighttool', data: { initialized: false } },
+    references: [],
+    drawing: [],
+  },
 ]
 const toolMaskConcept: Concept = {
   id: '__tool_mask__',
@@ -48,6 +54,13 @@ const toolMaskConcept: Concept = {
       posType: PositionType.PinnedTR,
       pos: { x: 20, y: 20 },
       size: { w: 500, h: 'auto' },
+    },
+    {
+      id: uuidv4(),
+      to: toolConcepts[3].id,
+      posType: PositionType.PinnedBL,
+      pos: { x: 20, y: 20 },
+      size: { w: 250, h: 'auto' },
     },
   ],
   drawing: [],

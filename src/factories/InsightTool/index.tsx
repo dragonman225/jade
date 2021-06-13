@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useMemo } from 'react'
 import { stylesheet } from 'typestyle'
-import { Content } from '..'
-import { ConceptDisplayProps } from '../../core/interfaces'
+
+import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
 const noop = function () {
   return
@@ -47,51 +47,45 @@ const styles = stylesheet({
 })
 
 export const InsightTool: React.FunctionComponent<Props> = props => {
-  const { app, database } = props
+  const { state, dispatchAction, database, factoryRegistry } = props
   const parentConcepts = useMemo(() => {
     const allConcepts = database.getAllConcepts()
     return allConcepts.filter(concept => {
       return !!concept.references.find(
-        link => link.to === app.state.viewingConcept.id
+        link => link.to === state.viewingConcept.id
       )
     })
-  }, [app.state.viewingConcept.id, database.getLastUpdatedTime()])
+  }, [state.viewingConcept.id, database.getLastUpdatedTime()])
 
   return (
     <div className={styles.Insight}>
       {parentConcepts.length ? (
         <>
-          <h3>Embedded in</h3>
+          <h3>Parent Concepts</h3>
           {parentConcepts.map(concept => {
             return (
               <React.Fragment key={concept.id}>
                 <div
                   className={styles.InsightItem}
                   onClick={() =>
-                    app.dispatch({
+                    dispatchAction({
                       type: 'navigation::expand',
                       data: { id: concept.id },
                     })
                   }>
-                  <Content
-                    contentType={concept.summary.type}
-                    contentProps={{
-                      viewMode: 'NavItem',
-                      readOnly: true,
-                      content: concept.summary.data,
-                      messageBus: {
-                        subscribe: noop,
-                        unsubscribe: noop,
-                        publish: noop,
-                      },
-                      app,
-                      database,
-                      onChange: noop,
-                      onReplace: noop,
-                      onInteractionStart: noop,
-                      onInteractionEnd: noop,
-                    }}
-                  />
+                  {factoryRegistry.createConceptDisplay(concept.summary.type, {
+                    viewMode: 'NavItem',
+                    readOnly: true,
+                    state,
+                    concept,
+                    dispatchAction,
+                    factoryRegistry,
+                    database,
+                    onChange: noop,
+                    onReplace: noop,
+                    onInteractionStart: noop,
+                    onInteractionEnd: noop,
+                  })}
                 </div>
                 <hr />
               </React.Fragment>
@@ -99,8 +93,15 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
           })}
         </>
       ) : (
-        <p>This concept is not embedded in any concepts.</p>
+        <p>No parent concepts.</p>
       )}
     </div>
   )
+}
+
+export const InsightToolFactory: Factory = {
+  id: 'insighttool',
+  name: 'Insight Tool',
+  isTool: true,
+  component: InsightTool,
 }

@@ -11,6 +11,7 @@ import { StatusFactory } from './Status'
 import { SearchToolFactory } from './SearchTool'
 import { HeaderToolFactory } from './HeaderTool'
 import { RecentToolFactory } from './RecentTool'
+import { InsightToolFactory } from './InsightTool'
 
 class AlexFactoryRegistry implements FactoryRegistry {
   private factories = [
@@ -20,6 +21,7 @@ class AlexFactoryRegistry implements FactoryRegistry {
     SearchToolFactory,
     HeaderToolFactory,
     RecentToolFactory,
+    InsightToolFactory,
   ]
   private default = PMTextFactory
 
