@@ -8,6 +8,9 @@ export interface IPubSub {
 
 export type ISub = Omit<IPubSub, 'publish'>
 
+/**
+ * https://github.com/developit/mitt does the same thing.
+ */
 export class PubSub implements IPubSub {
   private subscriberMap: {
     [channel: string]: {
@@ -89,7 +92,3 @@ export class PubSub implements IPubSub {
     })
   }
 }
-
-/**
- * https://github.com/developit/mitt does the same thing.
- */
