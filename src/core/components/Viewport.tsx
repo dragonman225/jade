@@ -15,7 +15,6 @@ interface Props {
   selectionBox: Box
   renderBlock: (block: BlockState) => JSX.Element
   dispatchAction: React.Dispatch<Action>
-  scheduleActionForAnimationFrame: (action: Action) => void
 }
 
 export function Viewport(props: Props): JSX.Element {
@@ -27,7 +26,6 @@ export function Viewport(props: Props): JSX.Element {
     selectionBox,
     renderBlock,
     dispatchAction,
-    scheduleActionForAnimationFrame,
   } = props
 
   /**
@@ -46,7 +44,7 @@ export function Viewport(props: Props): JSX.Element {
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey) {
         e.preventDefault()
-        scheduleActionForAnimationFrame({
+        dispatchAction({
           type: 'cam::scaledelta',
           data: {
             focus: { x: e.clientX, y: e.clientY },
@@ -54,7 +52,7 @@ export function Viewport(props: Props): JSX.Element {
           },
         })
       } else {
-        scheduleActionForAnimationFrame({
+        dispatchAction({
           type: 'cam::movedelta',
           data: {
             x: -e.deltaX,
@@ -90,7 +88,7 @@ export function Viewport(props: Props): JSX.Element {
             if (e.button === 0) {
               if (e.target === cameraElRef.current) {
                 /** Primary button, target not being a Block -> Start selection box. */
-                scheduleActionForAnimationFrame({
+                dispatchAction({
                   type: 'selectionbox::setstart',
                   data: clientCoords,
                 })
@@ -117,12 +115,12 @@ export function Viewport(props: Props): JSX.Element {
 
           if (panning) {
             const movement = vecSub(clientCoords, lastClientCoords)
-            scheduleActionForAnimationFrame({
+            dispatchAction({
               type: 'cam::movedelta',
               data: movement,
             })
           } else if (selecting) {
-            scheduleActionForAnimationFrame({
+            dispatchAction({
               type: 'selectionbox::setend',
               data: clientCoords,
             })
@@ -133,7 +131,7 @@ export function Viewport(props: Props): JSX.Element {
         handlePointerUp: () => {
           panning = false
           if (selecting) {
-            scheduleActionForAnimationFrame({
+            dispatchAction({
               type: 'selectionbox::clear',
             })
             selecting = false

@@ -14,17 +14,11 @@ interface Props {
   debug: boolean
   block: BlockState
   dispatchAction: React.Dispatch<Action>
-  scheduleActionForAnimationFrame: (action: Action) => void
   children?: React.ReactNode
 }
 
 export function Block(props: Props): JSX.Element {
-  const {
-    debug,
-    block,
-    dispatchAction,
-    scheduleActionForAnimationFrame,
-  } = props
+  const { debug, block, dispatchAction } = props
 
   const concept = block.concept
   const blockRef = useRef<HTMLDivElement>(null)
@@ -58,7 +52,7 @@ export function Block(props: Props): JSX.Element {
         lastClientCoords = clientCoords
 
         if (intent === 'resize') {
-          scheduleActionForAnimationFrame({
+          dispatchAction({
             type: 'ref::resize',
             data: {
               id: block.refId,
@@ -67,7 +61,7 @@ export function Block(props: Props): JSX.Element {
           })
           setMode(InteractionMode.Resizing)
         } else if (intent === 'move') {
-          scheduleActionForAnimationFrame({
+          dispatchAction({
             type: 'ref::move',
             data: {
               id: block.refId,
@@ -79,10 +73,10 @@ export function Block(props: Props): JSX.Element {
       }
 
       const handlePointerUp = () => {
-        document.removeEventListener('mousemove', handlePointerMove)
-        document.removeEventListener('touchmove', handlePointerMove)
-        document.removeEventListener('mouseup', handlePointerUp)
-        document.removeEventListener('touchend', handlePointerUp)
+        window.removeEventListener('mousemove', handlePointerMove)
+        window.removeEventListener('touchmove', handlePointerMove)
+        window.removeEventListener('mouseup', handlePointerUp)
+        window.removeEventListener('touchend', handlePointerUp)
 
         intent = ''
         lastClientCoords = { x: 0, y: 0 }
@@ -112,29 +106,25 @@ export function Block(props: Props): JSX.Element {
           else if (blockStateRef.current.mode !== InteractionMode.Focusing)
             intent = 'move'
 
-          document.addEventListener('mousemove', handlePointerMove)
-          document.addEventListener('touchmove', handlePointerMove)
-          document.addEventListener('mouseup', handlePointerUp)
-          document.addEventListener('touchend', handlePointerUp)
+          window.addEventListener('mousemove', handlePointerMove)
+          window.addEventListener('touchmove', handlePointerMove)
+          window.addEventListener('mouseup', handlePointerUp)
+          window.addEventListener('touchend', handlePointerUp)
         },
       }
     })()
 
-    blockRef.current.addEventListener(
-      'mousedown',
-      gestureDetector.handlePointerDown
-    )
-    blockRef.current.addEventListener(
-      'touchstart',
-      gestureDetector.handlePointerDown
-    )
+    const blockEl = blockRef.current
+
+    blockEl.addEventListener('mousedown', gestureDetector.handlePointerDown)
+    blockEl.addEventListener('touchstart', gestureDetector.handlePointerDown)
 
     return () => {
-      blockRef.current.removeEventListener(
+      blockEl.removeEventListener(
         'mousedown',
         gestureDetector.handlePointerDown
       )
-      blockRef.current.removeEventListener(
+      blockEl.removeEventListener(
         'touchstart',
         gestureDetector.handlePointerDown
       )

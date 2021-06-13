@@ -99,8 +99,7 @@ export function App(props: Props): JSX.Element {
       <Block
         debug={stateSnapshot.debugging}
         block={block}
-        dispatchAction={dispatchAction}
-        scheduleActionForAnimationFrame={dispatchAction}>
+        dispatchAction={dispatchAction}>
         {factoryRegistry.createConceptDisplay(block.concept.summary.type, {
           readOnly: block.mode === InteractionMode.Moving,
           viewMode: 'Block',
@@ -152,7 +151,6 @@ export function App(props: Props): JSX.Element {
         selectionBox={stateSnapshot.selectionBox}
         renderBlock={renderBlock}
         dispatchAction={dispatchAction}
-        scheduleActionForAnimationFrame={dispatchAction}
       />
     </div>
   )
