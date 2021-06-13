@@ -61,7 +61,7 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
     <div className={styles.Insight}>
       {parentConcepts.length ? (
         <>
-          <h3>Parent Concepts</h3>
+          <h3>Appears in</h3>
           {parentConcepts.map(concept => {
             return (
               <React.Fragment key={concept.id}>
@@ -93,7 +93,7 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
           })}
         </>
       ) : (
-        <p>No parent concepts.</p>
+        <p>Not appearing in any concepts.</p>
       )}
     </div>
   )

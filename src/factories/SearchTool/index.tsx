@@ -224,16 +224,6 @@ const SearchTool: React.FunctionComponent<Props> = props => {
     }
   }
 
-  // const handleTap = (e: UnifiedEventInfo) => {
-  //   const point = {
-  //     x: e.clientX,
-  //     y: e.clientY,
-  //   }
-  //   if (!isPointInRect(point, getSearchRect())) {
-  //     setMinimized(true)
-  //   }
-  // }
-
   React.useEffect(() => {
     window.addEventListener('mousedown', handleDragStart)
     window.addEventListener('mousemove', handleDragging)
@@ -377,18 +367,6 @@ const SearchTool: React.FunctionComponent<Props> = props => {
           }
 
           return props.createOverlay(
-            // <Block
-            //   block={{
-            //     concept,
-            //     conceptId: concept.id,
-            //     mode: InteractionMode.Moving,
-            //     posType: PositionType.Normal,
-            //     pos: viewportCoordsToEnvCoords(position, state.camera),
-            //     refId: 's2l',
-            //     size: { w: 300, h: 'auto' },
-            //   }}
-            //   dispatchAction={dispatchAction}
-            //   scheduleActionForAnimationFrame={dispatchAction}>
             <div
               className={BlockStyles.Block}
               style={{
@@ -403,7 +381,6 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                 viewMode="Block"
               />
             </div>
-            // </Block>
           )
         })()
       ) : (
