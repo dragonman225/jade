@@ -53,5 +53,6 @@ module.exports = {
     clientLogLevel: 'warning',
     historyApiFallback: true,
     stats: 'errors-only',
+    host: '0.0.0.0',
   },
 }
