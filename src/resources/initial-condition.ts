@@ -53,4 +53,14 @@ const toolMaskConcept: Concept = {
   drawing: [],
 }
 
-export default contentConcepts.concat(toolConcepts, toolMaskConcept)
+export default contentConcepts
+  // COMPAT: v0.1.4 or lower doesn't have `posType`.
+  .map(c => ({
+    ...c,
+    references: c.references.map(r => ({
+      ...r,
+      posType:
+        typeof r.posType === 'undefined' ? PositionType.Normal : r.posType,
+    })),
+  }))
+  .concat(toolConcepts, toolMaskConcept)

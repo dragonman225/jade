@@ -191,17 +191,7 @@ export function loadAppState(db: DatabaseInterface): State4 {
 
   const settings = db.getSettings()
   const viewingConcept = db.getConcept(settings.viewingConceptId)
-  const blocks = synthesizeView(viewingConcept, db).map(b => {
-    /** COMPAT: v0.1.4 or lower doesn't have `posType`. */
-    if (typeof b.posType === 'undefined') {
-      return {
-        ...b,
-        posType: PositionType.Normal,
-      }
-    } else {
-      return b
-    }
-  })
+  const blocks = synthesizeView(viewingConcept, db)
 
   return {
     debugging: settings.debugging,
