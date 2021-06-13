@@ -143,57 +143,25 @@ export function Viewport(props: Props): JSX.Element {
       }
     })()
 
-    cameraElRef.current.addEventListener('wheel', handleWheel)
-    cameraElRef.current.addEventListener('dblclick', handleDoubleClick)
-    cameraElRef.current.addEventListener(
-      'mousedown',
-      panDetector.handlePointerDown
-    )
-    cameraElRef.current.addEventListener(
-      'mousemove',
-      panDetector.handlePointerMove
-    )
-    cameraElRef.current.addEventListener('mouseup', panDetector.handlePointerUp)
-    cameraElRef.current.addEventListener(
-      'touchstart',
-      panDetector.handlePointerDown
-    )
-    cameraElRef.current.addEventListener(
-      'touchmove',
-      panDetector.handlePointerMove
-    )
-    cameraElRef.current.addEventListener(
-      'touchend',
-      panDetector.handlePointerUp
-    )
+    const cameraEl = cameraElRef.current
+    cameraEl.addEventListener('wheel', handleWheel)
+    cameraEl.addEventListener('dblclick', handleDoubleClick)
+    cameraEl.addEventListener('mousedown', panDetector.handlePointerDown)
+    cameraEl.addEventListener('mousemove', panDetector.handlePointerMove)
+    cameraEl.addEventListener('mouseup', panDetector.handlePointerUp)
+    cameraEl.addEventListener('touchstart', panDetector.handlePointerDown)
+    cameraEl.addEventListener('touchmove', panDetector.handlePointerMove)
+    cameraEl.addEventListener('touchend', panDetector.handlePointerUp)
 
     return () => {
-      cameraElRef.current.removeEventListener('wheel', handleWheel)
-      cameraElRef.current.removeEventListener('dblclick', handleDoubleClick)
-      cameraElRef.current.removeEventListener(
-        'mousedown',
-        panDetector.handlePointerDown
-      )
-      cameraElRef.current.removeEventListener(
-        'mousemove',
-        panDetector.handlePointerMove
-      )
-      cameraElRef.current.removeEventListener(
-        'mouseup',
-        panDetector.handlePointerUp
-      )
-      cameraElRef.current.removeEventListener(
-        'touchstart',
-        panDetector.handlePointerDown
-      )
-      cameraElRef.current.removeEventListener(
-        'touchmove',
-        panDetector.handlePointerMove
-      )
-      cameraElRef.current.removeEventListener(
-        'touchend',
-        panDetector.handlePointerUp
-      )
+      cameraEl.removeEventListener('wheel', handleWheel)
+      cameraEl.removeEventListener('dblclick', handleDoubleClick)
+      cameraEl.removeEventListener('mousedown', panDetector.handlePointerDown)
+      cameraEl.removeEventListener('mousemove', panDetector.handlePointerMove)
+      cameraEl.removeEventListener('mouseup', panDetector.handlePointerUp)
+      cameraEl.removeEventListener('touchstart', panDetector.handlePointerDown)
+      cameraEl.removeEventListener('touchmove', panDetector.handlePointerMove)
+      cameraEl.removeEventListener('touchend', panDetector.handlePointerUp)
     }
   }, [])
 
