@@ -2,33 +2,30 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { Concept, PositionType } from '../core/interfaces'
 
+function createDefaultCamera() {
+  return {
+    focus: { x: 0, y: 0 },
+    scale: 1,
+  }
+}
+
+function createEmptyConcept(type: string): Concept {
+  return {
+    id: uuidv4(),
+    summary: { type, data: { initialized: false } },
+    references: [],
+    drawing: [],
+    camera: createDefaultCamera(),
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const contentConcepts = require('./initial-concepts.json') as Concept[]
 const toolConcepts: Concept[] = [
-  {
-    id: uuidv4(),
-    summary: { type: 'searchtool', data: { initialized: false } },
-    references: [],
-    drawing: [],
-  },
-  {
-    id: uuidv4(),
-    summary: { type: 'headertool', data: { initialized: false } },
-    references: [],
-    drawing: [],
-  },
-  {
-    id: uuidv4(),
-    summary: { type: 'recenttool', data: { initialized: false } },
-    references: [],
-    drawing: [],
-  },
-  {
-    id: uuidv4(),
-    summary: { type: 'insighttool', data: { initialized: false } },
-    references: [],
-    drawing: [],
-  },
+  createEmptyConcept('searchtool'),
+  createEmptyConcept('headertool'),
+  createEmptyConcept('recenttool'),
+  createEmptyConcept('insighttool'),
 ]
 const toolMaskConcept: Concept = {
   id: '__tool_mask__',
@@ -64,10 +61,12 @@ const toolMaskConcept: Concept = {
     },
   ],
   drawing: [],
+  camera: createDefaultCamera(),
 }
 
 export default contentConcepts
   // COMPAT: v0.1.4 or lower doesn't have `posType`.
+  // COMPAT: v0.1.4 or lower doesn't have `camera`.
   .map(c => ({
     ...c,
     references: c.references.map(r => ({
@@ -75,5 +74,6 @@ export default contentConcepts
       posType:
         typeof r.posType === 'undefined' ? PositionType.Normal : r.posType,
     })),
+    camera: c.camera || createDefaultCamera(),
   }))
   .concat(toolConcepts, toolMaskConcept)

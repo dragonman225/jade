@@ -125,6 +125,7 @@ function createDatabase(path: string): DatabaseInterface {
     db.transaction(() => {
       insertSetting.run({ key: 'settings', value: JSON.stringify(settings) })
       insertSetting.run({ key: 'JADE_DB_LOADED', value: 'yes' })
+      insertSetting.run({ key: 'JADE_DB_VER', value: '5' })
       for (let i = 0; i < concepts.length; ++i) {
         const c = concepts[i]
         conceptStmt.create.run({ id: c.id, json: JSON.stringify(c) })

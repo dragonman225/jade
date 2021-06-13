@@ -20,6 +20,7 @@ export const database: DatabaseInterface = {
       database.createConcept(concept)
     })
     localStorage.setItem('JADE_DB_LOADED', '')
+    localStorage.setItem('JADE_DB_VER', '5')
   },
   getConcept: id => {
     try {

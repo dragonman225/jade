@@ -1,4 +1,4 @@
-import { Size, Vec2 } from './util'
+import { Camera, Size, Vec2 } from './util'
 import { Block, DatabaseInterface, InteractionMode } from './core'
 
 /** Summary. */
@@ -68,6 +68,7 @@ export interface Concept {
   summary: ConceptSummary
   references: Reference[]
   drawing: Stroke[]
+  camera: Camera
 }
 
 export interface ConceptDetail {

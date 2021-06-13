@@ -13,6 +13,7 @@ import {
   Block,
   Size,
   ReferenceId,
+  Camera,
 } from './interfaces'
 import {
   viewportCoordsToEnvCoords,
@@ -204,10 +205,7 @@ export function loadAppState(db: DatabaseInterface): State4 {
       | ConceptId
       | undefined
     )[],
-    camera: {
-      focus: { x: 0, y: 0 },
-      scale: 1,
-    },
+    camera: viewingConcept.camera,
     selecting: false,
     selectionBoxStart: { x: 0, y: 0 },
     selectionBoxEnd: { x: 0, y: 0 },
@@ -231,6 +229,10 @@ export function createReducer(db: DatabaseInterface) {
           },
           references: [],
           drawing: [],
+          camera: {
+            focus: { x: 0, y: 0 },
+            scale: 1,
+          },
         }
         const newLink: Reference = {
           id: uuidv4(),
@@ -419,15 +421,25 @@ export function createReducer(db: DatabaseInterface) {
       }
       case 'cam::movedelta': {
         const delta = vecDiv(action.data, state.camera.scale)
+
+        const newCamera: Camera = {
+          ...state.camera,
+          focus: {
+            x: state.camera.focus.x - delta.x,
+            y: state.camera.focus.y - delta.y,
+          },
+        }
+        const newViewingConcept: Concept = {
+          ...state.viewingConcept,
+          camera: newCamera,
+        }
+
+        db.updateConcept(newViewingConcept)
+
         return {
           ...state,
-          camera: {
-            ...state.camera,
-            focus: {
-              x: state.camera.focus.x - delta.x,
-              y: state.camera.focus.y - delta.y,
-            },
-          },
+          viewingConcept: newViewingConcept,
+          camera: newCamera,
         }
       }
       case 'cam::scaledelta': {
@@ -454,13 +466,22 @@ export function createReducer(db: DatabaseInterface) {
         )
         if (nextScale === state.camera.scale) nextFocus = state.camera.focus
 
+        const newCamera: Camera = {
+          ...state.camera,
+          focus: nextFocus,
+          scale: nextScale,
+        }
+        const newViewingConcept: Concept = {
+          ...state.viewingConcept,
+          camera: newCamera,
+        }
+
+        db.updateConcept(newViewingConcept)
+
         return {
           ...state,
-          camera: {
-            ...state.camera,
-            focus: nextFocus,
-            scale: nextScale,
-          },
+          viewingConcept: newViewingConcept,
+          camera: newCamera,
         }
       }
       case 'selection::add': {
@@ -588,9 +609,11 @@ export function createReducer(db: DatabaseInterface) {
           viewingConceptId: toConceptId,
         })
         const concept = db.getConcept(toConceptId)
+
         return {
           ...state,
           viewingConcept: concept,
+          camera: concept.camera,
           blocks: synthesizeView(concept, db),
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
         }
