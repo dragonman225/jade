@@ -269,32 +269,17 @@ export function createReducer(db: DatabaseInterface) {
 
           const newPos = (() => {
             switch (block.posType) {
+              case PositionType.PinnedTL: {
+                return vecAdd(block.pos, movementInViewportCoords)
+              }
               case PositionType.PinnedTR: {
-                return vecAdd(
-                  block.pos,
-                  vecDiv(
-                    vecReverseX(movementInViewportCoords),
-                    state.camera.scale
-                  )
-                )
+                return vecAdd(block.pos, vecReverseX(movementInViewportCoords))
               }
               case PositionType.PinnedBL: {
-                return vecAdd(
-                  block.pos,
-                  vecDiv(
-                    vecReverseY(movementInViewportCoords),
-                    state.camera.scale
-                  )
-                )
+                return vecAdd(block.pos, vecReverseY(movementInViewportCoords))
               }
               case PositionType.PinnedBR: {
-                return vecAdd(
-                  block.pos,
-                  vecDiv(
-                    vecReverseXY(movementInViewportCoords),
-                    state.camera.scale
-                  )
-                )
+                return vecAdd(block.pos, vecReverseXY(movementInViewportCoords))
               }
               default: {
                 return vecAdd(
