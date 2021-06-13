@@ -9,6 +9,7 @@
     "lint-prof": "cross-env TIMING=1 yarn lint",
     "web:start": "webpack-cli serve --progress --color --mode development --config webpack.config.web.dev.js",
     "web:build": "webpack --color --progress --mode production --config webpack.config.web.prod.js",
+    "web:build-dev": "webpack --color --progress --mode development --config webpack.config.web.prod.js",
     "web:serve": "sirv build/web --dev -H 10.0.0.3",
     "electron:start": "electron ./build/electron/electron-main.js",
     "electron:build": "npm run electron:build-main && npm run electron:build-renderer",
