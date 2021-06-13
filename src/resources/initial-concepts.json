@@ -40,17 +40,6 @@
     "drawing": []
   },
   {
-    "id": "3eb1b6b8-b8e4-4e5e-b857-36a2e5a812a7",
-    "summary": {
-      "type": "baby",
-      "data": {
-        "initialized": false
-      }
-    },
-    "references": [],
-    "drawing": []
-  },
-  {
     "id": "81009432-3759-4b83-a29e-f6e5ccda72a7",
     "summary": {
       "type": "pmtext",
@@ -4930,15 +4919,6 @@
           "y": 210
         },
         "size": { "w": 418, "h": "auto" }
-      },
-      {
-        "id": "662ae354-37ec-447b-960d-edd42b0a1d89",
-        "to": "3eb1b6b8-b8e4-4e5e-b857-36a2e5a812a7",
-        "pos": {
-          "x": 748,
-          "y": 203
-        },
-        "size": { "w": 271, "h": "auto" }
       },
       {
         "id": "a4a7b106-0548-43e0-9523-5923f33dcbc8",
