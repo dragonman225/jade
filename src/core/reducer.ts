@@ -480,6 +480,17 @@ export function createReducer(db: DatabaseInterface) {
             w: 0,
             h: 0,
           },
+          /**
+           * Clear old selection when new selection starts.
+           *
+           * Explanation: I want to clear selection on mousedown of primary
+           * button with condition that event.target is the cameraEl
+           * (equivalent to an empty area, note that mousedown bubbles).
+           * This is the same as where "selectionbox::setstart" action is
+           * fired.
+           */
+          selectedBlocks: [],
+          blocks: state.blocks.map(b => ({ ...b, selected: false })),
         }
       }
       case 'selectionbox::setend': {
