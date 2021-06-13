@@ -30,7 +30,6 @@ export interface ConceptDisplayProps<T extends InitializedConceptData> {
   readOnly: boolean
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
   concept: Concept
-  // messageBus: IPubSub
   state: State4
   dispatchAction: React.Dispatch<Action>
   factoryRegistry: FactoryRegistry

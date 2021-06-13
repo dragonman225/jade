@@ -24,7 +24,7 @@ import {
   vecReverseX,
   vecReverseY,
   vecReverseXY,
-} from './lib/utils'
+} from './utils'
 import initialConcepts from '../resources/initial-condition'
 
 interface ConceptCreateAction {

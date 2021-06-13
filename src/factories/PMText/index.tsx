@@ -4,7 +4,7 @@ import { classes, stylesheet } from 'typestyle'
 import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { Schema, Node } from 'prosemirror-model'
-import { getCaretCoordinates } from '../../core/lib/utils'
+import { getCaretCoordinates } from '../../core/utils'
 import {
   ConceptDisplayProps,
   Vec2,

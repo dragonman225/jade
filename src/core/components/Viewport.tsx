@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRef, useEffect } from 'react'
 
-import { getUnifiedClientCoords, vecSub } from '../lib/utils'
+import { getUnifiedClientCoords, vecSub } from '../utils'
 import { Block as BlockState, Box, PositionType, Vec2 } from '../interfaces'
 import { Action } from '../reducer'
 import { SelectionBox } from './SelectionBox'

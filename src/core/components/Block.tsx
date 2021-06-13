@@ -6,7 +6,7 @@ import { Cross } from './icons/Cross'
 import { Expand } from './icons/Expand'
 import { BlockStyles } from './Block.styles'
 import { DebugLabelStyle } from '../styles/DebugLabel'
-import { getUnifiedClientCoords, isPointInRect, vecSub } from '../lib/utils'
+import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
 import { Block as BlockState, InteractionMode } from '../interfaces'
 import { Action } from '../reducer'
 

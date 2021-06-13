@@ -1,15 +1,10 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { stylesheet, classes } from 'typestyle'
-import { isPointInRect, viewportCoordsToEnvCoords } from '../../core/lib/utils'
+import { viewportCoordsToEnvCoords } from '../../core/utils'
 import { factoryRegistry } from '..'
 import { BlockStyles } from '../../core/components/Block.styles'
-import {
-  ConceptDisplayProps,
-  Factory,
-  UnifiedEventInfo,
-  Vec2,
-} from '../../core/interfaces'
+import { ConceptDisplayProps, Factory, Vec2 } from '../../core/interfaces'
 import { Concept, InitializedConceptData } from '../../core/interfaces/concept'
 
 const styles = stylesheet({

@@ -2,7 +2,7 @@ import * as React from 'react'
 import { classes, stylesheet } from 'typestyle'
 import { Eraser } from './icons/Eraser'
 import { Pencil } from './icons/Pencil'
-import { IPubSub } from '../lib/pubsub'
+import { IPubSub } from '../utils'
 import { UnifiedEventInfo, Stroke, StrokeConfig, Point } from '../interfaces'
 
 interface CanvasProps {
