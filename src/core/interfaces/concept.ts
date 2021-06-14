@@ -71,6 +71,18 @@ export interface Concept {
   camera: Camera
 }
 
+export interface Concept4 {
+  id: ConceptId
+  summary: ConceptSummary
+  details: {
+    id: ReferenceId
+    to: ConceptId
+    position: Vec2
+    width: number
+  }[]
+  drawing: Stroke[]
+}
+
 export interface ConceptDetail {
   reference: Reference
   concept: Concept

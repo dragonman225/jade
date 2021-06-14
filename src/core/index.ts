@@ -1,8 +1,11 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+
 import { App } from './App'
+import { isNaN } from './utils'
 import { legacyLoadState } from '../resources/web-legacy-storage'
-import { DatabaseInterface } from './interfaces'
+import { toolConcepts, toolMaskConcept } from '../resources/initial-concepts'
+import { Concept4, DatabaseInterface, PositionType } from './interfaces'
 
 /** Render the app with platform-specific resources. */
 export function startApp(database: DatabaseInterface): void {
@@ -19,6 +22,34 @@ export function startApp(database: DatabaseInterface): void {
       },
       Object.values(state3.conceptMap)
     )
+  }
+
+  /** Migrate state4 to new database. */
+  const isState4 = isNaN(database.getVersion())
+  if (isState4) {
+    const allConcepts = (database.getAllConcepts() as unknown) as Concept4[]
+    allConcepts.forEach((c: Concept4) =>
+      database.updateConcept({
+        id: c.id,
+        camera: {
+          focus: { x: 0, y: 0 },
+          scale: 1,
+        },
+        drawing: c.drawing,
+        references: c.details.map(d => ({
+          id: d.id,
+          to: d.to,
+          posType: PositionType.Normal,
+          pos: d.position,
+          size: { w: d.width, h: 'auto' },
+        })),
+        summary: c.summary,
+      })
+    )
+
+    database.createConcept(toolMaskConcept)
+    toolConcepts.forEach(c => database.createConcept(c))
+    database.setVersion(5)
   }
 
   ReactDOM.render(

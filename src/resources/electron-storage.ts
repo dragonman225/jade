@@ -210,7 +210,7 @@ function createDatabase(path: string): DatabaseInterface {
       const concept = hydrateConcept(dryConcept)
       conceptCache.set(id, concept)
       const end = Date.now()
-      console.log(`storage: select concept in ${mid - start}ms, \
+      console.log(`storage: select concept ${id} in ${mid - start}ms, \
 parse json in ${end - mid}ms.`)
       return concept
     } catch (error) {
@@ -268,6 +268,20 @@ parse json in ${end - mid}ms.`)
     return lastUpdatedTime
   }
 
+  function getVersion(): number {
+    const row = selectSetting.get<{ key: string; value: string }>({
+      key: 'JADE_DB_VER',
+    })
+    const ver = parseInt(row?.value)
+    return ver
+  }
+
+  function setVersion(n: number): void {
+    db.transaction(() => {
+      insertSetting.run({ key: 'JADE_DB_VER', value: n.toString() })
+    })()
+  }
+
   return {
     isValid,
     init,
@@ -282,6 +296,8 @@ parse json in ${end - mid}ms.`)
     getSettings,
     saveSettings,
     getLastUpdatedTime,
+    getVersion,
+    setVersion,
   }
 }
 

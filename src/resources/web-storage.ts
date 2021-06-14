@@ -65,4 +65,10 @@ export const database: DatabaseInterface = {
   getLastUpdatedTime: () => {
     return parseInt(localStorage.getItem('lastUpdatedAt'))
   },
+  getVersion: () => {
+    return parseInt(localStorage.getItem('JADE_DB_VER'))
+  },
+  setVersion: n => {
+    localStorage.setItem('JADE_DB_VER', n.toString())
+  },
 }

@@ -82,3 +82,7 @@ export function viewportCoordsToEnvCoords(
 ): Vec2 {
   return vecAdd(camera.focus, vecDiv(viewportCoords, camera.scale))
 }
+
+export function isNaN(x: number): boolean {
+  return x !== x
+}

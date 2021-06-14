@@ -68,4 +68,6 @@ export interface DatabaseInterface {
   getSettings(): Settings
   saveSettings(settings: Settings): void
   getLastUpdatedTime(): number
+  getVersion(): number
+  setVersion(number: number): void
 }
