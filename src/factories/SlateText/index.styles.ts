@@ -7,7 +7,7 @@ export const styles = stylesheet({
     maxHeight: '100%',
   },
   Block: {
-    padding: '.5rem .5rem',
+    padding: '.5rem 1.25rem',
   },
   CardTitle: {
     fontSize: '1.2rem',

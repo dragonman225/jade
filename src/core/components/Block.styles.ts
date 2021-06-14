@@ -4,6 +4,7 @@ export const BlockStyles = stylesheet({
   Block: {
     background: 'white',
     borderRadius: '.3rem',
+    overflow: 'hidden',
     $nest: {
       '& > .ActionBtn': {
         opacity: 0,
