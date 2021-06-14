@@ -1,4 +1,5 @@
 import { DatabaseInterface, Settings, Concept } from '../core/interfaces'
+import env from '../env'
 
 /**
  * New database interface.
@@ -20,7 +21,7 @@ export const database: DatabaseInterface = {
       database.createConcept(concept)
     })
     localStorage.setItem('JADE_DB_LOADED', '')
-    localStorage.setItem('JADE_DB_VER', '5')
+    localStorage.setItem('JADE_DB_VER', env.JADE_DB_VER.toString())
   },
   getConcept: id => {
     try {

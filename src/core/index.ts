@@ -5,10 +5,14 @@ import { App } from './App'
 import { isNaN } from './utils'
 import { legacyLoadState } from '../resources/web-legacy-storage'
 import { toolConcepts, toolMaskConcept } from '../resources/initial-concepts'
+import env from '../env'
 import { Concept4, DatabaseInterface, PositionType } from './interfaces'
 
 /** Render the app with platform-specific resources. */
 export function startApp(database: DatabaseInterface): void {
+  /** Set title. */
+  document.title = `Jade v${env.JADE_VER}`
+
   /** Migrate old state_v3 to the new database. */
   const state3 = legacyLoadState()
 
