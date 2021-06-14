@@ -20,14 +20,14 @@ function createEmptyConcept(type: string): Concept {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
-const contentConcepts = require('./initial-concepts.json') as Concept[]
-const toolConcepts: Concept[] = [
+export const contentConcepts = require('./initial-content-concepts.json') as Concept[]
+export const toolConcepts: Concept[] = [
   createEmptyConcept('searchtool'),
   createEmptyConcept('headertool'),
   createEmptyConcept('recenttool'),
   createEmptyConcept('insighttool'),
 ]
-const toolMaskConcept: Concept = {
+export const toolMaskConcept: Concept = {
   id: '__tool_mask__',
   summary: { type: 'toolmask', data: { initialized: false } },
   references: [
@@ -64,7 +64,7 @@ const toolMaskConcept: Concept = {
   camera: createDefaultCamera(),
 }
 
-export default contentConcepts
+export const initialConcepts = contentConcepts
   // COMPAT: v0.1.4 or lower doesn't have `posType`.
   // COMPAT: v0.1.4 or lower doesn't have `camera`.
   .map(c => ({

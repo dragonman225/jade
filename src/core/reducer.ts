@@ -26,7 +26,7 @@ import {
   vecReverseY,
   vecReverseXY,
 } from './utils'
-import initialConcepts from '../resources/initial-condition'
+import { initialConcepts } from '../resources/initial-concepts'
 
 interface ConceptCreateAction {
   type: 'concept::create'
