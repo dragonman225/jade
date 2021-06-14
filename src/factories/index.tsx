@@ -12,10 +12,12 @@ import { SearchToolFactory } from './SearchTool'
 import { HeaderToolFactory } from './HeaderTool'
 import { RecentToolFactory } from './RecentTool'
 import { InsightToolFactory } from './InsightTool'
+import { SlateTextFactory } from './SlateText'
 
 class AlexFactoryRegistry implements FactoryRegistry {
   private factories = [
     PMTextFactory,
+    SlateTextFactory,
     ImageFactory,
     StatusFactory,
     SearchToolFactory,

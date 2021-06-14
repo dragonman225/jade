@@ -1,11 +1,15 @@
 import * as React from 'react'
-import { SlateTextEditor } from './SlateTextEditor'
+import { useState, useCallback } from 'react'
 import * as Slate from 'slate'
-import { ConceptDisplayProps } from '../../core/interfaces'
+
+import { SlateTextEditor } from './SlateTextEditor'
+import { styles } from './index.styles'
 import {
+  BaseConceptData,
+  ConceptDisplayProps,
+  Factory,
   InitializedConceptData,
-  UninitializedConceptData,
-} from '../../core/interfaces/concept'
+} from '../../core/interfaces'
 
 /**
  * Slate CJK bugs
@@ -21,103 +25,68 @@ interface TextContent extends InitializedConceptData {
 interface State {
   slateData: Slate.Element[]
   isNewText: boolean
-  prevPropsContent: TextContent | UninitializedConceptData
 }
 
-export class SlateText extends React.Component<
-  ConceptDisplayProps<TextContent>,
-  State
-> {
-  constructor(props: ConceptDisplayProps<TextContent>) {
-    super(props)
-    this.state = {
-      slateData: this.getValidSlateData(props.content),
-      isNewText: !props.content.initialized,
-      prevPropsContent: props.content,
-    }
+function getSlateData(data: BaseConceptData): Slate.Element[] {
+  if (data.initialized) return data.data as Slate.Element[]
+  else return [{ type: 'paragraph', children: [{ text: '' }] }]
+}
+
+export function SlateText(
+  props: ConceptDisplayProps<TextContent>
+): JSX.Element {
+  const {
+    readOnly,
+    viewMode,
+    concept,
+    onChange,
+    onInteractionStart,
+    onInteractionEnd,
+  } = props
+
+  const [state, setState] = useState<State>({
+    slateData: getSlateData(concept.summary.data),
+    isNewText: !concept.summary.data.initialized,
+  })
+
+  const handleChange = useCallback(
+    (slateData: Slate.Element[]): void => {
+      setState({ slateData, isNewText: false })
+      onChange({ initialized: true, data: slateData })
+    },
+    [onChange]
+  )
+
+  const slateTextEditor = (
+    <SlateTextEditor
+      readOnly={readOnly}
+      // Cannot type Japanese in programmatically focused editor when the text block is newly created.
+      forceFocus={state.isNewText}
+      content={state.slateData}
+      onChange={handleChange}
+      onFocus={onInteractionStart}
+      onBlur={onInteractionEnd}
+    />
+  )
+
+  switch (viewMode) {
+    case 'NavItem':
+      return <div className={styles.NavItem}>{slateTextEditor}</div>
+    case 'Block':
+      return <div className={styles.Block}>{slateTextEditor}</div>
+    case 'CardTitle':
+      return <div className={styles.CardTitle}>{slateTextEditor}</div>
+    default:
+      return (
+        <span>
+          Unknown <code>viewMode</code>: {viewMode}
+        </span>
+      )
   }
+}
 
-  getValidSlateData(
-    content: TextContent | UninitializedConceptData
-  ): Slate.Element[] {
-    const initialContent = [{ type: 'paragraph', children: [{ text: '' }] }]
-    return content.initialized ? content.data : initialContent
-  }
-
-  // HACK: Detect props.content change from other BlockCard refs on the same view, using non-deprecated API.
-  // componentDidUpdate(): void {
-  //   if (JSON.stringify(this.state.prevPropsContent) !== JSON.stringify(this.props.content)) {
-  //     this.setState({
-  //       slateData: this.getValidSlateData(this.props.content)
-  //     })
-  //   }
-  // }
-
-  onChange = (content: Slate.Element[]): void => {
-    this.setState({ slateData: content, isNewText: false })
-    this.props.onChange({ initialized: true, data: content })
-  }
-
-  render(): JSX.Element {
-    const slateTextEditor = (
-      <SlateTextEditor
-        readOnly={this.props.readOnly}
-        // Cannot type Japanese in programmatically focused editor when the text block is newly created.
-        forceFocus={this.state.isNewText}
-        content={this.state.slateData}
-        onChange={this.onChange}
-        onFocus={this.props.onInteractionStart}
-        onBlur={this.props.onInteractionEnd}
-      />
-    )
-
-    switch (this.props.viewMode) {
-      case 'NavItem':
-        return (
-          <>
-            <style jsx>{`
-              div {
-                font-size: 0.8rem;
-                padding: 0.5rem;
-                max-height: 100%;
-                /* overflow: hidden; */
-              }
-            `}</style>
-            <div>{slateTextEditor}</div>
-          </>
-        )
-      case 'Block':
-        return (
-          <>
-            <style jsx>{`
-              .Block {
-                padding: 0.5rem 1.5rem;
-              }
-            `}</style>
-            <div className="Block">{slateTextEditor}</div>
-          </>
-        )
-      case 'CardTitle':
-        return (
-          <>
-            <style jsx>{`
-              .CardTitle {
-                font-size: 1.2rem;
-                font-weight: bold;
-                padding: 0.5rem;
-                overflow: auto;
-                width: 100%;
-              }
-            `}</style>
-            <div className="CardTitle">{slateTextEditor}</div>
-          </>
-        )
-      default:
-        return (
-          <span>
-            Unknown <code>viewMode</code>: {this.props.viewMode}
-          </span>
-        )
-    }
-  }
+export const SlateTextFactory: Factory = {
+  id: 'text',
+  name: 'SlateText',
+  component: SlateText,
 }
