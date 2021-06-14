@@ -1,7 +1,12 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { stylesheet, classes } from 'typestyle'
-import { viewportCoordsToEnvCoords } from '../../core/utils'
+import {
+  distance,
+  getUnifiedClientCoords,
+  vecSub,
+  viewportCoordsToEnvCoords,
+} from '../../core/utils'
 import { factoryRegistry } from '..'
 import { BlockStyles } from '../../core/components/Block.styles'
 import { ConceptDisplayProps, Factory, Vec2 } from '../../core/interfaces'
@@ -47,7 +52,7 @@ const styles = stylesheet({
     maxHeight: 200,
     overflow: 'hidden',
     margin: 0,
-    borderRadius: 'var(--border-radius-large)',
+    borderRadius: '.3rem',
     transition: 'background 0.1s',
     $nest: {
       '&:hover': {
@@ -138,7 +143,7 @@ const S2LState = {
   Linking: Symbol('linking'),
 }
 
-const SearchTool: React.FunctionComponent<Props> = props => {
+const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const { state, dispatchAction, database } = props
 
   const searchRef = React.useRef<HTMLDivElement>(null)
@@ -172,62 +177,143 @@ const SearchTool: React.FunctionComponent<Props> = props => {
   /** Search-to-Link */
   const [s2lState, setS2lState] = React.useState(S2LState.Idle)
   const [s2lBlock, setS2lBlock] = React.useState<S2LBlock>({ valid: false })
-  const [s2lStart, setS2lStart] = React.useState<Vec2>({ x: 0, y: 0 })
+  const [_s2lStart, setS2lStart] = React.useState<Vec2>({ x: 0, y: 0 })
   const [s2lDelta, setS2lDelta] = React.useState<Vec2>({ x: 0, y: 0 })
+  const s2lBlockRef = React.useRef<S2LBlock>(null)
+  const s2lDeltaRef = React.useRef<Vec2>(null)
+  const stateRef = React.useRef<Props['state']>(null)
 
-  const handleDragStart = (e: MouseEvent | React.MouseEvent) => {
-    if (s2lState === S2LState.Idle && s2lBlock.valid) {
-      setMinimized(true)
-      setS2lState(S2LState.Linking)
-      setS2lStart({ x: e.clientX, y: e.clientY })
-    }
-
-    if (e instanceof MouseEvent && e.target instanceof Node) {
+  const handleWindowPointerDown = (e: MouseEvent | TouchEvent) => {
+    // HACK: Click outside to minimize.
+    if (e.target instanceof Node) {
       if (!searchRef.current.contains(e.target)) {
         setMinimized(true)
       }
     }
   }
 
-  const handleDragging = (e: MouseEvent) => {
-    if (s2lState === S2LState.Linking) {
-      setS2lDelta({ x: e.clientX - s2lStart.x, y: e.clientY - s2lStart.y })
-    }
-  }
-
-  const handleDragEnd = (_e: MouseEvent) => {
-    if (s2lState === S2LState.Linking) {
-      setS2lStart({ x: 0, y: 0 })
-      setS2lDelta({ x: 0, y: 0 })
-      if (s2lBlock.valid) {
-        dispatchAction({
-          type: 'ref::create',
-          data: {
-            id: s2lBlock.id,
-            position: viewportCoordsToEnvCoords(
-              {
-                x: s2lBlock.rect.left + s2lDelta.x,
-                y: s2lBlock.rect.top + s2lDelta.y,
-              },
-              state.camera
-            ),
-          },
-        })
-      } else console.log('s2lBlock is invalid')
-      setS2lBlock({ valid: false })
-      setS2lState(S2LState.Idle)
-    }
-  }
+  React.useEffect(() => {
+    s2lBlockRef.current = s2lBlock
+  }, [s2lBlock])
 
   React.useEffect(() => {
-    window.addEventListener('mousedown', handleDragStart)
-    window.addEventListener('mousemove', handleDragging)
-    window.addEventListener('mouseup', handleDragEnd)
+    s2lDeltaRef.current = s2lDelta
+  }, [s2lDelta])
+
+  React.useEffect(() => {
+    stateRef.current = state
+  }, [state])
+
+  React.useEffect(() => {
+    const gestureDetector = (() => {
+      let state: 'idle' | 'ready' | 'linking' = 'idle'
+      let lastClientCoords = { x: 0, y: 0 }
+      let startLinkingClientCoords = { x: 0, y: 0 }
+
+      const handlePointerMove = (e: MouseEvent | TouchEvent) => {
+        const clientCoords = getUnifiedClientCoords(e)
+
+        if (state === 'ready' && distance(clientCoords, lastClientCoords) > 3) {
+          /** S2L */
+          setMinimized(true)
+          setS2lState(S2LState.Linking)
+          setS2lStart(clientCoords)
+
+          startLinkingClientCoords = clientCoords
+          state = 'linking'
+        } else if (state === 'linking') {
+          /** S2L */
+          setS2lDelta(vecSub(clientCoords, startLinkingClientCoords))
+        }
+
+        lastClientCoords = clientCoords
+      }
+
+      const handlePointerUp = (_e: MouseEvent | TouchEvent) => {
+        window.removeEventListener('mousemove', handlePointerMove)
+        window.removeEventListener('touchmove', handlePointerMove)
+        window.removeEventListener('mouseup', handlePointerUp)
+        window.removeEventListener('touchend', handlePointerUp)
+
+        if (state === 'ready') {
+          const s2lBlock = s2lBlockRef.current
+
+          if (s2lBlock.valid) {
+            dispatchAction({
+              type: 'navigation::expand',
+              data: { id: s2lBlock.id },
+            })
+          }
+        } else if (state === 'linking') {
+          setS2lStart({ x: 0, y: 0 })
+          setS2lDelta({ x: 0, y: 0 })
+
+          const s2lBlock = s2lBlockRef.current
+          const s2lDelta = s2lDeltaRef.current
+          if (s2lBlock.valid) {
+            dispatchAction({
+              type: 'ref::create',
+              data: {
+                id: s2lBlock.id,
+                position: viewportCoordsToEnvCoords(
+                  {
+                    x: s2lBlock.rect.left + s2lDelta.x,
+                    y: s2lBlock.rect.top + s2lDelta.y,
+                  },
+                  stateRef.current.camera
+                ),
+              },
+            })
+          } else console.log('s2lBlock is invalid')
+          setS2lBlock({ valid: false })
+          setS2lState(S2LState.Idle)
+        }
+
+        state = 'idle'
+        lastClientCoords = { x: 0, y: 0 }
+        startLinkingClientCoords = { x: 0, y: 0 }
+      }
+
+      return {
+        handlePointerDown: (e: MouseEvent | TouchEvent) => {
+          // HACK: Prevent block being dragged when start from a ScrollListItem.
+          if (
+            e.target instanceof Element &&
+            Array.from(
+              searchRef.current.querySelectorAll('.ScrollListItem')
+            ).find(el => el.contains(e.target as Element))
+          )
+            e.stopPropagation()
+
+          state = 'ready'
+          const clientCoords = getUnifiedClientCoords(e)
+          lastClientCoords = clientCoords
+
+          window.addEventListener('mousemove', handlePointerMove)
+          window.addEventListener('touchmove', handlePointerMove)
+          window.addEventListener('mouseup', handlePointerUp)
+          window.addEventListener('touchend', handlePointerUp)
+        },
+      }
+    })()
+
+    const searchEl = searchRef.current
+    searchEl.addEventListener('mousedown', gestureDetector.handlePointerDown)
+    searchEl.addEventListener('touchstart', gestureDetector.handlePointerDown)
+    window.addEventListener('mousedown', handleWindowPointerDown)
+    window.addEventListener('touchstart', handleWindowPointerDown)
 
     return () => {
-      window.removeEventListener('mousedown', handleDragStart)
-      window.removeEventListener('mousemove', handleDragging)
-      window.removeEventListener('mouseup', handleDragEnd)
+      searchEl.removeEventListener(
+        'mousedown',
+        gestureDetector.handlePointerDown
+      )
+      searchEl.removeEventListener(
+        'touchstart',
+        gestureDetector.handlePointerDown
+      )
+      window.removeEventListener('mousedown', handleWindowPointerDown)
+      window.removeEventListener('touchstart', handleWindowPointerDown)
     }
   })
 
@@ -277,7 +363,7 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                           /** The following doesn't support touch. */
                           return (
                             <div
-                              className={styles.ScrollListItem}
+                              className={`${styles.ScrollListItem} ScrollListItem`}
                               onMouseEnter={e => {
                                 setS2lBlock({
                                   valid: true,
@@ -288,12 +374,12 @@ const SearchTool: React.FunctionComponent<Props> = props => {
                               onMouseLeave={() => {
                                 setS2lBlock({ valid: false })
                               }}
-                              onMouseDown={handleDragStart}
+                              // onMouseDown={handleDragStart}
                               onMouseUp={() => {
-                                dispatchAction({
-                                  type: 'navigation::expand',
-                                  data: { id: concept.id },
-                                })
+                                // dispatchAction({
+                                //   type: 'navigation::expand',
+                                //   data: { id: concept.id },
+                                // })
                               }}>
                               <SearchItemContent
                                 concept={concept}
@@ -383,6 +469,16 @@ const SearchTool: React.FunctionComponent<Props> = props => {
       )}
     </div>
   )
+}
+
+const SearchTool: React.FunctionComponent<Props> = props => {
+  const { viewMode } = props
+
+  if (viewMode !== 'Block') {
+    return <span>Search Tool</span>
+  } else {
+    return <SearchToolBlock {...props} />
+  }
 }
 
 export const SearchToolFactory: Factory = {
