@@ -52,6 +52,12 @@ const styles = stylesheet({
 })
 
 const HeaderTool: React.FunctionComponent<Props> = props => {
+  const { viewMode } = props
+
+  if (viewMode !== 'Block') {
+    return <span>Recent Tool</span>
+  }
+
   return (
     <div className={styles.HeaderTool}>
       <div className={styles.HomeBtnContainer}>

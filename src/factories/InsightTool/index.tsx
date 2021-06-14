@@ -47,7 +47,8 @@ const styles = stylesheet({
 })
 
 export const InsightTool: React.FunctionComponent<Props> = props => {
-  const { state, dispatchAction, database, factoryRegistry } = props
+  const { viewMode, state, dispatchAction, database, factoryRegistry } = props
+
   const parentConcepts = useMemo(() => {
     const allConcepts = database.getAllConcepts()
     return allConcepts.filter(concept => {
@@ -56,6 +57,10 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
       )
     })
   }, [state.viewingConcept.id, database.getLastUpdatedTime()])
+
+  if (viewMode !== 'Block') {
+    return <span>Insight Tool</span>
+  }
 
   return (
     <div className={styles.Insight}>

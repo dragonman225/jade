@@ -8,9 +8,13 @@ import { InitializedConceptData } from '../../core/interfaces/concept'
 type Props = ConceptDisplayProps<undefined>
 
 export const RecentTool: React.FunctionComponent<Props> = props => {
-  const { state, dispatchAction, database, factoryRegistry } = props
+  const { viewMode, state, dispatchAction, database, factoryRegistry } = props
 
   const recentRef = useRef<HTMLDivElement>(null)
+
+  if (viewMode !== 'Block') {
+    return <span>Recent Tool</span>
+  }
 
   return (
     <div className={styles.Recent} ref={recentRef}>
