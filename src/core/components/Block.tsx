@@ -138,7 +138,10 @@ export function Block(props: Props): JSX.Element {
       className={classes(
         className,
         BlockStyles.Block,
-        block.selected ? BlockStyles['Block--Selected'] : undefined
+        block.selected ? BlockStyles['Block--Selected'] : undefined,
+        block.mode === InteractionMode.Focusing
+          ? BlockStyles['Block--Focused']
+          : undefined
       )}>
       {props.children}
       {debug && (

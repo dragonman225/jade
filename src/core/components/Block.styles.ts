@@ -32,4 +32,7 @@ export const BlockStyles = stylesheet({
   'Block--Selected': {
     boxShadow: '0px 0px 0px 2px blueviolet',
   },
+  'Block--Focused': {
+    boxShadow: '0px 0px 0px 2px black',
+  },
 })
