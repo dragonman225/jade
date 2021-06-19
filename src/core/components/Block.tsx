@@ -5,10 +5,9 @@ import { classes } from 'typestyle'
 import { Cross } from './icons/Cross'
 import { Expand } from './icons/Expand'
 import { BlockStyles } from './Block.styles'
-import { DebugLabelStyle } from '../styles/DebugLabel'
+import { Action } from '../reducer'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
 import { Block as BlockState, InteractionMode } from '../interfaces'
-import { Action } from '../reducer'
 
 interface Props {
   debug: boolean
@@ -145,7 +144,7 @@ export function Block(props: Props): JSX.Element {
       )}>
       {props.children}
       {debug && (
-        <div className={DebugLabelStyle}>
+        <div className={BlockStyles.DebugLabel}>
           id: {block.refId}
           <br />
           mode: {block.mode}
