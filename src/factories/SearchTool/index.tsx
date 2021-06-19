@@ -375,13 +375,6 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                               }}
                               onMouseLeave={() => {
                                 setS2lBlock({ valid: false })
-                              }}
-                              // onMouseDown={handleDragStart}
-                              onMouseUp={() => {
-                                // dispatchAction({
-                                //   type: 'navigation::expand',
-                                //   data: { id: concept.id },
-                                // })
                               }}>
                               <SearchItemContent
                                 concept={concept}
