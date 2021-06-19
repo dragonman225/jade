@@ -2,20 +2,22 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { useMemo, useCallback, useRef, useState } from 'react'
-import { cssRaw, stylesheet } from 'typestyle'
+import { cssRaw, style, stylesheet } from 'typestyle'
 
 import { Viewport } from './components/Viewport'
 import { Overlay } from './components/Overlay'
+import { Block } from './components/Block'
+import { useAnimationFrame } from './useAnimationFrame'
 import { Action, createReducer, loadAppState } from './reducer'
 import { factoryRegistry } from '../factories'
+import theme from '../theme'
 import {
   Block as BlockState,
   DatabaseInterface,
   InteractionMode,
+  PositionType,
   State4,
 } from './interfaces'
-import { Block } from './components/Block'
-import { useAnimationFrame } from './useAnimationFrame'
 
 cssRaw(`
 * {
@@ -46,11 +48,8 @@ const styles = stylesheet({
   App: {
     overflow: 'hidden',
     height: '100%',
-    background: '#e5e5e5',
+    background: theme.COLORS.bgPrimary,
     '--bg-hover': 'rgba(0, 0, 0, 0.1)',
-    '--shadow-light': `\
-      rgba(15, 15, 15, 0.1) 0px 0px 3px, 
-      rgba(15, 15, 15, 0.1) 0px 0px 9px`,
     '--border-radius-small': '.3rem',
     '--border-radius-large': '.5rem',
   },
@@ -98,6 +97,14 @@ export function App(props: Props): JSX.Element {
     return (
       <Block
         debug={stateSnapshot.debugging}
+        className={
+          block.posType > PositionType.Normal
+            ? style({
+                boxShadow: theme.SHADOWS.ui,
+                borderRadius: theme.BORDERS.uiRadius,
+              })
+            : undefined
+        }
         block={block}
         dispatchAction={dispatchAction}>
         {factoryRegistry.createConceptDisplay(block.concept.summary.type, {

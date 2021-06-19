@@ -11,12 +11,14 @@ import { factoryRegistry } from '..'
 import { BlockStyles } from '../../core/components/Block.styles'
 import { ConceptDisplayProps, Factory, Vec2 } from '../../core/interfaces'
 import { Concept, InitializedConceptData } from '../../core/interfaces/concept'
+import theme from '../../theme'
 
 const styles = stylesheet({
   Search: {
     $nest: {
       '& hr': {
-        border: '1px solid #ddd',
+        border: 'none',
+        borderBottom: `1px solid ${theme.COLORS.uiGreyLight}`,
         $nest: {
           '&:last-of-type': {
             display: 'none',
@@ -30,7 +32,7 @@ const styles = stylesheet({
   },
   SearchInput: {
     height: 50,
-    padding: '.5rem 22px',
+    padding: '.5rem 20px',
     $nest: {
       '&>input': {
         outline: 'none',
@@ -41,7 +43,7 @@ const styles = stylesheet({
     },
   },
   SearchResult: {
-    padding: '0 22px 0',
+    padding: '0 20px 0',
   },
   ScrollList: {
     height: '100%',

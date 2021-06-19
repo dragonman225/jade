@@ -12,13 +12,14 @@ import { Action } from '../reducer'
 
 interface Props {
   debug: boolean
+  className?: string
   block: BlockState
   dispatchAction: React.Dispatch<Action>
   children?: React.ReactNode
 }
 
 export function Block(props: Props): JSX.Element {
-  const { debug, block, dispatchAction } = props
+  const { debug, className, block, dispatchAction } = props
 
   const concept = block.concept
   const blockRef = useRef<HTMLDivElement>(null)
@@ -135,6 +136,7 @@ export function Block(props: Props): JSX.Element {
     <div
       ref={blockRef}
       className={classes(
+        className,
         BlockStyles.Block,
         block.selected ? BlockStyles['Block--Selected'] : undefined
       )}>

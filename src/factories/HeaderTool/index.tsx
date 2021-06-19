@@ -14,7 +14,7 @@ const styles = stylesheet({
     width: '100%',
     display: 'flex',
     flexWrap: 'nowrap',
-    padding: '0px 22px',
+    padding: '0px 20px',
   },
   HomeBtnContainer: {
     flex: '0 0 50px',
@@ -52,7 +52,7 @@ const styles = stylesheet({
 })
 
 const HeaderTool: React.FunctionComponent<Props> = props => {
-  const { viewMode } = props
+  const { viewMode, onInteractionStart, onInteractionEnd } = props
 
   if (viewMode !== 'Block') {
     return <span>Recent Tool</span>
@@ -102,12 +102,8 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
                   content: { initialized: false },
                 },
               }),
-            onInteractionStart: () => {
-              return
-            },
-            onInteractionEnd: () => {
-              return
-            },
+            onInteractionStart,
+            onInteractionEnd,
             key: 'CardTitle-' + props.state.viewingConcept.id,
           }
 

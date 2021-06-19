@@ -5,6 +5,7 @@ import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { Schema, Node } from 'prosemirror-model'
 import { getCaretCoordinates } from '../../core/utils'
+import theme from '../../theme'
 import {
   ConceptDisplayProps,
   Vec2,
@@ -72,8 +73,8 @@ const styles = stylesheet({
     position: 'absolute',
     zIndex: 10000,
     background: '#fff',
-    boxShadow: 'var(--shadow-light)',
-    borderRadius: 'var(--border-radius-small)',
+    boxShadow: theme.SHADOWS.float,
+    borderRadius: theme.BORDERS.uiRadius,
     $nest: {
       '&>p': {
         margin: '.2rem .5rem .5rem',

@@ -12,7 +12,7 @@ type Props = ConceptDisplayProps<undefined>
 
 const styles = stylesheet({
   Insight: {
-    padding: '22px .5rem',
+    padding: '20px .5rem',
     $nest: {
       '&>h3': {
         margin: '0 .5rem .5rem',

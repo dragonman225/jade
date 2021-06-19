@@ -5,7 +5,7 @@ export const styles = stylesheet({
     width: '100%',
     height: 50,
     display: 'flex',
-    padding: '0px 22px',
+    padding: '0px 20px',
     $nest: {
       '& button': {
         border: 'none',
