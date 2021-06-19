@@ -65,7 +65,7 @@ export function ViewObject(props: Props): JSX.Element {
             bottom: 0,
             right: 0,
             transformOrigin: 'bottom right',
-            transform: `translate(${pos.x}px, ${pos.y}px)`,
+            transform: `translate(${-pos.x}px, ${-pos.y}px)`,
           }}>
           {children}
         </div>
