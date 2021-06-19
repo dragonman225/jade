@@ -3,6 +3,8 @@ export default {
     bgPrimary: '#f3f3f3',
     bgWhite: '#ffffff',
     bgGrey: '#eeeeee',
+    bgHover: '#e5e5e5',
+    bgActive: '#c8c8c8',
     uiPrimary: '#7300d8',
     uiGrey: '#8e8e8e',
     uiGreyLight: '#e4e4e4',
