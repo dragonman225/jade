@@ -2,15 +2,16 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { useMemo, useCallback, useRef, useState } from 'react'
-import { cssRaw, style, stylesheet } from 'typestyle'
+import { classes, style } from 'typestyle'
 
 import { Viewport } from './components/Viewport'
 import { Overlay } from './components/Overlay'
 import { Block } from './components/Block'
+import { AppStyles } from './App.styles'
+import theme from '../theme'
 import { useAnimationFrame } from './useAnimationFrame'
 import { Action, createReducer, loadAppState } from './reducer'
 import { factoryRegistry } from '../factories'
-import theme from '../theme'
 import {
   Block as BlockState,
   DatabaseInterface,
@@ -19,39 +20,9 @@ import {
   State4,
 } from './interfaces'
 
-cssRaw(`
-* {
-  box-sizing: border-box;
-  user-select: none;
-}
-
-html, body, #react-root {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
-}
-
-:root {
-  font-size: 18px;
-  font-family: 'Noto Sans', 'Noto Sans CJK TC', \
-  -apple-system, BlinkMacSystemFont, \
-  'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', \
-  'Helvetica Neue', sans-serif;
-  line-height: 1.6;
-}`)
-
 interface Props {
   db: DatabaseInterface
 }
-
-const styles = stylesheet({
-  App: {
-    overflow: 'hidden',
-    height: '100%',
-    background: theme.COLORS.bgPrimary,
-    '--bg-hover': 'rgba(0, 0, 0, 0.1)',
-  },
-})
 
 export function App(props: Props): JSX.Element {
   const { db } = props
@@ -146,7 +117,13 @@ export function App(props: Props): JSX.Element {
   }
 
   return (
-    <div className={styles.App}>
+    <div
+      className={classes(
+        AppStyles.App,
+        stateSnapshot.blocks.find(b => b.mode === InteractionMode.Moving)
+          ? AppStyles['App--BlockMoving']
+          : undefined
+      )}>
       <Overlay ref={overlayRef} />
       <Viewport
         focus={stateSnapshot.camera.focus}
