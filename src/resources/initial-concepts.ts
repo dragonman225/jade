@@ -22,10 +22,10 @@ function createEmptyConcept(type: string): Concept {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 export const contentConcepts = require('./initial-content-concepts.json') as Concept[]
 export const toolConcepts: Concept[] = [
-  createEmptyConcept('searchtool'),
   createEmptyConcept('headertool'),
   createEmptyConcept('recenttool'),
   createEmptyConcept('insighttool'),
+  createEmptyConcept('searchtool'),
 ]
 export const toolMaskConcept: Concept = {
   id: '__tool_mask__',
@@ -35,29 +35,29 @@ export const toolMaskConcept: Concept = {
       id: uuidv4(),
       to: toolConcepts[0].id,
       posType: PositionType.PinnedTL,
-      pos: { x: 10, y: 10 },
-      size: { w: 270, h: 'auto' },
-    },
-    {
-      id: uuidv4(),
-      to: toolConcepts[1].id,
-      posType: PositionType.PinnedTL,
       pos: { x: 400, y: 10 },
       size: { w: 450, h: 'auto' },
     },
     {
       id: uuidv4(),
-      to: toolConcepts[2].id,
+      to: toolConcepts[1].id,
       posType: PositionType.PinnedTR,
       pos: { x: 10, y: 10 },
       size: { w: 450, h: 'auto' },
     },
     {
       id: uuidv4(),
-      to: toolConcepts[3].id,
-      posType: PositionType.PinnedBL,
+      to: toolConcepts[2].id,
+      posType: PositionType.PinnedBR,
       pos: { x: 10, y: 10 },
       size: { w: 250, h: 'auto' },
+    },
+    {
+      id: uuidv4(),
+      to: toolConcepts[3].id,
+      posType: PositionType.PinnedTL,
+      pos: { x: 10, y: 10 },
+      size: { w: 270, h: 'auto' },
     },
   ],
   drawing: [],
