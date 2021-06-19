@@ -124,7 +124,6 @@ export function App(props: Props): JSX.Element {
           ? AppStyles['App--BlockMoving']
           : undefined
       )}>
-      <Overlay ref={overlayRef} />
       <Viewport
         focus={stateSnapshot.camera.focus}
         scale={stateSnapshot.camera.scale}
@@ -134,6 +133,7 @@ export function App(props: Props): JSX.Element {
         renderBlock={renderBlock}
         dispatchAction={dispatchAction}
       />
+      <Overlay ref={overlayRef} />
     </div>
   )
 }
