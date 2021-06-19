@@ -443,7 +443,7 @@ export function createReducer(db: DatabaseInterface) {
         }
       }
       case 'cam::scaledelta': {
-        const minScale = 0.4
+        const minScale = 0.2
         const maxScale = 2
         /** Fibonacci scaling. */
         const ratio = Math.sqrt(1.618)
