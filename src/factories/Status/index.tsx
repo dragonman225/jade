@@ -47,20 +47,18 @@ export const Status: React.FunctionComponent<Props> = props => {
         <div className={styles.StatBlock}>
           <ul>
             <li>
-              There are <code>{state.blocks.length}</code> blocks on the canvas
+              <code>{state.blocks.length}</code> blocks on the canvas
             </li>
             <li>
-              Focus:{' '}
+              Focusing at{' '}
               <code>
                 ({state.camera.focus.x.toFixed(2)},{' '}
                 {state.camera.focus.y.toFixed(2)})
-              </code>{' '}
+              </code>
+              , scale <code>{(state.camera.scale * 100).toFixed(2)}%</code>
             </li>
             <li>
-              Scale: <code>{(state.camera.scale * 100).toFixed(2)}%</code>
-            </li>
-            <li>
-              Debugging:{' '}
+              Debugging is{' '}
               <code
                 onClick={() =>
                   dispatchAction({
