@@ -74,7 +74,7 @@ const styles = stylesheet({
     zIndex: 10000,
     background: '#fff',
     boxShadow: theme.SHADOWS.float,
-    borderRadius: theme.BORDERS.uiRadius,
+    borderRadius: theme.BORDERS.largeRadius,
     $nest: {
       '&>p': {
         margin: '.2rem .5rem .5rem',
@@ -85,7 +85,7 @@ const styles = stylesheet({
   },
   SlashMenuItem: {
     padding: '.3rem .5rem',
-    borderRadius: 'var(--border-radius-small)',
+    borderRadius: theme.BORDERS.smallRadius,
   },
   'SlashMenuItem--Chosen': {
     background: 'var(--bg-hover)',

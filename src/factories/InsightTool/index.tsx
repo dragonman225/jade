@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { stylesheet } from 'typestyle'
 
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
+import theme from '../../theme'
 
 const noop = function () {
   return
@@ -39,7 +40,7 @@ const styles = stylesheet({
   InsightItem: {
     maxHeight: 200,
     overflow: 'hidden',
-    borderRadius: 'var(--border-radius-large)',
+    borderRadius: theme.BORDERS.smallRadius,
     '&:hover': {
       background: 'var(--bg-hover)',
     },

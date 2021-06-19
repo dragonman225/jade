@@ -1,4 +1,5 @@
 import { stylesheet } from 'typestyle'
+import theme from '../../theme'
 
 export const styles = stylesheet({
   Recent: {
@@ -26,6 +27,7 @@ export const styles = stylesheet({
     overflow: 'hidden',
     transition: 'background 0.2s, flex-basis 0.3s',
     padding: '0 5px',
+    borderRadius: theme.BORDERS.smallRadius,
     $nest: {
       '&:hover': {
         background: 'var(--bg-hover)',

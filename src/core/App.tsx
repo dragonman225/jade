@@ -50,8 +50,6 @@ const styles = stylesheet({
     height: '100%',
     background: theme.COLORS.bgPrimary,
     '--bg-hover': 'rgba(0, 0, 0, 0.1)',
-    '--border-radius-small': '.3rem',
-    '--border-radius-large': '.5rem',
   },
 })
 
@@ -101,7 +99,7 @@ export function App(props: Props): JSX.Element {
           block.posType > PositionType.Normal
             ? style({
                 boxShadow: theme.SHADOWS.ui,
-                borderRadius: theme.BORDERS.uiRadius,
+                borderRadius: theme.BORDERS.largeRadius,
               })
             : undefined
         }

@@ -14,6 +14,7 @@ export default {
     float: `rgba(17, 12, 46, 0.15) 0px 38px 100px 0px`,
   },
   BORDERS: {
-    uiRadius: '.6rem',
+    largeRadius: '.6rem',
+    smallRadius: '.3rem',
   },
 }
