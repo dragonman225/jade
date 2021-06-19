@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useMemo } from 'react'
 import { stylesheet } from 'typestyle'
+import { NestedCSSProperties } from 'typestyle/lib/types'
 
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 import theme from '../../theme'
@@ -11,38 +12,68 @@ const noop = function () {
 
 type Props = ConceptDisplayProps<undefined>
 
+const BlurPane: NestedCSSProperties = {
+  content: '""',
+  position: 'absolute',
+  height: 60,
+  top: 150,
+  left: 0,
+  right: 0,
+}
+
 const styles = stylesheet({
   Insight: {
-    padding: '20px .5rem',
+    padding: '20px 1rem',
+    maxHeight: 500,
+    overflow: 'auto',
+  },
+  InsightItem: {
+    position: 'relative' /** For BlurPane. */,
+    maxHeight: 200,
+    overflow: 'hidden',
+    marginLeft: '-.5rem',
+    marginRight: '-.5rem',
+    borderRadius: theme.BORDERS.smallRadius,
     $nest: {
-      '&>h3': {
-        margin: '0 .5rem .5rem',
-        color: '#000',
-        opacity: 0.7,
-        fontSize: '.7rem',
-        fontWeight: 'normal',
+      '&:hover': {
+        background: theme.COLORS.bgHover,
+        opacity: 0.9,
       },
-      '&>hr': {
-        border: '1px solid #ddd',
-        $nest: {
-          '&:last-of-type': {
-            display: 'none',
-          },
-        },
+      '&:active': {
+        background: theme.COLORS.bgActive,
+        opacity: 0.8,
       },
-      '&>p': {
-        fontSize: '.8rem',
-        padding: '.5rem',
-        margin: 0,
+      '&::after': {
+        ...BlurPane,
+        background: 'linear-gradient(180deg, transparent, white)',
+      },
+      '&:hover::after': {
+        ...BlurPane,
+        background: `linear-gradient(180deg, transparent, ${theme.COLORS.bgHover})`,
+      },
+      '&:active::after': {
+        ...BlurPane,
+        background: `linear-gradient(180deg, transparent, ${theme.COLORS.bgActive})`,
       },
     },
   },
-  InsightItem: {
-    maxHeight: 200,
-    overflow: 'hidden',
-    borderRadius: theme.BORDERS.smallRadius,
-    '&:hover': {
-      background: 'var(--bg-hover)',
+  InfoText: {
+    marginBottom: '.5rem',
+    color: theme.COLORS.uiGrey,
+    fontSize: '.8rem',
+    $nest: {
+      '&:last-child': {
+        marginBottom: 0,
+      },
+    },
+  },
+  Divider: {
+    border: 'none',
+    borderBottom: `1px solid ${theme.COLORS.uiGreyLight}`,
+    $nest: {
+      '&:last-of-type': {
+        display: 'none',
+      },
     },
   },
 })
@@ -67,7 +98,7 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
     <div className={styles.Insight}>
       {parentConcepts.length ? (
         <>
-          <h3>Appears in</h3>
+          <div className={styles.InfoText}>Appears in</div>
           {parentConcepts.map(concept => {
             return (
               <React.Fragment key={concept.id}>
@@ -93,13 +124,13 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
                     onInteractionEnd: noop,
                   })}
                 </div>
-                <hr />
+                <hr className={styles.Divider} />
               </React.Fragment>
             )
           })}
         </>
       ) : (
-        <p>Not appearing in any concepts.</p>
+        <div className={styles.InfoText}>Not appearing in any concepts.</div>
       )}
     </div>
   )
