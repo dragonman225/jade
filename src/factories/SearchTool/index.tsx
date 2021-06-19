@@ -38,7 +38,11 @@ const styles = stylesheet({
         outline: 'none',
         border: 'none',
         width: '100%',
-        height: '100%',
+        fontSize: '.8rem',
+      },
+      '&>input::placeholder': {
+        color: theme.COLORS.uiGrey,
+        fontSize: '.8rem',
       },
     },
   },
@@ -344,7 +348,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
       }}>
       <div className={styles.SearchInput}>
         <input
-          placeholder="Search here..."
+          placeholder="Search Concepts"
           onChange={e => {
             setText(e.target.value)
             setPage(0)
