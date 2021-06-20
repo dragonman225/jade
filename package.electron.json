@@ -29,7 +29,6 @@
     "slate": "^0.59.0",
     "slate-history": "^0.59.0",
     "slate-react": "^0.59.0",
-    "styled-jsx": "^3.3.2",
     "typestyle": "^2.1.0",
     "uuid": "^8.3.2"
   },
