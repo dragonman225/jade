@@ -182,9 +182,9 @@ export function Viewport(props: Props): JSX.Element {
             width: 0,
             height: 0,
             transformOrigin: 'top left',
-            transform: `translate(${-focus.x * scale}px, ${
+            transform: `translate3d(${-focus.x * scale}px, ${
               -focus.y * scale
-            }px) scale(${scale})`,
+            }px, 0px) scale(${scale})`,
           }}>
           {blocks
             .filter(
@@ -214,7 +214,7 @@ export function Viewport(props: Props): JSX.Element {
                 /** Set to "absolute" so blocks can overlap. */
                 position: 'absolute',
                 transformOrigin: 'top left',
-                transform: `translate(${selectionBox.x}px, ${selectionBox.y}px)`,
+                transform: `translate3d(${selectionBox.x}px, ${selectionBox.y}px, 0px)`,
               }}
             />
           )}

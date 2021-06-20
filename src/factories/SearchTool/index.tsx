@@ -450,7 +450,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
             <div
               className={BlockStyles.Block}
               style={{
-                transform: `translate(${position.x}px, ${position.y}px)`,
+                transform: `translate3d(${position.x}px, ${position.y}px, 0px)`,
                 width: 300,
               }}>
               <SearchItemContent

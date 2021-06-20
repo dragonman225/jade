@@ -33,7 +33,7 @@ export function ViewObject(props: Props): JSX.Element {
             top: 0,
             right: 0,
             transformOrigin: 'top right',
-            transform: `translate(${-pos.x}px, ${pos.y}px)`,
+            transform: `translate3d(${-pos.x}px, ${pos.y}px, 0px)`,
           }}>
           {children}
         </div>
@@ -49,7 +49,7 @@ export function ViewObject(props: Props): JSX.Element {
             bottom: 0,
             left: 0,
             transformOrigin: 'bottom left',
-            transform: `translate(${pos.x}px, ${-pos.y}px)`,
+            transform: `translate3d(${pos.x}px, ${-pos.y}px, 0px)`,
           }}>
           {children}
         </div>
@@ -65,7 +65,7 @@ export function ViewObject(props: Props): JSX.Element {
             bottom: 0,
             right: 0,
             transformOrigin: 'bottom right',
-            transform: `translate(${-pos.x}px, ${-pos.y}px)`,
+            transform: `translate3d(${-pos.x}px, ${-pos.y}px, 0px)`,
           }}>
           {children}
         </div>
@@ -81,7 +81,7 @@ export function ViewObject(props: Props): JSX.Element {
             top: 0,
             left: 0,
             transformOrigin: 'top left',
-            transform: `translate(${pos.x}px, ${pos.y}px)`,
+            transform: `translate3d(${pos.x}px, ${pos.y}px, 0px)`,
           }}>
           {children}
         </div>
