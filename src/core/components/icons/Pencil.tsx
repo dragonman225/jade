@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { IconStyle } from '../../styles/Icon'
+import { IconStyle } from './Icon.styles'
 
 export const Pencil: React.FunctionComponent = () => {
   return (

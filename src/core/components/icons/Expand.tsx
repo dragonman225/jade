@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { IconStyle } from '../../styles/Icon'
+import { IconStyle } from './Icon.styles'
 
 export const Expand: React.FunctionComponent = () => {
   return (
