@@ -1,8 +1,9 @@
 const path = require('path')
-const { BannerPlugin } = require('webpack')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const nodeExternals = require('webpack-node-externals')
+
+const commonConfig = require('./webpack.config.common')
 
 module.exports = {
   /** (Webpack 4) Target: @see https://webpack.js.org/configuration/target/ */
@@ -21,10 +22,7 @@ module.exports = {
     path: path.join(process.cwd(), 'build/electron'),
     filename: '[name].js',
   },
-  plugins: [
-    new BannerPlugin(
-      'Jade v0.1.4 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'
-    ),
+  plugins: commonConfig.plugins.concat([
     new ForkTsCheckerWebpackPlugin({
       async: false,
       typescript: {
@@ -35,28 +33,8 @@ module.exports = {
       inject: true,
       template: 'src/index.html',
     }),
-  ],
-  module: {
-    rules: [
-      {
-        test: /.tsx?$/,
-        use: [
-          {
-            loader: 'babel-loader',
-            options: {
-              presets: ['@babel/env', '@babel/typescript', '@babel/react'],
-              plugins: [
-                '@babel/proposal-class-properties',
-                '@babel/proposal-object-rest-spread',
-              ],
-            },
-          },
-        ],
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-  },
+  ]),
+  module: commonConfig.module,
+  resolve: commonConfig.resolve,
   devtool: 'inline-source-map',
 }

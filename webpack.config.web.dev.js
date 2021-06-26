@@ -2,6 +2,8 @@ const path = require('path')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
+const commonConfig = require('./webpack.config.common')
+
 module.exports = {
   /** Target: @see https://webpack.js.org/configuration/target/ */
   /** target: "web" is default. */
@@ -25,28 +27,8 @@ module.exports = {
       template: 'src/index.html',
     }),
   ],
-  module: {
-    rules: [
-      {
-        test: /.tsx?$/,
-        use: [
-          {
-            loader: 'babel-loader',
-            options: {
-              presets: ['@babel/env', '@babel/typescript', '@babel/react'],
-              plugins: [
-                '@babel/proposal-class-properties',
-                '@babel/proposal-object-rest-spread',
-              ],
-            },
-          },
-        ],
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-  },
+  module: commonConfig.module,
+  resolve: commonConfig.resolve,
   devtool: 'inline-source-map',
   devServer: {
     clientLogLevel: 'warning',
