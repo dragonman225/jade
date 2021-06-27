@@ -7,6 +7,7 @@ import { Expand } from './icons/Expand'
 import { BlockStyles } from './Block.styles'
 import { Action } from '../reducer'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
+import { deleteElement, setElement } from './ElementPool'
 import { Block as BlockState, InteractionMode } from '../interfaces'
 
 interface Props {
@@ -38,6 +39,12 @@ export function Block(props: Props): JSX.Element {
   }
 
   useEffect(() => {
+    setElement(block.refId, blockRef.current)
+
+    return () => deleteElement(block.refId)
+  }, [block.refId])
+
+  useEffect(() => {
     blockStateRef.current = block
   }, [block])
 
@@ -66,6 +73,7 @@ export function Block(props: Props): JSX.Element {
             data: {
               id: block.refId,
               movementInViewportCoords: movement,
+              pointerInViewportCoords: clientCoords,
             },
           })
           setMode(InteractionMode.Moving)
@@ -81,8 +89,11 @@ export function Block(props: Props): JSX.Element {
         intent = ''
         lastClientCoords = { x: 0, y: 0 }
 
-        /** "Focusing" is controlled by the concept display. */
         const mode = blockStateRef.current.mode
+        if (mode === InteractionMode.Moving)
+          dispatchAction({ type: 'block::moveend' })
+
+        /** "Focusing" is controlled by the concept display. */
         if (
           mode === InteractionMode.Moving ||
           mode === InteractionMode.Resizing
@@ -103,8 +114,13 @@ export function Block(props: Props): JSX.Element {
           const resizerRect = resizerRef.current.getBoundingClientRect()
 
           if (isPointInRect(clientCoords, resizerRect)) intent = 'resize'
-          else if (blockStateRef.current.mode !== InteractionMode.Focusing)
+          else if (blockStateRef.current.mode !== InteractionMode.Focusing) {
             intent = 'move'
+            dispatchAction({
+              type: 'block::movestart',
+              data: { id: block.refId, pointerInViewportCoords: clientCoords },
+            })
+          }
 
           window.addEventListener('mousemove', handlePointerMove)
           window.addEventListener('touchmove', handlePointerMove)

@@ -46,8 +46,9 @@ export interface State4 {
   selectionBoxStart: Vec2
   selectionBoxEnd: Vec2
   selectionBox: Box
+  pointerStartOffset: Vec2
   /** Volatile. */
-  selectedBlocks: ReferenceId[]
+  selectedBlockIds: ReferenceId[]
   /** Volatile. */
   blocks: Block[]
 }

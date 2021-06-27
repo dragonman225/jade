@@ -22,10 +22,8 @@ import {
   vecAdd,
   normalizeToBox,
   isBoxBoxIntersecting,
-  vecReverseX,
-  vecReverseY,
-  vecReverseXY,
 } from './utils'
+import { getElement } from './components/ElementPool'
 import { initialConcepts } from '../resources/initial-concepts'
 
 interface ConceptCreateAction {
@@ -71,6 +69,7 @@ interface RefMoveAction {
     /** Link id. */
     id: string
     movementInViewportCoords?: Vec2
+    pointerInViewportCoords?: Vec2
   }
 }
 
@@ -99,12 +98,12 @@ interface CameraScaleDeltaAction {
 
 interface SelectedBlocksAddAction {
   type: 'selection::add'
-  data: ConceptId[]
+  data: ReferenceId[]
 }
 
 interface SelectedBlocksRemoveAction {
   type: 'selection::remove'
-  data: ConceptId[]
+  data: ReferenceId[]
 }
 
 interface SelectedBlocksClearAction {
@@ -130,6 +129,18 @@ interface ExpandAction {
   data: {
     id: string
   }
+}
+
+interface BlockMoveStartAction {
+  type: 'block::movestart'
+  data: {
+    id: ReferenceId
+    pointerInViewportCoords: Vec2
+  }
+}
+
+interface BlockMoveEndAction {
+  type: 'block::moveend'
 }
 
 interface BlockChangeAction {
@@ -161,6 +172,8 @@ export type Action =
   | SelectionBoxSetEndAction
   | SelectionBoxClearAction
   | ExpandAction
+  | BlockMoveStartAction
+  | BlockMoveEndAction
   | BlockChangeAction
   | DebuggingToggleAction
 
@@ -210,7 +223,8 @@ export function loadAppState(db: DatabaseInterface): State4 {
     selectionBoxStart: { x: 0, y: 0 },
     selectionBoxEnd: { x: 0, y: 0 },
     selectionBox: { x: 0, y: 0, w: 0, h: 0 },
-    selectedBlocks: [],
+    pointerStartOffset: { x: 0, y: 0 },
+    selectedBlockIds: [],
     blocks,
   }
 }
@@ -254,66 +268,212 @@ export function createReducer(db: DatabaseInterface) {
         }
       }
       case 'ref::move': {
-        const { id: refId, movementInViewportCoords } = action.data
-        const { selectedBlocks, blocks, viewingConcept } = state
+        const { pointerInViewportCoords } = action.data
 
-        const blocksToUpdate = selectedBlocks.includes(refId)
-          ? selectedBlocks
-          : [refId]
+        const {
+          selectedBlockIds,
+          blocks,
+          viewingConcept,
+          pointerStartOffset,
+          camera,
+        } = state
 
-        const newBlockAndRefTuples: [
-          Block,
-          Reference | undefined
-        ][] = blocksToUpdate.map(blockId => {
-          /** Update the block. */
-          const block = blocks.find(b => b.refId === blockId)
-          const ref = viewingConcept.references.find(r => r.id === blockId)
+        const movingBlocks = blocks.filter(b =>
+          selectedBlockIds.includes(b.refId)
+        )
 
-          const newPos = (() => {
-            switch (block.posType) {
-              case PositionType.PinnedTL: {
-                return vecAdd(block.pos, movementInViewportCoords)
-              }
-              case PositionType.PinnedTR: {
-                return vecAdd(block.pos, vecReverseX(movementInViewportCoords))
-              }
-              case PositionType.PinnedBL: {
-                return vecAdd(block.pos, vecReverseY(movementInViewportCoords))
-              }
-              case PositionType.PinnedBR: {
-                return vecAdd(block.pos, vecReverseXY(movementInViewportCoords))
-              }
-              default: {
-                return vecAdd(
-                  block.pos,
-                  vecDiv(movementInViewportCoords, state.camera.scale)
-                )
-              }
-            }
-          })()
+        const staticBlocks = blocks.filter(
+          b => !selectedBlockIds.includes(b.refId)
+        )
 
-          return [
+        const movingBlockRects = movingBlocks.map(b =>
+          getElement(b.refId).getBoundingClientRect()
+        )
+
+        const currentSelectionBoundingBox = {
+          top: Math.min(...movingBlockRects.map(r => r.top)),
+          right: Math.max(...movingBlockRects.map(r => r.right)),
+          bottom: Math.max(...movingBlockRects.map(r => r.bottom)),
+          left: Math.min(...movingBlockRects.map(r => r.left)),
+        }
+
+        const selectionBoundingBoxSize = {
+          w:
+            (currentSelectionBoundingBox.right -
+              currentSelectionBoundingBox.left) /
+            camera.scale,
+          h:
+            (currentSelectionBoundingBox.bottom -
+              currentSelectionBoundingBox.top) /
+            camera.scale,
+        }
+
+        const currentSelectionBoundingBoxPos = {
+          x: Math.min(...movingBlocks.map(b => b.pos.x)),
+          y: Math.min(...movingBlocks.map(b => b.pos.y)),
+        }
+
+        const nextSelectionBoundingBoxPos = vecAdd(
+          viewportCoordsToEnvCoords(pointerInViewportCoords, camera),
+          pointerStartOffset
+        )
+
+        /**
+         * To make `snapRange` the same value physically (i.e. in pixel),
+         * we divide it by camera scale.
+         */
+        const snapRange = 12 / camera.scale
+        const inRange = (a: number, b: number) => Math.abs(a - b) <= snapRange
+
+        const movedBlocksMap: { [key: string]: Block } = {}
+        const movement = vecSub(
+          nextSelectionBoundingBoxPos,
+          currentSelectionBoundingBoxPos
+        )
+
+        staticBlocks.forEach(sb => {
+          const rect = getElement(sb.refId).getBoundingClientRect()
+          const gap = 10
+          const detectionZoneWidth = 35
+          const detectionAreaPos = viewportCoordsToEnvCoords(
             {
-              ...block,
-              pos: newPos,
+              x: rect.left - detectionZoneWidth,
+              y: rect.top - detectionZoneWidth,
             },
-            // TODO: Not all refs belongs to viewingConcept.
-            ref
-              ? {
-                  ...ref,
-                  pos: newPos,
-                }
-              : undefined,
-          ]
+            camera
+          )
+          const detectionAreaSize = {
+            w: (rect.right - rect.left + detectionZoneWidth * 2) / camera.scale,
+            h: (rect.bottom - rect.top + detectionZoneWidth * 2) / camera.scale,
+          }
+
+          if (
+            isBoxBoxIntersecting(
+              nextSelectionBoundingBoxPos.x,
+              nextSelectionBoundingBoxPos.y,
+              selectionBoundingBoxSize.w,
+              selectionBoundingBoxSize.h,
+              detectionAreaPos.x,
+              detectionAreaPos.y,
+              detectionAreaSize.w,
+              detectionAreaSize.h
+            )
+          ) {
+            /** Left-Left */
+            if (inRange(nextSelectionBoundingBoxPos.x, sb.pos.x)) {
+              movement.x = sb.pos.x - currentSelectionBoundingBoxPos.x
+            }
+
+            /** Left-Right */
+            if (
+              inRange(
+                nextSelectionBoundingBoxPos.x,
+                sb.pos.x + rect.width / camera.scale + gap
+              )
+            ) {
+              movement.x =
+                sb.pos.x +
+                rect.width / camera.scale -
+                currentSelectionBoundingBoxPos.x +
+                gap
+            }
+
+            /** Top-Top */
+            if (inRange(nextSelectionBoundingBoxPos.y, sb.pos.y)) {
+              movement.y = sb.pos.y - currentSelectionBoundingBoxPos.y
+            }
+
+            /** Top-Bottom */
+            if (
+              inRange(
+                nextSelectionBoundingBoxPos.y,
+                sb.pos.y + rect.height / camera.scale + gap
+              )
+            ) {
+              movement.y =
+                sb.pos.y +
+                rect.height / camera.scale -
+                currentSelectionBoundingBoxPos.y +
+                gap
+            }
+
+            /** Right-Right */
+            if (
+              inRange(
+                nextSelectionBoundingBoxPos.x + selectionBoundingBoxSize.w,
+                sb.pos.x + rect.width / camera.scale
+              )
+            ) {
+              movement.x =
+                sb.pos.x +
+                rect.width / camera.scale -
+                (currentSelectionBoundingBoxPos.x + selectionBoundingBoxSize.w)
+            }
+
+            /** Right-Left */
+            if (
+              inRange(
+                nextSelectionBoundingBoxPos.x + selectionBoundingBoxSize.w,
+                sb.pos.x - gap
+              )
+            ) {
+              movement.x =
+                sb.pos.x -
+                (currentSelectionBoundingBoxPos.x +
+                  selectionBoundingBoxSize.w) -
+                gap
+            }
+
+            /** Bottom-Bottom */
+            if (
+              inRange(
+                nextSelectionBoundingBoxPos.y + selectionBoundingBoxSize.h,
+                sb.pos.y + rect.height / camera.scale
+              )
+            ) {
+              movement.y =
+                sb.pos.y +
+                rect.height / camera.scale -
+                (currentSelectionBoundingBoxPos.y + selectionBoundingBoxSize.h)
+            }
+
+            /** Bottom-Top */
+            if (
+              inRange(
+                nextSelectionBoundingBoxPos.y + selectionBoundingBoxSize.h,
+                sb.pos.y - gap
+              )
+            ) {
+              movement.y =
+                sb.pos.y -
+                (currentSelectionBoundingBoxPos.y +
+                  selectionBoundingBoxSize.h) -
+                gap
+            }
+          }
         })
 
-        const newBlocks = newBlockAndRefTuples.map(t => t[0])
-        const newRefs = newBlockAndRefTuples.map(t => t[1]).filter(r => !!r)
+        movingBlocks.forEach(mb => {
+          movedBlocksMap[mb.refId] = {
+            ...mb,
+            pos: vecAdd(mb.pos, movement),
+          }
+        })
+
+        const movedBlocks = Object.values(movedBlocksMap)
+
+        const newRefs: Reference[] = movedBlocks.map(b => ({
+          id: b.refId,
+          pos: b.pos,
+          posType: b.posType,
+          size: b.size,
+          to: b.concept.id,
+        }))
 
         const newViewingConcept: Concept = {
           ...viewingConcept,
           references: viewingConcept.references
-            .filter(r => !blocksToUpdate.includes(r.id))
+            .filter(r => !selectedBlockIds.includes(r.id))
             .concat(newRefs),
         }
 
@@ -323,8 +483,8 @@ export function createReducer(db: DatabaseInterface) {
           ...state,
           viewingConcept: newViewingConcept,
           blocks: blocks
-            .filter(b => !blocksToUpdate.includes(b.refId))
-            .concat(newBlocks),
+            .filter(b => !selectedBlockIds.includes(b.refId))
+            .concat(movedBlocks),
         }
       }
       case 'ref::resize': {
@@ -487,16 +647,18 @@ export function createReducer(db: DatabaseInterface) {
       case 'selection::add': {
         return {
           ...state,
-          selectedBlocks: state.selectedBlocks.concat(
+          selectedBlockIds: state.selectedBlockIds.concat(
             /** Just add those that are not selected. */
-            action.data.filter(c => !state.selectedBlocks.find(sc => sc === c))
+            action.data.filter(
+              c => !state.selectedBlockIds.find(sc => sc === c)
+            )
           ),
         }
       }
       case 'selection::remove': {
         return {
           ...state,
-          selectedBlocks: state.selectedBlocks.filter(
+          selectedBlockIds: state.selectedBlockIds.filter(
             sc => !action.data.find(c => c === sc)
           ),
         }
@@ -504,7 +666,7 @@ export function createReducer(db: DatabaseInterface) {
       case 'selection::clear': {
         return {
           ...state,
-          selectedBlocks: [],
+          selectedBlockIds: [],
         }
       }
       case 'selectionbox::setstart': {
@@ -531,7 +693,7 @@ export function createReducer(db: DatabaseInterface) {
            * This is the same as where "selectionbox::setstart" action is
            * fired.
            */
-          selectedBlocks: [],
+          selectedBlockIds: [],
           blocks: state.blocks.map(b => ({ ...b, selected: false })),
         }
       }
@@ -547,7 +709,7 @@ export function createReducer(db: DatabaseInterface) {
           selectionBoxEnd.x,
           selectionBoxEnd.y
         )
-        const selectedBlocks = state.blocks
+        const selectedBlockIds = state.blocks
           .map(b => {
             /** TODO: Resolve 'auto' to actual size. */
             const { size } = b
@@ -580,10 +742,10 @@ export function createReducer(db: DatabaseInterface) {
           ...state,
           selectionBoxEnd,
           selectionBox,
-          selectedBlocks,
+          selectedBlockIds,
           blocks: state.blocks.map(b => ({
             ...b,
-            selected: selectedBlocks.includes(b.refId),
+            selected: selectedBlockIds.includes(b.refId),
           })),
         }
       }
@@ -647,6 +809,46 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: conceptChanged,
+        }
+      }
+      case 'block::movestart': {
+        const { id, pointerInViewportCoords } = action.data
+        const { blocks, selectedBlockIds: currSeletedBlockIds, camera } = state
+
+        const selectedBlockIds = currSeletedBlockIds.length
+          ? currSeletedBlockIds.includes(id)
+            ? currSeletedBlockIds
+            : [id]
+          : [id]
+
+        const movingBlocks = blocks.filter(b =>
+          selectedBlockIds.includes(b.refId)
+        )
+
+        const boundingBoxPos: Vec2 = {
+          x: Math.min(...movingBlocks.map(b => b.pos.x)),
+          y: Math.min(...movingBlocks.map(b => b.pos.y)),
+        }
+
+        const pointerInEnvCoords = viewportCoordsToEnvCoords(
+          pointerInViewportCoords,
+          camera
+        )
+
+        return {
+          ...state,
+          blocks: blocks.map(b => ({
+            ...b,
+            selected: selectedBlockIds.includes(b.refId),
+          })),
+          selectedBlockIds,
+          pointerStartOffset: vecSub(boundingBoxPos, pointerInEnvCoords),
+        }
+      }
+      case 'block::moveend': {
+        return {
+          ...state,
+          pointerStartOffset: { x: 0, y: 0 },
         }
       }
       case 'block::change': {
