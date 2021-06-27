@@ -76,4 +76,8 @@ export const initialConcepts = contentConcepts
     })),
     camera: c.camera || createDefaultCamera(),
   }))
-  .concat(toolConcepts, toolMaskConcept)
+  .concat(
+    contentConcepts.find(c => c.id === '__tool_mask__')
+      ? []
+      : toolConcepts.concat(toolMaskConcept)
+  )
