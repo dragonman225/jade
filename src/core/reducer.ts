@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from 'uuid'
-import { factoryRegistry } from '../factories'
 import {
   BaseConceptData,
   Concept,
@@ -14,6 +13,7 @@ import {
   Size,
   BlockId,
   Camera,
+  FactoryRegistry,
 } from './interfaces'
 import {
   viewportCoordsToEnvCoords,
@@ -26,6 +26,7 @@ import {
 import { getElement } from './components/ElementPool'
 import { initialConcepts } from '../resources/initial-concepts'
 import { createBlockInstance } from './utils/block'
+import { createConcept } from './utils/concept'
 
 interface ConceptCreateAction {
   type: 'concept::create'
@@ -176,14 +177,23 @@ export type Action =
 
 export function synthesizeView(
   viewingConcept: Concept,
-  db: DatabaseInterface
+  db: DatabaseInterface,
+  existingBlockInstances?: BlockInstance[]
 ): BlockInstance[] {
   const overlayConcept = db.getConcept('__tool_mask__')
   const overlayBlocks = overlayConcept.references.map(block =>
-    createBlockInstance(block, db)
+    createBlockInstance(
+      block,
+      db.getConcept(block.to),
+      existingBlockInstances?.find(i => i.id === block.id)
+    )
   )
   const viewingBlocks = viewingConcept.references.map(block =>
-    createBlockInstance(block, db)
+    createBlockInstance(
+      block,
+      db.getConcept(block.to),
+      existingBlockInstances?.find(i => i.id === block.id)
+    )
   )
 
   return overlayBlocks.concat(viewingBlocks)
@@ -226,26 +236,20 @@ export function loadAppState(db: DatabaseInterface): AppState {
   }
 }
 
-export function createReducer(db: DatabaseInterface) {
+const defaultSize: Size = { w: 300, h: 'auto' }
+
+export function createReducer(
+  db: DatabaseInterface,
+  factoryRegistry: FactoryRegistry
+) {
   return function appStateReducer(state: AppState, action: Action): AppState {
     // console.log(`reducer: "${action.type}"`, action)
-    const defaultSize: Size = { w: 300, h: 'auto' }
     switch (action.type) {
       case 'concept::create': {
-        const newConcept: Concept = {
-          id: uuidv4(),
-          summary: {
-            type: factoryRegistry.getDefaultContentFactory().id,
-            data: { initialized: false },
-          },
-          references: [],
-          drawing: [],
-          camera: {
-            focus: { x: 0, y: 0 },
-            scale: 1,
-          },
-        }
-        const newLink: Block = {
+        const newConcept = createConcept(
+          factoryRegistry.getDefaultContentFactory().id
+        )
+        const newBlock: Block = {
           id: uuidv4(),
           to: newConcept.id,
           posType: PositionType.Normal,
@@ -254,14 +258,17 @@ export function createReducer(db: DatabaseInterface) {
         }
         const newViewingConcept: Concept = {
           ...state.viewingConcept,
-          references: state.viewingConcept.references.concat([newLink]),
+          references: state.viewingConcept.references.concat(newBlock),
         }
-        db.updateConcept(newViewingConcept)
+        const newBlockInstance = createBlockInstance(newBlock, newConcept)
+
         db.createConcept(newConcept)
+        db.updateConcept(newViewingConcept)
+
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: synthesizeView(newViewingConcept, db),
+          blocks: state.blocks.concat(newBlockInstance),
         }
       }
       case 'block::move': {
@@ -541,7 +548,6 @@ export function createReducer(db: DatabaseInterface) {
       case 'concept::datachange': {
         const newType = action.data.type
         const newData = action.data.content
-
         const concept = db.getConcept(action.data.id)
 
         db.updateConcept({
@@ -555,7 +561,7 @@ export function createReducer(db: DatabaseInterface) {
         return {
           ...state,
           viewingConcept: db.getConcept(state.viewingConcept.id),
-          blocks: synthesizeView(state.viewingConcept, db),
+          blocks: synthesizeView(state.viewingConcept, db, state.blocks),
         }
       }
       case 'block::remove': {

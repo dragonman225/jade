@@ -11,23 +11,24 @@ import { AppStyles } from './App.styles'
 import theme from '../theme'
 import { useAnimationFrame } from './useAnimationFrame'
 import { Action, createReducer, loadAppState } from './reducer'
-import { factoryRegistry } from '../factories'
 import {
   AppState,
   BlockInstance,
   DatabaseInterface,
+  FactoryRegistry,
   InteractionMode,
   PositionType,
 } from './interfaces'
 
 interface Props {
   db: DatabaseInterface
+  factoryRegistry: FactoryRegistry
 }
 
 export function App(props: Props): JSX.Element {
-  const { db } = props
+  const { db, factoryRegistry } = props
 
-  const appStateReducer = useCallback(createReducer(db), [])
+  const appStateReducer = useCallback(createReducer(db, factoryRegistry), [])
   const initialState = useMemo(() => loadAppState(db), [])
   const [stateSnapshot, setStateSnapshot] = useState<AppState>(initialState)
   const stateRef = useRef<AppState>(initialState)

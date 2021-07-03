@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom'
 
 import { App } from './App'
 import { isNaN } from './utils'
+import { factoryRegistry } from '../factories'
 import { legacyLoadState } from '../resources/web-legacy-storage'
 import { toolConcepts, toolMaskConcept } from '../resources/initial-concepts'
 import env from '../env'
@@ -57,7 +58,7 @@ export function startApp(database: DatabaseInterface): void {
   }
 
   ReactDOM.render(
-    React.createElement(App, { db: database }),
+    React.createElement(App, { db: database, factoryRegistry }),
     document.getElementById('react-root')
   )
 }
