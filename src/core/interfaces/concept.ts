@@ -1,5 +1,6 @@
-import { Camera, Size, Vec2 } from './util'
-import { Block, DatabaseInterface, InteractionMode } from './core'
+import { Camera, Vec2 } from './util'
+import { DatabaseInterface } from './core'
+import { Block } from './block'
 
 /** Summary. */
 export interface UninitializedConceptData {
@@ -34,58 +35,18 @@ export interface Stroke {
   points: Point[]
 }
 
-/** Reference: References a Concept in a Concept. */
-export type ReferenceId = string
-
-export enum PositionType {
-  /** Not positioned, the `position` property has no meaning. */
-  None,
-  /** Position relative to environment origin. */
-  Normal,
-  /**
-   * Position relative to viewport top-left, top-right, bottom-left,
-   * bottom-right.
-   */
-  PinnedTL,
-  PinnedTR,
-  PinnedBL,
-  PinnedBR,
-}
-
-export interface Reference {
-  id: ReferenceId
-  to: ConceptId
-  posType: PositionType
-  pos: Vec2
-  size: Size
-}
-
-/** Concept: The container of an idea of any type. */
 export type ConceptId = string
 
+/** A Concept is a container for an idea of any type. */
 export interface Concept {
   id: ConceptId
   summary: ConceptSummary
-  references: Reference[]
+  // TODO: Create "Canvas" entity (fullscreen representation for a Concept)
+  // to contain blocks, while a Concept holds references to Canvases,
+  // and the active canvas.
+  references: Block[]
   drawing: Stroke[]
   camera: Camera
-}
-
-export interface Concept4 {
-  id: ConceptId
-  summary: ConceptSummary
-  details: {
-    id: ReferenceId
-    to: ConceptId
-    position: Vec2
-    width: number
-  }[]
-  drawing: Stroke[]
-}
-
-export interface ConceptDetail {
-  reference: Reference
-  concept: Concept
 }
 
 /** Concept utils. */
@@ -106,34 +67,5 @@ export const Concept = {
     return JSON.stringify(concept.summary.data)
       .toLocaleLowerCase()
       .includes(text.toLocaleLowerCase())
-  },
-
-  toBlock(concept: Concept): Block {
-    return {
-      refId: undefined,
-      conceptId: concept.id,
-      posType: undefined,
-      pos: undefined,
-      size: undefined,
-      mode: InteractionMode.Idle,
-      selected: false,
-      concept,
-    }
-  },
-}
-
-/** Reference utils. */
-export const Reference = {
-  toBlock(reference: Reference, db: DatabaseInterface): Block {
-    return {
-      refId: reference.id,
-      conceptId: reference.to,
-      posType: reference.posType,
-      pos: reference.pos,
-      size: reference.size,
-      mode: InteractionMode.Idle,
-      selected: false,
-      concept: db.getConcept(reference.to),
-    }
   },
 }

@@ -5,14 +5,14 @@ import {
   Concept,
   ConceptId,
   DatabaseInterface,
-  Reference,
+  Block,
   PositionType,
-  State4,
+  AppState,
   Stroke,
   Vec2,
-  Block,
+  BlockInstance,
   Size,
-  ReferenceId,
+  BlockId,
   Camera,
 } from './interfaces'
 import {
@@ -25,6 +25,7 @@ import {
 } from './utils'
 import { getElement } from './components/ElementPool'
 import { initialConcepts } from '../resources/initial-concepts'
+import { createBlockInstance } from './utils/block'
 
 interface ConceptCreateAction {
   type: 'concept::create'
@@ -47,39 +48,55 @@ interface ConceptDrawingChangeAction {
   data: Stroke[]
 }
 
-interface RefCreateAction {
-  type: 'ref::create'
+interface BlockCreateAction {
+  type: 'block::create'
   data: {
     id: string
     position: Vec2
   }
 }
 
-interface RefRemoveAction {
-  type: 'ref::remove'
+interface BlockRemoveAction {
+  type: 'block::remove'
   data: {
-    /** Link id. */
     id: string
   }
 }
 
-interface RefMoveAction {
-  type: 'ref::move'
+interface BlockMoveAction {
+  type: 'block::move'
   data: {
-    /** Link id. */
     id: string
-    movementInViewportCoords?: Vec2
     pointerInViewportCoords?: Vec2
   }
 }
 
-interface RefResizeAction {
-  type: 'ref::resize'
+interface BlockResizeAction {
+  type: 'block::resize'
   data: {
-    /** Link id. */
     id: string
     sizeInEnvCoords?: Size
     movementInViewportCoords?: Vec2
+  }
+}
+
+interface BlockMoveStartAction {
+  type: 'block::movestart'
+  data: {
+    id: BlockId
+    pointerInViewportCoords: Vec2
+  }
+}
+
+interface BlockMoveEndAction {
+  type: 'block::moveend'
+}
+
+interface BlockChangeAction {
+  type: 'block::change'
+  data: {
+    id: BlockId
+    changes: Partial<BlockInstance>
   }
 }
 
@@ -98,12 +115,12 @@ interface CameraScaleDeltaAction {
 
 interface SelectedBlocksAddAction {
   type: 'selection::add'
-  data: ReferenceId[]
+  data: BlockId[]
 }
 
 interface SelectedBlocksRemoveAction {
   type: 'selection::remove'
-  data: ReferenceId[]
+  data: BlockId[]
 }
 
 interface SelectedBlocksClearAction {
@@ -131,26 +148,6 @@ interface ExpandAction {
   }
 }
 
-interface BlockMoveStartAction {
-  type: 'block::movestart'
-  data: {
-    id: ReferenceId
-    pointerInViewportCoords: Vec2
-  }
-}
-
-interface BlockMoveEndAction {
-  type: 'block::moveend'
-}
-
-interface BlockChangeAction {
-  type: 'block::change'
-  data: {
-    id: ReferenceId
-    changes: Partial<Block>
-  }
-}
-
 interface DebuggingToggleAction {
   type: 'debugging::toggle'
 }
@@ -159,10 +156,13 @@ export type Action =
   | ConceptCreateAction
   | ConceptDataChangeAction
   | ConceptDrawingChangeAction
-  | RefCreateAction
-  | RefRemoveAction
-  | RefMoveAction
-  | RefResizeAction
+  | BlockCreateAction
+  | BlockRemoveAction
+  | BlockMoveAction
+  | BlockResizeAction
+  | BlockMoveStartAction
+  | BlockMoveEndAction
+  | BlockChangeAction
   | CameraMoveDeltaAction
   | CameraScaleDeltaAction
   | SelectedBlocksAddAction
@@ -172,27 +172,24 @@ export type Action =
   | SelectionBoxSetEndAction
   | SelectionBoxClearAction
   | ExpandAction
-  | BlockMoveStartAction
-  | BlockMoveEndAction
-  | BlockChangeAction
   | DebuggingToggleAction
 
 export function synthesizeView(
   viewingConcept: Concept,
   db: DatabaseInterface
-): Block[] {
+): BlockInstance[] {
   const overlayConcept = db.getConcept('__tool_mask__')
-  const overlayBlocks = overlayConcept.references.map(ref =>
-    Reference.toBlock(ref, db)
+  const overlayBlocks = overlayConcept.references.map(block =>
+    createBlockInstance(block, db)
   )
-  const viewingBlocks = viewingConcept.references.map(ref =>
-    Reference.toBlock(ref, db)
+  const viewingBlocks = viewingConcept.references.map(block =>
+    createBlockInstance(block, db)
   )
 
   return overlayBlocks.concat(viewingBlocks)
 }
 
-export function loadAppState(db: DatabaseInterface): State4 {
+export function loadAppState(db: DatabaseInterface): AppState {
   console.log('Loading app state.')
 
   if (!db.isValid()) {
@@ -230,7 +227,7 @@ export function loadAppState(db: DatabaseInterface): State4 {
 }
 
 export function createReducer(db: DatabaseInterface) {
-  return function appStateReducer(state: State4, action: Action): State4 {
+  return function appStateReducer(state: AppState, action: Action): AppState {
     // console.log(`reducer: "${action.type}"`, action)
     const defaultSize: Size = { w: 300, h: 'auto' }
     switch (action.type) {
@@ -248,7 +245,7 @@ export function createReducer(db: DatabaseInterface) {
             scale: 1,
           },
         }
-        const newLink: Reference = {
+        const newLink: Block = {
           id: uuidv4(),
           to: newConcept.id,
           posType: PositionType.Normal,
@@ -267,7 +264,7 @@ export function createReducer(db: DatabaseInterface) {
           blocks: synthesizeView(newViewingConcept, db),
         }
       }
-      case 'ref::move': {
+      case 'block::move': {
         const { pointerInViewportCoords } = action.data
 
         const {
@@ -278,16 +275,14 @@ export function createReducer(db: DatabaseInterface) {
           camera,
         } = state
 
-        const movingBlocks = blocks.filter(b =>
-          selectedBlockIds.includes(b.refId)
-        )
+        const movingBlocks = blocks.filter(b => selectedBlockIds.includes(b.id))
 
         const staticBlocks = blocks.filter(
-          b => !selectedBlockIds.includes(b.refId)
+          b => !selectedBlockIds.includes(b.id)
         )
 
         const movingBlockRects = movingBlocks.map(b =>
-          getElement(b.refId).getBoundingClientRect()
+          getElement(b.id).getBoundingClientRect()
         )
 
         const currentSelectionBoundingBox = {
@@ -325,14 +320,14 @@ export function createReducer(db: DatabaseInterface) {
         const snapRange = 12 / camera.scale
         const inRange = (a: number, b: number) => Math.abs(a - b) <= snapRange
 
-        const movedBlocksMap: { [key: string]: Block } = {}
+        const movedBlocksMap: { [key: string]: BlockInstance } = {}
         const movement = vecSub(
           nextSelectionBoundingBoxPos,
           currentSelectionBoundingBoxPos
         )
 
         staticBlocks.forEach(sb => {
-          const rect = getElement(sb.refId).getBoundingClientRect()
+          const rect = getElement(sb.id).getBoundingClientRect()
           const gap = 10
           const detectionZoneWidth = 35
           const detectionAreaPos = viewportCoordsToEnvCoords(
@@ -454,7 +449,7 @@ export function createReducer(db: DatabaseInterface) {
         })
 
         movingBlocks.forEach(mb => {
-          movedBlocksMap[mb.refId] = {
+          movedBlocksMap[mb.id] = {
             ...mb,
             pos: vecAdd(mb.pos, movement),
           }
@@ -462,8 +457,8 @@ export function createReducer(db: DatabaseInterface) {
 
         const movedBlocks = Object.values(movedBlocksMap)
 
-        const newRefs: Reference[] = movedBlocks.map(b => ({
-          id: b.refId,
+        const newRefs: Block[] = movedBlocks.map(b => ({
+          id: b.id,
           pos: b.pos,
           posType: b.posType,
           size: b.size,
@@ -483,11 +478,11 @@ export function createReducer(db: DatabaseInterface) {
           ...state,
           viewingConcept: newViewingConcept,
           blocks: blocks
-            .filter(b => !selectedBlockIds.includes(b.refId))
+            .filter(b => !selectedBlockIds.includes(b.id))
             .concat(movedBlocks),
         }
       }
-      case 'ref::resize': {
+      case 'block::resize': {
         const {
           id: refId,
           sizeInEnvCoords: requestedSize,
@@ -528,8 +523,8 @@ export function createReducer(db: DatabaseInterface) {
 
         db.updateConcept(newViewingConcept)
 
-        const oldBlockIndex = state.blocks.findIndex(b => b.refId === refId)
-        const newBlock: Block = {
+        const oldBlockIndex = state.blocks.findIndex(b => b.id === refId)
+        const newBlock: BlockInstance = {
           ...state.blocks[oldBlockIndex],
           size: newSize,
         }
@@ -563,7 +558,7 @@ export function createReducer(db: DatabaseInterface) {
           blocks: synthesizeView(state.viewingConcept, db),
         }
       }
-      case 'ref::remove': {
+      case 'block::remove': {
         // remove link only
         const linkId = action.data.id
         const newViewingConcept = {
@@ -736,7 +731,7 @@ export function createReducer(db: DatabaseInterface) {
                 b.size.h
               )
           )
-          .map(b => b.refId)
+          .map(b => b.id)
 
         return {
           ...state,
@@ -745,7 +740,7 @@ export function createReducer(db: DatabaseInterface) {
           selectedBlockIds,
           blocks: state.blocks.map(b => ({
             ...b,
-            selected: selectedBlockIds.includes(b.refId),
+            selected: selectedBlockIds.includes(b.id),
           })),
         }
       }
@@ -780,8 +775,8 @@ export function createReducer(db: DatabaseInterface) {
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
         }
       }
-      case 'ref::create': {
-        const ref: Reference = {
+      case 'block::create': {
+        const ref: Block = {
           id: uuidv4(),
           to: action.data.id,
           posType: PositionType.Normal,
@@ -821,9 +816,7 @@ export function createReducer(db: DatabaseInterface) {
             : [id]
           : [id]
 
-        const movingBlocks = blocks.filter(b =>
-          selectedBlockIds.includes(b.refId)
-        )
+        const movingBlocks = blocks.filter(b => selectedBlockIds.includes(b.id))
 
         const boundingBoxPos: Vec2 = {
           x: Math.min(...movingBlocks.map(b => b.pos.x)),
@@ -839,7 +832,7 @@ export function createReducer(db: DatabaseInterface) {
           ...state,
           blocks: blocks.map(b => ({
             ...b,
-            selected: selectedBlockIds.includes(b.refId),
+            selected: selectedBlockIds.includes(b.id),
           })),
           selectedBlockIds,
           pointerStartOffset: vecSub(boundingBoxPos, pointerInEnvCoords),
@@ -853,13 +846,13 @@ export function createReducer(db: DatabaseInterface) {
       }
       case 'block::change': {
         const { id, changes } = action.data
-        const oldBlock = state.blocks.find(b => b.refId === id)
+        const oldBlock = state.blocks.find(b => b.id === id)
         const newBlock = { ...oldBlock, ...changes }
 
         return {
           ...state,
           blocks: state.blocks
-            .filter(b => b.refId !== newBlock.refId)
+            .filter(b => b.id !== newBlock.id)
             .concat(newBlock),
         }
       }

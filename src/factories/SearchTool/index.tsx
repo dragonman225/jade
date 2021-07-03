@@ -258,7 +258,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
           const s2lDelta = s2lDeltaRef.current
           if (s2lBlock.valid) {
             dispatchAction({
-              type: 'ref::create',
+              type: 'block::create',
               data: {
                 id: s2lBlock.id,
                 position: viewportCoordsToEnvCoords(

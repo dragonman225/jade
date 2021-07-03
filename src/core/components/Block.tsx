@@ -8,12 +8,12 @@ import { BlockStyles } from './Block.styles'
 import { Action } from '../reducer'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
 import { deleteElement, setElement } from './ElementPool'
-import { Block as BlockState, InteractionMode } from '../interfaces'
+import { BlockInstance, InteractionMode } from '../interfaces'
 
 interface Props {
   debug: boolean
   className?: string
-  block: BlockState
+  block: BlockInstance
   dispatchAction: React.Dispatch<Action>
   children?: React.ReactNode
 }
@@ -24,13 +24,13 @@ export function Block(props: Props): JSX.Element {
   const concept = block.concept
   const blockRef = useRef<HTMLDivElement>(null)
   const resizerRef = useRef<HTMLDivElement>(null)
-  const blockStateRef = useRef<BlockState>(block)
+  const blockStateRef = useRef<BlockInstance>(block)
 
   const setMode = (mode: InteractionMode) => {
     dispatchAction({
       type: 'block::change',
       data: {
-        id: block.refId,
+        id: block.id,
         changes: {
           mode,
         },
@@ -39,10 +39,10 @@ export function Block(props: Props): JSX.Element {
   }
 
   useEffect(() => {
-    setElement(block.refId, blockRef.current)
+    setElement(block.id, blockRef.current)
 
-    return () => deleteElement(block.refId)
-  }, [block.refId])
+    return () => deleteElement(block.id)
+  }, [block.id])
 
   useEffect(() => {
     blockStateRef.current = block
@@ -60,19 +60,18 @@ export function Block(props: Props): JSX.Element {
 
         if (intent === 'resize') {
           dispatchAction({
-            type: 'ref::resize',
+            type: 'block::resize',
             data: {
-              id: block.refId,
+              id: block.id,
               movementInViewportCoords: movement,
             },
           })
           setMode(InteractionMode.Resizing)
         } else if (intent === 'move') {
           dispatchAction({
-            type: 'ref::move',
+            type: 'block::move',
             data: {
-              id: block.refId,
-              movementInViewportCoords: movement,
+              id: block.id,
               pointerInViewportCoords: clientCoords,
             },
           })
@@ -118,7 +117,7 @@ export function Block(props: Props): JSX.Element {
             intent = 'move'
             dispatchAction({
               type: 'block::movestart',
-              data: { id: block.refId, pointerInViewportCoords: clientCoords },
+              data: { id: block.id, pointerInViewportCoords: clientCoords },
             })
           }
 
@@ -161,7 +160,7 @@ export function Block(props: Props): JSX.Element {
       {props.children}
       {debug && (
         <div className={BlockStyles.DebugLabel}>
-          id: {block.refId}
+          id: {block.id}
           <br />
           mode: {block.mode}
           <br />
@@ -214,8 +213,8 @@ export function Block(props: Props): JSX.Element {
         }}
         onClick={() => {
           dispatchAction({
-            type: 'ref::remove',
-            data: { id: block.refId },
+            type: 'block::remove',
+            data: { id: block.id },
           })
         }}>
         <Cross />

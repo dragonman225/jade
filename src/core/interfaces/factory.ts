@@ -1,7 +1,7 @@
 import { Action } from '../reducer'
-import { Origin } from './util'
 import { Concept, InitializedConceptData } from './concept'
-import { DatabaseInterface, State4 } from './core'
+import { DatabaseInterface, AppState } from './core'
+import { Origin } from './util'
 
 export type FactoryId = string
 
@@ -30,7 +30,7 @@ export interface ConceptDisplayProps<T extends InitializedConceptData> {
   readOnly: boolean
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
   concept: Concept
-  state: State4
+  state: AppState
   dispatchAction: React.Dispatch<Action>
   factoryRegistry: FactoryRegistry
   database: DatabaseInterface

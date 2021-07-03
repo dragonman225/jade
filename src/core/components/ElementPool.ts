@@ -1,15 +1,15 @@
-import { ReferenceId } from '../interfaces'
+import { BlockId } from '../interfaces'
 
-const elementMap = new Map<ReferenceId, HTMLDivElement>()
+const elementMap = new Map<BlockId, HTMLDivElement>()
 
-export function setElement(blockId: ReferenceId, el: HTMLDivElement): void {
+export function setElement(blockId: BlockId, el: HTMLDivElement): void {
   elementMap.set(blockId, el)
 }
 
-export function getElement(blockId: ReferenceId): HTMLDivElement | undefined {
+export function getElement(blockId: BlockId): HTMLDivElement | undefined {
   return elementMap.get(blockId)
 }
 
-export function deleteElement(blockId: ReferenceId): void {
+export function deleteElement(blockId: BlockId): void {
   elementMap.delete(blockId)
 }

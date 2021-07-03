@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useRef, useEffect } from 'react'
 
 import { getUnifiedClientCoords, vecSub } from '../utils'
-import { Block as BlockState, Box, PositionType, Vec2 } from '../interfaces'
+import { BlockInstance, Box, PositionType, Vec2 } from '../interfaces'
 import { Action } from '../reducer'
 import { SelectionBox } from './SelectionBox'
 import { ViewObject } from './ViewObject'
@@ -10,10 +10,10 @@ import { ViewObject } from './ViewObject'
 interface Props {
   focus: Vec2
   scale: number
-  blocks: BlockState[]
+  blocks: BlockInstance[]
   selecting: boolean
   selectionBox: Box
-  renderBlock: (block: BlockState) => JSX.Element
+  renderBlock: (block: BlockInstance) => JSX.Element
   dispatchAction: React.Dispatch<Action>
 }
 
@@ -193,7 +193,7 @@ export function Viewport(props: Props): JSX.Element {
                 typeof b.posType === 'undefined'
             )
             .map(b => {
-              const key = `ViewObject-${b.refId}`
+              const key = `ViewObject-${b.id}`
 
               return (
                 <ViewObject
@@ -223,7 +223,7 @@ export function Viewport(props: Props): JSX.Element {
       {blocks
         .filter(b => b.posType !== PositionType.Normal)
         .map(b => {
-          const key = `ViewObject-${b.refId}`
+          const key = `ViewObject-${b.id}`
 
           return (
             <ViewObject key={key} posType={b.posType} pos={b.pos} size={b.size}>

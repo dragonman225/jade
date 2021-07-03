@@ -13,11 +13,11 @@ import { useAnimationFrame } from './useAnimationFrame'
 import { Action, createReducer, loadAppState } from './reducer'
 import { factoryRegistry } from '../factories'
 import {
-  Block as BlockState,
+  AppState,
+  BlockInstance,
   DatabaseInterface,
   InteractionMode,
   PositionType,
-  State4,
 } from './interfaces'
 
 interface Props {
@@ -29,8 +29,8 @@ export function App(props: Props): JSX.Element {
 
   const appStateReducer = useCallback(createReducer(db), [])
   const initialState = useMemo(() => loadAppState(db), [])
-  const [stateSnapshot, setStateSnapshot] = useState<State4>(initialState)
-  const stateRef = useRef<State4>(initialState)
+  const [stateSnapshot, setStateSnapshot] = useState<AppState>(initialState)
+  const stateRef = useRef<AppState>(initialState)
   const dispatchAction = useCallback<(action: Action) => void>(
     action => {
       stateRef.current = appStateReducer(stateRef.current, action)
@@ -50,12 +50,12 @@ export function App(props: Props): JSX.Element {
     []
   )
 
-  const renderBlock = (block: BlockState): JSX.Element => {
+  const renderBlock = (block: BlockInstance): JSX.Element => {
     const setMode = (mode: InteractionMode) => {
       dispatchAction({
         type: 'block::change',
         data: {
-          id: block.refId,
+          id: block.id,
           changes: {
             mode,
           },
