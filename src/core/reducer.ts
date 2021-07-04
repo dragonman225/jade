@@ -27,6 +27,7 @@ import { getElement } from './components/ElementPool'
 import { initialConcepts } from '../resources/initial-concepts'
 import { createBlockInstance } from './utils/block'
 import { createConcept } from './utils/concept'
+import { generateGuidelinesFromRects, RectSide, snapValue } from './utils/snap'
 
 interface ConceptCreateAction {
   type: 'concept::create'
@@ -68,7 +69,7 @@ interface BlockMoveAction {
   type: 'block::move'
   data: {
     id: string
-    pointerInViewportCoords?: Vec2
+    pointerInViewportCoords: Vec2
   }
 }
 
@@ -76,8 +77,7 @@ interface BlockResizeAction {
   type: 'block::resize'
   data: {
     id: string
-    sizeInEnvCoords?: Size
-    movementInViewportCoords?: Vec2
+    movementInViewportCoords: Vec2
   }
 }
 
@@ -237,6 +237,8 @@ export function loadAppState(db: DatabaseInterface): AppState {
 }
 
 const defaultSize: Size = { w: 300, h: 'auto' }
+let cursorBlockId = ''
+let cursorRectSize: { w: number; h: number } = { w: 0, h: 0 }
 
 export function createReducer(
   db: DatabaseInterface,
@@ -244,6 +246,7 @@ export function createReducer(
 ) {
   return function appStateReducer(state: AppState, action: Action): AppState {
     // console.log(`reducer: "${action.type}"`, action)
+
     switch (action.type) {
       case 'concept::create': {
         const newConcept = createConcept(
@@ -490,34 +493,109 @@ export function createReducer(
         }
       }
       case 'block::resize': {
-        const {
-          id: refId,
-          sizeInEnvCoords: requestedSize,
-          movementInViewportCoords,
-        } = action.data
+        const { id, movementInViewportCoords } = action.data
+        const { camera, blocks } = state
 
-        const oldSize = state.viewingConcept.references.find(
-          l => l.id === refId
-        ).size
-        const newSize = requestedSize
-          ? requestedSize
-          : movementInViewportCoords
-          ? {
+        const block = state.blocks.find(b => b.id === id)
+        const blockViewportRect = getElement(id).getBoundingClientRect()
+        const oldSize = block.size
+
+        cursorRectSize =
+          cursorBlockId !== id
+            ? {
+                w:
+                  typeof oldSize.w === 'number'
+                    ? oldSize.w + movementInViewportCoords.x / camera.scale
+                    : blockViewportRect.width / camera.scale,
+                h:
+                  typeof oldSize.h === 'number'
+                    ? oldSize.h + movementInViewportCoords.y / camera.scale
+                    : blockViewportRect.height / camera.scale,
+              }
+            : {
+                w:
+                  typeof cursorRectSize.w === 'number'
+                    ? cursorRectSize.w +
+                      movementInViewportCoords.x / camera.scale
+                    : cursorRectSize.w,
+                h:
+                  typeof cursorRectSize.h === 'number'
+                    ? cursorRectSize.h +
+                      movementInViewportCoords.y / camera.scale
+                    : cursorRectSize.h,
+              }
+        cursorBlockId = id
+
+        const cursorRect = {
+          ...block.pos,
+          ...cursorRectSize,
+        }
+
+        const targetRects = blocks
+          .filter(b => b.id !== id && b.posType === PositionType.Normal)
+          .map(b => {
+            const viewportRect = getElement(b.id).getBoundingClientRect()
+            return {
+              ...b.pos,
               w:
-                typeof oldSize.w === 'number'
-                  ? oldSize.w + movementInViewportCoords.x / state.camera.scale
-                  : oldSize.w,
+                typeof b.size.w === 'number'
+                  ? b.size.w
+                  : viewportRect.width / camera.scale,
               h:
-                typeof oldSize.h === 'number'
-                  ? oldSize.h + movementInViewportCoords.y / state.camera.scale
-                  : oldSize.h,
+                typeof b.size.h === 'number'
+                  ? b.size.h
+                  : viewportRect.height / camera.scale,
             }
-          : oldSize
+          })
+
+        const generationTolerance = 36 / camera.scale
+        const gap = 10
+
+        const {
+          horizontalGuidelines,
+          verticalGuidelines,
+        } = generateGuidelinesFromRects(
+          cursorRect,
+          targetRects,
+          generationTolerance
+        )
+
+        const snapTolerance = 12 / camera.scale
+
+        const bottom = snapValue(
+          cursorRect.y + cursorRect.h,
+          horizontalGuidelines,
+          snapTolerance
+        )
+
+        const right = snapValue(
+          cursorRect.x + cursorRect.w,
+          verticalGuidelines,
+          snapTolerance
+        )
+
+        const height = bottom.guideline
+          ? bottom.guideline.fromSide === RectSide.Top
+            ? bottom.value - gap - cursorRect.y // cursorRect's bottom snaps targetRect's top.
+            : bottom.value - cursorRect.y
+          : bottom.value - cursorRect.y
+
+        const width = right.guideline
+          ? right.guideline.fromSide === RectSide.Left
+            ? right.value - gap - cursorRect.x // cursorRect's right snaps targetRect's left.
+            : right.value - cursorRect.x
+          : right.value - cursorRect.x
+
+        /** Ignore snap result if size is "auto". */
+        const newSize = {
+          w: typeof oldSize.w === 'number' ? width : oldSize.w,
+          h: typeof oldSize.h === 'number' ? height : oldSize.h,
+        }
 
         const newViewingConcept = {
           ...state.viewingConcept,
           references: state.viewingConcept.references.map(ref => {
-            if (refId === ref.id) {
+            if (id === ref.id) {
               return {
                 ...ref,
                 size: newSize,
@@ -530,18 +608,18 @@ export function createReducer(
 
         db.updateConcept(newViewingConcept)
 
-        const oldBlockIndex = state.blocks.findIndex(b => b.id === refId)
+        const oldBlockIndex = blocks.findIndex(b => b.id === id)
         const newBlock: BlockInstance = {
-          ...state.blocks[oldBlockIndex],
+          ...blocks[oldBlockIndex],
           size: newSize,
         }
 
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: state.blocks
+          blocks: blocks
             .slice(0, oldBlockIndex)
-            .concat(state.blocks.slice(oldBlockIndex + 1))
+            .concat(blocks.slice(oldBlockIndex + 1))
             .concat(newBlock),
         }
       }
