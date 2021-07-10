@@ -287,9 +287,9 @@ export function createReducer(
 
         const movingBlocks = blocks.filter(b => selectedBlockIds.includes(b.id))
 
-        const staticBlocks = blocks.filter(
-          b => !selectedBlockIds.includes(b.id)
-        )
+        const staticBlocks = blocks
+          .filter(b => b.posType === PositionType.Normal)
+          .filter(b => !selectedBlockIds.includes(b.id))
 
         const movingBlockRects = movingBlocks.map(b =>
           getElement(b.id).getBoundingClientRect()
