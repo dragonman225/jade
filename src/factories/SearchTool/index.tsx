@@ -14,25 +14,15 @@ import { Concept, InitializedConceptData } from '../../core/interfaces/concept'
 import theme from '../../theme'
 
 const styles = stylesheet({
-  Search: {
-    $nest: {
-      '& hr': {
-        border: 'none',
-        borderBottom: `1px solid ${theme.COLORS.uiGreyLight}`,
-        $nest: {
-          '&:last-of-type': {
-            display: 'none',
-          },
-        },
-      },
-    },
-  },
   'Search--Linking': {
     cursor: 'grabbing',
   },
   SearchInput: {
     height: 50,
-    padding: '.5rem 20px',
+    display: 'flex',
+    alignItems: 'center',
+    paddingLeft: '1rem',
+    paddingRight: '1rem',
     $nest: {
       '&>input': {
         outline: 'none',
@@ -46,29 +36,41 @@ const styles = stylesheet({
       },
     },
   },
-  SearchResult: {
-    padding: '0 20px 0',
-  },
   ScrollList: {
     height: '100%',
     maxHeight: 500,
     overflow: 'auto',
+    paddingLeft: '1rem',
+    paddingRight: '1rem',
   },
   ScrollListItem: {
-    maxHeight: 200,
+    maxHeight: 150,
     overflow: 'hidden',
-    margin: 0,
-    borderRadius: '.3rem',
-    transition: 'background 0.1s',
+    marginLeft: '-.5rem',
+    marginRight: '-.5rem',
+    borderRadius: theme.BORDERS.smallRadius,
+    transition: 'background 0.1s ease-in-out',
     $nest: {
       '&:hover': {
-        background: 'var(--bg-hover)',
+        background: theme.COLORS.bgHover,
+      },
+      '&:active': {
+        background: theme.COLORS.bgActive,
       },
       '&:first-of-type': {
         marginTop: '.5rem',
       },
       '&:last-of-type': {
         marginBottom: '.5rem',
+      },
+    },
+  },
+  Divider: {
+    border: 'none',
+    borderBottom: `1px solid ${theme.COLORS.uiGreyLight}`,
+    $nest: {
+      '&:last-of-type': {
+        display: 'none',
       },
     },
   },
@@ -80,19 +82,23 @@ const styles = stylesheet({
   },
   Pager: {
     display: 'flex',
-    padding: '.5rem',
+    padding: '.5rem 1rem',
     fontSize: '.8rem',
     textAlign: 'center',
-    color: '#666',
+    color: theme.COLORS.uiGrey,
   },
   Arrow: {
     flex: '0 0 50px',
     padding: '0px 3px',
-    borderRadius: '8px',
-    transition: 'background 0.1s',
+    borderRadius: theme.BORDERS.smallRadius,
+    transition: 'background 0.1s ease-in-out',
+    cursor: 'pointer',
     $nest: {
       '&:hover': {
-        background: 'var(--bg-hover)',
+        background: theme.COLORS.bgHover,
+      },
+      '&:active': {
+        background: theme.COLORS.bgActive,
       },
     },
   },
@@ -183,9 +189,13 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   /** Search-to-Link */
   const [s2lState, setS2lState] = React.useState(S2LState.Idle)
   const [s2lBlock, setS2lBlock] = React.useState<S2LBlock>({ valid: false })
-  const [_s2lStart, setS2lStart] = React.useState<Vec2>({ x: 0, y: 0 })
+  const [s2lStartOffset, setS2lStartOffset] = React.useState<Vec2>({
+    x: 0,
+    y: 0,
+  })
   const [s2lDelta, setS2lDelta] = React.useState<Vec2>({ x: 0, y: 0 })
   const s2lBlockRef = React.useRef<S2LBlock>(null)
+  const s2lStartOffsetRef = React.useRef<Vec2>(null)
   const s2lDeltaRef = React.useRef<Vec2>(null)
   const stateRef = React.useRef<Props['state']>(null)
 
@@ -203,6 +213,10 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   }, [s2lBlock])
 
   React.useEffect(() => {
+    s2lStartOffsetRef.current = s2lStartOffset
+  }, [s2lStartOffset])
+
+  React.useEffect(() => {
     s2lDeltaRef.current = s2lDelta
   }, [s2lDelta])
 
@@ -214,22 +228,23 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
     const gestureDetector = (() => {
       let state: 'idle' | 'ready' | 'linking' = 'idle'
       let lastClientCoords = { x: 0, y: 0 }
-      let startLinkingClientCoords = { x: 0, y: 0 }
 
       const handlePointerMove = (e: MouseEvent | TouchEvent) => {
         const clientCoords = getUnifiedClientCoords(e)
 
-        if (state === 'ready' && distance(clientCoords, lastClientCoords) > 3) {
-          /** S2L */
+        if (
+          state === 'ready' &&
+          distance(clientCoords, lastClientCoords) > 3 &&
+          s2lBlockRef.current.valid
+        ) {
           setMinimized(true)
           setS2lState(S2LState.Linking)
-          setS2lStart(clientCoords)
+          setS2lStartOffset(vecSub(clientCoords, s2lBlockRef.current.rect))
 
-          startLinkingClientCoords = clientCoords
           state = 'linking'
         } else if (state === 'linking') {
-          /** S2L */
-          setS2lDelta(vecSub(clientCoords, startLinkingClientCoords))
+          if (!s2lBlockRef.current.valid) return
+          setS2lDelta(vecSub(clientCoords, s2lBlockRef.current.rect))
         }
 
         lastClientCoords = clientCoords
@@ -251,11 +266,12 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
             })
           }
         } else if (state === 'linking') {
-          setS2lStart({ x: 0, y: 0 })
-          setS2lDelta({ x: 0, y: 0 })
-
           const s2lBlock = s2lBlockRef.current
+          const s2lStartOffset = s2lStartOffsetRef.current
           const s2lDelta = s2lDeltaRef.current
+          const state = stateRef.current
+          const scale = state.camera.scale
+
           if (s2lBlock.valid) {
             dispatchAction({
               type: 'block::create',
@@ -263,21 +279,27 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 id: s2lBlock.id,
                 position: viewportCoordsToEnvCoords(
                   {
-                    x: s2lBlock.rect.left + s2lDelta.x,
-                    y: s2lBlock.rect.top + s2lDelta.y,
+                    x:
+                      s2lBlock.rect.left +
+                      s2lDelta.x -
+                      s2lStartOffset.x * scale,
+                    y:
+                      s2lBlock.rect.top + s2lDelta.y - s2lStartOffset.y * scale,
                   },
                   stateRef.current.camera
                 ),
               },
             })
           } else console.log('s2lBlock is invalid')
+
           setS2lBlock({ valid: false })
+          setS2lStartOffset({ x: 0, y: 0 })
+          setS2lDelta({ x: 0, y: 0 })
           setS2lState(S2LState.Idle)
         }
 
         state = 'idle'
         lastClientCoords = { x: 0, y: 0 }
-        startLinkingClientCoords = { x: 0, y: 0 }
       }
 
       return {
@@ -339,7 +361,6 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   return (
     <div
       className={classes(
-        styles.Search,
         s2lState === S2LState.Linking && styles['Search--Linking']
       )}
       ref={searchRef}
@@ -356,62 +377,64 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
         />
       </div>
       {!minimized ? (
-        <div className={styles.SearchResult}>
-          <div className={styles.ScrollList} key={pageNum}>
-            {resultConcepts
-              .slice(startItemIndex, nextStartItemIndex)
-              .map(concept => {
-                return (
-                  <React.Fragment key={concept.id}>
-                    {(function () {
-                      switch (s2lState) {
-                        case S2LState.Idle: {
-                          /** The following doesn't support touch. */
-                          return (
-                            <div
-                              className={`${styles.ScrollListItem} ScrollListItem`}
-                              onMouseEnter={e => {
-                                setS2lBlock({
-                                  valid: true,
-                                  id: concept.id,
-                                  rect: e.currentTarget.getBoundingClientRect(),
-                                })
-                              }}
-                              onMouseLeave={() => {
-                                setS2lBlock({ valid: false })
-                              }}>
-                              <SearchItemContent
-                                concept={concept}
-                                viewMode="NavItem"
-                                state={state}
-                                dispatchAction={dispatchAction}
-                                database={database}
-                              />
-                            </div>
-                          )
+        <>
+          <div className={styles.ScrollList}>
+            <div key={pageNum}>
+              {resultConcepts
+                .slice(startItemIndex, nextStartItemIndex)
+                .map(concept => {
+                  return (
+                    <React.Fragment key={concept.id}>
+                      {(function () {
+                        switch (s2lState) {
+                          case S2LState.Idle: {
+                            /** The following doesn't support touch. */
+                            return (
+                              <div
+                                className={`${styles.ScrollListItem} ScrollListItem`}
+                                onMouseEnter={e => {
+                                  setS2lBlock({
+                                    valid: true,
+                                    id: concept.id,
+                                    rect: e.currentTarget.getBoundingClientRect(),
+                                  })
+                                }}
+                                onMouseLeave={() => {
+                                  setS2lBlock({ valid: false })
+                                }}>
+                                <SearchItemContent
+                                  concept={concept}
+                                  viewMode="NavItem"
+                                  state={state}
+                                  dispatchAction={dispatchAction}
+                                  database={database}
+                                />
+                              </div>
+                            )
+                          }
+                          case S2LState.Linking: {
+                            return (
+                              <div className={styles.ScrollListItem}>
+                                <SearchItemContent
+                                  concept={concept}
+                                  viewMode="NavItem"
+                                  state={state}
+                                  dispatchAction={dispatchAction}
+                                  database={database}
+                                />
+                              </div>
+                            )
+                          }
+                          default: {
+                            return `Unknown s2lState "${s2lState.description}"`
+                          }
                         }
-                        case S2LState.Linking: {
-                          return (
-                            <div className={styles.ScrollListItem}>
-                              <SearchItemContent
-                                concept={concept}
-                                viewMode="NavItem"
-                                state={state}
-                                dispatchAction={dispatchAction}
-                                database={database}
-                              />
-                            </div>
-                          )
-                        }
-                        default: {
-                          return `Unknown s2lState "${s2lState.description}"`
-                        }
-                      }
-                    })()}
-                    <hr />
-                  </React.Fragment>
-                )
-              })}
+                      })()}
+                      <hr className={styles.Divider} />
+                    </React.Fragment>
+                  )
+                })}
+            </div>
           </div>
           <div className={styles.Pager}>
             <div
@@ -434,23 +457,25 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
               Next
             </div>
           </div>
-        </div>
+        </>
       ) : (
         <></>
       )}
       {s2lState === S2LState.Linking && s2lBlock.valid ? (
         (function () {
           const concept = database.getConcept(s2lBlock.id)
-          const position = {
-            x: s2lBlock.rect.left + s2lDelta.x,
-            y: s2lBlock.rect.top + s2lDelta.y,
+          const scale = state.camera.scale
+          const pos = {
+            x: s2lBlock.rect.left + s2lDelta.x - s2lStartOffset.x * scale,
+            y: s2lBlock.rect.top + s2lDelta.y - s2lStartOffset.y * scale,
           }
 
           return props.createOverlay(
             <div
               className={BlockStyles.Block}
               style={{
-                transform: `translate3d(${position.x}px, ${position.y}px, 0px)`,
+                transformOrigin: 'top left',
+                transform: `translate3d(${pos.x}px, ${pos.y}px, 0px) scale(${scale})`,
                 width: 300,
               }}>
               <SearchItemContent
