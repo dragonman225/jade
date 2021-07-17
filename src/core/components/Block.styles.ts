@@ -1,5 +1,7 @@
 import { stylesheet } from 'typestyle'
 
+import theme from '../../theme'
+
 export const BlockStyles = stylesheet({
   Block: {
     background: 'white',
@@ -26,6 +28,21 @@ export const BlockStyles = stylesheet({
       },
       '& > .ActionBtn--Green:hover': {
         fill: 'mediumaquamarine',
+      },
+      '& > .HighOrderMark': {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: 4,
+        height: 4,
+        margin: 8,
+        borderRadius: '100%',
+        background: theme.COLORS.uiPrimary,
+        opacity: 1,
+        transition: '0.1s opacity ease-in-out',
+      },
+      '&:hover > .HighOrderMark': {
+        opacity: 0,
       },
     },
   },

@@ -8,7 +8,7 @@ import { BlockStyles } from './Block.styles'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
 import { deleteElement, setElement } from './ElementPool'
 import { Action, Actions } from '../store/actions'
-import { BlockInstance, InteractionMode } from '../interfaces'
+import { BlockInstance, Concept, InteractionMode } from '../interfaces'
 
 interface Props {
   debug: boolean
@@ -184,6 +184,7 @@ export function Block(props: Props): JSX.Element {
           cursor: 'ew-resize',
         }}
       />
+      {Concept.isHighOrder(concept) && <div className="HighOrderMark" />}
       <div
         className="ActionBtn ActionBtn--Green"
         style={{
