@@ -1,8 +1,10 @@
 import * as React from 'react'
 import { classes, stylesheet } from 'typestyle'
+
 import { Eraser } from './icons/Eraser'
 import { Pencil } from './icons/Pencil'
 import { IPubSub } from '../utils'
+import theme from '../../theme'
 import { UnifiedEventInfo, Stroke, StrokeConfig, Point } from '../interfaces'
 
 interface CanvasProps {
@@ -127,7 +129,7 @@ const styles = stylesheet({
         transition: 'fill 0.1s, background 0.1s',
       },
       '&>button:hover': {
-        background: 'var(--bg-hover)',
+        background: theme.COLORS.bgHover,
       },
     },
   },

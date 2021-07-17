@@ -88,7 +88,7 @@ const styles = stylesheet({
     borderRadius: theme.BORDERS.smallRadius,
   },
   'SlashMenuItem--Chosen': {
-    background: 'var(--bg-hover)',
+    background: theme.COLORS.bgHover,
   },
   Placeholder: {
     position: 'absolute',

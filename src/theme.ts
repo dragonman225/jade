@@ -8,6 +8,7 @@ export default {
     uiPrimary: '#7300d8',
     uiGrey: '#8e8e8e',
     uiGreyLight: '#e4e4e4',
+    uiBlack: 'rgb(55, 53, 47)',
   },
   SHADOWS: {
     ui: `

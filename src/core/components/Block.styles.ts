@@ -5,7 +5,7 @@ import theme from '../../theme'
 export const BlockStyles = stylesheet({
   Block: {
     background: 'white',
-    borderRadius: '.3rem',
+    borderRadius: theme.BORDERS.smallRadius,
     overflow: 'hidden',
     $nest: {
       '& > .ActionBtn': {
@@ -13,10 +13,10 @@ export const BlockStyles = stylesheet({
         transition: '0.1s opacity ease-in-out, 0.1s fill ease-in-out',
         fill: 'silver',
         cursor: 'pointer',
-        borderRadius: '.3rem',
+        borderRadius: theme.BORDERS.smallRadius,
         $nest: {
           '&:hover': {
-            background: '#eee',
+            background: theme.COLORS.bgHover,
           },
         },
       },
@@ -47,13 +47,13 @@ export const BlockStyles = stylesheet({
     },
   },
   'Block--Selected': {
-    boxShadow: '0px 0px 0px 2px blueviolet',
+    boxShadow: `0px 0px 0px 2px ${theme.COLORS.uiPrimary}`,
   },
   'Block--Focusing': {
-    boxShadow: '0px 0px 0px 2px black',
+    boxShadow: `0px 0px 0px 2px ${theme.COLORS.uiBlack}`,
   },
   'Block--Moving': {
-    opacity: 0.3,
+    opacity: 0.4,
   },
   DebugLabel: {
     position: 'absolute',

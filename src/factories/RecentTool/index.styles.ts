@@ -30,13 +30,13 @@ export const styles = stylesheet({
     borderRadius: theme.BORDERS.smallRadius,
     $nest: {
       '&:hover': {
-        background: 'var(--bg-hover)',
+        background: theme.COLORS.bgHover,
         /* flex: '1 0 200px', */
         overflowY: 'scroll',
         paddingRight: 0,
       },
       '&:active': {
-        background: 'var(--bg-hover)',
+        background: theme.COLORS.bgActive,
       },
       '&::-webkit-scrollbar': {
         width: 5,

@@ -28,8 +28,8 @@ export const AppStyles = stylesheet({
   App: {
     overflow: 'hidden',
     height: '100%',
+    color: theme.COLORS.uiBlack,
     background: theme.COLORS.bgPrimary,
-    '--bg-hover': 'rgba(0, 0, 0, 0.1)',
   },
   'App--BlockMoving': {
     cursor: 'grabbing',
