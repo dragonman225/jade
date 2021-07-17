@@ -152,7 +152,10 @@ export function Block(props: Props): JSX.Element {
         BlockStyles.Block,
         block.selected ? BlockStyles['Block--Selected'] : undefined,
         block.mode === InteractionMode.Focusing
-          ? BlockStyles['Block--Focused']
+          ? BlockStyles['Block--Focusing']
+          : undefined,
+        block.mode === InteractionMode.Moving
+          ? BlockStyles['Block--Moving']
           : undefined
       )}>
       {props.children}

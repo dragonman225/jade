@@ -1,4 +1,13 @@
-import { Block, BlockInstance, Concept, InteractionMode } from '../interfaces'
+import { isBoxBoxIntersecting } from './math'
+import {
+  Block,
+  BlockId,
+  BlockInstance,
+  Box,
+  Concept,
+  InteractionMode,
+  PositionType,
+} from '../interfaces'
 
 export function createBlockInstance(
   block: Block,
@@ -14,4 +23,38 @@ export function createBlockInstance(
     selected: existingInstance ? existingInstance.selected : false,
     concept,
   }
+}
+
+export function getSelectedBlockIds(
+  blocks: BlockInstance[],
+  selectionBox: Box
+): BlockId[] {
+  return blocks
+    .map(b => {
+      /** TODO: Resolve 'auto' to actual size. */
+      const { size } = b
+      return {
+        ...b,
+        size: {
+          w: size.w === 'auto' ? 0 : size.w,
+          h: size.h === 'auto' ? 0 : size.h,
+        },
+      }
+    })
+    .filter(
+      /** Filter out pinned blocks. */
+      b =>
+        b.posType === PositionType.Normal &&
+        isBoxBoxIntersecting(
+          selectionBox.x,
+          selectionBox.y,
+          selectionBox.w,
+          selectionBox.h,
+          b.pos.x,
+          b.pos.y,
+          b.size.w,
+          b.size.h
+        )
+    )
+    .map(b => b.id)
 }

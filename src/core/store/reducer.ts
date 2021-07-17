@@ -10,7 +10,7 @@ import {
 } from '../utils'
 import { getElement } from '../components/ElementPool'
 import { initialConcepts } from '../../resources/initial-concepts'
-import { createBlockInstance } from '../utils/block'
+import { createBlockInstance, getSelectedBlockIds } from '../utils/block'
 import { createConcept } from '../utils/concept'
 import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
 import { Action, Actions } from './actions'
@@ -656,6 +656,7 @@ export function createReducer(
           ...state,
           selecting: true,
           selectionBoxStart,
+          selectionBoxEnd: selectionBoxStart,
           selectionBox: {
             ...selectionBoxStart,
             w: 0,
@@ -686,44 +687,18 @@ export function createReducer(
           selectionBoxEnd.x,
           selectionBoxEnd.y
         )
-        const selectedBlockIds = state.blocks
-          .map(b => {
-            /** TODO: Resolve 'auto' to actual size. */
-            const { size } = b
-            return {
-              ...b,
-              size: {
-                w: size.w === 'auto' ? 0 : size.w,
-                h: size.h === 'auto' ? 0 : size.h,
-              },
-            }
-          })
-          .filter(
-            /** Filter out pinned blocks. */
-            b =>
-              b.posType === PositionType.Normal &&
-              isBoxBoxIntersecting(
-                selectionBox.x,
-                selectionBox.y,
-                selectionBox.w,
-                selectionBox.h,
-                b.pos.x,
-                b.pos.y,
-                b.size.w,
-                b.size.h
-              )
-          )
-          .map(b => b.id)
+        const selectedBlockIds = getSelectedBlockIds(state.blocks, selectionBox)
+        const blocks = state.blocks.map(b => ({
+          ...b,
+          selected: selectedBlockIds.includes(b.id),
+        }))
 
         return {
           ...state,
           selectionBoxEnd,
           selectionBox,
           selectedBlockIds,
-          blocks: state.blocks.map(b => ({
-            ...b,
-            selected: selectedBlockIds.includes(b.id),
-          })),
+          blocks,
         }
       }
       case Action.SelectionBoxClear: {
@@ -751,6 +726,36 @@ export function createReducer(
         }
 
         db.updateConcept(newViewingConcept)
+
+        /** Also update selectionBox if being selecting. */
+        const { selectionBoxStart, selecting } = state
+        if (selecting) {
+          const selectionBoxEnd = vecSub(state.selectionBoxEnd, delta)
+          const selectionBox = normalizeToBox(
+            selectionBoxStart.x,
+            selectionBoxStart.y,
+            selectionBoxEnd.x,
+            selectionBoxEnd.y
+          )
+          const selectedBlockIds = getSelectedBlockIds(
+            state.blocks,
+            selectionBox
+          )
+          const blocks = state.blocks.map(b => ({
+            ...b,
+            selected: selectedBlockIds.includes(b.id),
+          }))
+
+          return {
+            ...state,
+            viewingConcept: newViewingConcept,
+            camera: newCamera,
+            selectionBoxEnd,
+            selectionBox,
+            selectedBlockIds,
+            blocks,
+          }
+        }
 
         return {
           ...state,

@@ -32,8 +32,11 @@ export const BlockStyles = stylesheet({
   'Block--Selected': {
     boxShadow: '0px 0px 0px 2px blueviolet',
   },
-  'Block--Focused': {
+  'Block--Focusing': {
     boxShadow: '0px 0px 0px 2px black',
+  },
+  'Block--Moving': {
+    opacity: 0.3,
   },
   DebugLabel: {
     position: 'absolute',
