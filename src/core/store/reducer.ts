@@ -183,6 +183,23 @@ export function createReducer(
           blocks: synthesizeView(newViewingConcept, db),
         }
       }
+      case Action.BlockRemoveSelected: {
+        const newViewingConcept = {
+          ...state.viewingConcept,
+          references: state.viewingConcept.references.filter(
+            b => !state.selectedBlockIds.find(sbId => sbId === b.id)
+          ),
+        }
+
+        db.updateConcept(newViewingConcept)
+
+        return {
+          ...state,
+          viewingConcept: newViewingConcept,
+          blocks: synthesizeView(newViewingConcept, db),
+          selectedBlockIds: [],
+        }
+      }
       case Action.BlockMoveStart: {
         const { id, pointerInViewportCoords } = action.data
         const { blocks, selectedBlockIds: currSeletedBlockIds, camera } = state

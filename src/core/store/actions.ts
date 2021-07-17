@@ -5,6 +5,7 @@ export enum Action {
   ConceptWriteData = 'concept::writeData',
   BlockCreate = 'block::create',
   BlockRemove = 'block::remove',
+  BlockRemoveSelected = 'block::removeSelected',
   BlockMoveStart = 'block::moveStart',
   BlockMove = 'block::move',
   BlockMoveEnd = 'block::moveEnd',
@@ -51,6 +52,10 @@ interface BlockRemoveAction {
   data: {
     id: string
   }
+}
+
+interface BlockRemoveSelectedAction {
+  type: Action.BlockRemoveSelected
 }
 
 interface BlockMoveStartAction {
@@ -146,6 +151,7 @@ export type Actions =
   | ConceptWriteDataAction
   | BlockCreateAction
   | BlockRemoveAction
+  | BlockRemoveSelectedAction
   | BlockMoveStartAction
   | BlockMoveAction
   | BlockMoveEndAction
