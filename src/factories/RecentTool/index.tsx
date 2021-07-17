@@ -2,8 +2,12 @@ import * as React from 'react'
 import { useRef } from 'react'
 
 import { styles } from './index.styles'
-import { ConceptDisplayProps, Factory } from '../../core/interfaces'
-import { InitializedConceptData } from '../../core/interfaces/concept'
+import { Action } from '../../core/store/actions'
+import {
+  ConceptDisplayProps,
+  Factory,
+  InitializedConceptData,
+} from '../../core/interfaces'
 
 type Props = ConceptDisplayProps<undefined>
 
@@ -66,7 +70,7 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
               className={styles.RecentBtn}
               onClick={() => {
                 dispatchAction({
-                  type: 'navigation::expand',
+                  type: Action.BlockOpenAsCanvas,
                   data: { id: conceptId },
                 })
               }}

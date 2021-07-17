@@ -2,8 +2,9 @@ import * as React from 'react'
 import { useMemo } from 'react'
 import { stylesheet } from 'typestyle'
 
-import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 import theme from '../../theme'
+import { ConceptDisplayProps, Factory } from '../../core/interfaces'
+import { Action } from '../../core/store/actions'
 
 const noop = function () {
   return
@@ -85,7 +86,7 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
                   className={styles.InsightItem}
                   onClick={() =>
                     dispatchAction({
-                      type: 'navigation::expand',
+                      type: Action.BlockOpenAsCanvas,
                       data: { id: concept.id },
                     })
                   }>

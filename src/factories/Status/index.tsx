@@ -2,6 +2,7 @@ import * as React from 'react'
 import { stylesheet } from 'typestyle'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 import { InitializedConceptData } from '../../core/interfaces/concept'
+import { Action } from '../../core/store/actions'
 
 const styles = stylesheet({
   StatNavItem: {
@@ -62,7 +63,7 @@ export const Status: React.FunctionComponent<Props> = props => {
               <code
                 onClick={() =>
                   dispatchAction({
-                    type: 'debugging::toggle',
+                    type: Action.DebuggingToggle,
                   })
                 }>
                 {state.debugging ? 'ON' : 'OFF'}

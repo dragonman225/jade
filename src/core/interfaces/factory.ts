@@ -1,4 +1,4 @@
-import { Action } from '../reducer'
+import { Actions } from '../store/actions'
 import { Concept, InitializedConceptData } from './concept'
 import { DatabaseInterface, AppState } from './core'
 import { Origin } from './util'
@@ -31,7 +31,7 @@ export interface ConceptDisplayProps<T extends InitializedConceptData> {
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
   concept: Concept
   state: AppState
-  dispatchAction: React.Dispatch<Action>
+  dispatchAction: (action: Actions) => void
   factoryRegistry: FactoryRegistry
   database: DatabaseInterface
   onChange: (content: T) => void

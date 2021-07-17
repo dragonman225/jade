@@ -2,10 +2,10 @@ import * as React from 'react'
 import { useRef, useEffect } from 'react'
 
 import { getUnifiedClientCoords, vecSub } from '../utils'
-import { BlockInstance, Box, PositionType, Vec2 } from '../interfaces'
-import { Action } from '../reducer'
 import { SelectionBox } from './SelectionBox'
 import { ViewObject } from './ViewObject'
+import { Action, Actions } from '../store/actions'
+import { BlockInstance, Box, PositionType, Vec2 } from '../interfaces'
 
 interface Props {
   focus: Vec2
@@ -14,7 +14,7 @@ interface Props {
   selecting: boolean
   selectionBox: Box
   renderBlock: (block: BlockInstance) => JSX.Element
-  dispatchAction: React.Dispatch<Action>
+  dispatchAction: (action: Actions) => void
 }
 
 export function Viewport(props: Props): JSX.Element {
@@ -45,7 +45,7 @@ export function Viewport(props: Props): JSX.Element {
       if (e.ctrlKey) {
         e.preventDefault()
         dispatchAction({
-          type: 'cam::scaledelta',
+          type: Action.CameraScaleDelta,
           data: {
             focus: { x: e.clientX, y: e.clientY },
             wheelDelta: e.deltaY,
@@ -53,7 +53,7 @@ export function Viewport(props: Props): JSX.Element {
         })
       } else {
         dispatchAction({
-          type: 'cam::movedelta',
+          type: Action.CameraMoveDelta,
           data: {
             x: -e.deltaX,
             y: -e.deltaY,
@@ -66,7 +66,7 @@ export function Viewport(props: Props): JSX.Element {
       if (e.target === cameraElRef.current) {
         const viewportCoords: Vec2 = { x: e.clientX, y: e.clientY }
         dispatchAction({
-          type: 'concept::create',
+          type: Action.ConceptCreate,
           data: {
             position: viewportCoords,
           },
@@ -89,7 +89,7 @@ export function Viewport(props: Props): JSX.Element {
               if (e.target === cameraElRef.current) {
                 /** Primary button, target not being a Block -> Start selection box. */
                 dispatchAction({
-                  type: 'selectionbox::setstart',
+                  type: Action.SelectionBoxSetStart,
                   data: clientCoords,
                 })
 
@@ -116,12 +116,12 @@ export function Viewport(props: Props): JSX.Element {
           if (panning) {
             const movement = vecSub(clientCoords, lastClientCoords)
             dispatchAction({
-              type: 'cam::movedelta',
+              type: Action.CameraMoveDelta,
               data: movement,
             })
           } else if (selecting) {
             dispatchAction({
-              type: 'selectionbox::setend',
+              type: Action.SelectionBoxSetEnd,
               data: clientCoords,
             })
           }
@@ -132,7 +132,7 @@ export function Viewport(props: Props): JSX.Element {
           panning = false
           if (selecting) {
             dispatchAction({
-              type: 'selectionbox::clear',
+              type: Action.SelectionBoxClear,
             })
             selecting = false
           }

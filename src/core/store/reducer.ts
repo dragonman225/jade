@@ -1,20 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import {
-  BaseConceptData,
-  Concept,
-  ConceptId,
-  DatabaseInterface,
-  Block,
-  PositionType,
-  AppState,
-  Stroke,
-  Vec2,
-  BlockInstance,
-  Size,
-  BlockId,
-  Camera,
-  FactoryRegistry,
-} from './interfaces'
+
 import {
   viewportCoordsToEnvCoords,
   vecDiv,
@@ -22,158 +7,26 @@ import {
   vecAdd,
   normalizeToBox,
   isBoxBoxIntersecting,
-} from './utils'
-import { getElement } from './components/ElementPool'
-import { initialConcepts } from '../resources/initial-concepts'
-import { createBlockInstance } from './utils/block'
-import { createConcept } from './utils/concept'
-import { generateGuidelinesFromRects, RectSide, snapValue } from './utils/snap'
-
-interface ConceptCreateAction {
-  type: 'concept::create'
-  data: {
-    position: Vec2
-  }
-}
-
-interface ConceptDataChangeAction {
-  type: 'concept::datachange'
-  data: {
-    id: string
-    type: string
-    content: BaseConceptData
-  }
-}
-
-interface ConceptDrawingChangeAction {
-  type: 'concept::drawingchange'
-  data: Stroke[]
-}
-
-interface BlockCreateAction {
-  type: 'block::create'
-  data: {
-    id: string
-    position: Vec2
-  }
-}
-
-interface BlockRemoveAction {
-  type: 'block::remove'
-  data: {
-    id: string
-  }
-}
-
-interface BlockMoveAction {
-  type: 'block::move'
-  data: {
-    id: string
-    pointerInViewportCoords: Vec2
-  }
-}
-
-interface BlockResizeAction {
-  type: 'block::resize'
-  data: {
-    id: string
-    movementInViewportCoords: Vec2
-  }
-}
-
-interface BlockMoveStartAction {
-  type: 'block::movestart'
-  data: {
-    id: BlockId
-    pointerInViewportCoords: Vec2
-  }
-}
-
-interface BlockMoveEndAction {
-  type: 'block::moveend'
-}
-
-interface BlockChangeAction {
-  type: 'block::change'
-  data: {
-    id: BlockId
-    changes: Partial<BlockInstance>
-  }
-}
-
-interface CameraMoveDeltaAction {
-  type: 'cam::movedelta'
-  data: Vec2
-}
-
-interface CameraScaleDeltaAction {
-  type: 'cam::scaledelta'
-  data: {
-    focus: Vec2
-    wheelDelta: number
-  }
-}
-
-interface SelectedBlocksAddAction {
-  type: 'selection::add'
-  data: BlockId[]
-}
-
-interface SelectedBlocksRemoveAction {
-  type: 'selection::remove'
-  data: BlockId[]
-}
-
-interface SelectedBlocksClearAction {
-  type: 'selection::clear'
-}
-
-interface SelectionBoxSetStartAction {
-  type: 'selectionbox::setstart'
-  data: Vec2
-}
-
-interface SelectionBoxSetEndAction {
-  type: 'selectionbox::setend'
-  data: Vec2
-}
-
-interface SelectionBoxClearAction {
-  type: 'selectionbox::clear'
-}
-
-interface ExpandAction {
-  type: 'navigation::expand'
-  data: {
-    id: string
-  }
-}
-
-interface DebuggingToggleAction {
-  type: 'debugging::toggle'
-}
-
-export type Action =
-  | ConceptCreateAction
-  | ConceptDataChangeAction
-  | ConceptDrawingChangeAction
-  | BlockCreateAction
-  | BlockRemoveAction
-  | BlockMoveAction
-  | BlockResizeAction
-  | BlockMoveStartAction
-  | BlockMoveEndAction
-  | BlockChangeAction
-  | CameraMoveDeltaAction
-  | CameraScaleDeltaAction
-  | SelectedBlocksAddAction
-  | SelectedBlocksRemoveAction
-  | SelectedBlocksClearAction
-  | SelectionBoxSetStartAction
-  | SelectionBoxSetEndAction
-  | SelectionBoxClearAction
-  | ExpandAction
-  | DebuggingToggleAction
+} from '../utils'
+import { getElement } from '../components/ElementPool'
+import { initialConcepts } from '../../resources/initial-concepts'
+import { createBlockInstance } from '../utils/block'
+import { createConcept } from '../utils/concept'
+import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
+import { Action, Actions } from './actions'
+import {
+  Concept,
+  ConceptId,
+  DatabaseInterface,
+  Block,
+  PositionType,
+  AppState,
+  Vec2,
+  BlockInstance,
+  Size,
+  Camera,
+  FactoryRegistry,
+} from '../interfaces'
 
 export function synthesizeView(
   viewingConcept: Concept,
@@ -236,19 +89,20 @@ export function loadAppState(db: DatabaseInterface): AppState {
   }
 }
 
-const defaultSize: Size = { w: 300, h: 'auto' }
-let cursorBlockId = ''
-let cursorRectSize: { w: number; h: number } = { w: 0, h: 0 }
-
 export function createReducer(
   db: DatabaseInterface,
   factoryRegistry: FactoryRegistry
-) {
-  return function appStateReducer(state: AppState, action: Action): AppState {
+): (state: AppState, action: Actions) => AppState {
+  const defaultSize: Size = { w: 300, h: 'auto' }
+
+  let cursorBlockId = ''
+  let cursorRectSize: { w: number; h: number } = { w: 0, h: 0 }
+
+  return function appStateReducer(state: AppState, action: Actions): AppState {
     // console.log(`reducer: "${action.type}"`, action)
 
     switch (action.type) {
-      case 'concept::create': {
+      case Action.ConceptCreate: {
         const newConcept = createConcept(
           factoryRegistry.getDefaultContentFactory().id
         )
@@ -274,7 +128,94 @@ export function createReducer(
           blocks: state.blocks.concat(newBlockInstance),
         }
       }
-      case 'block::move': {
+      case Action.ConceptWriteData: {
+        const newType = action.data.type
+        const newData = action.data.content
+        const concept = db.getConcept(action.data.id)
+
+        db.updateConcept({
+          ...concept,
+          summary: {
+            type: newType,
+            data: newData,
+          },
+        })
+
+        return {
+          ...state,
+          viewingConcept: db.getConcept(state.viewingConcept.id),
+          blocks: synthesizeView(state.viewingConcept, db, state.blocks),
+        }
+      }
+      case Action.BlockCreate: {
+        const ref: Block = {
+          id: uuidv4(),
+          to: action.data.id,
+          posType: PositionType.Normal,
+          pos: action.data.position,
+          size: defaultSize,
+        }
+        const newViewingConcept = {
+          ...state.viewingConcept,
+          references: state.viewingConcept.references.concat([ref]),
+        }
+        db.updateConcept(newViewingConcept)
+        return {
+          ...state,
+          viewingConcept: newViewingConcept,
+          blocks: synthesizeView(newViewingConcept, db),
+        }
+      }
+      case Action.BlockRemove: {
+        const blockId = action.data.id
+        const newViewingConcept = {
+          ...state.viewingConcept,
+          references: state.viewingConcept.references.filter(
+            b => blockId !== b.id
+          ),
+        }
+
+        db.updateConcept(newViewingConcept)
+
+        return {
+          ...state,
+          viewingConcept: newViewingConcept,
+          blocks: synthesizeView(newViewingConcept, db),
+        }
+      }
+      case Action.BlockMoveStart: {
+        const { id, pointerInViewportCoords } = action.data
+        const { blocks, selectedBlockIds: currSeletedBlockIds, camera } = state
+
+        const selectedBlockIds = currSeletedBlockIds.length
+          ? currSeletedBlockIds.includes(id)
+            ? currSeletedBlockIds
+            : [id]
+          : [id]
+
+        const movingBlocks = blocks.filter(b => selectedBlockIds.includes(b.id))
+
+        const boundingBoxPos: Vec2 = {
+          x: Math.min(...movingBlocks.map(b => b.pos.x)),
+          y: Math.min(...movingBlocks.map(b => b.pos.y)),
+        }
+
+        const pointerInEnvCoords = viewportCoordsToEnvCoords(
+          pointerInViewportCoords,
+          camera
+        )
+
+        return {
+          ...state,
+          blocks: blocks.map(b => ({
+            ...b,
+            selected: selectedBlockIds.includes(b.id),
+          })),
+          selectedBlockIds,
+          pointerStartOffset: vecSub(boundingBoxPos, pointerInEnvCoords),
+        }
+      }
+      case Action.BlockMove: {
         const { pointerInViewportCoords } = action.data
 
         const {
@@ -492,7 +433,13 @@ export function createReducer(
             .concat(movedBlocks),
         }
       }
-      case 'block::resize': {
+      case Action.BlockMoveEnd: {
+        return {
+          ...state,
+          pointerStartOffset: { x: 0, y: 0 },
+        }
+      }
+      case Action.BlockResize: {
         const { id, movementInViewportCoords } = action.data
         const { camera, blocks } = state
 
@@ -623,107 +570,19 @@ export function createReducer(
             .concat(newBlock),
         }
       }
-      case 'concept::datachange': {
-        const newType = action.data.type
-        const newData = action.data.content
-        const concept = db.getConcept(action.data.id)
-
-        db.updateConcept({
-          ...concept,
-          summary: {
-            type: newType,
-            data: newData,
-          },
-        })
+      case Action.BlockSetMode: {
+        const { id, mode } = action.data
+        const oldBlock = state.blocks.find(b => b.id === id)
+        const newBlock = { ...oldBlock, mode }
 
         return {
           ...state,
-          viewingConcept: db.getConcept(state.viewingConcept.id),
-          blocks: synthesizeView(state.viewingConcept, db, state.blocks),
+          blocks: state.blocks
+            .filter(b => b.id !== newBlock.id)
+            .concat(newBlock),
         }
       }
-      case 'block::remove': {
-        // remove link only
-        const linkId = action.data.id
-        const newViewingConcept = {
-          ...state.viewingConcept,
-          references: state.viewingConcept.references.filter(
-            link => linkId !== link.id
-          ),
-        }
-        db.updateConcept(newViewingConcept)
-        return {
-          ...state,
-          viewingConcept: newViewingConcept,
-          blocks: synthesizeView(newViewingConcept, db),
-        }
-      }
-      case 'cam::movedelta': {
-        const delta = vecDiv(action.data, state.camera.scale)
-
-        const newCamera: Camera = {
-          ...state.camera,
-          focus: {
-            x: state.camera.focus.x - delta.x,
-            y: state.camera.focus.y - delta.y,
-          },
-        }
-        const newViewingConcept: Concept = {
-          ...state.viewingConcept,
-          camera: newCamera,
-        }
-
-        db.updateConcept(newViewingConcept)
-
-        return {
-          ...state,
-          viewingConcept: newViewingConcept,
-          camera: newCamera,
-        }
-      }
-      case 'cam::scaledelta': {
-        const minScale = 0.2
-        const maxScale = 2
-        /** Fibonacci scaling. */
-        const ratio = Math.sqrt(1.618)
-        /**
-         * Calculate how many golden ratio (1.618) is going to be * or /.
-         * Let's set 48px = 1 golden ratio.
-         */
-        const ratioExp = -action.data.wheelDelta / 48
-
-        let nextScale = state.camera.scale * Math.pow(ratio, ratioExp)
-        if (nextScale > maxScale) {
-          nextScale = maxScale
-        } else if (nextScale < minScale) {
-          nextScale = minScale
-        }
-
-        let nextFocus = vecSub(
-          viewportCoordsToEnvCoords(action.data.focus, state.camera),
-          vecDiv(action.data.focus, nextScale)
-        )
-        if (nextScale === state.camera.scale) nextFocus = state.camera.focus
-
-        const newCamera: Camera = {
-          ...state.camera,
-          focus: nextFocus,
-          scale: nextScale,
-        }
-        const newViewingConcept: Concept = {
-          ...state.viewingConcept,
-          camera: newCamera,
-        }
-
-        db.updateConcept(newViewingConcept)
-
-        return {
-          ...state,
-          viewingConcept: newViewingConcept,
-          camera: newCamera,
-        }
-      }
-      case 'selection::add': {
+      case Action.BlockSelect: {
         return {
           ...state,
           selectedBlockIds: state.selectedBlockIds.concat(
@@ -734,7 +593,7 @@ export function createReducer(
           ),
         }
       }
-      case 'selection::remove': {
+      case Action.BlockDeselect: {
         return {
           ...state,
           selectedBlockIds: state.selectedBlockIds.filter(
@@ -742,13 +601,35 @@ export function createReducer(
           ),
         }
       }
-      case 'selection::clear': {
+      case Action.BlockDeselectAll: {
         return {
           ...state,
           selectedBlockIds: [],
         }
       }
-      case 'selectionbox::setstart': {
+      case Action.BlockOpenAsCanvas: {
+        const toConceptId = action.data.id
+
+        if (toConceptId === state.viewingConcept.id) {
+          return { ...state }
+        }
+
+        db.saveSettings({
+          debugging: state.debugging,
+          homeConceptId: state.homeConceptId,
+          viewingConceptId: toConceptId,
+        })
+        const concept = db.getConcept(toConceptId)
+
+        return {
+          ...state,
+          viewingConcept: concept,
+          camera: concept.camera,
+          blocks: synthesizeView(concept, db),
+          expandHistory: state.expandHistory.slice(1).concat(toConceptId),
+        }
+      }
+      case Action.SelectionBoxSetStart: {
         const selectionBoxStart = viewportCoordsToEnvCoords(
           action.data,
           state.camera
@@ -776,7 +657,7 @@ export function createReducer(
           blocks: state.blocks.map(b => ({ ...b, selected: false })),
         }
       }
-      case 'selectionbox::setend': {
+      case Action.SelectionBoxSetEnd: {
         const { selectionBoxStart } = state
         const selectionBoxEnd = viewportCoordsToEnvCoords(
           action.data,
@@ -828,7 +709,7 @@ export function createReducer(
           })),
         }
       }
-      case 'selectionbox::clear': {
+      case Action.SelectionBoxClear: {
         return {
           ...state,
           selecting: false,
@@ -837,110 +718,72 @@ export function createReducer(
           selectionBox: { x: 0, y: 0, w: 0, h: 0 },
         }
       }
-      case 'navigation::expand': {
-        const toConceptId = action.data.id
+      case Action.CameraMoveDelta: {
+        const delta = vecDiv(action.data, state.camera.scale)
 
-        if (toConceptId === state.viewingConcept.id) {
-          return { ...state }
+        const newCamera: Camera = {
+          ...state.camera,
+          focus: {
+            x: state.camera.focus.x - delta.x,
+            y: state.camera.focus.y - delta.y,
+          },
         }
-
-        db.saveSettings({
-          debugging: state.debugging,
-          homeConceptId: state.homeConceptId,
-          viewingConceptId: toConceptId,
-        })
-        const concept = db.getConcept(toConceptId)
-
-        return {
-          ...state,
-          viewingConcept: concept,
-          camera: concept.camera,
-          blocks: synthesizeView(concept, db),
-          expandHistory: state.expandHistory.slice(1).concat(toConceptId),
-        }
-      }
-      case 'block::create': {
-        const ref: Block = {
-          id: uuidv4(),
-          to: action.data.id,
-          posType: PositionType.Normal,
-          pos: action.data.position,
-          size: defaultSize,
-        }
-        const newViewingConcept = {
+        const newViewingConcept: Concept = {
           ...state.viewingConcept,
-          references: state.viewingConcept.references.concat([ref]),
+          camera: newCamera,
         }
+
         db.updateConcept(newViewingConcept)
+
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: synthesizeView(newViewingConcept, db),
+          camera: newCamera,
         }
       }
-      case 'concept::drawingchange': {
-        const concept = state.viewingConcept
-        const conceptChanged = {
-          ...concept,
-          drawing: action.data,
-        }
-        db.updateConcept(conceptChanged)
-        return {
-          ...state,
-          viewingConcept: conceptChanged,
-        }
-      }
-      case 'block::movestart': {
-        const { id, pointerInViewportCoords } = action.data
-        const { blocks, selectedBlockIds: currSeletedBlockIds, camera } = state
+      case Action.CameraScaleDelta: {
+        const minScale = 0.2
+        const maxScale = 2
+        /** Fibonacci scaling. */
+        const ratio = Math.sqrt(1.618)
+        /**
+         * Calculate how many golden ratio (1.618) is going to be * or /.
+         * Let's set 48px = 1 golden ratio.
+         */
+        const ratioExp = -action.data.wheelDelta / 48
 
-        const selectedBlockIds = currSeletedBlockIds.length
-          ? currSeletedBlockIds.includes(id)
-            ? currSeletedBlockIds
-            : [id]
-          : [id]
-
-        const movingBlocks = blocks.filter(b => selectedBlockIds.includes(b.id))
-
-        const boundingBoxPos: Vec2 = {
-          x: Math.min(...movingBlocks.map(b => b.pos.x)),
-          y: Math.min(...movingBlocks.map(b => b.pos.y)),
+        let nextScale = state.camera.scale * Math.pow(ratio, ratioExp)
+        if (nextScale > maxScale) {
+          nextScale = maxScale
+        } else if (nextScale < minScale) {
+          nextScale = minScale
         }
 
-        const pointerInEnvCoords = viewportCoordsToEnvCoords(
-          pointerInViewportCoords,
-          camera
+        let nextFocus = vecSub(
+          viewportCoordsToEnvCoords(action.data.focus, state.camera),
+          vecDiv(action.data.focus, nextScale)
         )
+        if (nextScale === state.camera.scale) nextFocus = state.camera.focus
+
+        const newCamera: Camera = {
+          ...state.camera,
+          focus: nextFocus,
+          scale: nextScale,
+        }
+        const newViewingConcept: Concept = {
+          ...state.viewingConcept,
+          camera: newCamera,
+        }
+
+        db.updateConcept(newViewingConcept)
 
         return {
           ...state,
-          blocks: blocks.map(b => ({
-            ...b,
-            selected: selectedBlockIds.includes(b.id),
-          })),
-          selectedBlockIds,
-          pointerStartOffset: vecSub(boundingBoxPos, pointerInEnvCoords),
+          viewingConcept: newViewingConcept,
+          camera: newCamera,
         }
       }
-      case 'block::moveend': {
-        return {
-          ...state,
-          pointerStartOffset: { x: 0, y: 0 },
-        }
-      }
-      case 'block::change': {
-        const { id, changes } = action.data
-        const oldBlock = state.blocks.find(b => b.id === id)
-        const newBlock = { ...oldBlock, ...changes }
-
-        return {
-          ...state,
-          blocks: state.blocks
-            .filter(b => b.id !== newBlock.id)
-            .concat(newBlock),
-        }
-      }
-      case 'debugging::toggle': {
+      case Action.DebuggingToggle: {
         db.saveSettings({
           debugging: !state.debugging,
           homeConceptId: state.homeConceptId,

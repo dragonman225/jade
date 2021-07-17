@@ -5,16 +5,16 @@ import { classes } from 'typestyle'
 import { Cross } from './icons/Cross'
 import { Expand } from './icons/Expand'
 import { BlockStyles } from './Block.styles'
-import { Action } from '../reducer'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
 import { deleteElement, setElement } from './ElementPool'
+import { Action, Actions } from '../store/actions'
 import { BlockInstance, InteractionMode } from '../interfaces'
 
 interface Props {
   debug: boolean
   className?: string
   block: BlockInstance
-  dispatchAction: React.Dispatch<Action>
+  dispatchAction: (action: Actions) => void
   children?: React.ReactNode
 }
 
@@ -28,12 +28,10 @@ export function Block(props: Props): JSX.Element {
 
   const setMode = (mode: InteractionMode) => {
     dispatchAction({
-      type: 'block::change',
+      type: Action.BlockSetMode,
       data: {
         id: block.id,
-        changes: {
-          mode,
-        },
+        mode,
       },
     })
   }
@@ -60,7 +58,7 @@ export function Block(props: Props): JSX.Element {
 
         if (intent === 'resize') {
           dispatchAction({
-            type: 'block::resize',
+            type: Action.BlockResize,
             data: {
               id: block.id,
               movementInViewportCoords: movement,
@@ -69,7 +67,7 @@ export function Block(props: Props): JSX.Element {
           setMode(InteractionMode.Resizing)
         } else if (intent === 'move') {
           dispatchAction({
-            type: 'block::move',
+            type: Action.BlockMove,
             data: {
               id: block.id,
               pointerInViewportCoords: clientCoords,
@@ -90,7 +88,7 @@ export function Block(props: Props): JSX.Element {
 
         const mode = blockStateRef.current.mode
         if (mode === InteractionMode.Moving)
-          dispatchAction({ type: 'block::moveend' })
+          dispatchAction({ type: Action.BlockMoveEnd })
 
         /** "Focusing" is controlled by the concept display. */
         if (
@@ -116,7 +114,7 @@ export function Block(props: Props): JSX.Element {
           else if (blockStateRef.current.mode !== InteractionMode.Focusing) {
             intent = 'move'
             dispatchAction({
-              type: 'block::movestart',
+              type: Action.BlockMoveStart,
               data: { id: block.id, pointerInViewportCoords: clientCoords },
             })
           }
@@ -195,7 +193,7 @@ export function Block(props: Props): JSX.Element {
         }}
         onClick={() => {
           dispatchAction({
-            type: 'navigation::expand',
+            type: Action.BlockOpenAsCanvas,
             data: { id: concept.id },
           })
         }}>
@@ -213,7 +211,7 @@ export function Block(props: Props): JSX.Element {
         }}
         onClick={() => {
           dispatchAction({
-            type: 'block::remove',
+            type: Action.BlockRemove,
             data: { id: block.id },
           })
         }}>

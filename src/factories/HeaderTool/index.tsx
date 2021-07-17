@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
+
 import { Home } from '../../core/components/icons/Home'
+import { Action } from '../../core/store/actions'
 import {
   ConceptDisplayProps,
   Factory,
@@ -65,7 +67,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
           className={styles.HomeBtn}
           onClick={() =>
             props.dispatchAction({
-              type: 'navigation::expand',
+              type: Action.BlockOpenAsCanvas,
               data: { id: props.state.homeConceptId },
             })
           }>
@@ -86,7 +88,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
             concept: props.state.viewingConcept,
             onChange: data =>
               props.dispatchAction({
-                type: 'concept::datachange',
+                type: Action.ConceptWriteData,
                 data: {
                   id: props.state.viewingConcept.id,
                   type: props.state.viewingConcept.summary.type,
@@ -95,7 +97,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
               }),
             onReplace: typeId =>
               props.dispatchAction({
-                type: 'concept::datachange',
+                type: Action.ConceptWriteData,
                 data: {
                   id: props.state.viewingConcept.id,
                   type: typeId,

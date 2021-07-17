@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { stylesheet, classes } from 'typestyle'
+
 import {
   distance,
   getUnifiedClientCoords,
@@ -9,9 +10,15 @@ import {
 } from '../../core/utils'
 import { factoryRegistry } from '..'
 import { BlockStyles } from '../../core/components/Block.styles'
-import { ConceptDisplayProps, Factory, Vec2 } from '../../core/interfaces'
-import { Concept, InitializedConceptData } from '../../core/interfaces/concept'
 import theme from '../../theme'
+import {
+  Concept,
+  ConceptDisplayProps,
+  Factory,
+  InitializedConceptData,
+  Vec2,
+} from '../../core/interfaces'
+import { Action } from '../../core/store/actions'
 
 const styles = stylesheet({
   'Search--Linking': {
@@ -261,7 +268,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
 
           if (s2lBlock.valid) {
             dispatchAction({
-              type: 'navigation::expand',
+              type: Action.BlockOpenAsCanvas,
               data: { id: s2lBlock.id },
             })
           }
@@ -274,7 +281,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
 
           if (s2lBlock.valid) {
             dispatchAction({
-              type: 'block::create',
+              type: Action.BlockCreate,
               data: {
                 id: s2lBlock.id,
                 position: viewportCoordsToEnvCoords(

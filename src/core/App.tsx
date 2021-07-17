@@ -10,7 +10,7 @@ import { Block } from './components/Block'
 import { AppStyles } from './App.styles'
 import theme from '../theme'
 import { useAnimationFrame } from './useAnimationFrame'
-import { Action, createReducer, loadAppState } from './reducer'
+import { createReducer, loadAppState } from './store/reducer'
 import {
   AppState,
   BlockInstance,
@@ -19,6 +19,7 @@ import {
   InteractionMode,
   PositionType,
 } from './interfaces'
+import { Action, Actions } from './store/actions'
 
 interface Props {
   db: DatabaseInterface
@@ -32,7 +33,7 @@ export function App(props: Props): JSX.Element {
   const initialState = useMemo(() => loadAppState(db), [])
   const [stateSnapshot, setStateSnapshot] = useState<AppState>(initialState)
   const stateRef = useRef<AppState>(initialState)
-  const dispatchAction = useCallback<(action: Action) => void>(
+  const dispatchAction = useCallback<(action: Actions) => void>(
     action => {
       stateRef.current = appStateReducer(stateRef.current, action)
     },
@@ -54,12 +55,10 @@ export function App(props: Props): JSX.Element {
   const renderBlock = (block: BlockInstance): JSX.Element => {
     const setMode = (mode: InteractionMode) => {
       dispatchAction({
-        type: 'block::change',
+        type: Action.BlockSetMode,
         data: {
           id: block.id,
-          changes: {
-            mode,
-          },
+          mode,
         },
       })
     }
@@ -87,7 +86,7 @@ export function App(props: Props): JSX.Element {
           database: db,
           onChange: content => {
             dispatchAction({
-              type: 'concept::datachange',
+              type: Action.ConceptWriteData,
               data: {
                 id: block.concept.id,
                 type: block.concept.summary.type,
@@ -97,7 +96,7 @@ export function App(props: Props): JSX.Element {
           },
           onReplace: type => {
             dispatchAction({
-              type: 'concept::datachange',
+              type: Action.ConceptWriteData,
               data: {
                 id: block.concept.id,
                 type,
