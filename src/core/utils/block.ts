@@ -1,4 +1,4 @@
-import { isBoxBoxIntersecting } from './math'
+import { isBoxBoxIntersectingObjVer } from './math'
 import {
   Block,
   BlockId,
@@ -45,16 +45,10 @@ export function getSelectedBlockIds(
       /** Filter out pinned blocks. */
       b =>
         b.posType === PositionType.Normal &&
-        isBoxBoxIntersecting(
-          selectionBox.x,
-          selectionBox.y,
-          selectionBox.w,
-          selectionBox.h,
-          b.pos.x,
-          b.pos.y,
-          b.size.w,
-          b.size.h
-        )
+        isBoxBoxIntersectingObjVer(selectionBox, {
+          ...b.pos,
+          ...b.size,
+        })
     )
     .map(b => b.id)
 }
