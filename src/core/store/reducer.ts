@@ -466,7 +466,8 @@ export function createReducer(
 
         cursorRectSize =
           cursorBlockId !== id
-            ? {
+            ? /** The first resize action of a block. */
+              {
                 w:
                   typeof oldSize.w === 'number'
                     ? oldSize.w + movementInViewportCoords.x / camera.scale
@@ -526,6 +527,7 @@ export function createReducer(
 
         const snapTolerance = 12 / camera.scale
 
+        /** Snap bottom and right. */
         const bottom = snapValue(
           cursorRect.y + cursorRect.h,
           horizontalGuidelines,
@@ -538,6 +540,10 @@ export function createReducer(
           snapTolerance
         )
 
+        /**
+         * Calculate height and width from snapped bottom and right,
+         * considering the gap.
+         */
         const height = bottom.guideline
           ? bottom.guideline.fromSide === RectSide.Top
             ? bottom.value - gap - cursorRect.y // cursorRect's bottom snaps targetRect's top.
