@@ -1,11 +1,15 @@
 import * as React from 'react'
 import { useState, useEffect, useRef } from 'react'
-import { classes, stylesheet } from 'typestyle'
+import { classes } from 'typestyle'
 import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
-import { Schema, Node } from 'prosemirror-model'
+import { Node } from 'prosemirror-model'
+import { toggleMark } from 'prosemirror-commands'
+import { keymap } from 'prosemirror-keymap'
+
+import { styles } from './index.styles'
+import { schema } from './schema'
 import { getCaretCoordinates } from '../../core/utils'
-import theme from '../../theme'
 import {
   ConceptDisplayProps,
   Vec2,
@@ -21,13 +25,6 @@ import {
  * CSS is outside of React. Cannot use styled-jsx or other modern tools.
  */
 
-const schema = new Schema({
-  nodes: {
-    doc: { content: 'text*' },
-    text: { inline: true },
-  },
-})
-
 interface PMTextContent extends InitializedConceptData {
   data: {
     [key: string]: any
@@ -35,69 +32,6 @@ interface PMTextContent extends InitializedConceptData {
 }
 
 type Props = ConceptDisplayProps<PMTextContent>
-
-const styles = stylesheet({
-  EditorContainer: {
-    /** For Placeholder to reference position. */
-    position: 'relative',
-    $nest: {
-      '& .ProseMirror': {
-        whiteSpace: 'pre-wrap',
-      },
-      '& .ProseMirror:focus': {
-        outline: 'none',
-      },
-    },
-  },
-  PMTextNavItem: {
-    fontSize: '.8rem',
-    padding: '.5rem',
-    maxHeight: '100%',
-  },
-  PMTextBlock: {
-    padding: '0.5rem 1.25rem',
-  },
-  PMTextCardTitle: {
-    fontSize: '1.2rem',
-    fontWeight: 'bold',
-    padding: '.3rem .5rem',
-    /** auto vertical center when it is smaller than HeaderTool's content 
-        min-height. */
-    margin: 'auto',
-    overflow: 'auto',
-    width: '100%',
-  },
-  SlashMenu: {
-    width: 150,
-    padding: '.3rem',
-    position: 'absolute',
-    zIndex: 10000,
-    background: '#fff',
-    boxShadow: theme.SHADOWS.float,
-    borderRadius: theme.BORDERS.largeRadius,
-    $nest: {
-      '&>p': {
-        margin: '.2rem .5rem .5rem',
-        fontSize: '.7rem',
-        opacity: 0.7,
-      },
-    },
-  },
-  SlashMenuItem: {
-    padding: '.3rem .5rem',
-    borderRadius: theme.BORDERS.smallRadius,
-  },
-  'SlashMenuItem--Chosen': {
-    background: theme.COLORS.bgHover,
-  },
-  Placeholder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    opacity: 0.7,
-    pointerEvents: 'none',
-  },
-})
 
 const PMText: React.FunctionComponent<Props> = props => {
   const [showMenu, setShowMenu] = useState(false)
@@ -165,11 +99,18 @@ const PMText: React.FunctionComponent<Props> = props => {
   }
 
   function createEditorState(props: Props) {
+    const keymapPlugin = keymap({
+      'Mod-b': toggleMark(schema.marks.bold),
+      'Mod-i': toggleMark(schema.marks.italic),
+      'Mod-e': toggleMark(schema.marks.code),
+    })
+
     return EditorState.create({
       schema,
       doc: props.concept.summary.data.initialized
         ? Node.fromJSON(schema, props.concept.summary.data.data)
         : undefined,
+      plugins: [keymapPlugin],
     })
   }
 
