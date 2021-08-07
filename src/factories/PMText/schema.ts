@@ -1,5 +1,7 @@
 import { Schema } from 'prosemirror-model'
 
+import { styles } from './index.styles'
+
 export const schema = new Schema({
   nodes: {
     doc: { content: 'text*' },
@@ -28,7 +30,7 @@ export const schema = new Schema({
     },
     code: {
       toDOM() {
-        return ['code']
+        return ['code', { class: styles.Code }]
       },
     },
   },

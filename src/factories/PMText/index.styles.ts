@@ -62,4 +62,12 @@ export const styles = stylesheet({
     opacity: 0.7,
     pointerEvents: 'none',
   },
+  Code: {
+    borderRadius: 5,
+    backgroundColor: 'rgba(135, 131, 120, 0.15)',
+    color: '#ff4081',
+    fontSize: '0.9em',
+    padding: '0.2em 0.4em',
+    wordBreak: 'break-word',
+  },
 })
