@@ -102,6 +102,8 @@ const PMText: React.FunctionComponent<Props> = props => {
     const keymapPlugin = keymap({
       'Mod-b': toggleMark(schema.marks.bold),
       'Mod-i': toggleMark(schema.marks.italic),
+      'Mod-u': toggleMark(schema.marks.underline),
+      'Mod-Shift-s': toggleMark(schema.marks.strike),
       'Mod-e': toggleMark(schema.marks.code),
     })
 

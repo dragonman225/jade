@@ -16,6 +16,16 @@ export const schema = new Schema({
         return ['em']
       },
     },
+    underline: {
+      toDOM() {
+        return ['span', { style: 'text-decoration: underline;' }]
+      },
+    },
+    strike: {
+      toDOM() {
+        return ['strike']
+      },
+    },
     code: {
       toDOM() {
         return ['code']
