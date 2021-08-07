@@ -53,6 +53,10 @@ interface WriteBufferItem {
 
 const SQLiteDatabase = _SQLiteDatabase as SQLiteDatabaseConstructor
 
+function log(...args: unknown[]) {
+  console.log('electron-storage:', ...args)
+}
+
 function createDatabase(path: string): DatabaseInterface {
   const db = new SQLiteDatabase(path)
   const conceptsTableName = 'concepts'
@@ -60,6 +64,7 @@ function createDatabase(path: string): DatabaseInterface {
   let writeBuffer: WriteBufferItem[] = []
   const minUpdateInterval = 500
   const conceptCache = new Map<string, Concept>()
+  let settingsCache: Settings
   let lastUpdatedTime = Date.now()
   let timer: NodeJS.Timeout | undefined = undefined
 
@@ -117,14 +122,15 @@ function createDatabase(path: string): DatabaseInterface {
       const row = selectSetting.get({ key: 'JADE_DB_LOADED' })
       return !!row
     } catch (error) {
-      console.log(error)
+      log(error)
       return false
     }
   }
 
   function init(settings: Settings, concepts: Concept[]) {
-    console.log('storage: init')
+    log('Init')
     db.transaction(() => {
+      settingsCache = settings
       insertSetting.run({ key: 'settings', value: JSON.stringify(settings) })
       insertSetting.run({ key: 'JADE_DB_LOADED', value: 'yes' })
       insertSetting.run({
@@ -133,6 +139,7 @@ function createDatabase(path: string): DatabaseInterface {
       })
       for (let i = 0; i < concepts.length; ++i) {
         const c = concepts[i]
+        conceptCache.set(c.id, c)
         conceptStmt.create.run({ id: c.id, json: JSON.stringify(c) })
       }
     })() // Transaction must be called!
@@ -160,7 +167,7 @@ function createDatabase(path: string): DatabaseInterface {
               break
             }
             default: {
-              console.log('Unknown data type:', item)
+              log('Unknown data type:', item)
             }
           }
         }
@@ -172,14 +179,14 @@ function createDatabase(path: string): DatabaseInterface {
       trx(writeBuffer)
       writeBuffer = []
       const end = Date.now()
-      console.log(`storage: commit buffer in ${end - start}ms`)
+      log(`Commit buffer in ${end - start}ms`)
     } catch (error) {
-      console.log('storage: commit failed:', error)
+      log('Commit buffer failed:', error)
     }
   }
 
   function queueWriteItem(item: WriteBufferItem) {
-    console.log('storage: queue write', item)
+    log('Queue write', item)
     writeBuffer.push(item)
     if (Date.now() - lastUpdatedTime > minUpdateInterval) {
       commitBuffer()
@@ -200,7 +207,7 @@ function createDatabase(path: string): DatabaseInterface {
     try {
       return JSON.parse(dryConcept.json) as Concept
     } catch (error) {
-      console.log(error)
+      log(error)
       return undefined
     }
   }
@@ -215,11 +222,11 @@ function createDatabase(path: string): DatabaseInterface {
       const concept = hydrateConcept(dryConcept)
       conceptCache.set(id, concept)
       const end = Date.now()
-      console.log(`storage: select concept ${id} in ${mid - start}ms, \
-parse json in ${end - mid}ms.`)
+      log(`Select concept "${id}" in ${mid - start}ms, \
+parse JSON in ${end - mid}ms.`)
       return concept
     } catch (error) {
-      console.log(error)
+      log(error)
       return undefined
     }
   }
@@ -230,10 +237,10 @@ parse json in ${end - mid}ms.`)
       const stmt = conceptStmt.selectAll
       const dryConcepts = stmt.all<DryConcept>()
       const end = Date.now()
-      console.log(`storage: select all concepts in ${end - start} ms`)
+      log(`Select all concepts in ${end - start} ms`)
       return dryConcepts.map(c => hydrateConcept(c))
     } catch (error) {
-      console.log(error)
+      log(error)
       return undefined
     }
   }
@@ -250,17 +257,19 @@ parse json in ${end - mid}ms.`)
   }
 
   function getSettings(): Settings {
+    if (settingsCache) return settingsCache
     try {
       const stmt = selectSetting
       const drySetting = stmt.get<DrySetting>({ key: 'settings' })
       return JSON.parse(drySetting.value) as Settings
     } catch (error) {
-      console.log(error)
+      log(error)
       return undefined
     }
   }
 
   function saveSettings(settings: Settings) {
+    settingsCache = settings
     queueWriteItem({
       table: settingsTableName,
       id: 'settings',
