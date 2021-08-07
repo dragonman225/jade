@@ -29,8 +29,13 @@ export function startApp(database: DatabaseInterface): void {
     )
   }
 
-  /** Migrate state4 to new database. */
-  const isState4 = isNaN(database.getVersion())
+  /**
+   * Migrate state4 to new database.
+   *
+   * We need to test isValid() or we cannot distinguish uninitialized from
+   * State4.
+   */
+  const isState4 = database.isValid() && isNaN(database.getVersion())
   if (isState4) {
     const allConcepts = (database.getAllConcepts() as unknown) as Concept4[]
     allConcepts.forEach((c: Concept4) =>
