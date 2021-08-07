@@ -9,7 +9,6 @@ import {
   isBoxBoxIntersecting,
 } from '../utils'
 import { getElement } from '../components/ElementPool'
-import { initialConcepts } from '../../resources/initial-concepts'
 import { createBlockInstance, getSelectedBlockIds } from '../utils/block'
 import { createConcept } from '../utils/concept'
 import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
@@ -53,18 +52,7 @@ export function synthesizeView(
 }
 
 export function loadAppState(db: DatabaseInterface): AppState {
-  console.log('Loading app state.')
-
-  if (!db.isValid()) {
-    db.init(
-      {
-        debugging: false,
-        homeConceptId: 'home',
-        viewingConceptId: 'home',
-      },
-      initialConcepts
-    )
-  }
+  console.log('core/store/reducer: Loading app state')
 
   const settings = db.getSettings()
   const viewingConcept = db.getConcept(settings.viewingConceptId)
@@ -99,7 +87,7 @@ export function createReducer(
   let cursorRectSize: { w: number; h: number } = { w: 0, h: 0 }
 
   return function appStateReducer(state: AppState, action: Actions): AppState {
-    // console.log(`reducer: "${action.type}"`, action)
+    // console.log(`core/store/reducer: "${action.type}"`, action)
 
     switch (action.type) {
       case Action.ConceptCreate: {

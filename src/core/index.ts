@@ -5,7 +5,11 @@ import { App } from './App'
 import { isNaN } from './utils'
 import { factoryRegistry } from '../factories'
 import { legacyLoadState } from '../resources/web-legacy-storage'
-import { toolConcepts, toolMaskConcept } from '../resources/initial-concepts'
+import {
+  toolConcepts,
+  toolMaskConcept,
+  initialConcepts,
+} from '../resources/initial-concepts'
 import env from '../env'
 import { Concept4, DatabaseInterface, PositionType } from './interfaces'
 
@@ -18,7 +22,7 @@ export function startApp(database: DatabaseInterface): void {
   const state3 = legacyLoadState()
 
   if (!database.isValid() && state3) {
-    console.log('Migrating state_v3 to new format.')
+    console.log('core/index: Migrating state_v3')
     database.init(
       {
         debugging: state3.debugging,
@@ -37,6 +41,7 @@ export function startApp(database: DatabaseInterface): void {
    */
   const isState4 = database.isValid() && isNaN(database.getVersion())
   if (isState4) {
+    console.log('core/index: Migrating state4')
     const allConcepts = (database.getAllConcepts() as unknown) as Concept4[]
     allConcepts.forEach((c: Concept4) =>
       database.updateConcept({
@@ -60,6 +65,19 @@ export function startApp(database: DatabaseInterface): void {
     database.createConcept(toolMaskConcept)
     toolConcepts.forEach(c => database.createConcept(c))
     database.setVersion(5)
+  }
+
+  /** Bootstrap new database. */
+  if (!database.isValid()) {
+    console.log('core/index: Bootstrap new db')
+    database.init(
+      {
+        debugging: false,
+        homeConceptId: 'home',
+        viewingConceptId: 'home',
+      },
+      initialConcepts
+    )
   }
 
   ReactDOM.render(
