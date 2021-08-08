@@ -10,28 +10,33 @@ export const schema = new Schema({
   marks: {
     bold: {
       toDOM() {
-        return ['strong']
+        return ['strong', 0]
       },
+      parseDOM: [{ tag: 'strong' }],
     },
     italic: {
       toDOM() {
-        return ['em']
+        return ['em', 0]
       },
+      parseDOM: [{ tag: 'em' }, { tag: 'i' }, { style: 'font-style=italic' }],
     },
     underline: {
       toDOM() {
-        return ['span', { style: 'text-decoration: underline;' }]
+        return ['span', { style: 'text-decoration: underline;' }, 0]
       },
+      parseDOM: [{ style: 'text-decoration=underline' }],
     },
     strike: {
       toDOM() {
-        return ['strike']
+        return ['strike', 0]
       },
+      parseDOM: [{ tag: 'strike' }],
     },
     code: {
       toDOM() {
-        return ['code', { class: styles.Code }]
+        return ['code', { class: styles.Code }, 0]
       },
+      parseDOM: [{ tag: 'code' }],
     },
   },
 })
