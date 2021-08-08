@@ -3,12 +3,9 @@ import { useState, useEffect, useRef } from 'react'
 import { classes } from 'typestyle'
 import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
-import { Node } from 'prosemirror-model'
-import { toggleMark } from 'prosemirror-commands'
-import { keymap } from 'prosemirror-keymap'
 
 import { styles } from './index.styles'
-import { schema } from './schema'
+import { createEditorState, isDocEmpty } from './utils'
 import { getCaretCoordinates } from '../../core/utils'
 import {
   ConceptDisplayProps,
@@ -94,33 +91,12 @@ const PMText: React.FunctionComponent<Props> = props => {
     return false
   }
 
-  function isDocEmpty(state: EditorState) {
-    return state.doc.content.size === 0
-  }
-
-  function createEditorState(props: Props) {
-    const keymapPlugin = keymap({
-      'Mod-b': toggleMark(schema.marks.bold),
-      'Mod-i': toggleMark(schema.marks.italic),
-      'Mod-u': toggleMark(schema.marks.underline),
-      'Mod-Shift-s': toggleMark(schema.marks.strike),
-      'Mod-e': toggleMark(schema.marks.code),
-    })
-
-    return EditorState.create({
-      schema,
-      doc: props.concept.summary.data.initialized
-        ? Node.fromJSON(schema, props.concept.summary.data.data)
-        : undefined,
-      plugins: [keymapPlugin],
-    })
-  }
-
   function createEditorView(
     props: Props,
     containerEl: HTMLElement,
     editorState: EditorState
   ) {
+    const { onChange, onInteractionStart, onInteractionEnd, readOnly } = props
     const view = new EditorView(containerEl, {
       state: editorState,
       dispatchTransaction: transaction => {
@@ -133,19 +109,19 @@ const PMText: React.FunctionComponent<Props> = props => {
         }
         /** Submit changes only when the transaction modifies the doc. */
         if (transaction.steps.length > 0)
-          props.onChange({
+          onChange({
             initialized: true,
             data: newState.doc.toJSON(),
           })
       },
       handleDOMEvents: {
         focus: () => {
-          console.log('pmtext: focus')
-          props.onInteractionStart()
+          console.log('PMText: focus')
+          onInteractionStart()
           return false
         },
         blur: (_view, event) => {
-          console.log('pmtext: blur')
+          console.log('PMText: blur')
           setShowMenu(false)
           if (event.target !== document.activeElement) {
             window.getSelection().removeAllRanges()
@@ -157,12 +133,12 @@ const PMText: React.FunctionComponent<Props> = props => {
              */
             // const state = view.state
             // view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, 0)))
-            props.onInteractionEnd()
+            onInteractionEnd()
           }
           return false
         },
       },
-      editable: () => !props.readOnly,
+      editable: () => !readOnly,
     })
     return view
   }
@@ -177,8 +153,8 @@ const PMText: React.FunctionComponent<Props> = props => {
 
   /** Init the ProseMirror editor when the component mounts. */
   useEffect(() => {
-    console.log('pmtext: mount')
-    const state = createEditorState(props)
+    console.log('PMText: mount')
+    const state = createEditorState(props.concept.summary.data)
     const view = createEditorView(props, editorContainerRef.current, state)
     view.props.handleDOMEvents.keydown = onKeyDown
     view.props.handleDOMEvents.keyup = onKeyUp
@@ -205,35 +181,35 @@ const PMText: React.FunctionComponent<Props> = props => {
     if (mounted) {
       editorView.current.props.handleDOMEvents.keydown = onKeyDown
     }
-  }, [showMenu, chosenItemIndex, isEmpty])
+  }, [showMenu, chosenItemIndex, isEmpty, mounted])
 
   /**
    * Update content of the editor when props change.
    */
   useEffect(() => {
     if (mounted) {
-      console.log('pmtext: update content')
+      console.log('PMText: update content')
       /** Ignore the editor that is currently producing changes (hasFocus). */
       if (!editorView.current.hasFocus()) {
         /** Create a clean state. */
-        const cleanEditorState = createEditorState(props)
+        const cleanEditorState = createEditorState(props.concept.summary.data)
         /** Update the doc part of the existing state. */
         editorState.current.doc = cleanEditorState.doc
         /** Update the view. */
         editorView.current.updateState(editorState.current)
       }
     }
-  }, [props.concept.summary.data])
+  }, [props.concept.summary.data, mounted])
 
   /**
    * Update "editable" prop of the editor view.
    */
   useEffect(() => {
     if (mounted) {
-      console.log('pmtext: update readOnly')
+      console.log('PMText: update readOnly')
       editorView.current.setProps({ editable: () => !props.readOnly })
     }
-  }, [props.readOnly])
+  }, [props.readOnly, mounted])
 
   const editorContainer = (
     <div ref={editorContainerRef} className={styles.EditorContainer}>
