@@ -1,10 +1,12 @@
 import * as React from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { classes } from 'typestyle'
-import { EditorState } from 'prosemirror-state'
+import { AllSelection, EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
+import { Node } from 'prosemirror-model'
 
 import { styles } from './index.styles'
+import { schema } from './schema'
 import { createEditorState, isDocEmpty } from './utils'
 import { getCaretCoordinates } from '../../core/utils'
 import {
@@ -102,13 +104,15 @@ const PMText: React.FunctionComponent<Props> = props => {
       dispatchTransaction: transaction => {
         const newState = view.state.apply(transaction)
         view.updateState(newState)
-        if (isDocEmpty(newState)) {
-          setIsEmpty(true)
-        } else {
-          setIsEmpty(false)
-        }
-        /** Submit changes only when the transaction modifies the doc. */
-        if (transaction.steps.length > 0)
+        setIsEmpty(isDocEmpty(newState))
+        /**
+         * Submit changes only when the transaction modifies the doc and
+         * it comes from UI operations.
+         */
+        if (
+          transaction.steps.length > 0 &&
+          !transaction.getMeta('from_upstream')
+        )
           onChange({
             initialized: true,
             data: newState.doc.toJSON(),
@@ -185,19 +189,33 @@ const PMText: React.FunctionComponent<Props> = props => {
 
   /**
    * Update content of the editor when props change.
+   *
+   * TODO: Do not rely on props change, build proper observer patterns.
    */
   useEffect(() => {
     if (mounted) {
       console.log('PMText: update content')
+
       /** Ignore the editor that is currently producing changes (hasFocus). */
-      if (!editorView.current.hasFocus()) {
-        /** Create a clean state. */
-        const cleanEditorState = createEditorState(props.concept.summary.data)
-        /** Update the doc part of the existing state. */
-        editorState.current.doc = cleanEditorState.doc
-        /** Update the view. */
-        editorView.current.updateState(editorState.current)
-      }
+      if (editorView.current.hasFocus()) return
+
+      const data = props.concept.summary.data
+      const doc = data.initialized
+        ? Node.fromJSON(schema, data.data)
+        : undefined
+      const state = editorView.current.state
+      const { from, to } = new AllSelection(state.doc)
+
+      /** Block cases that cause replaceRangeWith() crash. */
+      if (!doc || (!from && !to && doc.content.size === 0)) return
+
+      /**
+       * setMeta() so that dispatchTransaction() in EditorView can know not
+       * to call onChange(), preventing infinite loop.
+       */
+      editorView.current.dispatch(
+        state.tr.replaceRangeWith(from, to, doc).setMeta('from_upstream', true)
+      )
     }
   }, [props.concept.summary.data, mounted])
 

@@ -1,7 +1,8 @@
 import { keymap } from 'prosemirror-keymap'
 import { EditorState, Transaction } from 'prosemirror-state'
 import { Node } from 'prosemirror-model'
-import { toggleMark } from 'prosemirror-commands'
+import { Command, toggleMark } from 'prosemirror-commands'
+import { history, redo, undo } from 'prosemirror-history'
 
 import { schema } from './schema'
 import { BaseConceptData } from '../../core/interfaces'
@@ -11,7 +12,19 @@ export function isDocEmpty(state: EditorState): boolean {
 }
 
 export function createEditorState(data: BaseConceptData): EditorState {
-  /** Keyboard shortcuts. */
+  /**
+   * Keyboard shortcuts.
+   *
+   * TODO:
+   * @see https://github.com/ProseMirror/prosemirror-example-setup/blob/master/src/keymap.js
+   *
+   * TODO: bug
+   *    The browser has native undo history
+   *    (https://discuss.prosemirror.net/t/native-undo-history/1823/8)
+   *    and ProseMirror doesn't do anything about it. To reproduce, edit,
+   *    click outside to blur, hit Mod-z. It's confirmed to be native by
+   *    removing undo/redo from keymap.
+   */
   const keymapPlugin = keymap({
     'Mod-b': toggleMark(schema.marks.bold),
     'Mod-i': toggleMark(schema.marks.italic),
@@ -19,12 +32,14 @@ export function createEditorState(data: BaseConceptData): EditorState {
     'Mod-Shift-s': toggleMark(schema.marks.strike),
     'Mod-e': toggleMark(schema.marks.code),
     'Shift-Enter': insertHardBreak,
+    'Mod-z': whenHasFocus(undo),
+    'Shift-Mod-z': whenHasFocus(redo),
   })
 
   return EditorState.create({
     schema,
     doc: data.initialized ? Node.fromJSON(schema, data.data) : undefined,
-    plugins: [keymapPlugin],
+    plugins: [keymapPlugin, history()],
   })
 }
 
@@ -41,4 +56,11 @@ export function insertHardBreak(
     return false
   dispatch(state.tr.replaceSelectionWith(type.create()))
   return true
+}
+
+export function whenHasFocus(command: Command): Command {
+  return (state, dispatch, view) => {
+    if (view.hasFocus()) return command(state, dispatch, view)
+    return false
+  }
 }
