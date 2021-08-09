@@ -4,8 +4,20 @@ import { styles } from './index.styles'
 
 export const schema = new Schema({
   nodes: {
-    doc: { content: 'text*' },
-    text: { inline: true },
+    doc: { content: 'inline*' },
+    /**
+     * `text` is inline by default, so no need to specify `inline: true`.
+     */
+    text: { group: 'inline' },
+    hard_break: {
+      inline: true,
+      group: 'inline',
+      selectable: false,
+      parseDOM: [{ tag: 'br' }],
+      toDOM() {
+        return ['br']
+      },
+    },
   },
   marks: {
     bold: {

@@ -1,5 +1,5 @@
 import { keymap } from 'prosemirror-keymap'
-import { EditorState } from 'prosemirror-state'
+import { EditorState, Transaction } from 'prosemirror-state'
 import { Node } from 'prosemirror-model'
 import { toggleMark } from 'prosemirror-commands'
 
@@ -18,6 +18,7 @@ export function createEditorState(data: BaseConceptData): EditorState {
     'Mod-u': toggleMark(schema.marks.underline),
     'Mod-Shift-s': toggleMark(schema.marks.strike),
     'Mod-e': toggleMark(schema.marks.code),
+    'Shift-Enter': insertHardBreak,
   })
 
   return EditorState.create({
@@ -25,4 +26,19 @@ export function createEditorState(data: BaseConceptData): EditorState {
     doc: data.initialized ? Node.fromJSON(schema, data.data) : undefined,
     plugins: [keymapPlugin],
   })
+}
+
+/**
+ * @see https://prosemirror.net/examples/schema/
+ */
+export function insertHardBreak(
+  state: EditorState,
+  dispatch: (tr: Transaction<typeof schema>) => void
+): boolean {
+  const type = schema.nodes.hard_break
+  const { $from } = state.selection
+  if (!$from.parent.canReplaceWith($from.index(), $from.index(), type))
+    return false
+  dispatch(state.tr.replaceSelectionWith(type.create()))
+  return true
 }
