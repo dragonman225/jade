@@ -9,7 +9,7 @@ module.exports = {
   /** target: "web" is default. */
   context: process.cwd(), // to automatically find tsconfig.json
   entry: {
-    'web-index': './src/web-index.ts',
+    app: './src/platforms/web/startup.ts',
   },
   output: {
     path: path.resolve(__dirname, 'build/web'),

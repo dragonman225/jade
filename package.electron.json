@@ -1,7 +1,7 @@
 {
   "name": "jade",
   "version": "0.2.1",
-  "main": "electron-main.js",
+  "main": "main.js",
   "license": "MIT",
   "scripts": {
     "postinstall": "electron-builder install-app-deps",

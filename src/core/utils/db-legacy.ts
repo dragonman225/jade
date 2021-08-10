@@ -1,6 +1,6 @@
-import { State3 } from '../core/interfaces'
+import { State3 } from '../interfaces'
 
-/** Legacy database interface. */
+/** Legacy database implemented with localStorage. */
 const itemKey = 'state_v3'
 
 export function legacyLoadState(): State3 | undefined {

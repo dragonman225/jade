@@ -11,7 +11,7 @@
     "web:build": "webpack --color --progress --mode production --config webpack.config.web.prod.js",
     "web:build-dev": "webpack --color --progress --mode development --config webpack.config.web.prod.js",
     "web:serve": "sirv build/web --dev -H 10.0.0.3",
-    "electron:start": "electron ./build/electron/electron-main.js",
+    "electron:start": "electron ./build/electron/main.js",
     "electron:build": "npm run electron:build-main && npm run electron:build-renderer",
     "electron:build-main": "tsc -p tsconfig.electron.json",
     "electron:build-renderer": "webpack --color --progress --mode production --config webpack.config.electron.js",

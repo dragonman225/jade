@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import { Concept, PositionType } from '../core/interfaces'
+import { Concept, PositionType } from './core/interfaces'
 
 function createDefaultCamera() {
   return {

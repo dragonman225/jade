@@ -4,12 +4,12 @@ import * as ReactDOM from 'react-dom'
 import { App } from './App'
 import { isNaN } from './utils'
 import { factoryRegistry } from '../factories'
-import { legacyLoadState } from '../resources/web-legacy-storage'
+import { legacyLoadState } from './utils/db-legacy'
 import {
   toolConcepts,
   toolMaskConcept,
   initialConcepts,
-} from '../resources/initial-concepts'
+} from '../initial-concepts'
 import env from '../env'
 import { Concept4, DatabaseInterface, PositionType } from './interfaces'
 

@@ -16,7 +16,7 @@ module.exports = {
   context: process.cwd(), // to automatically find tsconfig.json
   /** Entry & Output: @see https://webpack.js.org/configuration/entry-context/#naming */
   entry: {
-    'electron-renderer': './src/electron-renderer.ts',
+    renderer: './src/platforms/electron/renderer.ts',
   },
   output: {
     path: path.join(process.cwd(), 'build/electron'),

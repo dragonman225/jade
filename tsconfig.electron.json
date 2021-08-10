@@ -3,10 +3,7 @@
     "outDir": "./build/electron",
     "target": "esnext",
     "module": "commonjs",
-    "lib": [
-      "es7",
-      "dom"
-    ],
+    "lib": ["es7", "dom"],
     "moduleResolution": "node",
     "strict": true,
     "allowSyntheticDefaultImports": true,
@@ -21,11 +18,6 @@
     "declarationMap": true,
     "noImplicitAny": false // to use untyped modules
   },
-  "include": [
-    "src/electron-main.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts"
-  ]
+  "include": ["src/platforms/electron/main.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }

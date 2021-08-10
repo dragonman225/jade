@@ -1,8 +1,9 @@
-import { DatabaseInterface, Settings, Concept } from '../core/interfaces'
-import env from '../env'
+import { DatabaseInterface, Settings, Concept } from '../../core/interfaces'
+import env from '../../env'
 
 /**
- * New database interface.
+ * Database implemented with localStorage.
+ *
  * TODO: Add frontend LRU cache, update on write.
  * TODO: Add write buffer that queue writes and use transaction to write
  *       a batch.

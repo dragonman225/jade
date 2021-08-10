@@ -1,7 +1,7 @@
 import _SQLiteDatabase from 'better-sqlite3'
 
-import env from '../env'
-import { DatabaseInterface, Settings, Concept } from '../core/interfaces'
+import env from '../../env'
+import { DatabaseInterface, Settings, Concept } from '../../core/interfaces'
 
 interface SQLiteDatabase {
   prepare(sql: string): SQLiteStatement
