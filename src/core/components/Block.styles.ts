@@ -8,6 +8,9 @@ export const BlockStyles = stylesheet({
     borderRadius: theme.BORDERS.smallRadius,
     overflow: 'hidden',
     $nest: {
+      '&:hover': {
+        cursor: 'pointer',
+      },
       '& > .ActionBtn': {
         opacity: 0,
         transition: '0.1s opacity ease-in-out, 0.1s fill ease-in-out',
@@ -51,9 +54,19 @@ export const BlockStyles = stylesheet({
   },
   'Block--Focusing': {
     boxShadow: `0px 0px 0px 2px ${theme.COLORS.uiBlack}`,
+    $nest: {
+      '&:hover': {
+        cursor: 'auto',
+      },
+    },
   },
   'Block--Moving': {
     opacity: 0.4,
+    $nest: {
+      '&:hover': {
+        cursor: 'grabbing',
+      },
+    },
   },
   DebugLabel: {
     position: 'absolute',
