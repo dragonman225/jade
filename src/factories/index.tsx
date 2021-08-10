@@ -6,19 +6,21 @@ import {
   InitializedConceptData,
 } from '../core/interfaces'
 import { PMTextFactory } from './PMText'
+import { SlateTextFactory } from './SlateText'
 import { ImageFactory } from './Image'
+import { EmbedFactory } from './Embed'
 import { StatusFactory } from './Status'
 import { SearchToolFactory } from './SearchTool'
 import { HeaderToolFactory } from './HeaderTool'
 import { RecentToolFactory } from './RecentTool'
 import { InsightToolFactory } from './InsightTool'
-import { SlateTextFactory } from './SlateText'
 
 class AlexFactoryRegistry implements FactoryRegistry {
   private factories = [
     PMTextFactory,
     SlateTextFactory,
     ImageFactory,
+    EmbedFactory,
     StatusFactory,
     SearchToolFactory,
     HeaderToolFactory,
