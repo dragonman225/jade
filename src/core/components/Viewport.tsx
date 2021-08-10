@@ -204,6 +204,8 @@ export function Viewport(props: Props): JSX.Element {
             transform: `translate3d(${-focus.x * scale}px, ${
               -focus.y * scale
             }px, 0px) scale(${scale})`,
+            // TODO: Use `use-spring` to make proper animations.
+            transition: 'transform 50ms ease-in-out 0s',
           }}>
           {blocks
             .filter(
