@@ -1,6 +1,8 @@
-import { v4 as uuidv4 } from 'uuid'
-
+import { createBlock } from './core/utils/block'
+import { createConcept } from './core/utils/concept'
 import { Concept, PositionType } from './core/interfaces'
+
+const now = Date.now()
 
 function createDefaultCamera() {
   return {
@@ -9,62 +11,50 @@ function createDefaultCamera() {
   }
 }
 
-function createEmptyConcept(type: string): Concept {
-  return {
-    id: uuidv4(),
-    summary: { type, data: { initialized: false } },
-    references: [],
-    drawing: [],
-    camera: createDefaultCamera(),
-  }
-}
-
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
-export const contentConcepts = require('./initial-content-concepts.json') as Concept[]
+export const initialConceptsFromFile = require('./initial-content-concepts.json') as Concept[]
 export const toolConcepts: Concept[] = [
-  createEmptyConcept('headertool'),
-  createEmptyConcept('recenttool'),
-  createEmptyConcept('insighttool'),
-  createEmptyConcept('searchtool'),
+  createConcept('headertool'),
+  createConcept('recenttool'),
+  createConcept('insighttool'),
+  createConcept('searchtool'),
 ]
 export const toolMaskConcept: Concept = {
   id: '__tool_mask__',
   summary: { type: 'toolmask', data: { initialized: false } },
   references: [
-    {
-      id: uuidv4(),
+    createBlock({
       to: toolConcepts[0].id,
       posType: PositionType.PinnedTL,
       pos: { x: 400, y: 10 },
       size: { w: 450, h: 'auto' },
-    },
-    {
-      id: uuidv4(),
+    }),
+    createBlock({
       to: toolConcepts[1].id,
       posType: PositionType.PinnedTR,
       pos: { x: 10, y: 10 },
       size: { w: 450, h: 'auto' },
-    },
-    {
-      id: uuidv4(),
+    }),
+    createBlock({
       to: toolConcepts[2].id,
       posType: PositionType.PinnedBR,
       pos: { x: 10, y: 10 },
       size: { w: 250, h: 'auto' },
-    },
-    {
-      id: uuidv4(),
+    }),
+    createBlock({
       to: toolConcepts[3].id,
       posType: PositionType.PinnedTL,
       pos: { x: 10, y: 10 },
       size: { w: 270, h: 'auto' },
-    },
+    }),
   ],
   drawing: [],
   camera: createDefaultCamera(),
+  createdTime: now,
+  lastEditedTime: now,
 }
 
-export const initialConcepts = contentConcepts
+export const initialConcepts = initialConceptsFromFile
   // COMPAT: v0.1.4 or lower doesn't have `posType`.
   // COMPAT: v0.1.4 or lower doesn't have `camera`.
   .map(c => ({
@@ -75,9 +65,15 @@ export const initialConcepts = contentConcepts
         typeof r.posType === 'undefined' ? PositionType.Normal : r.posType,
     })),
     camera: c.camera || createDefaultCamera(),
+    createdTime: c.createdTime || now,
+    lastEditedTime: c.lastEditedTime || now,
   }))
   .concat(
-    contentConcepts.find(c => c.id === '__tool_mask__')
+    /**
+     * If there's already `__tool_mask__` in the concepts from file,
+     * there's no need to concat it.
+     */
+    initialConceptsFromFile.find(c => c.id === '__tool_mask__')
       ? []
       : toolConcepts.concat(toolMaskConcept)
   )

@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
-
 import {
   viewportCoordsToEnvCoords,
   vecDiv,
@@ -8,10 +6,16 @@ import {
   normalizeToBox,
   isBoxBoxIntersecting,
 } from '../utils'
-import { getElement } from '../components/ElementPool'
-import { createBlockInstance, getSelectedBlockIds } from '../utils/block'
-import { createConcept } from '../utils/concept'
+import {
+  createBlock,
+  createBlockInstance,
+  getSelectedBlockIds,
+  blockInstanceToBlock,
+  updateBlockInstance,
+} from '../utils/block'
+import { createConcept, updateConcept } from '../utils/concept'
 import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
+import { getElement } from '../components/ElementPool'
 import { Action, Actions } from './actions'
 import {
   Concept,
@@ -32,21 +36,28 @@ export function synthesizeView(
   db: DatabaseInterface,
   existingBlockInstances?: BlockInstance[]
 ): BlockInstance[] {
+  function blockToBlockInstance(block: Block) {
+    if (!existingBlockInstances)
+      return createBlockInstance(block, db.getConcept(block.to))
+
+    const existingBlockInstance = existingBlockInstances.find(
+      b => b.id === block.id
+    )
+    if (existingBlockInstance) {
+      existingBlockInstance.concept = db.getConcept(block.to)
+      existingBlockInstance.posType = block.posType
+      existingBlockInstance.pos = block.pos
+      existingBlockInstance.size = block.size
+      existingBlockInstance.lastEditedTime = block.lastEditedTime
+      return existingBlockInstance
+    } else {
+      return createBlockInstance(block, db.getConcept(block.to))
+    }
+  }
+
   const overlayConcept = db.getConcept('__tool_mask__')
-  const overlayBlocks = overlayConcept.references.map(block =>
-    createBlockInstance(
-      block,
-      db.getConcept(block.to),
-      existingBlockInstances?.find(i => i.id === block.id)
-    )
-  )
-  const viewingBlocks = viewingConcept.references.map(block =>
-    createBlockInstance(
-      block,
-      db.getConcept(block.to),
-      existingBlockInstances?.find(i => i.id === block.id)
-    )
-  )
+  const overlayBlocks = overlayConcept.references.map(blockToBlockInstance)
+  const viewingBlocks = viewingConcept.references.map(blockToBlockInstance)
 
   return overlayBlocks.concat(viewingBlocks)
 }
@@ -91,21 +102,18 @@ export function createReducer(
 
     switch (action.type) {
       case Action.ConceptCreate: {
-        const newConcept = createConcept(
-          factoryRegistry.getDefaultContentFactory().id
-        )
-        const newBlock: Block = {
-          id: uuidv4(),
+        const defaultType = factoryRegistry.getDefaultContentFactory().id
+        const newConcept = createConcept(defaultType)
+        const newBlock = createBlock({
           to: newConcept.id,
           posType: PositionType.Normal,
           pos: viewportCoordsToEnvCoords(action.data.position, state.camera),
           size: defaultSize,
-        }
-        const newViewingConcept: Concept = {
-          ...state.viewingConcept,
-          references: state.viewingConcept.references.concat(newBlock),
-        }
+        })
         const newBlockInstance = createBlockInstance(newBlock, newConcept)
+        const newViewingConcept = updateConcept(state.viewingConcept, {
+          references: state.viewingConcept.references.concat(newBlock),
+        })
 
         db.createConcept(newConcept)
         db.updateConcept(newViewingConcept)
@@ -120,14 +128,14 @@ export function createReducer(
         const newType = action.data.type
         const newData = action.data.content
         const concept = db.getConcept(action.data.id)
-
-        db.updateConcept({
-          ...concept,
+        const newConcept = updateConcept(concept, {
           summary: {
             type: newType,
             data: newData,
           },
         })
+
+        db.updateConcept(newConcept)
 
         return {
           ...state,
@@ -136,18 +144,18 @@ export function createReducer(
         }
       }
       case Action.BlockCreate: {
-        const ref: Block = {
-          id: uuidv4(),
+        const newBlock = createBlock({
           to: action.data.id,
           posType: PositionType.Normal,
           pos: action.data.position,
           size: defaultSize,
-        }
-        const newViewingConcept = {
-          ...state.viewingConcept,
-          references: state.viewingConcept.references.concat([ref]),
-        }
+        })
+        const newViewingConcept = updateConcept(state.viewingConcept, {
+          references: state.viewingConcept.references.concat([newBlock]),
+        })
+
         db.updateConcept(newViewingConcept)
+
         return {
           ...state,
           viewingConcept: newViewingConcept,
@@ -156,12 +164,11 @@ export function createReducer(
       }
       case Action.BlockRemove: {
         const blockId = action.data.id
-        const newViewingConcept = {
-          ...state.viewingConcept,
+        const newViewingConcept = updateConcept(state.viewingConcept, {
           references: state.viewingConcept.references.filter(
             b => blockId !== b.id
           ),
-        }
+        })
 
         db.updateConcept(newViewingConcept)
 
@@ -172,12 +179,11 @@ export function createReducer(
         }
       }
       case Action.BlockRemoveSelected: {
-        const newViewingConcept = {
-          ...state.viewingConcept,
+        const newViewingConcept = updateConcept(state.viewingConcept, {
           references: state.viewingConcept.references.filter(
             b => !state.selectedBlockIds.find(sbId => sbId === b.id)
           ),
-        }
+        })
 
         db.updateConcept(newViewingConcept)
 
@@ -212,10 +218,11 @@ export function createReducer(
 
         return {
           ...state,
-          blocks: blocks.map(b => ({
-            ...b,
-            selected: selectedBlockIds.includes(b.id),
-          })),
+          blocks: blocks.map(b =>
+            updateBlockInstance(b, {
+              selected: selectedBlockIds.includes(b.id),
+            })
+          ),
           selectedBlockIds,
           pointerStartOffset: vecSub(boundingBoxPos, pointerInEnvCoords),
         }
@@ -413,20 +420,13 @@ export function createReducer(
 
         const movedBlocks = Object.values(movedBlocksMap)
 
-        const newRefs: Block[] = movedBlocks.map(b => ({
-          id: b.id,
-          pos: b.pos,
-          posType: b.posType,
-          size: b.size,
-          to: b.concept.id,
-        }))
+        const newBlocks: Block[] = movedBlocks.map(blockInstanceToBlock)
 
-        const newViewingConcept: Concept = {
-          ...viewingConcept,
+        const newViewingConcept = updateConcept(viewingConcept, {
           references: viewingConcept.references
             .filter(r => !selectedBlockIds.includes(r.id))
-            .concat(newRefs),
-        }
+            .concat(newBlocks),
+        })
 
         db.updateConcept(newViewingConcept)
 
@@ -550,8 +550,7 @@ export function createReducer(
           h: typeof oldSize.h === 'number' ? height : oldSize.h,
         }
 
-        const newViewingConcept = {
-          ...state.viewingConcept,
+        const newViewingConcept = updateConcept(state.viewingConcept, {
           references: state.viewingConcept.references.map(ref => {
             if (id === ref.id) {
               return {
@@ -562,15 +561,14 @@ export function createReducer(
               return ref
             }
           }),
-        }
+        })
 
         db.updateConcept(newViewingConcept)
 
         const oldBlockIndex = blocks.findIndex(b => b.id === id)
-        const newBlock: BlockInstance = {
-          ...blocks[oldBlockIndex],
+        const newBlock = updateBlockInstance(blocks[oldBlockIndex], {
           size: newSize,
-        }
+        })
 
         return {
           ...state,
@@ -666,7 +664,9 @@ export function createReducer(
            * fired.
            */
           selectedBlockIds: [],
-          blocks: state.blocks.map(b => ({ ...b, selected: false })),
+          blocks: state.blocks.map(b =>
+            updateBlockInstance(b, { selected: false })
+          ),
         }
       }
       case Action.SelectionBoxSetEnd: {
@@ -682,17 +682,18 @@ export function createReducer(
           selectionBoxEnd.y
         )
         const selectedBlockIds = getSelectedBlockIds(state.blocks, selectionBox)
-        const blocks = state.blocks.map(b => ({
-          ...b,
-          selected: selectedBlockIds.includes(b.id),
-        }))
+        const newBlockInstances = state.blocks.map(b =>
+          updateBlockInstance(b, {
+            selected: selectedBlockIds.includes(b.id),
+          })
+        )
 
         return {
           ...state,
           selectionBoxEnd,
           selectionBox,
           selectedBlockIds,
-          blocks,
+          blocks: newBlockInstances,
         }
       }
       case Action.SelectionBoxClear: {
@@ -714,10 +715,9 @@ export function createReducer(
             y: state.camera.focus.y - delta.y,
           },
         }
-        const newViewingConcept: Concept = {
-          ...state.viewingConcept,
+        const newViewingConcept = updateConcept(state.viewingConcept, {
           camera: newCamera,
-        }
+        })
 
         db.updateConcept(newViewingConcept)
 
@@ -735,10 +735,11 @@ export function createReducer(
             state.blocks,
             selectionBox
           )
-          const blocks = state.blocks.map(b => ({
-            ...b,
-            selected: selectedBlockIds.includes(b.id),
-          }))
+          const blocks = state.blocks.map(b =>
+            updateBlockInstance(b, {
+              selected: selectedBlockIds.includes(b.id),
+            })
+          )
 
           return {
             ...state,
@@ -786,10 +787,9 @@ export function createReducer(
           focus: nextFocus,
           scale: nextScale,
         }
-        const newViewingConcept: Concept = {
-          ...state.viewingConcept,
+        const newViewingConcept = updateConcept(state.viewingConcept, {
           camera: newCamera,
-        }
+        })
 
         db.updateConcept(newViewingConcept)
 

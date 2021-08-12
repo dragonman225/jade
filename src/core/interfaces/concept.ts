@@ -1,4 +1,4 @@
-import { Camera, Vec2 } from './util'
+import { Camera, Timestamp, Vec2 } from './util'
 import { DatabaseInterface } from './core'
 import { Block } from './block'
 
@@ -47,6 +47,8 @@ export interface Concept {
   references: Block[]
   drawing: Stroke[]
   camera: Camera
+  createdTime: Timestamp
+  lastEditedTime: Timestamp
 }
 
 /** Concept utils. */

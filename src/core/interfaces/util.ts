@@ -76,3 +76,5 @@ export interface Camera {
   focus: Vec2
   scale: number
 }
+
+export type Timestamp = number

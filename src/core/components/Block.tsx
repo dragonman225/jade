@@ -171,6 +171,16 @@ export function Block(props: Props): JSX.Element {
           {`{ x: ${block.pos.x.toFixed(2)}, y: ${block.pos.y.toFixed(2)} }`}
           <br />
           selected: {block.selected ? 'true' : 'false'}
+          <br />
+          createdTime: {block.createdTime}
+          <br />
+          lastEditedTime: {block.lastEditedTime}
+          <br />
+          concept.id: {concept.id}
+          <br />
+          concept.createdTime: {concept.createdTime}
+          <br />
+          concept.lastEditedTime: {concept.lastEditedTime}
         </div>
       )}
       <div

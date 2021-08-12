@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid'
+
 import { isBoxBoxIntersectingObjVer } from './math'
 import {
   Block,
@@ -9,19 +11,76 @@ import {
   PositionType,
 } from '../interfaces'
 
+export function createBlock(
+  properties: Pick<Block, 'pos' | 'posType' | 'size' | 'to'>
+): Block {
+  return {
+    id: uuidv4(),
+    createdTime: Date.now(),
+    lastEditedTime: Date.now(),
+    ...properties,
+  }
+}
+
+export function updateBlock(
+  block: Block,
+  newProperties: Partial<Pick<Block, 'pos' | 'posType' | 'size' | 'to'>>
+): Block {
+  return {
+    ...block,
+    ...newProperties,
+    lastEditedTime: Date.now(),
+  }
+}
+
 export function createBlockInstance(
   block: Block,
-  concept: Concept,
-  existingInstance?: BlockInstance
+  concept: Concept
 ): BlockInstance {
   return {
     id: block.id,
     posType: block.posType,
     pos: block.pos,
     size: block.size,
-    mode: existingInstance ? existingInstance.mode : InteractionMode.Idle,
-    selected: existingInstance ? existingInstance.selected : false,
+    createdTime: block.createdTime,
+    lastEditedTime: block.lastEditedTime,
+    mode: InteractionMode.Idle,
+    selected: false,
     concept,
+  }
+}
+
+export function updateBlockInstance(
+  blockInstance: BlockInstance,
+  newProperties: Partial<
+    Pick<BlockInstance, 'mode' | 'pos' | 'posType' | 'selected' | 'size'>
+  >
+): BlockInstance {
+  const hasOwnProperty = (obj: unknown, key: string) => {
+    return Object.prototype.hasOwnProperty.call(obj, key) as boolean
+  }
+
+  return {
+    ...blockInstance,
+    ...newProperties,
+    lastEditedTime:
+      hasOwnProperty(newProperties, 'pos') ||
+      hasOwnProperty(newProperties, 'posType') ||
+      hasOwnProperty(newProperties, 'size')
+        ? Date.now()
+        : blockInstance.lastEditedTime,
+  }
+}
+
+export function blockInstanceToBlock(blockInstance: BlockInstance): Block {
+  return {
+    id: blockInstance.id,
+    to: blockInstance.concept.id,
+    posType: blockInstance.posType,
+    pos: blockInstance.pos,
+    size: blockInstance.size,
+    createdTime: blockInstance.createdTime,
+    lastEditedTime: blockInstance.lastEditedTime,
   }
 }
 

@@ -43,6 +43,7 @@ export function startApp(database: DatabaseInterface): void {
   if (isState4) {
     console.log('core/index: Migrating state4')
     const allConcepts = (database.getAllConcepts() as unknown) as Concept4[]
+    const migrationTime = Date.now()
     allConcepts.forEach((c: Concept4) =>
       database.updateConcept({
         id: c.id,
@@ -57,8 +58,12 @@ export function startApp(database: DatabaseInterface): void {
           posType: PositionType.Normal,
           pos: d.position,
           size: { w: d.width, h: 'auto' },
+          createdTime: migrationTime,
+          lastEditedTime: migrationTime,
         })),
         summary: c.summary,
+        createdTime: migrationTime,
+        lastEditedTime: migrationTime,
       })
     )
 
