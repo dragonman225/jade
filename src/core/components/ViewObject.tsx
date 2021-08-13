@@ -6,7 +6,7 @@ interface Props {
   posType: PositionType
   pos: Vec2
   size: Size
-  children: JSX.Element
+  children?: React.ReactNode
 }
 
 export function ViewObject(props: Props): JSX.Element {

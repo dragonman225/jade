@@ -2,31 +2,16 @@ import * as React from 'react'
 import { useRef, useEffect } from 'react'
 
 import { getUnifiedClientCoords, vecSub } from '../utils'
-import { SelectionBox } from './SelectionBox'
-import { ViewObject } from './ViewObject'
 import { Action, Actions } from '../store/actions'
-import { BlockInstance, Box, PositionType, Vec2 } from '../interfaces'
+import { Vec2 } from '../interfaces'
 
 interface Props {
-  focus: Vec2
-  scale: number
-  blocks: BlockInstance[]
-  selecting: boolean
-  selectionBox: Box
-  renderBlock: (block: BlockInstance) => JSX.Element
   dispatchAction: (action: Actions) => void
+  children?: React.ReactNode
 }
 
 export function Viewport(props: Props): JSX.Element {
-  const {
-    focus,
-    scale,
-    blocks,
-    selecting,
-    selectionBox,
-    renderBlock,
-    dispatchAction,
-  } = props
+  const { dispatchAction, children } = props
 
   /**
    * React set `{ passive: true }` for its real WheelEvent handler, making
@@ -181,77 +166,20 @@ export function Viewport(props: Props): JSX.Element {
       cameraEl.removeEventListener('touchend', inputDetector.handlePointerUp)
       window.removeEventListener('keydown', inputDetector.handleKeydown)
     }
-  }, [])
+  }, [dispatchAction])
 
   return (
-    <>
-      <div
-        /** Fill the viewport to listen for events. */
-        ref={cameraElRef}
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0,
-        }}>
-        <div
-          /** Act as the origin of the environment. */
-          style={{
-            width: 0,
-            height: 0,
-            transformOrigin: 'top left',
-            transform: `translate3d(${-focus.x * scale}px, ${
-              -focus.y * scale
-            }px, 0px) scale(${scale})`,
-            // TODO: Use `use-spring` to make proper animations.
-            transition: 'transform 50ms ease-in-out 0s',
-          }}>
-          {blocks
-            .filter(
-              b =>
-                b.posType === PositionType.Normal ||
-                typeof b.posType === 'undefined'
-            )
-            .map(b => {
-              const key = `ViewObject-${b.id}`
-
-              return (
-                <ViewObject
-                  key={key}
-                  posType={b.posType}
-                  pos={b.pos}
-                  size={b.size}>
-                  {renderBlock(b)}
-                </ViewObject>
-              )
-            })}
-          {selecting && (
-            <SelectionBox
-              key="SelectionBox"
-              style={{
-                width: selectionBox.w,
-                height: selectionBox.h,
-                /** Set to "absolute" so blocks can overlap. */
-                position: 'absolute',
-                transformOrigin: 'top left',
-                transform: `translate3d(${selectionBox.x}px, ${selectionBox.y}px, 0px)`,
-              }}
-            />
-          )}
-        </div>
-      </div>
-      {blocks
-        .filter(b => b.posType !== PositionType.Normal)
-        .map(b => {
-          const key = `ViewObject-${b.id}`
-
-          return (
-            <ViewObject key={key} posType={b.posType} pos={b.pos} size={b.size}>
-              {renderBlock(b)}
-            </ViewObject>
-          )
-        })}
-    </>
+    <div
+      /** Fill the viewport to listen for events. */
+      ref={cameraElRef}
+      style={{
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+      }}>
+      {children}
+    </div>
   )
 }

@@ -7,6 +7,9 @@ import { classes, style } from 'typestyle'
 import { Viewport } from './components/Viewport'
 import { Overlay } from './components/Overlay'
 import { Block } from './components/Block'
+import { PinnedLayer } from './components/PinnedLayer'
+import { NormalLayer } from './components/NormalLayer'
+import { ViewObject } from './components/ViewObject'
 import { AppStyles } from './App.styles'
 import theme from '../theme'
 import { useAnimationFrame } from './useAnimationFrame'
@@ -116,6 +119,13 @@ export function App(props: Props): JSX.Element {
     )
   }
 
+  const normalBlocks = stateSnapshot.blocks.filter(
+    b => b.posType === PositionType.Normal 
+  )
+
+  const pinnedBlocks = stateSnapshot.blocks.filter(
+    b => b.posType > PositionType.Normal
+  )
   return (
     <div
       className={classes(
@@ -124,15 +134,62 @@ export function App(props: Props): JSX.Element {
           ? AppStyles['App--BlockMoving']
           : undefined
       )}>
-      <Viewport
-        focus={stateSnapshot.camera.focus}
-        scale={stateSnapshot.camera.scale}
-        blocks={stateSnapshot.blocks}
-        selecting={stateSnapshot.selecting}
-        selectionBox={stateSnapshot.selectionBox}
-        renderBlock={renderBlock}
-        dispatchAction={dispatchAction}
-      />
+      <Viewport dispatchAction={dispatchAction}>
+        <NormalLayer
+          focus={stateSnapshot.camera.focus}
+          scale={stateSnapshot.camera.scale}
+          selecting={stateSnapshot.selecting}
+          selectionBox={stateSnapshot.selectionBox}>
+          {normalBlocks.map(b => (
+            <ViewObject
+              key={`vo--${b.id}`}
+              posType={b.posType}
+              pos={b.pos}
+              size={b.size}>
+              {renderBlock(b)}
+              {/* <Block
+                debug={stateSnapshot.debugging}
+                className={
+                  b.posType > PositionType.Normal
+                    ? style({
+                        boxShadow: theme.SHADOWS.ui,
+                        borderRadius: theme.BORDERS.largeRadius,
+                      })
+                    : undefined
+                }
+                block={b}
+                dispatchAction={dispatchAction}>
+                <div style={{ height: 50 }} />
+              </Block> */}
+            </ViewObject>
+          ))}
+        </NormalLayer>
+        <PinnedLayer>
+          {pinnedBlocks.map(b => (
+            <ViewObject
+              key={`vo--${b.id}`}
+              posType={b.posType}
+              pos={b.pos}
+              size={b.size}>
+              {renderBlock(b)}
+              {/* <Block
+                debug={stateSnapshot.debugging}
+                className={
+                  b.posType > PositionType.Normal
+                    ? style({
+                        boxShadow: theme.SHADOWS.ui,
+                        borderRadius: theme.BORDERS.largeRadius,
+                      })
+                    : undefined
+                }
+                block={b}
+                dispatchAction={dispatchAction}>
+                <div style={{ height: 50 }} />
+              </Block> */}
+            </ViewObject>
+          ))}
+        </PinnedLayer>
+      </Viewport>
       <Overlay ref={overlayRef} />
     </div>
   )
