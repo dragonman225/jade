@@ -6,7 +6,7 @@ import { Cross } from './icons/Cross'
 import { Expand } from './icons/Expand'
 import { BlockStyles } from './Block.styles'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
-import { deleteElement, setElement } from './ElementPool'
+import { deleteElement, setElement, setElementRect } from './ElementPool'
 import { Action, Actions } from '../store/actions'
 import { BlockInstance, Concept, InteractionMode } from '../interfaces'
 
@@ -38,6 +38,7 @@ export function Block(props: Props): JSX.Element {
 
   useEffect(() => {
     setElement(block.id, blockRef.current)
+    setElementRect(block.id, blockRef.current.getBoundingClientRect())
 
     return () => deleteElement(block.id)
   }, [block.id])

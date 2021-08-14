@@ -15,7 +15,12 @@ import {
 } from '../utils/block'
 import { createConcept, updateConcept } from '../utils/concept'
 import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
-import { getElement } from '../components/ElementPool'
+import {
+  clearElementRectMap,
+  deleteElementRects,
+  getElement,
+  getElementRect,
+} from '../components/ElementPool'
 import { Action, Actions } from './actions'
 import {
   Concept,
@@ -172,6 +177,8 @@ export function createReducer(
 
         db.updateConcept(newViewingConcept)
 
+        deleteElementRects([blockId])
+
         return {
           ...state,
           viewingConcept: newViewingConcept,
@@ -186,6 +193,8 @@ export function createReducer(
         })
 
         db.updateConcept(newViewingConcept)
+
+        deleteElementRects(state.selectedBlockIds)
 
         return {
           ...state,
@@ -245,7 +254,9 @@ export function createReducer(
           .filter(b => !selectedBlockIds.includes(b.id))
 
         const movingBlockRects = movingBlocks.map(b =>
-          getElement(b.id).getBoundingClientRect()
+          getElement(b.id)
+            ? getElement(b.id).getBoundingClientRect()
+            : getElementRect(b.id)
         )
 
         const currentSelectionBoundingBox = {
@@ -290,7 +301,9 @@ export function createReducer(
         )
 
         staticBlocks.forEach(sb => {
-          const rect = getElement(sb.id).getBoundingClientRect()
+          const rect = getElement(sb.id)
+            ? getElement(sb.id).getBoundingClientRect()
+            : getElementRect(sb.id)
           const gap = 10
           const detectionZoneWidth = 35
           const detectionAreaPos = viewportCoordsToEnvCoords(
@@ -449,7 +462,9 @@ export function createReducer(
         const { camera, blocks } = state
 
         const block = state.blocks.find(b => b.id === id)
-        const blockViewportRect = getElement(id).getBoundingClientRect()
+        const blockViewportRect = getElement(id)
+          ? getElement(id).getBoundingClientRect()
+          : getElementRect(id)
         const oldSize = block.size
 
         cursorRectSize =
@@ -487,7 +502,9 @@ export function createReducer(
         const targetRects = blocks
           .filter(b => b.id !== id && b.posType === PositionType.Normal)
           .map(b => {
-            const viewportRect = getElement(b.id).getBoundingClientRect()
+            const viewportRect = getElement(b.id)
+              ? getElement(b.id).getBoundingClientRect()
+              : getElementRect(b.id)
             return {
               ...b.pos,
               w:
@@ -622,6 +639,8 @@ export function createReducer(
         if (toConceptId === state.viewingConcept.id) {
           return { ...state }
         }
+
+        clearElementRectMap()
 
         db.saveSettings({
           debugging: state.debugging,

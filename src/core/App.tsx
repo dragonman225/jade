@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { useMemo, useCallback, useRef, useState } from 'react'
+import { useMemo, useCallback, useRef, useState, useEffect } from 'react'
 import { classes, style } from 'typestyle'
 
 import { Viewport } from './components/Viewport'
@@ -23,6 +23,8 @@ import {
   PositionType,
 } from './interfaces'
 import { Action, Actions } from './store/actions'
+import { isBoxBoxIntersectingObjVer } from './utils'
+import { getElementRect } from './components/ElementPool'
 
 interface Props {
   db: DatabaseInterface
@@ -120,12 +122,39 @@ export function App(props: Props): JSX.Element {
   }
 
   const normalBlocks = stateSnapshot.blocks.filter(
-    b => b.posType === PositionType.Normal 
+    b =>
+      b.posType === PositionType.Normal &&
+      /**
+       * If a Block haven't reported its rect, render it anyway so it can
+       * report. Usually this happens when opening a Canvas and
+       * double-clicking to create a new Block + Concept.
+       */
+      (!getElementRect(b.id) ||
+        isBoxBoxIntersectingObjVer(
+          {
+            ...b.pos,
+            w:
+              typeof b.size.w === 'number'
+                ? b.size.w
+                : getElementRect(b.id).width,
+            h:
+              typeof b.size.h === 'number'
+                ? b.size.h
+                : getElementRect(b.id).height,
+          },
+          {
+            x: stateSnapshot.camera.focus.x,
+            y: stateSnapshot.camera.focus.y,
+            w: window.innerWidth / stateSnapshot.camera.scale,
+            h: window.innerHeight / stateSnapshot.camera.scale,
+          }
+        ))
   )
 
   const pinnedBlocks = stateSnapshot.blocks.filter(
     b => b.posType > PositionType.Normal
   )
+
   return (
     <div
       className={classes(
