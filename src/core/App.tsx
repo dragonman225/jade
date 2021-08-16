@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { useMemo, useCallback, useRef, useState, useEffect } from 'react'
+import { useMemo, useCallback, useRef, useState } from 'react'
 import { classes, style } from 'typestyle'
 
 import { Viewport } from './components/Viewport'
@@ -193,15 +193,16 @@ export function App(props: Props): JSX.Element {
             </ViewObject>
           ))}
         </NormalLayer>
-        <PinnedLayer>
-          {pinnedBlocks.map(b => (
-            <ViewObject
-              key={`vo--${b.id}`}
-              posType={b.posType}
-              pos={b.pos}
-              size={b.size}>
-              {renderBlock(b)}
-              {/* <Block
+      </Viewport>
+      <PinnedLayer>
+        {pinnedBlocks.map(b => (
+          <ViewObject
+            key={`vo--${b.id}`}
+            posType={b.posType}
+            pos={b.pos}
+            size={b.size}>
+            {renderBlock(b)}
+            {/* <Block
                 debug={stateSnapshot.debugging}
                 className={
                   b.posType > PositionType.Normal
@@ -215,10 +216,9 @@ export function App(props: Props): JSX.Element {
                 dispatchAction={dispatchAction}>
                 <div style={{ height: 50 }} />
               </Block> */}
-            </ViewObject>
-          ))}
-        </PinnedLayer>
-      </Viewport>
+          </ViewObject>
+        ))}
+      </PinnedLayer>
       <Overlay ref={overlayRef} />
     </div>
   )
