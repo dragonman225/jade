@@ -201,10 +201,8 @@ const PMText: React.FunctionComponent<Props> = props => {
       /** Ignore the editor that is currently producing changes (hasFocus). */
       if (editorView.current.hasFocus()) return
 
-      const data = props.concept.summary.data
-      const doc = data.initialized
-        ? Node.fromJSON(schema, data.data)
-        : undefined
+      const jsonDoc = props.concept.summary.data.data
+      const doc = jsonDoc ? Node.fromJSON(schema, jsonDoc) : undefined
       const state = editorView.current.state
       const { from, to } = new AllSelection(state.doc)
 
@@ -219,7 +217,7 @@ const PMText: React.FunctionComponent<Props> = props => {
         state.tr.replaceRangeWith(from, to, doc).setMeta('from_upstream', true)
       )
     }
-  }, [props.concept.summary.data, mounted])
+  }, [props.concept.summary.data.data, mounted])
 
   /**
    * Update "editable" prop of the editor view.
