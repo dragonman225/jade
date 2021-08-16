@@ -72,6 +72,29 @@ export const Status: React.FunctionComponent<Props> = props => {
             <li>
               <code>{state.selecting ? 'Selecting' : 'Not Selecting'}</code>
             </li>
+            <li>
+              <button
+                onClick={() => {
+                  function getRandomInt(start: number, end: number): number {
+                    const rand = Math.floor(
+                      Math.random() * Math.floor(end - start + 1)
+                    )
+                    return start + rand
+                  }
+                  for (let i = 0; i < 100; i++) {
+                    const pos = {
+                      x: getRandomInt(-1000, 1000),
+                      y: getRandomInt(-1000, 1000),
+                    }
+                    dispatchAction({
+                      type: Action.ConceptCreate,
+                      data: { position: pos },
+                    })
+                  }
+                }}>
+                Create 100 blocks
+              </button>
+            </li>
           </ul>
         </div>
       )
