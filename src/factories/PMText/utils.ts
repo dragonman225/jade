@@ -5,13 +5,12 @@ import { Command, toggleMark } from 'prosemirror-commands'
 import { history, redo, undo } from 'prosemirror-history'
 
 import { schema } from './schema'
-import { BaseConceptData } from '../../core/interfaces'
 
 export function isDocEmpty(state: EditorState): boolean {
   return state.doc.content.size === 0
 }
 
-export function createEditorState(data: BaseConceptData): EditorState {
+export function createEditorState(jsonDoc?: unknown): EditorState {
   /**
    * Keyboard shortcuts.
    *
@@ -38,7 +37,7 @@ export function createEditorState(data: BaseConceptData): EditorState {
 
   return EditorState.create({
     schema,
-    doc: data.initialized ? Node.fromJSON(schema, data.data) : undefined,
+    doc: jsonDoc ? Node.fromJSON(schema, jsonDoc) : undefined,
     plugins: [keymapPlugin, history()],
   })
 }

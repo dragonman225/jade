@@ -160,7 +160,7 @@ const PMText: React.FunctionComponent<Props> = props => {
   /** Init the ProseMirror editor when the component mounts. */
   useEffect(() => {
     console.log('PMText: mount')
-    const state = createEditorState(props.concept.summary.data)
+    const state = createEditorState(props.concept.summary.data.data)
     const view = createEditorView(props, editorContainerRef.current, state)
     view.props.handleDOMEvents.keydown = onKeyDown
     view.props.handleDOMEvents.keyup = onKeyUp
