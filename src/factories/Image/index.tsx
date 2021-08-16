@@ -1,10 +1,7 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
-import {
-  ConceptDisplayProps,
-  Factory,
-  InitializedConceptData,
-} from '../../core/interfaces'
+
+import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
 function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -70,15 +67,16 @@ const styles = stylesheet({
   },
 })
 
-interface ImageContent extends InitializedConceptData {
-  valid: boolean
-  imgData: string
+interface ImageContent {
+  initialized?: boolean
+  valid?: boolean
+  imgData?: string
 }
 
 type Props = ConceptDisplayProps<ImageContent>
 
 const Image: React.FunctionComponent<Props> = props => {
-  const content = props.concept.summary.data as ImageContent
+  const content = props.concept.summary.data
   const [imgState, setImgState] = React.useState(ImgState.NotLoaded)
   const [img, setImg] = React.useState('')
   const [error, setError] = React.useState('')

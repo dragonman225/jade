@@ -1,5 +1,5 @@
 import { BlockId, BlockInstance } from './block'
-import { ConceptId, Concept } from './concept'
+import { ConceptId, TypedConcept } from './concept'
 import { Box, Camera, Vec2 } from './util'
 
 /** App state. */
@@ -9,7 +9,7 @@ export interface AppState {
   /** Loaded from `DatabaseInterface.getSettings()`. */
   homeConceptId: ConceptId
   /** Loaded from `DatabaseInterface.getConcept()`. */
-  viewingConcept: Concept
+  viewingConcept: TypedConcept<unknown>
   expandHistory: (ConceptId | undefined)[]
   camera: Camera
   selecting: boolean
@@ -29,11 +29,11 @@ export interface Settings {
 
 export interface DatabaseInterface {
   isValid(): boolean
-  init(settings: Settings, concepts: Concept[]): void
-  getConcept(id: ConceptId): Concept | undefined
-  getAllConcepts(): Concept[]
-  createConcept(concept: Concept): void
-  updateConcept(concept: Concept): void
+  init(settings: Settings, concepts: TypedConcept<unknown>[]): void
+  getConcept(id: ConceptId): TypedConcept<unknown> | undefined
+  getAllConcepts(): TypedConcept<unknown>[]
+  createConcept(concept: TypedConcept<unknown>): void
+  updateConcept(concept: TypedConcept<unknown>): void
   getSettings(): Settings
   saveSettings(settings: Settings): void
   getLastUpdatedTime(): number

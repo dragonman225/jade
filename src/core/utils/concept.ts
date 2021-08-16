@@ -1,18 +1,18 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import { Concept, FactoryId } from '../interfaces'
+import { FactoryId, TypedConcept } from '../interfaces'
 
 export function createConcept(
   type: FactoryId,
   properties: Partial<
-    Pick<Concept, 'camera' | 'drawing' | 'references' | 'summary'>
+    Pick<TypedConcept<unknown>, 'camera' | 'drawing' | 'references' | 'summary'>
   > = {}
-): Concept {
+): TypedConcept<unknown> {
   return {
     id: uuidv4(),
     summary: {
       type,
-      data: { initialized: false },
+      data: {},
     },
     references: [],
     drawing: [],
@@ -27,11 +27,11 @@ export function createConcept(
 }
 
 export function updateConcept(
-  concept: Concept,
+  concept: TypedConcept<unknown>,
   newProperties: Partial<
-    Pick<Concept, 'camera' | 'drawing' | 'references' | 'summary'>
+    Pick<TypedConcept<unknown>, 'camera' | 'drawing' | 'references' | 'summary'>
   >
-): Concept {
+): TypedConcept<unknown> {
   return {
     ...concept,
     ...newProperties,

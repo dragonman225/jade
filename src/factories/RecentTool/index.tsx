@@ -3,11 +3,7 @@ import { useRef } from 'react'
 
 import { styles } from './index.styles'
 import { Action } from '../../core/store/actions'
-import {
-  ConceptDisplayProps,
-  Factory,
-  InitializedConceptData,
-} from '../../core/interfaces'
+import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
 type Props = ConceptDisplayProps<undefined>
 
@@ -44,7 +40,7 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
 
         return historyToShow.map(conceptId => {
           const concept = database.getConcept(conceptId)
-          const contentProps: ConceptDisplayProps<InitializedConceptData> = {
+          const contentProps: ConceptDisplayProps<unknown> = {
             viewMode: 'NavItem',
             readOnly: true,
             concept,

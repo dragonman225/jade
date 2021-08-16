@@ -1,4 +1,4 @@
-import { Concept, ConceptId } from './concept'
+import { ConceptId, TypedConcept } from './concept'
 import { Size, Timestamp, Vec2 } from './util'
 
 export enum PositionType {
@@ -44,7 +44,7 @@ export interface BlockInstance {
   size: Size
   mode: InteractionMode
   selected: boolean
-  concept: Concept
+  concept: TypedConcept<unknown>
   createdTime: Timestamp
   lastEditedTime: Timestamp
 }

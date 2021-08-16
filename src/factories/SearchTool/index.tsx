@@ -15,7 +15,7 @@ import {
   Concept,
   ConceptDisplayProps,
   Factory,
-  InitializedConceptData,
+  TypedConcept,
   Vec2,
 } from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
@@ -115,7 +115,7 @@ const styles = stylesheet({
 })
 
 type SearchItemContentProps = Pick<
-  ConceptDisplayProps<InitializedConceptData>,
+  ConceptDisplayProps<unknown>,
   'viewMode' | 'concept' | 'database' | 'state' | 'dispatchAction'
 >
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props => {
@@ -182,7 +182,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
 
   const resultConcepts = React.useMemo(() => {
     if (text) {
-      const match = (concept: Concept) => {
+      const match = (concept: TypedConcept<unknown>) => {
         return Concept.includesText(concept, text)
       }
       const resHighOrderConcepts = higherOrderConcepts.filter(match)

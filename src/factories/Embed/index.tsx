@@ -2,21 +2,18 @@ import * as React from 'react'
 import { useRef } from 'react'
 
 import { styles } from './index.styles'
-import {
-  ConceptDisplayProps,
-  Factory,
-  InitializedConceptData,
-} from '../../core/interfaces'
+import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
-interface Data extends InitializedConceptData {
+interface EmbedContent {
+  initialized?: boolean
   url?: string
 }
 
-type Props = ConceptDisplayProps<Data>
+type Props = ConceptDisplayProps<EmbedContent>
 
 export const Embed: React.FunctionComponent<Props> = props => {
   const { onChange, onInteractionStart, onInteractionEnd } = props
-  const data = props.concept.summary.data as Data
+  const data = props.concept.summary.data
   const url = data && data.url ? data.url : ''
 
   const inputRef = useRef<HTMLInputElement>()

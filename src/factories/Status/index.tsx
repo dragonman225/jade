@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
-import { InitializedConceptData } from '../../core/interfaces/concept'
 import { Action } from '../../core/store/actions'
 
 const styles = stylesheet({
@@ -37,7 +36,7 @@ const styles = stylesheet({
   },
 })
 
-type Props = ConceptDisplayProps<InitializedConceptData>
+type Props = ConceptDisplayProps<undefined>
 
 export const Status: React.FunctionComponent<Props> = props => {
   const { state, dispatchAction } = props

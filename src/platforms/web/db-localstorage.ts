@@ -1,4 +1,8 @@
-import { DatabaseInterface, Settings, Concept } from '../../core/interfaces'
+import {
+  DatabaseInterface,
+  Settings,
+  TypedConcept,
+} from '../../core/interfaces'
 import env from '../../env'
 
 /**
@@ -27,7 +31,7 @@ export const database: DatabaseInterface = {
   getConcept: id => {
     try {
       const item = localStorage.getItem(`concept/${id}`)
-      const concept = JSON.parse(item) as Concept
+      const concept = JSON.parse(item) as TypedConcept<unknown>
       return concept
     } catch (error) {
       return undefined
@@ -38,7 +42,9 @@ export const database: DatabaseInterface = {
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
       if (key.startsWith('concept')) {
-        const concept = JSON.parse(localStorage.getItem(key)) as Concept
+        const concept = JSON.parse(
+          localStorage.getItem(key)
+        ) as TypedConcept<unknown>
         concepts.push(concept)
       }
     }

@@ -3,11 +3,7 @@ import { stylesheet } from 'typestyle'
 
 import { Home } from '../../core/components/icons/Home'
 import { Action } from '../../core/store/actions'
-import {
-  ConceptDisplayProps,
-  Factory,
-  InitializedConceptData,
-} from '../../core/interfaces'
+import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
 type Props = ConceptDisplayProps<undefined>
 
@@ -76,7 +72,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
       </div>
       <div className={styles.CardTitleContainer}>
         {(function () {
-          const contentProps: ConceptDisplayProps<InitializedConceptData> & {
+          const contentProps: ConceptDisplayProps<unknown> & {
             key: string
           } = {
             viewMode: 'CardTitle',

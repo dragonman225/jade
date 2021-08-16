@@ -1,7 +1,11 @@
 import _SQLiteDatabase from 'better-sqlite3'
 
 import env from '../../env'
-import { DatabaseInterface, Settings, Concept } from '../../core/interfaces'
+import {
+  DatabaseInterface,
+  Settings,
+  TypedConcept,
+} from '../../core/interfaces'
 
 interface SQLiteDatabase {
   prepare(sql: string): SQLiteStatement
@@ -63,7 +67,7 @@ function createDatabase(path: string): DatabaseInterface {
   const settingsTableName = 'settings'
   let writeBuffer: WriteBufferItem[] = []
   const minUpdateInterval = 500
-  const conceptCache = new Map<string, Concept>()
+  const conceptCache = new Map<string, TypedConcept<unknown>>()
   let settingsCache: Settings
   let lastUpdatedTime = Date.now()
   let timer: NodeJS.Timeout | undefined = undefined
@@ -127,7 +131,7 @@ function createDatabase(path: string): DatabaseInterface {
     }
   }
 
-  function init(settings: Settings, concepts: Concept[]) {
+  function init(settings: Settings, concepts: TypedConcept<unknown>[]) {
     log('Init')
     db.transaction(() => {
       settingsCache = settings
@@ -203,16 +207,16 @@ function createDatabase(path: string): DatabaseInterface {
     }
   }
 
-  function hydrateConcept(dryConcept: DryConcept): Concept {
+  function hydrateConcept(dryConcept: DryConcept): TypedConcept<unknown> {
     try {
-      return JSON.parse(dryConcept.json) as Concept
+      return JSON.parse(dryConcept.json) as TypedConcept<unknown>
     } catch (error) {
       log(error)
       return undefined
     }
   }
 
-  function getConcept(id: string): Concept {
+  function getConcept(id: string): TypedConcept<unknown> {
     if (conceptCache.has(id)) return conceptCache.get(id)
     try {
       const start = Date.now()
@@ -231,7 +235,7 @@ parse JSON in ${end - mid}ms.`)
     }
   }
 
-  function getAllConcepts(): Concept[] {
+  function getAllConcepts(): TypedConcept<unknown>[] {
     const start = Date.now()
     try {
       const stmt = conceptStmt.selectAll
@@ -245,7 +249,10 @@ parse JSON in ${end - mid}ms.`)
     }
   }
 
-  function saveConcept(concept: Concept, type: 'update' | 'create') {
+  function saveConcept(
+    concept: TypedConcept<unknown>,
+    type: 'update' | 'create'
+  ) {
     conceptCache.set(concept.id, concept)
     const data = JSON.stringify(concept)
     queueWriteItem({

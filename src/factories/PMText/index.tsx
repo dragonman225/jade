@@ -9,12 +9,7 @@ import { styles } from './index.styles'
 import { schema } from './schema'
 import { createEditorState, isDocEmpty } from './utils'
 import { getCaretCoordinates } from '../../core/utils'
-import {
-  ConceptDisplayProps,
-  Vec2,
-  InitializedConceptData,
-  Factory,
-} from '../../core/interfaces'
+import { ConceptDisplayProps, Vec2, Factory } from '../../core/interfaces'
 
 /**
  * Problems of ProseMirror:
@@ -24,8 +19,9 @@ import {
  * CSS is outside of React. Cannot use styled-jsx or other modern tools.
  */
 
-interface PMTextContent extends InitializedConceptData {
-  data: {
+interface PMTextContent {
+  initialized?: boolean
+  data?: {
     [key: string]: any
   }
 }

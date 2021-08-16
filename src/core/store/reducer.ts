@@ -23,7 +23,6 @@ import {
 } from '../components/ElementPool'
 import { Action, Actions } from './actions'
 import {
-  Concept,
   ConceptId,
   DatabaseInterface,
   Block,
@@ -34,10 +33,11 @@ import {
   Size,
   Camera,
   FactoryRegistry,
+  TypedConcept,
 } from '../interfaces'
 
 export function synthesizeView(
-  viewingConcept: Concept,
+  viewingConcept: TypedConcept<unknown>,
   db: DatabaseInterface,
   existingBlockInstances?: BlockInstance[]
 ): BlockInstance[] {

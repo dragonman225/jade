@@ -4,7 +4,6 @@ import {
   ConceptDisplayProps,
   FactoryId,
   FactoryRegistry,
-  InitializedConceptData,
 } from '../core/interfaces'
 import { ErrorBoundary } from '../core/components/ErrorBoundary'
 import { PMTextFactory } from './PMText'
@@ -42,7 +41,7 @@ class AlexFactoryRegistry implements FactoryRegistry {
 
   createConceptDisplay = (
     factoryId: FactoryId,
-    props: ConceptDisplayProps<InitializedConceptData>
+    props: ConceptDisplayProps<unknown>
   ) => {
     const factory = this.getFactory(factoryId)
 

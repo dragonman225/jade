@@ -6,9 +6,9 @@ import {
   BlockId,
   BlockInstance,
   Box,
-  Concept,
   InteractionMode,
   PositionType,
+  TypedConcept,
 } from '../interfaces'
 
 export function createBlock(
@@ -35,7 +35,7 @@ export function updateBlock(
 
 export function createBlockInstance(
   block: Block,
-  concept: Concept
+  concept: TypedConcept<unknown>
 ): BlockInstance {
   return {
     id: block.id,

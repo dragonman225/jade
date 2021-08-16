@@ -1,5 +1,5 @@
 import { Actions } from '../store/actions'
-import { Concept, InitializedConceptData } from './concept'
+import { TypedConcept } from './concept'
 import { DatabaseInterface, AppState } from './core'
 import { Origin } from './util'
 
@@ -12,7 +12,9 @@ export interface Factory {
   isTool?: boolean
   /** Ignore to position the products absolutely. */
   origin?: Origin
-  component: React.ComponentClass<any> | React.FunctionComponent<any>
+  component:
+    | React.ComponentClass<ConceptDisplayProps<unknown>>
+    | React.FunctionComponent<ConceptDisplayProps<unknown>>
 }
 
 export interface FactoryRegistry {
@@ -22,14 +24,14 @@ export interface FactoryRegistry {
   getFactory: (factoryId: FactoryId) => Factory | undefined
   createConceptDisplay: (
     factoryId: FactoryId,
-    props: ConceptDisplayProps<InitializedConceptData>
+    props: ConceptDisplayProps<unknown>
   ) => JSX.Element
 }
 
-export interface ConceptDisplayProps<T extends InitializedConceptData> {
+export interface ConceptDisplayProps<T> {
   readOnly: boolean
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
-  concept: Concept
+  concept: TypedConcept<T>
   state: AppState
   dispatchAction: (action: Actions) => void
   factoryRegistry: FactoryRegistry

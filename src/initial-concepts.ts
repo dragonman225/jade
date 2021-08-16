@@ -1,6 +1,6 @@
 import { createBlock } from './core/utils/block'
 import { createConcept } from './core/utils/concept'
-import { Concept, PositionType } from './core/interfaces'
+import { PositionType, TypedConcept } from './core/interfaces'
 
 const now = Date.now()
 
@@ -12,16 +12,16 @@ function createDefaultCamera() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
-export const initialConceptsFromFile = require('./initial-content-concepts.json') as Concept[]
-export const toolConcepts: Concept[] = [
+export const initialConceptsFromFile = require('./initial-content-concepts.json') as TypedConcept<unknown>[]
+export const toolConcepts: TypedConcept<unknown>[] = [
   createConcept('headertool'),
   createConcept('recenttool'),
   createConcept('insighttool'),
   createConcept('searchtool'),
 ]
-export const toolMaskConcept: Concept = {
+export const toolMaskConcept: TypedConcept<unknown> = {
   id: '__tool_mask__',
-  summary: { type: 'toolmask', data: { initialized: false } },
+  summary: { type: 'toolmask', data: undefined },
   references: [
     createBlock({
       to: toolConcepts[0].id,

@@ -4,12 +4,7 @@ import * as Slate from 'slate'
 
 import { SlateTextEditor } from './SlateTextEditor'
 import { styles } from './index.styles'
-import {
-  BaseConceptData,
-  ConceptDisplayProps,
-  Factory,
-  InitializedConceptData,
-} from '../../core/interfaces'
+import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
 /**
  * Slate CJK bugs
@@ -18,7 +13,8 @@ import {
  * https://github.com/ianstormtaylor/slate/issues/3292
  */
 
-interface TextContent extends InitializedConceptData {
+interface TextContent {
+  initialized?: boolean
   data: Slate.Element[]
 }
 
@@ -27,8 +23,8 @@ interface State {
   isNewText: boolean
 }
 
-function getSlateData(data: BaseConceptData): Slate.Element[] {
-  if (data.initialized) return data.data as Slate.Element[]
+function getSlateData(data: TextContent): Slate.Element[] {
+  if (data.initialized) return data.data
   else return [{ type: 'paragraph', children: [{ text: '' }] }]
 }
 

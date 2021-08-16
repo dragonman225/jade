@@ -1,4 +1,4 @@
-import { BaseConceptData, BlockId, BlockInstance, Vec2 } from '../interfaces'
+import { BlockId, BlockInstance, Vec2 } from '../interfaces'
 
 export enum Action {
   ConceptCreate = 'concept::create',
@@ -35,7 +35,7 @@ interface ConceptWriteDataAction {
   data: {
     id: string
     type: string
-    content: BaseConceptData
+    content: unknown
   }
 }
 
