@@ -1,10 +1,12 @@
 import * as React from 'react'
+
 import {
   ConceptDisplayProps,
   FactoryId,
   FactoryRegistry,
   InitializedConceptData,
 } from '../core/interfaces'
+import { ErrorBoundary } from '../core/components/ErrorBoundary'
 import { PMTextFactory } from './PMText'
 import { SlateTextFactory } from './SlateText'
 import { ImageFactory } from './Image'
@@ -50,7 +52,11 @@ class AlexFactoryRegistry implements FactoryRegistry {
       )
     }
 
-    return React.createElement(factory.component, props)
+    return (
+      <ErrorBoundary>
+        {React.createElement(factory.component, props)}
+      </ErrorBoundary>
+    )
   }
 }
 
