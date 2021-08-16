@@ -167,6 +167,7 @@ const PMText: React.FunctionComponent<Props> = props => {
     if (isNewText) {
       view.focus()
       setIsNewText(false)
+      props.onChange({ initialized: true })
     }
     if (!isDocEmpty(state)) {
       setIsEmpty(false)
