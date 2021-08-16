@@ -143,6 +143,8 @@ const PMText: React.FunctionComponent<Props> = props => {
         },
       },
       editable: () => !readOnly,
+      /** Disable scroll-to-selection by lying that we do it in a custom way. */
+      handleScrollToSelection: () => true,
     })
     return view
   }
