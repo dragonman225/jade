@@ -3,8 +3,10 @@ import { EditorState, Transaction } from 'prosemirror-state'
 import { Node } from 'prosemirror-model'
 import { Command, toggleMark } from 'prosemirror-commands'
 import { history, redo, undo } from 'prosemirror-history'
+import { inputRules } from 'prosemirror-inputrules'
 
 import { schema } from './schema'
+import { markingInputRule, markingPatterns } from './markingInputRule'
 
 export function isDocEmpty(state: EditorState): boolean {
   return state.doc.content.size === 0
@@ -35,10 +37,36 @@ export function createEditorState(jsonDoc?: unknown): EditorState {
     'Shift-Mod-z': whenHasFocus(redo),
   })
 
+  const inputRulesPlugin = inputRules({
+    rules: [
+      markingInputRule(markingPatterns.BoldAndItalicWithTripleStars, [
+        schema.marks.bold,
+        schema.marks.italic,
+      ]),
+      markingInputRule(markingPatterns.BoldWithDoubleStars, schema.marks.bold),
+      markingInputRule(
+        markingPatterns.BoldWithDoubleUnderscores,
+        schema.marks.bold
+      ),
+      markingInputRule(
+        markingPatterns.CodeWithSingleBacktick,
+        schema.marks.code
+      ),
+      markingInputRule(
+        markingPatterns.ItalicWithSingleStar,
+        schema.marks.italic
+      ),
+      markingInputRule(
+        markingPatterns.ItalicWithSingleUnderscore,
+        schema.marks.italic
+      ),
+    ],
+  })
+
   return EditorState.create({
     schema,
     doc: jsonDoc ? Node.fromJSON(schema, jsonDoc) : undefined,
-    plugins: [keymapPlugin, history()],
+    plugins: [keymapPlugin, inputRulesPlugin, history()],
   })
 }
 
