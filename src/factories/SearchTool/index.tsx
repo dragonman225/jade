@@ -162,36 +162,56 @@ const S2LState = {
   Linking: Symbol('linking'),
 }
 
+function getSearchResult(keyword: string, concepts: TypedConcept<unknown>[]) {
+  const conceptsWithChildren = []
+  const conceptsWithoutChildren = []
+
+  for (let i = 0; i < concepts.length; ++i) {
+    const c = concepts[i]
+
+    if (keyword && !Concept.includesText(c, keyword)) continue
+
+    if (Concept.isHighOrder(c)) conceptsWithChildren.push(c)
+    else conceptsWithoutChildren.push(c)
+  }
+
+  const comparator = (c1: TypedConcept<unknown>, c2: TypedConcept<unknown>) => {
+    const mtimeC1 = c1.lastEditedTime || 0
+    const mtimeC2 = c2.lastEditedTime || 0
+    return mtimeC2 - mtimeC1
+  }
+  const sortedConceptsWithChildren = conceptsWithChildren.sort(comparator)
+  const sortedConceptsWithoutChildren = conceptsWithoutChildren.sort(comparator)
+
+  return sortedConceptsWithChildren.concat(sortedConceptsWithoutChildren)
+}
+
 const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const { state, dispatchAction, database } = props
-
   const searchRef = React.useRef<HTMLDivElement>(null)
-  // const getSearchRect = () => {
-  //   return searchRef.current.getBoundingClientRect()
-  // }
   const [text, setText] = React.useState('')
   const [minimized, setMinimized] = React.useState(true)
+  const [resultConcepts, setResultConcepts] = useState<TypedConcept<unknown>[]>(
+    []
+  )
 
-  const [higherOrderConcepts, leafConcepts] = React.useMemo(() => {
-    const allConcepts = database.getAllConcepts()
-    return [
-      allConcepts.filter(concept => Concept.isHighOrder(concept)),
-      allConcepts.filter(concept => !Concept.isHighOrder(concept)),
-    ]
-  }, [text, database.getLastUpdatedTime()])
-
-  const resultConcepts = React.useMemo(() => {
-    if (text) {
-      const match = (concept: TypedConcept<unknown>) => {
-        return Concept.includesText(concept, text)
-      }
-      const resHighOrderConcepts = higherOrderConcepts.filter(match)
-      const resLeafConcepts = leafConcepts.filter(match)
-      return resHighOrderConcepts.concat(resLeafConcepts)
-    } else {
-      return higherOrderConcepts.concat(leafConcepts)
+  React.useEffect(() => {
+    // TODO: Can we avoid re-subscribing when text or minimized changes?
+    const updateSearchResult = () => {
+      if (minimized) return
+      const concepts = database.getAllConcepts()
+      const searchResult = getSearchResult(text, concepts)
+      setResultConcepts(searchResult)
     }
-  }, [text, higherOrderConcepts, leafConcepts])
+
+    updateSearchResult()
+
+    database.subscribeConcept('*', updateSearchResult)
+
+    return () => {
+      database.unsubscribeConcept('*', updateSearchResult)
+    }
+  }, [database, text, minimized])
 
   /** Search-to-Link */
   const [s2lState, setS2lState] = React.useState(S2LState.Idle)
