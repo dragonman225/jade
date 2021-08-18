@@ -1,9 +1,13 @@
 import * as React from 'react'
-import { useMemo } from 'react'
 import { stylesheet } from 'typestyle'
 
 import theme from '../../theme'
-import { ConceptDisplayProps, Factory } from '../../core/interfaces'
+import {
+  ConceptDisplayProps,
+  ConceptId,
+  Factory,
+  TypedConcept,
+} from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
 
 const noop = function () {
@@ -58,17 +62,33 @@ const styles = stylesheet({
   },
 })
 
+function getBacklinksOf(
+  conceptId: ConceptId,
+  concepts: TypedConcept<unknown>[]
+) {
+  return concepts.filter(c => !!c.references.find(r => r.to === conceptId))
+}
+
 export const InsightTool: React.FunctionComponent<Props> = props => {
   const { viewMode, state, dispatchAction, database, factoryRegistry } = props
+  const [backlinks, setBacklinks] = React.useState<TypedConcept<unknown>[]>([])
 
-  const parentConcepts = useMemo(() => {
-    const allConcepts = database.getAllConcepts()
-    return allConcepts.filter(concept => {
-      return !!concept.references.find(
-        link => link.to === state.viewingConcept.id
-      )
-    })
-  }, [state.viewingConcept.id, database.getLastUpdatedTime()])
+  React.useEffect(() => {
+    // TODO: Can we avoid re-subscribing when text or minimized changes?
+    const updateBacklinks = () => {
+      const concepts = database.getAllConcepts()
+      const backlinks = getBacklinksOf(state.viewingConcept.id, concepts)
+      setBacklinks(backlinks)
+    }
+
+    updateBacklinks()
+
+    database.subscribeConcept('*', updateBacklinks)
+
+    return () => {
+      database.unsubscribeConcept('*', updateBacklinks)
+    }
+  }, [database, state.viewingConcept.id])
 
   if (viewMode !== 'Block') {
     return <span>Insight Tool</span>
@@ -76,10 +96,10 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
 
   return (
     <div className={styles.Insight}>
-      {parentConcepts.length ? (
+      {backlinks.length ? (
         <>
           <div className={styles.InfoText}>Appears in</div>
-          {parentConcepts.map(concept => {
+          {backlinks.map(concept => {
             return (
               <React.Fragment key={concept.id}>
                 <div
