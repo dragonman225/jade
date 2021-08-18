@@ -39,4 +39,6 @@ export interface DatabaseInterface {
   getLastUpdatedTime(): number
   getVersion(): number
   setVersion(number: number): void
+  subscribeConcept: (channel: string, callback: () => void) => void
+  unsubscribeConcept: (channel: string, callback: () => void) => void
 }

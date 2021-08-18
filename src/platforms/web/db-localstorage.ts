@@ -1,9 +1,13 @@
+import { PubSub } from '../../core/utils/pubsub'
 import {
   DatabaseInterface,
   Settings,
   TypedConcept,
 } from '../../core/interfaces'
 import env from '../../env'
+
+const CHANNEL_ANY_CHANGES = '*'
+const pubSub = new PubSub()
 
 /**
  * Database implemented with localStorage.
@@ -53,10 +57,14 @@ export const database: DatabaseInterface = {
   updateConcept: concept => {
     localStorage.setItem(`concept/${concept.id}`, JSON.stringify(concept))
     markStorageUpdate()
+    pubSub.publish(concept.id)
+    pubSub.publish(CHANNEL_ANY_CHANGES)
   },
   createConcept: concept => {
     localStorage.setItem(`concept/${concept.id}`, JSON.stringify(concept))
     markStorageUpdate()
+    pubSub.publish(concept.id)
+    pubSub.publish(CHANNEL_ANY_CHANGES)
   },
   getSettings: () => {
     try {
@@ -79,4 +87,6 @@ export const database: DatabaseInterface = {
   setVersion: n => {
     localStorage.setItem('JADE_DB_VER', n.toString())
   },
+  subscribeConcept: pubSub.subscribe,
+  unsubscribeConcept: pubSub.unsubscribe,
 }

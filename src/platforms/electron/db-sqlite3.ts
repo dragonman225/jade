@@ -1,5 +1,6 @@
 import _SQLiteDatabase from 'better-sqlite3'
 
+import { PubSub } from '../../core/utils/pubsub'
 import env from '../../env'
 import {
   DatabaseInterface,
@@ -71,6 +72,8 @@ function createDatabase(path: string): DatabaseInterface {
   let settingsCache: Settings
   let lastUpdatedTime = Date.now()
   let timer: NodeJS.Timeout | undefined = undefined
+  const CHANNEL_ANY_CHANGES = '*'
+  const pubSub = new PubSub()
 
   const createConceptsTable = db.prepare(`
     CREATE TABLE IF NOT EXISTS ${conceptsTableName} (
@@ -261,6 +264,8 @@ parse JSON in ${end - mid}ms.`)
       type,
       data,
     })
+    pubSub.publish(concept.id)
+    pubSub.publish(CHANNEL_ANY_CHANGES)
   }
 
   function getSettings(): Settings {
@@ -319,6 +324,8 @@ parse JSON in ${end - mid}ms.`)
     getLastUpdatedTime,
     getVersion,
     setVersion,
+    subscribeConcept: pubSub.subscribe,
+    unsubscribeConcept: pubSub.unsubscribe,
   }
 }
 
