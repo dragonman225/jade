@@ -1,4 +1,13 @@
-import { PubSubAction, PubSubStatusMessage } from '../interfaces'
+export type PubSubAction = 'publish' | 'subscribe' | 'unsubscribe'
+
+export interface PubSubAuditMessage {
+  activeChannel: string
+  action: PubSubAction
+  channels: {
+    name: string
+    subNum: number
+  }[]
+}
 
 export interface IPubSub {
   publish: <T>(channel: string, content?: T) => void
@@ -7,6 +16,10 @@ export interface IPubSub {
 }
 
 export type ISub = Omit<IPubSub, 'publish'>
+
+export type PubSubOptions = {
+  auditChannel?: string
+}
 
 /**
  * https://github.com/developit/mitt does the same thing.
@@ -19,12 +32,12 @@ export class PubSub implements IPubSub {
     }[]
   }
   private lastEmitTime: number
-  private statusChannel: string
+  private auditChannel: string
 
-  constructor() {
+  constructor(options: PubSubOptions = {}) {
     this.subscriberMap = {}
     this.lastEmitTime = 0
-    this.statusChannel = 'pubsub::status'
+    this.auditChannel = options.auditChannel
   }
 
   /**
@@ -41,8 +54,9 @@ export class PubSub implements IPubSub {
     }
     const now = Date.now()
     if (now - this.lastEmitTime > 16) {
-      /** Exclude the status channel to prevent infinite loops. */
-      if (channel !== this.statusChannel) this.emitStatus('publish', channel)
+      /** Exclude the audit channel to prevent infinite loops. */
+      if (channel !== this.auditChannel)
+        this.publishAuditMessage('publish', channel)
     }
     this.lastEmitTime = now
   }
@@ -61,7 +75,7 @@ export class PubSub implements IPubSub {
       this.subscriberMap[channel] = [newSubscriber]
     }
 
-    this.emitStatus('subscribe', channel)
+    this.publishAuditMessage('subscribe', channel)
   }
 
   unsubscribe = (channel: string, callback: (arg: unknown) => void): void => {
@@ -75,17 +89,20 @@ export class PubSub implements IPubSub {
       }
     }
 
-    this.emitStatus('unsubscribe', channel)
+    this.publishAuditMessage('unsubscribe', channel)
   }
 
-  private emitStatus(action: PubSubAction, channel: string): void {
+  private publishAuditMessage(action: PubSubAction, channel: string): void {
+    /** Do not publish if `auditChannel` is not set. */
+    if (!this.auditChannel) return
+
     const channels = Object.entries(this.subscriberMap).map(channelInfo => {
       return {
         name: channelInfo[0],
         subNum: channelInfo[1].length,
       }
     })
-    this.publish<PubSubStatusMessage>(this.statusChannel, {
+    this.publish<PubSubAuditMessage>(this.auditChannel, {
       activeChannel: channel,
       action,
       channels,

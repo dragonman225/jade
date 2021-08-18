@@ -61,17 +61,6 @@ export interface UnifiedEventInfo {
   offsetY: number
 }
 
-export type PubSubAction = 'publish' | 'subscribe' | 'unsubscribe'
-
-export interface PubSubStatusMessage {
-  activeChannel: string
-  action: PubSubAction
-  channels: {
-    name: string
-    subNum: number
-  }[]
-}
-
 export interface Camera {
   focus: Vec2
   scale: number
