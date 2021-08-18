@@ -1,12 +1,18 @@
-import { stylesheet } from 'typestyle'
+import { stylesheet, keyframes } from 'typestyle'
 
 import theme from '../../theme'
+
+const fadeIn = keyframes({
+  '0%': { opacity: 0 },
+  '100%': { opacity: 1 },
+})
 
 export const BlockStyles = stylesheet({
   Block: {
     background: 'white',
     borderRadius: theme.BORDERS.smallRadius,
     overflow: 'hidden',
+    animation: `${fadeIn} 200ms ease-in-out`,
     $nest: {
       '&:hover': {
         cursor: 'pointer',
