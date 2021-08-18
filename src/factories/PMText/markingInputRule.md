@@ -172,3 +172,13 @@ __123_
 __123__
 _123
 ```
+
+## Misc
+
+- Notion requires at least a space character before style syntax. If you prefer such a behavior, the regex would be
+
+  ```
+  /(?<=\s|^)\*\*([^*\n]+)\*\*$/
+  ```
+
+  `\s` matches a space.
