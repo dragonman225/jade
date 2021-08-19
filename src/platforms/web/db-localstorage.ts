@@ -57,8 +57,10 @@ export const database: DatabaseInterface = {
   updateConcept: concept => {
     localStorage.setItem(`concept/${concept.id}`, JSON.stringify(concept))
     markStorageUpdate()
-    pubSub.publish(concept.id)
-    pubSub.publish(CHANNEL_ANY_CHANGES)
+    setTimeout(() => {
+      pubSub.publish(concept.id)
+      pubSub.publish(CHANNEL_ANY_CHANGES)
+    })
   },
   createConcept: concept => {
     localStorage.setItem(`concept/${concept.id}`, JSON.stringify(concept))

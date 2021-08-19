@@ -264,8 +264,10 @@ parse JSON in ${end - mid}ms.`)
       type,
       data,
     })
-    pubSub.publish(concept.id)
-    pubSub.publish(CHANNEL_ANY_CHANGES)
+    setTimeout(() => {
+      pubSub.publish(concept.id)
+      pubSub.publish(CHANNEL_ANY_CHANGES)
+    })
   }
 
   function getSettings(): Settings {
