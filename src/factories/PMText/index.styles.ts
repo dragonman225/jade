@@ -70,4 +70,7 @@ export const styles = stylesheet({
     padding: '0.2em 0.4em',
     wordBreak: 'break-word',
   },
+  Underline: {
+    borderBottom: '0.05em solid',
+  },
 })

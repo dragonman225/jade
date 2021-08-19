@@ -34,7 +34,7 @@ export const schema = new Schema({
     },
     underline: {
       toDOM() {
-        return ['span', { style: 'text-decoration: underline;' }, 0]
+        return ['span', { class: styles.Underline }, 0]
       },
       parseDOM: [{ style: 'text-decoration=underline' }],
     },
