@@ -8,6 +8,14 @@ export const styles = stylesheet({
     $nest: {
       '& .ProseMirror': {
         whiteSpace: 'pre-wrap',
+        /**
+         * COMPAT (2021/08/20):
+         * Chromium adds this prop when contenteditable = true, but removes
+         * it when contenteditable = false, making text height changing
+         * when there're long words. Adding this prop ensure text always
+         * wraps.
+         */
+        overflowWrap: 'break-word',
       },
       '& .ProseMirror:focus': {
         outline: 'none',
