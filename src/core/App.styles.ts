@@ -3,6 +3,10 @@ import { cssRaw, stylesheet } from 'typestyle'
 import theme from '../theme'
 
 cssRaw(`
+*::selection {
+  background: rgba(45, 170, 219, 0.3);
+}
+
 * {
   box-sizing: border-box;
   user-select: none;
