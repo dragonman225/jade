@@ -3,7 +3,7 @@ import { EditorState, Transaction } from 'prosemirror-state'
 import { Node } from 'prosemirror-model'
 import { Command, toggleMark } from 'prosemirror-commands'
 import { history, redo, undo } from 'prosemirror-history'
-import { inputRules } from 'prosemirror-inputrules'
+import { InputRule, inputRules } from 'prosemirror-inputrules'
 
 import { schema } from './schema'
 import { markingInputRule, markingPatterns } from './markingInputRule'
@@ -60,6 +60,8 @@ export function createEditorState(jsonDoc?: unknown): EditorState {
         markingPatterns.ItalicWithSingleUnderscore,
         schema.marks.italic
       ),
+      new InputRule(/->$/, '→'),
+      new InputRule(/=>$/, '⇒'),
     ],
   })
 
