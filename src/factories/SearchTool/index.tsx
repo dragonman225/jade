@@ -206,11 +206,15 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
 
     updateSearchResult()
 
-    database.subscribeConcept('*', updateSearchResult)
+    /**
+     * SearchTool don't need this reactivity at this time since you can't
+     * edit when searching (no multi-user).
+     */
+    // database.subscribeConcept('*', updateSearchResult)
 
-    return () => {
-      database.unsubscribeConcept('*', updateSearchResult)
-    }
+    // return () => {
+    //   database.unsubscribeConcept('*', updateSearchResult)
+    // }
   }, [database, text, minimized])
 
   /** Search-to-Link */

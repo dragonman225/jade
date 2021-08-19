@@ -83,11 +83,11 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
 
     updateBacklinks()
 
-    database.subscribeConcept('*', updateBacklinks)
+    // database.subscribeConcept('*', updateBacklinks)
 
-    return () => {
-      database.unsubscribeConcept('*', updateBacklinks)
-    }
+    // return () => {
+    //   database.unsubscribeConcept('*', updateBacklinks)
+    // }
   }, [database, state.viewingConcept.id])
 
   if (viewMode !== 'Block') {
