@@ -40,9 +40,13 @@ export const schema = new Schema({
     },
     strike: {
       toDOM() {
-        return ['strike', 0]
+        return ['s', 0]
       },
-      parseDOM: [{ tag: 'strike' }],
+      parseDOM: [
+        { tag: 'strike' },
+        { tag: 's' },
+        { style: 'text-decoration=line-through' },
+      ],
     },
     code: {
       toDOM() {
