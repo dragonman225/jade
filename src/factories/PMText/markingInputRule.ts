@@ -43,4 +43,5 @@ export const markingPatterns = {
   ItalicWithSingleStar: /(?<=[^*\n]|^)\*([^*\n]+)\*$/,
   ItalicWithSingleUnderscore: /(?<=[^_\n]|^)_([^_\n]+)_$/,
   CodeWithSingleBacktick: /`(.+)`$/,
+  StrikeWithDoubleTilde: /~~(.+)~~$/,
 }

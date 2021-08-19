@@ -60,6 +60,10 @@ export function createEditorState(jsonDoc?: unknown): EditorState {
         markingPatterns.ItalicWithSingleUnderscore,
         schema.marks.italic
       ),
+      markingInputRule(
+        markingPatterns.StrikeWithDoubleTilde,
+        schema.marks.strike
+      ),
       new InputRule(/->$/, '→'),
       new InputRule(/=>$/, '⇒'),
     ],
