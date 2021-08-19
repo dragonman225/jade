@@ -7,6 +7,7 @@ import { InputRule, inputRules } from 'prosemirror-inputrules'
 
 import { schema } from './schema'
 import { markingInputRule, markingPatterns } from './markingInputRule'
+import { disableFocusAndPasteWithMouseMiddleButton as disableFocusAndPasteByMouseMiddleButton } from './disableFocusAndPasteByMouseMiddleButton'
 
 export function isDocEmpty(state: EditorState): boolean {
   return state.doc.content.size === 0
@@ -72,7 +73,12 @@ export function createEditorState(jsonDoc?: unknown): EditorState {
   return EditorState.create({
     schema,
     doc: jsonDoc ? Node.fromJSON(schema, jsonDoc) : undefined,
-    plugins: [keymapPlugin, inputRulesPlugin, history()],
+    plugins: [
+      keymapPlugin,
+      inputRulesPlugin,
+      history(),
+      disableFocusAndPasteByMouseMiddleButton(),
+    ],
   })
 }
 
