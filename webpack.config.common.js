@@ -3,7 +3,7 @@ const { BannerPlugin } = require('webpack')
 module.exports = {
   plugins: [
     new BannerPlugin(
-      'Jade v0.2.2 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'
+      'Jade v0.2.3 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'
     ),
   ],
   module: {
