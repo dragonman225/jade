@@ -72,11 +72,11 @@ export const styles = stylesheet({
   },
   Code: {
     borderRadius: 5,
-    backgroundColor: 'rgba(135, 131, 120, 0.15)',
-    color: '#ff4081',
+    backgroundColor: 'rgba(27, 31, 35, 0.05)',
     fontSize: '0.9em',
     padding: '0.2em 0.4em',
     wordBreak: 'break-word',
+    fontFamily: `'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace, Courier`,
   },
   Underline: {
     borderBottom: '0.05em solid',
