@@ -26,11 +26,32 @@ export function markingInputRule(
         marks = [markType.create()]
       }
 
-      const textNode = state.schema.text(match[1], marks)
-      let tr = state.tr.replaceRangeWith(start, end, textNode)
+      /**
+       * Get markup tokens, note that left and right may not be the same
+       * or have the same length.
+       */
+      const [tokenLeft, tokenRight] = match[0].split(match[1])
+      let tr = state.tr
+      /** Add marks. */
       marks.forEach(m => {
-        tr = tr.removeStoredMark(m) as Transaction<Schema>
+        tr = tr.addMark(start, end, m)
       })
+      /** Delete tokenLeft. */
+      tr = tr.delete(start, start + tokenLeft.length)
+      /**
+       * Delete tokenRight, since the previous delete changes the
+       * positions, we need to "map" them to the new ones.
+       */
+      tr = tr.delete(
+        tr.mapping.map(end - (tokenRight.length - 1)),
+        tr.mapping.map(end)
+      )
+      /**
+       * Remove storedMarks, since my experience is that whenever I use
+       * InputRule to mark a text, I just want to mark it, but not continue
+       * to type with the marks.
+       */
+      tr = tr.setStoredMarks([]) as Transaction<Schema>
       return tr
     }
   )
