@@ -35,5 +35,6 @@ module.exports = {
     historyApiFallback: true,
     stats: 'errors-only',
     host: '0.0.0.0',
+    port: 8140,
   },
 }
