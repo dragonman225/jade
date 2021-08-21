@@ -121,34 +121,38 @@ export function App(props: Props): JSX.Element {
     )
   }
 
-  const normalBlocks = stateSnapshot.blocks.filter(
-    b =>
-      b.posType === PositionType.Normal &&
-      /**
-       * If a Block haven't reported its rect, render it anyway so it can
-       * report. Usually this happens when opening a Canvas and
-       * double-clicking to create a new Block + Concept.
-       */
-      (!getElementRect(b.id) ||
-        isBoxBoxIntersectingObjVer(
-          {
-            ...b.pos,
-            w:
-              typeof b.size.w === 'number'
-                ? b.size.w
-                : getElementRect(b.id).width,
-            h:
-              typeof b.size.h === 'number'
-                ? b.size.h
-                : getElementRect(b.id).height,
-          },
-          {
-            x: stateSnapshot.camera.focus.x,
-            y: stateSnapshot.camera.focus.y,
-            w: window.innerWidth / stateSnapshot.camera.scale,
-            h: window.innerHeight / stateSnapshot.camera.scale,
-          }
-        ))
+  const normalBlocks = useMemo(
+    () =>
+      stateSnapshot.blocks.filter(
+        b =>
+          b.posType === PositionType.Normal &&
+          /**
+           * If a Block haven't reported its rect, render it anyway so it can
+           * report. Usually this happens when opening a Canvas and
+           * double-clicking to create a new Block + Concept.
+           */
+          (!getElementRect(b.id) ||
+            isBoxBoxIntersectingObjVer(
+              {
+                ...b.pos,
+                w:
+                  typeof b.size.w === 'number'
+                    ? b.size.w
+                    : getElementRect(b.id).width,
+                h:
+                  typeof b.size.h === 'number'
+                    ? b.size.h
+                    : getElementRect(b.id).height,
+              },
+              {
+                x: stateSnapshot.camera.focus.x,
+                y: stateSnapshot.camera.focus.y,
+                w: window.innerWidth / stateSnapshot.camera.scale,
+                h: window.innerHeight / stateSnapshot.camera.scale,
+              }
+            ))
+      ),
+    [stateSnapshot.blocks, stateSnapshot.camera]
   )
 
   const pinnedBlocks = stateSnapshot.blocks.filter(

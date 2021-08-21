@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 import { classes } from 'typestyle'
 
 import { Cross } from './icons/Cross'
@@ -145,20 +145,22 @@ export function Block(props: Props): JSX.Element {
     }
   }, [])
 
+  const blockClassName = useMemo(() => {
+    return classes(
+      className,
+      BlockStyles.Block,
+      block.selected ? BlockStyles['Block--Selected'] : undefined,
+      block.mode === InteractionMode.Focusing
+        ? BlockStyles['Block--Focusing']
+        : undefined,
+      block.mode === InteractionMode.Moving
+        ? BlockStyles['Block--Moving']
+        : undefined
+    )
+  }, [block.mode, block.selected, className])
+
   return (
-    <div
-      ref={blockRef}
-      className={classes(
-        className,
-        BlockStyles.Block,
-        block.selected ? BlockStyles['Block--Selected'] : undefined,
-        block.mode === InteractionMode.Focusing
-          ? BlockStyles['Block--Focusing']
-          : undefined,
-        block.mode === InteractionMode.Moving
-          ? BlockStyles['Block--Moving']
-          : undefined
-      )}>
+    <div ref={blockRef} className={blockClassName}>
       {props.children}
       {debug && (
         <div className={BlockStyles.DebugLabel}>

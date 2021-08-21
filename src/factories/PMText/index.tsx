@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { classes } from 'typestyle'
 import { AllSelection, EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
@@ -29,13 +29,18 @@ interface PMTextContent {
 type Props = ConceptDisplayProps<PMTextContent>
 
 const PMText: React.FunctionComponent<Props> = props => {
+  const { factoryRegistry } = props
   const [showMenu, setShowMenu] = useState(false)
   const [menuPos, setMenuPos] = useState<Vec2>({ x: 0, y: 0 })
   const [chosenItemIndex, setChosenItemIndex] = useState(0)
   const [isEmpty, setIsEmpty] = useState(true)
-  const menuItems = props.factoryRegistry
-    .getContentFactories()
-    .map(f => ({ name: f.name, type: f.id }))
+  const menuItems = useMemo(
+    () =>
+      factoryRegistry
+        .getContentFactories()
+        .map(f => ({ name: f.name, type: f.id })),
+    [factoryRegistry]
+  )
 
   function onKeyDown(_view: EditorView<any>, event: KeyboardEvent) {
     if (event.key === 'ArrowUp') {
@@ -116,12 +121,12 @@ const PMText: React.FunctionComponent<Props> = props => {
       },
       handleDOMEvents: {
         focus: () => {
-          console.log('PMText: focus')
+          // console.log('PMText: focus')
           onInteractionStart()
           return false
         },
         blur: (_view, event) => {
-          console.log('PMText: blur')
+          // console.log('PMText: blur')
           setShowMenu(false)
           if (event.target !== document.activeElement) {
             window.getSelection().removeAllRanges()
@@ -155,7 +160,7 @@ const PMText: React.FunctionComponent<Props> = props => {
 
   /** Init the ProseMirror editor when the component mounts. */
   useEffect(() => {
-    console.log('PMText: mount')
+    // console.log('PMText: mount')
     const state = createEditorState(props.concept.summary.data.data)
     const view = createEditorView(props, editorContainerRef.current, state)
     view.props.handleDOMEvents.keydown = onKeyDown
@@ -193,7 +198,7 @@ const PMText: React.FunctionComponent<Props> = props => {
    */
   useEffect(() => {
     if (mounted) {
-      console.log('PMText: update content')
+      // console.log('PMText: update content')
 
       /** Ignore the editor that is currently producing changes (hasFocus). */
       if (editorView.current.hasFocus()) return
@@ -221,7 +226,7 @@ const PMText: React.FunctionComponent<Props> = props => {
    */
   useEffect(() => {
     if (mounted) {
-      console.log('PMText: update readOnly')
+      // console.log('PMText: update readOnly')
       editorView.current.setProps({ editable: () => !props.readOnly })
     }
   }, [props.readOnly, mounted])

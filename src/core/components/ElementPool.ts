@@ -17,7 +17,6 @@ export function deleteElement(blockId: BlockId): void {
 const elementRectMap = new Map<BlockId, DOMRect>()
 
 export function setElementRect(blockId: BlockId, rect: DOMRect): void {
-  console.log('setElementRect', blockId, rect)
   elementRectMap.set(blockId, rect)
 }
 
