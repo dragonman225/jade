@@ -440,12 +440,18 @@ export function createReducer(
             .concat(newBlocks),
         })
 
-        pointerOverBlock = blocks.reverse().find(
-          b =>
-            /** It makes no sense to over itself. */
-            b.id !== id &&
-            isPointInRect(pointerInViewportCoords, getBlockRect(b.id))
-        )
+        pointerOverBlock = (() => {
+          for (let i = blocks.length - 1; i >= 0; i--) {
+            const block = blocks[i]
+            if (
+              /** It makes no sense to over itself. */
+              block.id !== id &&
+              isPointInRect(pointerInViewportCoords, getBlockRect(block.id))
+            )
+              return block
+          }
+          return undefined
+        })()
 
         db.updateConcept(newViewingConcept)
 
