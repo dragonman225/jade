@@ -17,6 +17,7 @@ import { createReducer, loadAppState } from './store/reducer'
 import {
   AppState,
   BlockInstance,
+  Concept,
   DatabaseInterface,
   FactoryRegistry,
   InteractionMode,
@@ -70,7 +71,13 @@ export function App(props: Props): JSX.Element {
 
     return (
       <Block
-        debug={stateSnapshot.debugging}
+        id={block.id}
+        conceptId={block.concept.id}
+        mode={block.mode}
+        selected={block.selected}
+        highlighted={block.highlighted}
+        blink={Concept.isHighOrder(block.concept)}
+        dispatchAction={dispatchAction}
         className={
           block.posType > PositionType.Normal
             ? style({
@@ -78,9 +85,7 @@ export function App(props: Props): JSX.Element {
                 borderRadius: theme.BORDERS.largeRadius,
               })
             : undefined
-        }
-        block={block}
-        dispatchAction={dispatchAction}>
+        }>
         {factoryRegistry.createConceptDisplay(block.concept.summary.type, {
           readOnly: block.mode === InteractionMode.Moving,
           viewMode: 'Block',

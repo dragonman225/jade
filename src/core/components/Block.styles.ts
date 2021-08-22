@@ -7,7 +7,7 @@ const fadeIn = keyframes({
   '100%': { opacity: 1 },
 })
 
-export const BlockStyles = stylesheet({
+export const styles = stylesheet({
   Block: {
     background: 'white',
     borderRadius: theme.BORDERS.smallRadius,
@@ -43,7 +43,7 @@ export const BlockStyles = stylesheet({
       '& > .ActionBtn--Green:hover': {
         fill: 'mediumaquamarine',
       },
-      '& > .HighOrderMark': {
+      '& > .Blink': {
         position: 'absolute',
         top: 0,
         right: 0,
@@ -55,7 +55,7 @@ export const BlockStyles = stylesheet({
         opacity: 1,
         transition: '0.1s opacity ease-in-out',
       },
-      '&:hover > .HighOrderMark': {
+      '&:hover > .Blink': {
         opacity: 0,
       },
     },
@@ -78,16 +78,6 @@ export const BlockStyles = stylesheet({
         cursor: 'grabbing',
       },
     },
-  },
-  DebugLabel: {
-    position: 'absolute',
-    color: 'blueviolet',
-    top: 0,
-    left: '100%',
-    width: 300,
-    background: 'rgba(211, 211, 211, 0.8)',
-    fontSize: '0.6rem',
-    fontFamily: 'monospace',
   },
   HighlightOverlay: {
     position: 'absolute',

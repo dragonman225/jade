@@ -4,7 +4,7 @@ import { classes } from 'typestyle'
 
 import { Cross } from './Icons/Cross'
 import { Expand } from './Icons/Expand'
-import { BlockStyles } from './Block.styles'
+import { styles } from './Block.styles'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
 import {
   deleteElement,
@@ -12,44 +12,47 @@ import {
   setElementRect,
 } from '../utils/element-pool'
 import { Action, Actions } from '../store/actions'
-import { BlockInstance, Concept, InteractionMode } from '../interfaces'
+import { BlockId, ConceptId, InteractionMode } from '../interfaces'
 
 interface Props {
-  debug: boolean
-  className?: string
-  block: BlockInstance
+  id: BlockId
+  conceptId: ConceptId
+  mode: InteractionMode
+  selected: boolean
+  highlighted: boolean
+  blink: boolean
   dispatchAction: (action: Actions) => void
+  className?: string
   children?: React.ReactNode
 }
 
 export function Block(props: Props): JSX.Element {
-  const { debug, className, block, dispatchAction } = props
+  const {
+    id,
+    conceptId,
+    mode,
+    selected,
+    highlighted,
+    blink,
+    dispatchAction,
+    className,
+    children,
+  } = props
 
-  const concept = block.concept
   const blockRef = useRef<HTMLDivElement>(null)
   const resizerRef = useRef<HTMLDivElement>(null)
-  const blockStateRef = useRef<BlockInstance>(block)
-
-  const setMode = (mode: InteractionMode) => {
-    dispatchAction({
-      type: Action.BlockSetMode,
-      data: {
-        id: block.id,
-        mode,
-      },
-    })
-  }
+  const modeRef = useRef<InteractionMode>(mode)
 
   useEffect(() => {
-    setElement(block.id, blockRef.current)
-    setElementRect(block.id, blockRef.current.getBoundingClientRect())
+    setElement(id, blockRef.current)
+    setElementRect(id, blockRef.current.getBoundingClientRect())
 
-    return () => deleteElement(block.id)
-  }, [block.id])
+    return () => deleteElement(id)
+  }, [id])
 
   useEffect(() => {
-    blockStateRef.current = block
-  }, [block])
+    modeRef.current = mode
+  }, [mode])
 
   useEffect(() => {
     const gestureDetector = (() => {
@@ -64,21 +67,21 @@ export function Block(props: Props): JSX.Element {
         if (intent === 'resize') {
           dispatchAction({
             type: Action.BlockResize,
-            data: {
-              id: block.id,
-              movementInViewportCoords: movement,
-            },
+            data: { id, movementInViewportCoords: movement },
           })
-          setMode(InteractionMode.Resizing)
+          dispatchAction({
+            type: Action.BlockSetMode,
+            data: { id, mode: InteractionMode.Resizing },
+          })
         } else if (intent === 'move') {
           dispatchAction({
             type: Action.BlockMove,
-            data: {
-              id: block.id,
-              pointerInViewportCoords: clientCoords,
-            },
+            data: { id, pointerInViewportCoords: clientCoords },
           })
-          setMode(InteractionMode.Moving)
+          dispatchAction({
+            type: Action.BlockSetMode,
+            data: { id, mode: InteractionMode.Moving },
+          })
         }
       }
 
@@ -91,16 +94,18 @@ export function Block(props: Props): JSX.Element {
         intent = ''
         lastClientCoords = { x: 0, y: 0 }
 
-        const mode = blockStateRef.current.mode
-        if (mode === InteractionMode.Moving)
+        if (modeRef.current === InteractionMode.Moving)
           dispatchAction({ type: Action.BlockMoveEnd })
 
         /** "Focusing" is controlled by the concept display. */
         if (
-          mode === InteractionMode.Moving ||
-          mode === InteractionMode.Resizing
+          modeRef.current === InteractionMode.Moving ||
+          modeRef.current === InteractionMode.Resizing
         )
-          setMode(InteractionMode.Idle)
+          dispatchAction({
+            type: Action.BlockSetMode,
+            data: { id, mode: InteractionMode.Idle },
+          })
       }
 
       return {
@@ -116,11 +121,11 @@ export function Block(props: Props): JSX.Element {
           const resizerRect = resizerRef.current.getBoundingClientRect()
 
           if (isPointInRect(clientCoords, resizerRect)) intent = 'resize'
-          else if (blockStateRef.current.mode !== InteractionMode.Focusing) {
+          else if (modeRef.current !== InteractionMode.Focusing) {
             intent = 'move'
             dispatchAction({
               type: Action.BlockMoveStart,
-              data: { id: block.id, pointerInViewportCoords: clientCoords },
+              data: { id, pointerInViewportCoords: clientCoords },
             })
           }
 
@@ -147,26 +152,22 @@ export function Block(props: Props): JSX.Element {
         gestureDetector.handlePointerDown
       )
     }
-  }, [])
+  }, [id, dispatchAction])
 
   const blockClassName = useMemo(() => {
     return classes(
       className,
-      BlockStyles.Block,
-      block.selected ? BlockStyles['Block--Selected'] : undefined,
-      block.mode === InteractionMode.Focusing
-        ? BlockStyles['Block--Focusing']
-        : undefined,
-      block.mode === InteractionMode.Moving
-        ? BlockStyles['Block--Moving']
-        : undefined
+      styles.Block,
+      selected ? styles['Block--Selected'] : undefined,
+      mode === InteractionMode.Focusing ? styles['Block--Focusing'] : undefined,
+      mode === InteractionMode.Moving ? styles['Block--Moving'] : undefined
     )
-  }, [block.mode, block.selected, className])
+  }, [mode, selected, className])
 
   return (
     <>
       <div ref={blockRef} className={blockClassName}>
-        {props.children}
+        {children}
         <div
           ref={resizerRef}
           style={{
@@ -178,7 +179,7 @@ export function Block(props: Props): JSX.Element {
             cursor: 'ew-resize',
           }}
         />
-        {Concept.isHighOrder(concept) && <div className="HighOrderMark" />}
+        {blink && <div className="Blink" />}
         <div
           className="ActionBtn ActionBtn--Green"
           style={{
@@ -192,7 +193,7 @@ export function Block(props: Props): JSX.Element {
           onClick={() => {
             dispatchAction({
               type: Action.BlockOpenAsCanvas,
-              data: { id: concept.id },
+              data: { id: conceptId },
             })
           }}>
           <Expand />
@@ -210,39 +211,13 @@ export function Block(props: Props): JSX.Element {
           onClick={() => {
             dispatchAction({
               type: Action.BlockRemove,
-              data: { id: block.id },
+              data: { id },
             })
           }}>
           <Cross />
         </div>
-        {block.highlighted && <div className={BlockStyles.HighlightOverlay} />}
+        {highlighted && <div className={styles.HighlightOverlay} />}
       </div>
-      {debug && (
-        <div className={BlockStyles.DebugLabel}>
-          id: {block.id}
-          <br />
-          mode: {block.mode}
-          <br />
-          posType: {block.posType}
-          <br />
-          pos:{' '}
-          {`{ x: ${block.pos.x.toFixed(2)}, y: ${block.pos.y.toFixed(2)} }`}
-          <br />
-          selected: {block.selected ? 'true' : 'false'}
-          <br />
-          highlighted: {block.highlighted ? 'true' : 'false'}
-          <br />
-          createdTime: {block.createdTime}
-          <br />
-          lastEditedTime: {block.lastEditedTime}
-          <br />
-          concept.id: {concept.id}
-          <br />
-          concept.createdTime: {concept.createdTime}
-          <br />
-          concept.lastEditedTime: {concept.lastEditedTime}
-        </div>
-      )}
     </>
   )
 }
