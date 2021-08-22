@@ -556,10 +556,14 @@ export function createReducer(
             pointerOffsetInSelectionBoundingBox: { x: 0, y: 0 },
             blocks: blocks
               .filter(b => !movingBlocks.includes(b))
-              .map(b => {
-                if (b.id === targetConcept.id) b.concept = newTargetConcept
-                return updateBlockInstance(b, { highlighted: false })
-              }),
+              .map(b => ({
+                ...b,
+                concept:
+                  b.concept.id === targetConcept.id
+                    ? newTargetConcept
+                    : b.concept,
+                highlighted: false,
+              })),
           }
         }
 
