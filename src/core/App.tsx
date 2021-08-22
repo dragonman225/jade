@@ -24,7 +24,7 @@ import {
 } from './interfaces'
 import { Action, Actions } from './store/actions'
 import { isBoxBoxIntersectingObjVer } from './utils'
-import { getElementRect } from './components/ElementPool'
+import { getElementRect } from './utils/element-pool'
 
 interface Props {
   db: DatabaseInterface

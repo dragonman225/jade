@@ -6,7 +6,11 @@ import { Cross } from './Icons/Cross'
 import { Expand } from './Icons/Expand'
 import { BlockStyles } from './Block.styles'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
-import { deleteElement, setElement, setElementRect } from './ElementPool'
+import {
+  deleteElement,
+  setElement,
+  setElementRect,
+} from '../utils/element-pool'
 import { Action, Actions } from '../store/actions'
 import { BlockInstance, Concept, InteractionMode } from '../interfaces'
 

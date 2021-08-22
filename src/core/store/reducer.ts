@@ -21,7 +21,7 @@ import {
   clearElementRectMap,
   deleteElementRects,
   getBlockRect,
-} from '../components/ElementPool'
+} from '../utils/element-pool'
 import { Action, Actions } from './actions'
 import {
   ConceptId,
