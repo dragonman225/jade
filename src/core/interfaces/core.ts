@@ -16,7 +16,7 @@ export interface AppState {
   selectionBoxStart: Vec2
   selectionBoxEnd: Vec2
   selectionBox: Box
-  pointerStartOffset: Vec2
+  pointerOffsetInSelectionBoundingBox: Vec2
   selectedBlockIds: BlockId[]
   blocks: BlockInstance[]
 }

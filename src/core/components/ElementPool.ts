@@ -31,3 +31,9 @@ export function deleteElementRects(blockIds: BlockId[]): void {
 export function clearElementRectMap(): void {
   elementRectMap.clear()
 }
+
+export function getBlockRect(id: BlockId): DOMRect {
+  return getElement(id)
+    ? getElement(id).getBoundingClientRect()
+    : getElementRect(id)
+}

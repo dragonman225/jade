@@ -90,3 +90,12 @@ export function viewportCoordsToEnvCoords(
 export function isNaN(x: number): boolean {
   return x !== x
 }
+
+export function getBoundingBox(rects: Rect[]): Rect {
+  return {
+    top: Math.min(...rects.map(r => r.top)),
+    right: Math.max(...rects.map(r => r.right)),
+    bottom: Math.max(...rects.map(r => r.bottom)),
+    left: Math.min(...rects.map(r => r.left)),
+  }
+}

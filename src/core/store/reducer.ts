@@ -5,6 +5,8 @@ import {
   vecAdd,
   normalizeToBox,
   isBoxBoxIntersecting,
+  isPointInRect,
+  getBoundingBox,
 } from '../utils'
 import {
   createBlock,
@@ -18,8 +20,7 @@ import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
 import {
   clearElementRectMap,
   deleteElementRects,
-  getElement,
-  getElementRect,
+  getBlockRect,
 } from '../components/ElementPool'
 import { Action, Actions } from './actions'
 import {
@@ -87,7 +88,7 @@ export function loadAppState(db: DatabaseInterface): AppState {
     selectionBoxStart: { x: 0, y: 0 },
     selectionBoxEnd: { x: 0, y: 0 },
     selectionBox: { x: 0, y: 0, w: 0, h: 0 },
-    pointerStartOffset: { x: 0, y: 0 },
+    pointerOffsetInSelectionBoundingBox: { x: 0, y: 0 },
     selectedBlockIds: [],
     blocks,
   }
@@ -99,8 +100,14 @@ export function createReducer(
 ): (state: AppState, action: Actions) => AppState {
   const defaultSize: Size = { w: 300, h: 'auto' }
 
+  /**
+   * "Cursor Block" is a block that fires actions when multiple blocks are
+   * selected.
+   */
   let cursorBlockId = ''
   let cursorRectSize: { w: number; h: number } = { w: 0, h: 0 }
+  /** A block that the pointer is on. */
+  let pointerOverBlock: BlockInstance = undefined
 
   return function appStateReducer(state: AppState, action: Actions): AppState {
     // console.log(`core/store/reducer: "${action.type}"`, action)
@@ -233,58 +240,48 @@ export function createReducer(
             })
           ),
           selectedBlockIds,
-          pointerStartOffset: vecSub(boundingBoxPos, pointerInEnvCoords),
+          pointerOffsetInSelectionBoundingBox: vecSub(
+            pointerInEnvCoords,
+            boundingBoxPos
+          ),
         }
       }
       case Action.BlockMove: {
-        const { pointerInViewportCoords } = action.data
+        const { id, pointerInViewportCoords } = action.data
 
         const {
           selectedBlockIds,
           blocks,
           viewingConcept,
-          pointerStartOffset,
+          pointerOffsetInSelectionBoundingBox: pointerOffsetInBoundingBox,
           camera,
         } = state
 
+        /** Blocks to move are those selected. */
         const movingBlocks = blocks.filter(b => selectedBlockIds.includes(b.id))
-
-        const staticBlocks = blocks
-          .filter(b => b.posType === PositionType.Normal)
-          .filter(b => !selectedBlockIds.includes(b.id))
-
-        const movingBlockRects = movingBlocks.map(b =>
-          getElement(b.id)
-            ? getElement(b.id).getBoundingClientRect()
-            : getElementRect(b.id)
-        )
-
-        const currentSelectionBoundingBox = {
-          top: Math.min(...movingBlockRects.map(r => r.top)),
-          right: Math.max(...movingBlockRects.map(r => r.right)),
-          bottom: Math.max(...movingBlockRects.map(r => r.bottom)),
-          left: Math.min(...movingBlockRects.map(r => r.left)),
-        }
-
-        const selectionBoundingBoxSize = {
+        /** Below are in viewport coordinates. */
+        const movingBlockRects = movingBlocks.map(b => getBlockRect(b.id))
+        const movingBlocksBoundingBox = getBoundingBox(movingBlockRects)
+        /** Below are in environment coordinates. */
+        const movingBlocksBoundingBoxSize = {
           w:
-            (currentSelectionBoundingBox.right -
-              currentSelectionBoundingBox.left) /
+            (movingBlocksBoundingBox.right - movingBlocksBoundingBox.left) /
             camera.scale,
           h:
-            (currentSelectionBoundingBox.bottom -
-              currentSelectionBoundingBox.top) /
+            (movingBlocksBoundingBox.bottom - movingBlocksBoundingBox.top) /
             camera.scale,
         }
-
-        const currentSelectionBoundingBoxPos = {
+        const movingBlocksBoundingBoxPos = {
           x: Math.min(...movingBlocks.map(b => b.pos.x)),
           y: Math.min(...movingBlocks.map(b => b.pos.y)),
         }
-
-        const nextSelectionBoundingBoxPos = vecAdd(
-          viewportCoordsToEnvCoords(pointerInViewportCoords, camera),
-          pointerStartOffset
+        const pointerInEnvCoords = viewportCoordsToEnvCoords(
+          pointerInViewportCoords,
+          camera
+        )
+        const movingBlocksBoundingBoxNextPos = vecSub(
+          pointerInEnvCoords,
+          pointerOffsetInBoundingBox
         )
 
         /**
@@ -296,14 +293,15 @@ export function createReducer(
 
         const movedBlocksMap: { [key: string]: BlockInstance } = {}
         const movement = vecSub(
-          nextSelectionBoundingBoxPos,
-          currentSelectionBoundingBoxPos
+          movingBlocksBoundingBoxNextPos,
+          movingBlocksBoundingBoxPos
         )
 
+        const staticBlocks = blocks
+          .filter(b => b.posType === PositionType.Normal)
+          .filter(b => !selectedBlockIds.includes(b.id))
         staticBlocks.forEach(sb => {
-          const rect = getElement(sb.id)
-            ? getElement(sb.id).getBoundingClientRect()
-            : getElementRect(sb.id)
+          const rect = getBlockRect(sb.id)
           const gap = 10
           const detectionZoneWidth = 35
           const detectionAreaPos = viewportCoordsToEnvCoords(
@@ -320,10 +318,10 @@ export function createReducer(
 
           if (
             isBoxBoxIntersecting(
-              nextSelectionBoundingBoxPos.x,
-              nextSelectionBoundingBoxPos.y,
-              selectionBoundingBoxSize.w,
-              selectionBoundingBoxSize.h,
+              movingBlocksBoundingBoxNextPos.x,
+              movingBlocksBoundingBoxNextPos.y,
+              movingBlocksBoundingBoxSize.w,
+              movingBlocksBoundingBoxSize.h,
               detectionAreaPos.x,
               detectionAreaPos.y,
               detectionAreaSize.w,
@@ -331,94 +329,96 @@ export function createReducer(
             )
           ) {
             /** Left-Left */
-            if (inRange(nextSelectionBoundingBoxPos.x, sb.pos.x)) {
-              movement.x = sb.pos.x - currentSelectionBoundingBoxPos.x
+            if (inRange(movingBlocksBoundingBoxNextPos.x, sb.pos.x)) {
+              movement.x = sb.pos.x - movingBlocksBoundingBoxPos.x
             }
 
             /** Left-Right */
             if (
               inRange(
-                nextSelectionBoundingBoxPos.x,
+                movingBlocksBoundingBoxNextPos.x,
                 sb.pos.x + rect.width / camera.scale + gap
               )
             ) {
               movement.x =
                 sb.pos.x +
                 rect.width / camera.scale -
-                currentSelectionBoundingBoxPos.x +
+                movingBlocksBoundingBoxPos.x +
                 gap
             }
 
             /** Top-Top */
-            if (inRange(nextSelectionBoundingBoxPos.y, sb.pos.y)) {
-              movement.y = sb.pos.y - currentSelectionBoundingBoxPos.y
+            if (inRange(movingBlocksBoundingBoxNextPos.y, sb.pos.y)) {
+              movement.y = sb.pos.y - movingBlocksBoundingBoxPos.y
             }
 
             /** Top-Bottom */
             if (
               inRange(
-                nextSelectionBoundingBoxPos.y,
+                movingBlocksBoundingBoxNextPos.y,
                 sb.pos.y + rect.height / camera.scale + gap
               )
             ) {
               movement.y =
                 sb.pos.y +
                 rect.height / camera.scale -
-                currentSelectionBoundingBoxPos.y +
+                movingBlocksBoundingBoxPos.y +
                 gap
             }
 
             /** Right-Right */
             if (
               inRange(
-                nextSelectionBoundingBoxPos.x + selectionBoundingBoxSize.w,
+                movingBlocksBoundingBoxNextPos.x +
+                  movingBlocksBoundingBoxSize.w,
                 sb.pos.x + rect.width / camera.scale
               )
             ) {
               movement.x =
                 sb.pos.x +
                 rect.width / camera.scale -
-                (currentSelectionBoundingBoxPos.x + selectionBoundingBoxSize.w)
+                (movingBlocksBoundingBoxPos.x + movingBlocksBoundingBoxSize.w)
             }
 
             /** Right-Left */
             if (
               inRange(
-                nextSelectionBoundingBoxPos.x + selectionBoundingBoxSize.w,
+                movingBlocksBoundingBoxNextPos.x +
+                  movingBlocksBoundingBoxSize.w,
                 sb.pos.x - gap
               )
             ) {
               movement.x =
                 sb.pos.x -
-                (currentSelectionBoundingBoxPos.x +
-                  selectionBoundingBoxSize.w) -
+                (movingBlocksBoundingBoxPos.x + movingBlocksBoundingBoxSize.w) -
                 gap
             }
 
             /** Bottom-Bottom */
             if (
               inRange(
-                nextSelectionBoundingBoxPos.y + selectionBoundingBoxSize.h,
+                movingBlocksBoundingBoxNextPos.y +
+                  movingBlocksBoundingBoxSize.h,
                 sb.pos.y + rect.height / camera.scale
               )
             ) {
               movement.y =
                 sb.pos.y +
                 rect.height / camera.scale -
-                (currentSelectionBoundingBoxPos.y + selectionBoundingBoxSize.h)
+                (movingBlocksBoundingBoxPos.y + movingBlocksBoundingBoxSize.h)
             }
 
             /** Bottom-Top */
             if (
               inRange(
-                nextSelectionBoundingBoxPos.y + selectionBoundingBoxSize.h,
+                movingBlocksBoundingBoxNextPos.y +
+                  movingBlocksBoundingBoxSize.h,
                 sb.pos.y - gap
               )
             ) {
               movement.y =
                 sb.pos.y -
-                (currentSelectionBoundingBoxPos.y +
-                  selectionBoundingBoxSize.h) -
+                (movingBlocksBoundingBoxPos.y + movingBlocksBoundingBoxSize.h) -
                 gap
             }
           }
@@ -434,12 +434,18 @@ export function createReducer(
         const movedBlocks = Object.values(movedBlocksMap)
 
         const newBlocks: Block[] = movedBlocks.map(blockInstanceToBlock)
-
         const newViewingConcept = updateConcept(viewingConcept, {
           references: viewingConcept.references
             .filter(r => !selectedBlockIds.includes(r.id))
             .concat(newBlocks),
         })
+
+        pointerOverBlock = blocks.reverse().find(
+          b =>
+            /** It makes no sense to over itself. */
+            b.id !== id &&
+            isPointInRect(pointerInViewportCoords, getBlockRect(b.id))
+        )
 
         db.updateConcept(newViewingConcept)
 
@@ -448,13 +454,115 @@ export function createReducer(
           viewingConcept: newViewingConcept,
           blocks: blocks
             .filter(b => !selectedBlockIds.includes(b.id))
-            .concat(movedBlocks),
+            .concat(movedBlocks)
+            .map(b =>
+              updateBlockInstance(b, {
+                highlighted: b.id === (pointerOverBlock && pointerOverBlock.id),
+              })
+            ),
         }
       }
       case Action.BlockMoveEnd: {
+        if (pointerOverBlock) {
+          /**
+           * When a move is end, if the pointer is over a *Block*, we move
+           * the selected *Block*s into the *Concept* the *Block*
+           * represents.
+           */
+          const { viewingConcept, selectedBlockIds, blocks } = state
+          const movingBlocks = blocks.filter(b =>
+            selectedBlockIds.includes(b.id)
+          )
+
+          /**
+           * We want to keep the relative position of the moving blocks
+           * after moving them.
+           */
+          const topLeftMostMovingBlock = movingBlocks.reduce((pv, cv) => {
+            if (cv.pos.x <= pv.pos.x && cv.pos.y <= pv.pos.y) return cv
+            else return pv
+          }, movingBlocks[0])
+
+          const targetConcept = db.getConcept(pointerOverBlock.concept.id)
+
+          /**
+           * The top-right corner of the bounding box of all blocks in
+           * targetConcept.
+           */
+          const topRightOfBoundingBoxOfBlocksInTargetConcept = targetConcept.references.reduce(
+            (pos, r) => {
+              const rightX = r.pos.x + (r.size.w === 'auto' ? 0 : r.size.w)
+              if (rightX > pos.x) {
+                pos.x = rightX
+              }
+              if (r.pos.y < pos.y) {
+                pos.y = r.pos.y
+              }
+              return pos
+            },
+            { x: -Infinity, y: -Infinity }
+          )
+
+          /** Handle the case where targetConcept.references is []. */
+          const newPosOfTopLeftMostMovingBlock = vecAdd(
+            {
+              x:
+                topRightOfBoundingBoxOfBlocksInTargetConcept.x === -Infinity
+                  ? 100
+                  : topRightOfBoundingBoxOfBlocksInTargetConcept.x,
+              y:
+                topRightOfBoundingBoxOfBlocksInTargetConcept.y === -Infinity
+                  ? 100
+                  : topRightOfBoundingBoxOfBlocksInTargetConcept.y,
+            },
+            { x: 100, y: 0 }
+          )
+
+          /** The vector each moving block should move. */
+          const vectorToMove = vecSub(
+            newPosOfTopLeftMostMovingBlock,
+            topLeftMostMovingBlock.pos
+          )
+
+          const newViewingConcept = updateConcept(viewingConcept, {
+            references: viewingConcept.references.filter(
+              r => !selectedBlockIds.includes(r.id)
+            ),
+          })
+
+          const newTargetConcept = updateConcept(targetConcept, {
+            references: targetConcept.references.concat(
+              viewingConcept.references
+                .filter(r => selectedBlockIds.includes(r.id))
+                .map(r => ({
+                  ...r,
+                  pos: vecAdd(r.pos, vectorToMove),
+                }))
+            ),
+          })
+
+          db.updateConcept(newViewingConcept)
+          db.updateConcept(newTargetConcept)
+
+          return {
+            ...state,
+            viewingConcept: newViewingConcept,
+            pointerOffsetInSelectionBoundingBox: { x: 0, y: 0 },
+            blocks: blocks
+              .filter(b => !movingBlocks.includes(b))
+              .map(b => {
+                if (b.id === targetConcept.id) b.concept = newTargetConcept
+                return updateBlockInstance(b, { highlighted: false })
+              }),
+          }
+        }
+
         return {
           ...state,
-          pointerStartOffset: { x: 0, y: 0 },
+          pointerOffsetInSelectionBoundingBox: { x: 0, y: 0 },
+          blocks: state.blocks.map(b =>
+            updateBlockInstance(b, { highlighted: false })
+          ),
         }
       }
       case Action.BlockResize: {
@@ -462,9 +570,7 @@ export function createReducer(
         const { camera, blocks } = state
 
         const block = state.blocks.find(b => b.id === id)
-        const blockViewportRect = getElement(id)
-          ? getElement(id).getBoundingClientRect()
-          : getElementRect(id)
+        const blockViewportRect = getBlockRect(id)
         const oldSize = block.size
 
         cursorRectSize =
@@ -502,9 +608,7 @@ export function createReducer(
         const targetRects = blocks
           .filter(b => b.id !== id && b.posType === PositionType.Normal)
           .map(b => {
-            const viewportRect = getElement(b.id)
-              ? getElement(b.id).getBoundingClientRect()
-              : getElementRect(b.id)
+            const viewportRect = getBlockRect(b.id)
             return {
               ...b.pos,
               w:
@@ -599,6 +703,8 @@ export function createReducer(
       case Action.BlockSetMode: {
         const { id, mode } = action.data
         const oldBlock = state.blocks.find(b => b.id === id)
+        /** Prevent adding garbage blocks. */
+        if (!oldBlock) return state
         const newBlock = { ...oldBlock, mode }
 
         return {
