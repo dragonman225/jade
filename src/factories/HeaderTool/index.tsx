@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
 
-import { Home } from '../../core/components/icons/Home'
+import { Home } from '../../core/components/Icons/Home'
 import { Action } from '../../core/store/actions'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
