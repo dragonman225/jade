@@ -45,6 +45,7 @@ export interface BlockInstance {
   size: Size
   mode: InteractionMode
   selected: boolean
+  highlighted: boolean
   concept: TypedConcept<unknown>
   createdTime: Timestamp
   lastEditedTime: Timestamp

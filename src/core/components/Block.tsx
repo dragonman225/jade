@@ -160,8 +160,59 @@ export function Block(props: Props): JSX.Element {
   }, [block.mode, block.selected, className])
 
   return (
-    <div ref={blockRef} className={blockClassName}>
-      {props.children}
+    <>
+      <div ref={blockRef} className={blockClassName}>
+        {props.children}
+        <div
+          ref={resizerRef}
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: 20,
+            cursor: 'ew-resize',
+          }}
+        />
+        {Concept.isHighOrder(concept) && <div className="HighOrderMark" />}
+        <div
+          className="ActionBtn ActionBtn--Green"
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: 20,
+            height: 20,
+            padding: 4,
+          }}
+          onClick={() => {
+            dispatchAction({
+              type: Action.BlockOpenAsCanvas,
+              data: { id: concept.id },
+            })
+          }}>
+          <Expand />
+        </div>
+        <div
+          className="ActionBtn ActionBtn--Red"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 20,
+            height: 20,
+            padding: 4,
+          }}
+          onClick={() => {
+            dispatchAction({
+              type: Action.BlockRemove,
+              data: { id: block.id },
+            })
+          }}>
+          <Cross />
+        </div>
+        {block.highlighted && <div className={BlockStyles.HighlightOverlay} />}
+      </div>
       {debug && (
         <div className={BlockStyles.DebugLabel}>
           id: {block.id}
@@ -175,6 +226,8 @@ export function Block(props: Props): JSX.Element {
           <br />
           selected: {block.selected ? 'true' : 'false'}
           <br />
+          highlighted: {block.highlighted ? 'true' : 'false'}
+          <br />
           createdTime: {block.createdTime}
           <br />
           lastEditedTime: {block.lastEditedTime}
@@ -186,54 +239,6 @@ export function Block(props: Props): JSX.Element {
           concept.lastEditedTime: {concept.lastEditedTime}
         </div>
       )}
-      <div
-        ref={resizerRef}
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: 20,
-          cursor: 'ew-resize',
-        }}
-      />
-      {Concept.isHighOrder(concept) && <div className="HighOrderMark" />}
-      <div
-        className="ActionBtn ActionBtn--Green"
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: 20,
-          height: 20,
-          padding: 4,
-        }}
-        onClick={() => {
-          dispatchAction({
-            type: Action.BlockOpenAsCanvas,
-            data: { id: concept.id },
-          })
-        }}>
-        <Expand />
-      </div>
-      <div
-        className="ActionBtn ActionBtn--Red"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: 20,
-          height: 20,
-          padding: 4,
-        }}
-        onClick={() => {
-          dispatchAction({
-            type: Action.BlockRemove,
-            data: { id: block.id },
-          })
-        }}>
-        <Cross />
-      </div>
-    </div>
+    </>
   )
 }

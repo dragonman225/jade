@@ -12,6 +12,11 @@ export const BlockStyles = stylesheet({
     background: 'white',
     borderRadius: theme.BORDERS.smallRadius,
     overflow: 'hidden',
+    /**
+     * Set `position: relative` so that children with `position: absolute`
+     * obey `overflow: hidden` set above.
+     */
+    position: 'relative',
     animation: `${fadeIn} 200ms ease-in-out`,
     $nest: {
       '&:hover': {
@@ -83,5 +88,14 @@ export const BlockStyles = stylesheet({
     background: 'rgba(211, 211, 211, 0.8)',
     fontSize: '0.6rem',
     fontFamily: 'monospace',
+  },
+  HighlightOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: theme.COLORS.uiPrimaryVeryLight,
+    overflow: 'hidden',
   },
 })

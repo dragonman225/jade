@@ -46,6 +46,7 @@ export function createBlockInstance(
     lastEditedTime: block.lastEditedTime,
     mode: InteractionMode.Idle,
     selected: false,
+    highlighted: false,
     concept,
   }
 }
@@ -53,7 +54,10 @@ export function createBlockInstance(
 export function updateBlockInstance(
   blockInstance: BlockInstance,
   newProperties: Partial<
-    Pick<BlockInstance, 'mode' | 'pos' | 'posType' | 'selected' | 'size'>
+    Pick<
+      BlockInstance,
+      'mode' | 'pos' | 'posType' | 'selected' | 'size' | 'highlighted'
+    >
   >
 ): BlockInstance {
   const hasOwnProperty = (obj: unknown, key: string) => {
