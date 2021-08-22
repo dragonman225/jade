@@ -1,21 +1,20 @@
 import { ConceptId, TypedConcept } from './concept'
 import { Size, Timestamp, Vec2 } from './util'
 
+/** Describe how to position an object in the *Canvas*. */
 export enum PositionType {
-  /** Not positioned, the `position` property has no meaning. */
+  /** The object is not positioned. */
   None,
-  /** Position relative to environment origin. */
+  /** The object is positioned relative to the environment origin. */
   Normal,
-  /**
-   * Position relative to viewport top-left, top-right, bottom-left,
-   * bottom-right.
-   */
+  /** The object is positioned relative to the corners of the viewport. */
   PinnedTL,
   PinnedTR,
   PinnedBL,
   PinnedBR,
 }
 
+/** Describe what the user is doing to an object. */
 export enum InteractionMode {
   Idle,
   Moving,
@@ -23,9 +22,10 @@ export enum InteractionMode {
   Focusing,
 }
 
+/** An UUID identifying a *Block*. */
 export type BlockId = string
 
-/** A Block is an object representation of a Concept. */
+/** A pointer to a *Concept* in a *Canvas*. */
 export interface Block {
   id: BlockId
   // TODO: Change property name.
@@ -37,6 +37,7 @@ export interface Block {
   lastEditedTime: Timestamp
 }
 
+/** A live representation of a *Block* in the UI. */
 export interface BlockInstance {
   id: BlockId
   posType: PositionType
