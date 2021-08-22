@@ -9,7 +9,7 @@ import {
   viewportCoordsToEnvCoords,
 } from '../../core/utils'
 import { factoryRegistry } from '..'
-import { BlockStyles } from '../../core/components/Block.styles'
+import { styles as blockStyles } from '../../core/components/Block.styles'
 import theme from '../../theme'
 import {
   Concept,
@@ -503,7 +503,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
 
           return props.createOverlay(
             <div
-              className={BlockStyles.Block}
+              className={blockStyles.Block}
               style={{
                 transformOrigin: 'top left',
                 transform: `translate3d(${pos.x}px, ${pos.y}px, 0px) scale(${scale})`,
