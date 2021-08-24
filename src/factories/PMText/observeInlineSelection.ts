@@ -58,8 +58,9 @@ export function observeInlineSelection({
     if (!state.selection.empty && isInlineSelection(state.selection)) {
       const fromRect = editorView.coordsAtPos(state.selection.from)
       const toRect = editorView.coordsAtPos(state.selection.to)
-      const selectionBoundingRect = window
-        .getSelection()
+      const selection = window.getSelection()
+      if (selection.rangeCount === 0) return
+      const selectionBoundingRect = selection
         .getRangeAt(0)
         .getBoundingClientRect()
 
