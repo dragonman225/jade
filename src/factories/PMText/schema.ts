@@ -18,6 +18,18 @@ export const schema = new Schema({
         return ['br']
       },
     },
+    math_inline: {
+      group: 'inline',
+      content: 'text*',
+      inline: true,
+      atom: true,
+      toDOM: () => ['math-inline', { class: 'math-node' }, 0],
+      parseDOM: [
+        {
+          tag: 'math-inline',
+        },
+      ],
+    },
   },
   marks: {
     bold: {

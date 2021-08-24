@@ -4,6 +4,10 @@ import { Command, toggleMark } from 'prosemirror-commands'
 import { keymap } from 'prosemirror-keymap'
 import { InputRule, inputRules } from 'prosemirror-inputrules'
 import { redo, undo } from 'prosemirror-history'
+import {
+  REGEX_INLINE_MATH_DOLLARS,
+  makeInlineMathInputRule,
+} from '@benrbray/prosemirror-math'
 
 import { schema } from './schema'
 import { markingInputRule, markingPatterns } from './markingInputRule'
@@ -68,6 +72,10 @@ export const inputRulesPlugin = inputRules({
     new InputRule(/->$/, '→'),
     new InputRule(/=>$/, '⇒'),
     new InputRule(/!=$/, '≠'),
+    makeInlineMathInputRule(
+      REGEX_INLINE_MATH_DOLLARS,
+      schema.nodes.math_inline
+    ),
   ],
 })
 

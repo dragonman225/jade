@@ -1,9 +1,13 @@
+import '@benrbray/prosemirror-math/style/math.css'
+import 'katex/dist/katex.min.css'
+
 import * as React from 'react'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { classes } from 'typestyle'
 import { AllSelection, EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { history } from 'prosemirror-history'
+import { mathPlugin } from '@benrbray/prosemirror-math'
 
 import { styles } from './index.styles'
 import { schema } from './schema'
@@ -130,12 +134,12 @@ const PMText: React.FunctionComponent<Props> = props => {
           })
       },
       handleDOMEvents: {
-        focus: () => {
+        focusin: () => {
           console.log('PMText: focus')
           onInteractionStart()
           return false
         },
-        blur: (_view, event) => {
+        focusout: (_view, event) => {
           console.log('PMText: blur')
           setShowSlashMenu(false)
           if (event.target !== document.activeElement) {
@@ -192,6 +196,7 @@ const PMText: React.FunctionComponent<Props> = props => {
             },
           ],
         }),
+        mathPlugin,
       ],
     })
     const view = createEditorView(editorContainerRef.current, state)
@@ -232,13 +237,20 @@ const PMText: React.FunctionComponent<Props> = props => {
   useEffect(() => {
     if (!editorMounted) return
 
-    // console.log('PMText: update content')
+    console.log('PMText: update content')
 
     const view = editorView.current
     const state = view.state
 
-    /** Ignore the editor that is currently producing changes (hasFocus). */
-    if (view.hasFocus()) return
+    /**
+     * Ignore the editor that is currently producing changes.
+     *
+     * Note that simply checking `view.hasFocus()` doesn't work if there're
+     * nested `EditorView`s introduced by `NodeView`s. Instead, we check if
+     * the DOM of the root view contains a focused (editing) element. Not
+     * vert accurate in theory, but works for now.
+     */
+    if (view.dom.contains(document.activeElement)) return
 
     const jsonDoc = concept.summary.data.data
     const doc = getProseMirrorDoc(jsonDoc, schema)
