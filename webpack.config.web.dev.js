@@ -16,7 +16,7 @@ module.exports = {
     filename: '[name].js',
     publicPath: '/',
   },
-  plugins: [
+  plugins: commonConfig.plugins.concat([
     new ForkTsCheckerWebpackPlugin({
       eslint: {
         files: './src/**/*.{ts,tsx,js,jsx}',
@@ -26,14 +26,19 @@ module.exports = {
       inject: true,
       template: 'src/index.html',
     }),
-  ],
+  ]),
   module: commonConfig.module,
   resolve: commonConfig.resolve,
   devtool: 'inline-source-map',
   devServer: {
-    clientLogLevel: 'warning',
     historyApiFallback: true,
-    stats: 'errors-only',
+    client: {
+      logging: 'warn',
+      overlay: false,
+    },
+    devMiddleware: {
+      stats: 'errors-only',
+    },
     host: '0.0.0.0',
     port: 8140,
   },

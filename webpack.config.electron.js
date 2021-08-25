@@ -12,7 +12,16 @@ module.exports = {
   /** Indicate by https://github.com/liady/webpack-node-externals */
   externalsPresets: { node: true, electronRenderer: true },
   /** Do not bundle external deps, directly "require" from "node_modules". */
-  externals: [nodeExternals()],
+  externals: [
+    nodeExternals({
+      /**
+       * Allow CSS go into the bundling pipeline since it cannot be
+       * natively imported/required.
+       * @see https://github.com/liady/webpack-node-externals#how-can-i-bundle-required-assets-ie-css-files-from-node_modules
+       */
+      allowlist: [/\.css$/i],
+    }),
+  ],
   context: process.cwd(), // to automatically find tsconfig.json
   /** Entry & Output: @see https://webpack.js.org/configuration/entry-context/#naming */
   entry: {

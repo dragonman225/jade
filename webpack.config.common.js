@@ -1,10 +1,12 @@
 const { BannerPlugin } = require('webpack')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
   plugins: [
     new BannerPlugin(
       'Jade v0.2.3 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'
     ),
+    new MiniCssExtractPlugin(),
   ],
   module: {
     rules: [
@@ -25,7 +27,19 @@ module.exports = {
       },
       {
         test: /\.css$/i,
-        use: ['style-loader', 'css-loader'],
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+      },
+      /**
+       * Move assets to `assets/`. New API that replaces file-loader.
+       * @see https://webpack.js.org/guides/asset-modules/
+       * @see https://webpack.js.org/loaders/css-loader/#assets
+       */
+      {
+        test: /\.(png|jpe?g|gif|svg|eot|ttf|woff|woff2)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/[hash][ext][query]',
+        },
       },
     ],
   },
