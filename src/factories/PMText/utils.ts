@@ -7,7 +7,7 @@ import { redo, undo } from 'prosemirror-history'
 import {
   REGEX_INLINE_MATH_DOLLARS,
   makeInlineMathInputRule,
-} from '@benrbray/prosemirror-math'
+} from '@dragonman225/prosemirror-math'
 
 import { schema } from './schema'
 import { markingInputRule, markingPatterns } from './markingInputRule'

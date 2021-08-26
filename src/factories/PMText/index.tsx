@@ -1,4 +1,4 @@
-import '@benrbray/prosemirror-math/style/math.css'
+import '@dragonman225/prosemirror-math/style/math.css'
 import 'katex/dist/katex.min.css'
 
 import * as React from 'react'
@@ -7,7 +7,7 @@ import { classes } from 'typestyle'
 import { AllSelection, EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { history } from 'prosemirror-history'
-import { mathPlugin } from '@benrbray/prosemirror-math'
+import { mathPlugin } from '@dragonman225/prosemirror-math'
 
 import { styles } from './index.styles'
 import { schema } from './schema'

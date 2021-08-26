@@ -912,11 +912,6 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@benrbray/prosemirror-math@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@benrbray/prosemirror-math/-/prosemirror-math-0.2.2.tgz#5b2aeb7c8c5a41d2e39317fe1fbd7040fd347cc9"
-  integrity sha512-n+V8MNKaQ9HtA1IASzoBFwthFY55kpu2I+0aF103AbqUw5eM8YlxHeltnLqjnYRVY4/a6A9t9YlBMBQOli5jgw==
-
 "@develar/schema-utils@~2.6.5":
   version "2.6.5"
   resolved "https://registry.yarnpkg.com/@develar/schema-utils/-/schema-utils-2.6.5.tgz#3ece22c5838402419a6e0425f85742b961d9b6c6"
@@ -929,6 +924,11 @@
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.2.tgz#8f03a22a04de437254e8ce8cc84ba39689288752"
   integrity sha512-HyYEUDeIj5rRQU2Hk5HTB2uHsbRQpF70nvMhVzi+VJR0X+xNEhjPui4/kBf3VeH/wqD28PT4sVOm8qqLjBrSZg==
+
+"@dragonman225/prosemirror-math@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@dragonman225/prosemirror-math/-/prosemirror-math-0.2.3.tgz#6b441099f7b49a9ee5a9b49dea4144d21c82d3cf"
+  integrity sha512-A4eYV+zJn+h/GIRQsCzQsN6QlwItyYRsKYAMVZMnS00Mbh9e+9UQuwFiocmyHc9uCoBLnDLiPzNVECeUza+7Gw==
 
 "@electron/get@^1.0.1":
   version "1.12.2"
