@@ -1,7 +1,9 @@
 import * as React from 'react'
-import { stylesheet } from 'typestyle'
+import { useState, useEffect } from 'react'
 
-import theme from '../../theme'
+import { styles } from './index.styles'
+import { ExpandUp } from '../../core/components/Icons/ExpandUp'
+import { ExpandDown } from '../../core/components/Icons/ExpandDown'
 import {
   ConceptDisplayProps,
   ConceptId,
@@ -16,52 +18,6 @@ const noop = function () {
 
 type Props = ConceptDisplayProps<undefined>
 
-const styles = stylesheet({
-  Insight: {
-    padding: '20px 1rem',
-    maxHeight: 500,
-    overflow: 'auto',
-  },
-  InsightItem: {
-    position: 'relative',
-    maxHeight: 150,
-    overflow: 'hidden',
-    marginLeft: '-.5rem',
-    marginRight: '-.5rem',
-    borderRadius: theme.BORDERS.smallRadius,
-    transition: 'background 0.1s ease-in-out',
-    $nest: {
-      '&:hover': {
-        background: theme.COLORS.bgHover,
-        opacity: 0.9,
-      },
-      '&:active': {
-        background: theme.COLORS.bgActive,
-        opacity: 0.8,
-      },
-    },
-  },
-  InfoText: {
-    marginBottom: '.5rem',
-    color: theme.COLORS.uiGrey,
-    fontSize: '.8rem',
-    $nest: {
-      '&:last-child': {
-        marginBottom: 0,
-      },
-    },
-  },
-  Divider: {
-    border: 'none',
-    borderBottom: `1px solid ${theme.COLORS.uiGreyLight}`,
-    $nest: {
-      '&:last-of-type': {
-        display: 'none',
-      },
-    },
-  },
-})
-
 function getBacklinksOf(
   conceptId: ConceptId,
   concepts: TypedConcept<unknown>[]
@@ -71,9 +27,10 @@ function getBacklinksOf(
 
 export const InsightTool: React.FunctionComponent<Props> = props => {
   const { viewMode, state, dispatchAction, database, factoryRegistry } = props
-  const [backlinks, setBacklinks] = React.useState<TypedConcept<unknown>[]>([])
+  const [backlinks, setBacklinks] = useState<TypedConcept<unknown>[]>([])
+  const [collapsed, setCollapsed] = useState(true)
 
-  React.useEffect(() => {
+  useEffect(() => {
     // TODO: Can we avoid re-subscribing when text or minimized changes?
     const updateBacklinks = () => {
       const concepts = database.getAllConcepts()
@@ -98,39 +55,52 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
     <div className={styles.Insight}>
       {backlinks.length ? (
         <>
-          <div className={styles.InfoText}>Appears in</div>
-          {backlinks.map(concept => {
-            return (
-              <React.Fragment key={concept.id}>
-                <div
-                  className={styles.InsightItem}
-                  onClick={() =>
-                    dispatchAction({
-                      type: Action.BlockOpenAsCanvas,
-                      data: { id: concept.id },
-                    })
-                  }>
-                  {factoryRegistry.createConceptDisplay(concept.summary.type, {
-                    viewMode: 'NavItem',
-                    readOnly: true,
-                    state,
-                    concept,
-                    dispatchAction,
-                    factoryRegistry,
-                    database,
-                    onChange: noop,
-                    onReplace: noop,
-                    onInteractionStart: noop,
-                    onInteractionEnd: noop,
-                  })}
-                </div>
-                <hr className={styles.Divider} />
-              </React.Fragment>
-            )
-          })}
+          <div className={styles.Header}>
+            <div className={styles.HeaderText}>
+              Appears in{' '}
+              {collapsed &&
+                `${backlinks.length} concept${backlinks.length > 1 && 's'}`}
+            </div>
+            <button onClick={() => setCollapsed(!collapsed)}>
+              {collapsed ? <ExpandUp /> : <ExpandDown />}
+            </button>
+          </div>
+          {!collapsed &&
+            backlinks.map(concept => {
+              return (
+                <React.Fragment key={concept.id}>
+                  <div
+                    className={styles.InsightItem}
+                    onClick={() =>
+                      dispatchAction({
+                        type: Action.BlockOpenAsCanvas,
+                        data: { id: concept.id },
+                      })
+                    }>
+                    {factoryRegistry.createConceptDisplay(
+                      concept.summary.type,
+                      {
+                        viewMode: 'NavItem',
+                        readOnly: true,
+                        state,
+                        concept,
+                        dispatchAction,
+                        factoryRegistry,
+                        database,
+                        onChange: noop,
+                        onReplace: noop,
+                        onInteractionStart: noop,
+                        onInteractionEnd: noop,
+                      }
+                    )}
+                  </div>
+                  <hr className={styles.Divider} />
+                </React.Fragment>
+              )
+            })}
         </>
       ) : (
-        <div className={styles.InfoText}>Not appearing in any concepts.</div>
+        <div className={styles.HeaderText}>Not appearing in any concepts</div>
       )}
     </div>
   )
