@@ -104,8 +104,8 @@ export function createReducer(
    * "Cursor Block" is a block that fires actions when multiple blocks are
    * selected.
    */
-  let cursorBlockId = ''
-  let cursorRectSize: { w: number; h: number } = { w: 0, h: 0 }
+  let prevCursorBlockId = ''
+  let cursorBlockNewSize: { w: number; h: number } = { w: 0, h: 0 }
   /** A block that the pointer is on. */
   let pointerOverBlock: BlockInstance = undefined
 
@@ -577,46 +577,51 @@ export function createReducer(
       }
       case Action.BlockResize: {
         const { id, movementInViewportCoords } = action.data
-        const { camera, blocks } = state
+        const { camera, blocks, selectedBlockIds } = state
 
-        const block = state.blocks.find(b => b.id === id)
-        const blockViewportRect = getBlockRect(id)
-        const oldSize = block.size
+        const cursorBlock = state.blocks.find(b => b.id === id)
+        const cursorBlockRectInViewportCoords = getBlockRect(id)
+        const cursorBlockOldSize = cursorBlock.size
 
-        cursorRectSize =
-          cursorBlockId !== id
+        cursorBlockNewSize =
+          prevCursorBlockId !== id
             ? /** The first resize action of a block. */
               {
                 w:
-                  typeof oldSize.w === 'number'
-                    ? oldSize.w + movementInViewportCoords.x / camera.scale
-                    : blockViewportRect.width / camera.scale,
+                  typeof cursorBlockOldSize.w === 'number'
+                    ? cursorBlockOldSize.w +
+                      movementInViewportCoords.x / camera.scale
+                    : cursorBlockRectInViewportCoords.width / camera.scale,
                 h:
-                  typeof oldSize.h === 'number'
-                    ? oldSize.h + movementInViewportCoords.y / camera.scale
-                    : blockViewportRect.height / camera.scale,
+                  typeof cursorBlockOldSize.h === 'number'
+                    ? cursorBlockOldSize.h +
+                      movementInViewportCoords.y / camera.scale
+                    : cursorBlockRectInViewportCoords.height / camera.scale,
               }
             : {
                 w:
-                  typeof cursorRectSize.w === 'number'
-                    ? cursorRectSize.w +
+                  typeof cursorBlockNewSize.w === 'number'
+                    ? cursorBlockNewSize.w +
                       movementInViewportCoords.x / camera.scale
-                    : cursorRectSize.w,
+                    : cursorBlockNewSize.w,
                 h:
-                  typeof cursorRectSize.h === 'number'
-                    ? cursorRectSize.h +
+                  typeof cursorBlockNewSize.h === 'number'
+                    ? cursorBlockNewSize.h +
                       movementInViewportCoords.y / camera.scale
-                    : cursorRectSize.h,
+                    : cursorBlockNewSize.h,
               }
-        cursorBlockId = id
+        prevCursorBlockId = id
 
-        const cursorRect = {
-          ...block.pos,
-          ...cursorRectSize,
+        const cursorBlockRect = {
+          ...cursorBlock.pos,
+          ...cursorBlockNewSize,
         }
 
-        const targetRects = blocks
-          .filter(b => b.id !== id && b.posType === PositionType.Normal)
+        const guidelineRects = blocks
+          .filter(
+            /** Not cursor block, not selected, position normal. */
+            b => b.id !== id && !b.selected && b.posType === PositionType.Normal
+          )
           .map(b => {
             const viewportRect = getBlockRect(b.id)
             return {
@@ -639,8 +644,8 @@ export function createReducer(
           horizontalGuidelines,
           verticalGuidelines,
         } = generateGuidelinesFromRects(
-          cursorRect,
-          targetRects,
+          cursorBlockRect,
+          guidelineRects,
           generationTolerance
         )
 
@@ -648,13 +653,13 @@ export function createReducer(
 
         /** Snap bottom and right. */
         const bottom = snapValue(
-          cursorRect.y + cursorRect.h,
+          cursorBlockRect.y + cursorBlockRect.h,
           horizontalGuidelines,
           snapTolerance
         )
 
         const right = snapValue(
-          cursorRect.x + cursorRect.w,
+          cursorBlockRect.x + cursorBlockRect.w,
           verticalGuidelines,
           snapTolerance
         )
@@ -665,28 +670,44 @@ export function createReducer(
          */
         const height = bottom.guideline
           ? bottom.guideline.fromSide === RectSide.Top
-            ? bottom.value - gap - cursorRect.y // cursorRect's bottom snaps targetRect's top.
-            : bottom.value - cursorRect.y
-          : bottom.value - cursorRect.y
+            ? bottom.value - gap - cursorBlockRect.y // cursorRect's bottom snaps targetRect's top.
+            : bottom.value - cursorBlockRect.y
+          : bottom.value - cursorBlockRect.y
 
         const width = right.guideline
           ? right.guideline.fromSide === RectSide.Left
-            ? right.value - gap - cursorRect.x // cursorRect's right snaps targetRect's left.
-            : right.value - cursorRect.x
-          : right.value - cursorRect.x
+            ? right.value - gap - cursorBlockRect.x // cursorRect's right snaps targetRect's left.
+            : right.value - cursorBlockRect.x
+          : right.value - cursorBlockRect.x
 
         /** Ignore snap result if size is "auto". */
-        const newSize = {
-          w: typeof oldSize.w === 'number' ? width : oldSize.w,
-          h: typeof oldSize.h === 'number' ? height : oldSize.h,
+        const sizeChange = {
+          w:
+            typeof cursorBlockOldSize.w === 'number'
+              ? width - cursorBlockOldSize.w
+              : 0,
+          h:
+            typeof cursorBlockOldSize.h === 'number'
+              ? height - cursorBlockOldSize.h
+              : 0,
         }
 
         const newViewingConcept = updateConcept(state.viewingConcept, {
           references: state.viewingConcept.references.map(ref => {
-            if (id === ref.id) {
+            /** A block can be resized without being selected. */
+            if (id === ref.id || selectedBlockIds.includes(ref.id)) {
               return {
                 ...ref,
-                size: newSize,
+                size: {
+                  w:
+                    typeof ref.size.w === 'number'
+                      ? ref.size.w + sizeChange.w
+                      : ref.size.w,
+                  h:
+                    typeof ref.size.h === 'number'
+                      ? ref.size.h + sizeChange.h
+                      : ref.size.h,
+                },
               }
             } else {
               return ref
@@ -696,18 +717,34 @@ export function createReducer(
 
         db.updateConcept(newViewingConcept)
 
-        const oldBlockIndex = blocks.findIndex(b => b.id === id)
-        const newBlock = updateBlockInstance(blocks[oldBlockIndex], {
-          size: newSize,
-        })
+        const cursorBlockIndex = blocks.findIndex(b => b.id === id)
 
         return {
           ...state,
           viewingConcept: newViewingConcept,
           blocks: blocks
-            .slice(0, oldBlockIndex)
-            .concat(blocks.slice(oldBlockIndex + 1))
-            .concat(newBlock),
+            /** Bring to cursor block to the top. */
+            .slice(0, cursorBlockIndex)
+            .concat(blocks.slice(cursorBlockIndex + 1))
+            .concat(blocks[cursorBlockIndex])
+            .map(b => {
+              if (id === b.id || b.selected) {
+                return updateBlockInstance(b, {
+                  size: {
+                    w:
+                      typeof b.size.w === 'number'
+                        ? b.size.w + sizeChange.w
+                        : b.size.w,
+                    h:
+                      typeof b.size.h === 'number'
+                        ? b.size.h + sizeChange.h
+                        : b.size.h,
+                  },
+                })
+              } else {
+                return b
+              }
+            }),
         }
       }
       case Action.BlockSetMode: {
