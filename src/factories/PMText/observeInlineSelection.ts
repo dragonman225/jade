@@ -40,7 +40,7 @@ export interface SelectionEvent {
   selectionBoundingRect: DOMRect
 }
 
-export interface Options {
+interface PluginOptions {
   onSelectionCreate?: (event: SelectionEvent) => void
   onSelectionRemove?: () => void
 }
@@ -48,16 +48,22 @@ export interface Options {
 export function observeInlineSelection({
   onSelectionCreate = noop,
   onSelectionRemove = noop,
-}: Options = {}): Plugin {
-  let setupComplete = false
-  let editorView: EditorView = undefined
+}: PluginOptions = {}): Plugin {
+  /**
+   * Should not store state like this. Each call to this function returns
+   * a new Plugin, which should have its own independent state.
+   */
+  // let setupComplete = false
+  // let editorView: EditorView = undefined
 
-  function mayDispatchSelectionEvent() {
-    const { state } = editorView
+  function mayDispatchSelectionEvent(view: EditorView) {
+    if (!view) return
+
+    const { state } = view
     /** Selection must not be empty since we don't want a caret. */
     if (!state.selection.empty && isInlineSelection(state.selection)) {
-      const fromRect = editorView.coordsAtPos(state.selection.from)
-      const toRect = editorView.coordsAtPos(state.selection.to)
+      const fromRect = view.coordsAtPos(state.selection.from)
+      const toRect = view.coordsAtPos(state.selection.to)
       const selection = window.getSelection()
       if (selection.rangeCount === 0) return
       const selectionBoundingRect = selection
@@ -75,31 +81,32 @@ export function observeInlineSelection({
   }
 
   return new Plugin({
+    props: {
+      handleDOMEvents: {
+        blur: () => {
+          onSelectionRemove()
+          return false
+        },
+        mouseup: view => {
+          mayDispatchSelectionEvent(view)
+          return false
+        },
+        keydown: isMac
+          ? (view, e) => {
+              if (e.metaKey && e.key === 'a')
+                setTimeout(() => mayDispatchSelectionEvent(view))
+              return false
+            }
+          : (view, e) => {
+              if (e.ctrlKey && e.key === 'a')
+                setTimeout(() => mayDispatchSelectionEvent(view))
+              return false
+            },
+      },
+    },
     view() {
       return {
         update(view, lastState) {
-          if (!setupComplete) {
-            /**
-             * Initialize the pointer to view, so that event listeners can
-             * access view.
-             */
-            editorView = view
-            /** Selection may be created on mouseup. */
-            document.addEventListener('mouseup', mayDispatchSelectionEvent)
-            /** Selection may be created on `Ctrl/Cmd` + `a`. */
-            document.addEventListener(
-              'keydown',
-              isMac
-                ? e => {
-                    if (e.metaKey && e.key === 'a') mayDispatchSelectionEvent()
-                  }
-                : e => {
-                    if (e.ctrlKey && e.key === 'a') mayDispatchSelectionEvent()
-                  }
-            )
-            setupComplete = true
-          }
-
           /**
            * Selection changeing from non-empty to empty means it's
            * removed.
@@ -111,10 +118,6 @@ export function observeInlineSelection({
           ) {
             onSelectionRemove()
           }
-        },
-        destroy() {
-          document.removeEventListener('mouseup', mayDispatchSelectionEvent)
-          document.removeEventListener('keydown', mayDispatchSelectionEvent)
         },
       }
     },

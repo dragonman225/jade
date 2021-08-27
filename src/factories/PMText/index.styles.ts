@@ -81,4 +81,14 @@ export const styles = stylesheet({
   Underline: {
     borderBottom: '0.05em solid',
   },
+  TextActionMenu: {
+    width: 150,
+    height: 40,
+    padding: '.3rem',
+    position: 'absolute',
+    zIndex: 10000,
+    background: '#fff',
+    boxShadow: theme.SHADOWS.float,
+    borderRadius: theme.BORDERS.largeRadius,
+  },
 })

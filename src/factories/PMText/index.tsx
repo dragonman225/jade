@@ -56,6 +56,13 @@ const PMText: React.FunctionComponent<Props> = props => {
   const editorContainerRef = useRef<HTMLDivElement>(null)
   const editorView = useRef<EditorView>(null)
 
+  /** Text Action Menu. */
+  const [showTextActionMenu, setShowTextActionMenu] = useState(false)
+  const [textActionMenuPos, setTextActionMenuPos] = useState({
+    top: 0,
+    left: 0,
+  })
+
   /** Slash Menu. */
   const [showSlashMenu, setShowSlashMenu] = useState(false)
   const [slashMenuPos, setSlashMenuPos] = useState<Vec2>({ x: 0, y: 0 })
@@ -177,7 +184,18 @@ const PMText: React.FunctionComponent<Props> = props => {
         inputRulesPlugin,
         history(),
         disableFocusAndPasteWithMouseMiddleButton(),
-        observeInlineSelection(),
+        observeInlineSelection({
+          onSelectionCreate: e => {
+            setTextActionMenuPos({
+              top: e.selectionBoundingRect.top - 50,
+              left: e.selectionBoundingRect.left - 20,
+            })
+            setShowTextActionMenu(true)
+          },
+          onSelectionRemove: () => {
+            setShowTextActionMenu(false)
+          },
+        }),
         observeKeyword({
           debug: true,
           rules: [
@@ -323,6 +341,13 @@ const PMText: React.FunctionComponent<Props> = props => {
           ) : (
             <></>
           )}
+          {showTextActionMenu &&
+            props.createOverlay(
+              <div
+                className={styles.TextActionMenu}
+                style={{ ...textActionMenuPos }}
+              />
+            )}
         </div>
       )
     }
