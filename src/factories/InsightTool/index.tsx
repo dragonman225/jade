@@ -59,7 +59,7 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
             <div className={styles.HeaderText}>
               Appears in{' '}
               {collapsed &&
-                `${backlinks.length} concept${backlinks.length > 1 && 's'}`}
+                `${backlinks.length} concept${backlinks.length > 1 ? 's' : ''}`}
             </div>
             <button onClick={() => setCollapsed(!collapsed)}>
               {collapsed ? <ExpandUp /> : <ExpandDown />}
