@@ -1,5 +1,6 @@
-import { EditorState, Transaction } from 'prosemirror-state'
-import { Node, Schema } from 'prosemirror-model'
+import { EditorState, Selection, Transaction } from 'prosemirror-state'
+import { EditorView } from 'prosemirror-view'
+import { MarkType, Node, Schema, Fragment, Slice } from 'prosemirror-model'
 import { Command, toggleMark } from 'prosemirror-commands'
 import { keymap } from 'prosemirror-keymap'
 import { InputRule, inputRules } from 'prosemirror-inputrules'
@@ -101,4 +102,77 @@ export function whenHasFocus(command: Command): Command {
     if (view.hasFocus()) return command(state, dispatch, view)
     return false
   }
+}
+
+export type MarkActiveMap = Map<MarkType, boolean>
+
+export function toggleMarkOnSelection(
+  view: EditorView<Schema>,
+  selection: Selection,
+  markActiveMap: MarkActiveMap,
+  markType: MarkType
+): void {
+  const { from, to } = selection
+  markActiveMap.get(markType)
+    ? view.dispatch(view.state.tr.removeMark(from, to, markType))
+    : view.dispatch(
+        view.state.tr.addMark(from, to, view.state.schema.mark(markType))
+      )
+}
+
+/** A mark is active if all text nodes in the selection has it. */
+export function getActiveMarks(selection: Selection): MarkActiveMap {
+  const slice = selection.content()
+  const textNodes: Node[] = []
+  slice.content.descendants(node => {
+    if (node.isText) textNodes.push(node)
+  })
+  const markActiveMap = new Map<MarkType, boolean>()
+  if (!textNodes) return markActiveMap
+  const markCountMap = new Map<MarkType, number>()
+  textNodes.forEach(n => {
+    /**
+     * There may be multiple marks of the same type in a text node.
+     * Need to ensure at least one in every node.
+     */
+    n.marks.forEach(m => {
+      markCountMap.set(m.type, (markCountMap.get(m.type) || 0) + 1)
+    })
+  })
+  markCountMap.forEach((count, markType) => {
+    markActiveMap.set(markType, count === textNodes.length)
+  })
+  return markActiveMap
+}
+
+export function isBoldActive(markActiveMap: MarkActiveMap): boolean {
+  return !!markActiveMap.get(schema.marks.bold)
+}
+
+export function isItalicActive(markActiveMap: MarkActiveMap): boolean {
+  return !!markActiveMap.get(schema.marks.italic)
+}
+
+export function isStrikeActive(markActiveMap: MarkActiveMap): boolean {
+  return !!markActiveMap.get(schema.marks.strike)
+}
+
+export function isUnderlineActive(markActiveMap: MarkActiveMap): boolean {
+  return !!markActiveMap.get(schema.marks.underline)
+}
+
+export function isCodeActive(markActiveMap: MarkActiveMap): boolean {
+  return !!markActiveMap.get(schema.marks.code)
+}
+
+export function turnIntoMath(view: EditorView, selection: Selection): void {
+  const text = view.state.doc.textBetween(selection.from, selection.to)
+  const mathInlineNode = schema.node(
+    'math_inline',
+    undefined,
+    schema.text(text)
+  )
+  const fragment = Fragment.from(mathInlineNode)
+  const slice = new Slice(fragment, 0, 0)
+  view.dispatch(view.state.tr.replaceRange(selection.from, selection.to, slice))
 }

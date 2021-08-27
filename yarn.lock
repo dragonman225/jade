@@ -1206,7 +1206,7 @@
     "@types/prosemirror-state" "*"
     "@types/prosemirror-view" "*"
 
-"@types/prosemirror-model@*", "@types/prosemirror-model@^1.11.1":
+"@types/prosemirror-model@*", "@types/prosemirror-model@1.11.1":
   version "1.11.1"
   resolved "https://registry.yarnpkg.com/@types/prosemirror-model/-/prosemirror-model-1.11.1.tgz#f1258bfe8d6f2fb68a2f95b3af57e18e5868cbab"
   integrity sha512-sAue1p9V/JjATX1JzQDFzW2ON8QEGUz3eMSpJX94oCr0CoAQgK4/kSM2funtQKy1GHd+xr7wZ509ykt49b+T1Q==

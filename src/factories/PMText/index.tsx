@@ -6,20 +6,32 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { classes } from 'typestyle'
 import { AllSelection, EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
+import { MarkType } from 'prosemirror-model'
 import { history } from 'prosemirror-history'
 import { mathPlugin } from '@dragonman225/prosemirror-math'
 
 import { styles } from './index.styles'
+import { TextActionMenu } from './TextActionMenu'
 import { schema } from './schema'
 import {
+  getActiveMarks,
   getProseMirrorDoc,
   inputRulesPlugin,
+  isBoldActive,
+  isCodeActive,
+  isItalicActive,
   isProseMirrorDocEmpty,
+  isStrikeActive,
+  isUnderlineActive,
   keymapPlugin,
+  MarkActiveMap,
+  toggleMarkOnSelection,
+  turnIntoMath,
 } from './utils'
 import { disableFocusAndPasteWithMouseMiddleButton } from './disableFocusAndPasteWithMouseMiddleButton'
 import { observeInlineSelection } from './observeInlineSelection'
 import { observeKeyword } from './observeKeyword'
+import { getUnifiedClientCoords, isPointInRect } from '../../core/utils'
 import { ConceptDisplayProps, Vec2, Factory } from '../../core/interfaces'
 
 /**
@@ -57,11 +69,32 @@ const PMText: React.FunctionComponent<Props> = props => {
   const editorView = useRef<EditorView>(null)
 
   /** Text Action Menu. */
+  const textActionMenuRef = useRef<HTMLDivElement>(null)
   const [showTextActionMenu, setShowTextActionMenu] = useState(false)
   const [textActionMenuPos, setTextActionMenuPos] = useState({
     top: 0,
     left: 0,
   })
+  const [markActiveMap, setMarkActiveMap] = useState<MarkActiveMap>(new Map())
+  const boldActive = isBoldActive(markActiveMap)
+  const italicActive = isItalicActive(markActiveMap)
+  const strikeActive = isStrikeActive(markActiveMap)
+  const underlineActive = isUnderlineActive(markActiveMap)
+  const codeActive = isCodeActive(markActiveMap)
+  const createToggleMark = (markType: MarkType) => () => {
+    editorView.current.focus()
+    toggleMarkOnSelection(
+      editorView.current,
+      editorView.current.state.selection,
+      markActiveMap,
+      markType
+    )
+  }
+  const toggleBold = createToggleMark(schema.marks.bold)
+  const toggleItalic = createToggleMark(schema.marks.italic)
+  const toggleStrike = createToggleMark(schema.marks.strike)
+  const toggleUnderline = createToggleMark(schema.marks.underline)
+  const toggleCode = createToggleMark(schema.marks.code)
 
   /** Slash Menu. */
   const [showSlashMenu, setShowSlashMenu] = useState(false)
@@ -115,6 +148,53 @@ const PMText: React.FunctionComponent<Props> = props => {
     ]
   )
 
+  /**
+   * HACK: At this time, this is the best solution to handle all kinds of
+   * blur.
+   */
+  useEffect(() => {
+    function handleMousedown(e: MouseEvent) {
+      const editorViewRect = editorView.current.dom.getBoundingClientRect()
+      const textActionMenuRect =
+        textActionMenuRef.current &&
+        textActionMenuRef.current.getBoundingClientRect()
+      const mousedownCoords = getUnifiedClientCoords(e)
+      const isInEditorView =
+        editorViewRect && isPointInRect(mousedownCoords, editorViewRect)
+      const isInTextActionMenu =
+        textActionMenuRect && isPointInRect(mousedownCoords, textActionMenuRect)
+
+      if (
+        /**
+         * Only check when there's focus inside `EditorView` (including
+         * nested `EditorView`s), to prevent unnecessary setState.
+         */
+        editorView.current.dom.contains(document.activeElement) &&
+        !isInEditorView &&
+        !isInTextActionMenu
+      ) {
+        console.log('PMText: interaction end via mousedown')
+        setShowTextActionMenu(false)
+        setShowSlashMenu(false)
+        window.getSelection().removeAllRanges()
+        /**
+         * Below is not working. The old selection persists in the view
+         * until future focus, and the future focus shows the
+         * selection being set in setSelection() instead of
+         * responding to the intention of the mouse.
+         */
+        // const state = view.state
+        // view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, 0)))
+        onInteractionEnd()
+      }
+    }
+
+    window.addEventListener('mousedown', handleMousedown)
+
+    return () => window.removeEventListener('mousedown', handleMousedown)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   function createEditorView(
     containerEl: HTMLElement,
     editorState: EditorState
@@ -126,6 +206,7 @@ const PMText: React.FunctionComponent<Props> = props => {
         view.updateState(newState)
 
         setShowPlaceholder(isProseMirrorDocEmpty(newState.doc))
+        setMarkActiveMap(getActiveMarks(view.state.selection))
 
         /**
          * Submit changes only when the transaction modifies the doc and
@@ -142,25 +223,8 @@ const PMText: React.FunctionComponent<Props> = props => {
       },
       handleDOMEvents: {
         focusin: () => {
-          console.log('PMText: focus')
+          console.log('PMText: interaction start via focusin')
           onInteractionStart()
-          return false
-        },
-        focusout: (_view, event) => {
-          console.log('PMText: blur')
-          setShowSlashMenu(false)
-          if (event.target !== document.activeElement) {
-            window.getSelection().removeAllRanges()
-            /**
-             * Below is not working. The old selection persists in the view
-             * until future focus, and the future focus shows the
-             * selection being set in setSelection() instead of
-             * responding to the intention of the mouse.
-             */
-            // const state = view.state
-            // view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, 0)))
-            onInteractionEnd()
-          }
           return false
         },
         keydown: onKeyDown,
@@ -255,7 +319,7 @@ const PMText: React.FunctionComponent<Props> = props => {
   useEffect(() => {
     if (!editorMounted) return
 
-    console.log('PMText: update content')
+    // console.log('PMText: update content')
 
     const view = editorView.current
     const state = view.state
@@ -343,10 +407,29 @@ const PMText: React.FunctionComponent<Props> = props => {
           )}
           {showTextActionMenu &&
             props.createOverlay(
-              <div
-                className={styles.TextActionMenu}
-                style={{ ...textActionMenuPos }}
-              />
+              <div style={{ position: 'absolute', ...textActionMenuPos }}>
+                <TextActionMenu
+                  ref={textActionMenuRef}
+                  boldActive={boldActive}
+                  italicActive={italicActive}
+                  strikeActive={strikeActive}
+                  underlineActive={underlineActive}
+                  codeActive={codeActive}
+                  toggleBold={toggleBold}
+                  toggleItalic={toggleItalic}
+                  toggleStrike={toggleStrike}
+                  toggleUnderline={toggleUnderline}
+                  toggleCode={toggleCode}
+                  turnIntoMath={() => {
+                    turnIntoMath(
+                      editorView.current,
+                      editorView.current.state.selection
+                    )
+                    editorView.current.focus()
+                    setShowTextActionMenu(false)
+                  }}
+                />
+              </div>
             )}
         </div>
       )

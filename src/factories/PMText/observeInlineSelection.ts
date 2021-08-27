@@ -83,10 +83,6 @@ export function observeInlineSelection({
   return new Plugin({
     props: {
       handleDOMEvents: {
-        blur: () => {
-          onSelectionRemove()
-          return false
-        },
         mouseup: view => {
           mayDispatchSelectionEvent(view)
           return false
