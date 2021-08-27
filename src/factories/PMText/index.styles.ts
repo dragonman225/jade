@@ -48,6 +48,7 @@ export const styles = stylesheet({
     background: '#fff',
     boxShadow: theme.SHADOWS.float,
     borderRadius: theme.BORDERS.largeRadius,
+    animation: `${theme.ANIMATIONS.fadeIn} 200ms ${theme.EASINGS.easeInOutCubic}`,
     $nest: {
       '&>p': {
         margin: '.2rem .5rem .5rem',
@@ -90,5 +91,6 @@ export const styles = stylesheet({
     background: '#fff',
     boxShadow: theme.SHADOWS.float,
     borderRadius: theme.BORDERS.largeRadius,
+    animation: `${theme.ANIMATIONS.fadeIn} 200ms ${theme.EASINGS.easeInOutCubic}`,
   },
 })

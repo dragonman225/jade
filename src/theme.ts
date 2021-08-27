@@ -1,3 +1,5 @@
+import { keyframes } from 'typestyle'
+
 export default {
   COLORS: {
     bgPrimary: '#f3f3f3',
@@ -21,5 +23,15 @@ export default {
   BORDERS: {
     largeRadius: '.6rem',
     smallRadius: '.3rem',
+  },
+  ANIMATIONS: {
+    fadeIn: keyframes({
+      '0%': { opacity: 0 },
+      '100%': { opacity: 1 },
+    }),
+  },
+  EASINGS: {
+    /** @see https://easings.net/#easeInOutCubic */
+    easeInOutCubic: 'cubic-bezier(0.65, 0, 0.35, 1)',
   },
 }
