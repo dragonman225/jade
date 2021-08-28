@@ -35,7 +35,7 @@ interface Props {
 export function App(props: Props): JSX.Element {
   const { db, factoryRegistry } = props
 
-  const appStateReducer = useCallback(createReducer(db, factoryRegistry), [])
+  const appStateReducer = useMemo(() => createReducer(db, factoryRegistry), [])
   const initialState = useMemo(() => loadAppState(db), [])
   const [stateSnapshot, setStateSnapshot] = useState<AppState>(initialState)
   const stateRef = useRef<AppState>(initialState)
