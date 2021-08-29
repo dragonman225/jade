@@ -1,13 +1,15 @@
 import { stylesheet } from 'typestyle'
 
+import theme from '../../theme'
+
 export const styles = stylesheet({
   NavItem: {
     fontSize: '.8rem',
-    padding: '.5rem',
+    padding: theme.paddings.navComfort,
     maxHeight: '100%',
   },
   Block: {
-    padding: '.5rem 1.25rem',
+    padding: theme.paddings.blockComfort,
   },
   CardTitle: {
     fontSize: '1.2rem',
