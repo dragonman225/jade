@@ -81,8 +81,8 @@ export function App(props: Props): JSX.Element {
         className={
           block.posType > PositionType.Normal
             ? style({
-                boxShadow: theme.SHADOWS.ui,
-                borderRadius: theme.BORDERS.largeRadius,
+                boxShadow: theme.shadows.ui,
+                borderRadius: theme.borders.largeRadius,
               })
             : undefined
         }>

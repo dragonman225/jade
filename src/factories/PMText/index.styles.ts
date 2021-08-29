@@ -46,9 +46,9 @@ export const styles = stylesheet({
     position: 'absolute',
     zIndex: 10000,
     background: '#fff',
-    boxShadow: theme.SHADOWS.float,
-    borderRadius: theme.BORDERS.largeRadius,
-    animation: `${theme.ANIMATIONS.fadeIn} 200ms ${theme.EASINGS.easeInOutCubic}`,
+    boxShadow: theme.shadows.float,
+    borderRadius: theme.borders.largeRadius,
+    animation: `${theme.animations.fadeIn} 200ms ${theme.easings.easeInOutCubic}`,
     $nest: {
       '&>p': {
         margin: '.2rem .5rem .5rem',
@@ -59,10 +59,10 @@ export const styles = stylesheet({
   },
   SlashMenuItem: {
     padding: '.3rem .5rem',
-    borderRadius: theme.BORDERS.smallRadius,
+    borderRadius: theme.borders.smallRadius,
   },
   'SlashMenuItem--Chosen': {
-    background: theme.COLORS.bgHover,
+    background: theme.colors.bgHover,
   },
   Placeholder: {
     position: 'absolute',

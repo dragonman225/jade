@@ -14,22 +14,22 @@ export const styles = stylesheet({
     overflow: 'hidden',
     marginLeft: '-.5rem',
     marginRight: '-.5rem',
-    borderRadius: theme.BORDERS.smallRadius,
+    borderRadius: theme.borders.smallRadius,
     transition: 'background 0.1s ease-in-out',
     $nest: {
       '&:hover': {
-        background: theme.COLORS.bgHover,
+        background: theme.colors.bgHover,
         opacity: 0.9,
       },
       '&:active': {
-        background: theme.COLORS.bgActive,
+        background: theme.colors.bgActive,
         opacity: 0.8,
       },
     },
   },
   Divider: {
     border: 'none',
-    borderBottom: `1px solid ${theme.COLORS.uiGreyLight}`,
+    borderBottom: `1px solid ${theme.colors.uiGreyLight}`,
     $nest: {
       '&:last-of-type': {
         display: 'none',
@@ -40,7 +40,7 @@ export const styles = stylesheet({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    color: theme.COLORS.uiGrey,
+    color: theme.colors.uiGrey,
     $nest: {
       '&:not(:only-child)': {
         marginBottom: '.5rem',
@@ -55,27 +55,27 @@ export const styles = stylesheet({
         height: '1.4rem',
         outline: 'none',
         border: 'none',
-        borderRadius: theme.BORDERS.smallRadius,
-        background: theme.COLORS.bgWhite,
+        borderRadius: theme.borders.smallRadius,
+        background: theme.colors.bgWhite,
         padding: '.15rem',
         transition: 'background 0.1s ease-in-out',
         cursor: 'pointer',
         $nest: {
           '& > svg': {
-            fill: theme.COLORS.uiGrey,
+            fill: theme.colors.uiGrey,
           },
         },
       },
       '& > button:hover': {
-        background: theme.COLORS.bgHover,
+        background: theme.colors.bgHover,
       },
       '& > button:active': {
-        background: theme.COLORS.bgActive,
+        background: theme.colors.bgActive,
       },
     },
   },
   HeaderText: {
-    color: theme.COLORS.uiGrey,
+    color: theme.colors.uiGrey,
     fontSize: '.8rem',
   },
 })

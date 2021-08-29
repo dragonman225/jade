@@ -38,7 +38,7 @@ const styles = stylesheet({
         fontSize: '.8rem',
       },
       '&>input::placeholder': {
-        color: theme.COLORS.uiGrey,
+        color: theme.colors.uiGrey,
         fontSize: '.8rem',
       },
     },
@@ -55,14 +55,14 @@ const styles = stylesheet({
     overflow: 'hidden',
     marginLeft: '-.5rem',
     marginRight: '-.5rem',
-    borderRadius: theme.BORDERS.smallRadius,
+    borderRadius: theme.borders.smallRadius,
     transition: 'background 0.1s ease-in-out',
     $nest: {
       '&:hover': {
-        background: theme.COLORS.bgHover,
+        background: theme.colors.bgHover,
       },
       '&:active': {
-        background: theme.COLORS.bgActive,
+        background: theme.colors.bgActive,
       },
       '&:first-of-type': {
         marginTop: '.5rem',
@@ -74,7 +74,7 @@ const styles = stylesheet({
   },
   Divider: {
     border: 'none',
-    borderBottom: `1px solid ${theme.COLORS.uiGreyLight}`,
+    borderBottom: `1px solid ${theme.colors.uiGreyLight}`,
     $nest: {
       '&:last-of-type': {
         display: 'none',
@@ -92,20 +92,20 @@ const styles = stylesheet({
     padding: '.5rem 1rem',
     fontSize: '.8rem',
     textAlign: 'center',
-    color: theme.COLORS.uiGrey,
+    color: theme.colors.uiGrey,
   },
   Arrow: {
     flex: '0 0 50px',
     padding: '0px 3px',
-    borderRadius: theme.BORDERS.smallRadius,
+    borderRadius: theme.borders.smallRadius,
     transition: 'background 0.1s ease-in-out',
     cursor: 'pointer',
     $nest: {
       '&:hover': {
-        background: theme.COLORS.bgHover,
+        background: theme.colors.bgHover,
       },
       '&:active': {
-        background: theme.COLORS.bgActive,
+        background: theme.colors.bgActive,
       },
     },
   },

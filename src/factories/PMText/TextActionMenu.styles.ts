@@ -7,10 +7,10 @@ export const styles = stylesheet({
     display: 'flex',
     padding: '.3rem',
     zIndex: 10000,
-    background: theme.COLORS.bgWhite,
-    boxShadow: theme.SHADOWS.float,
-    borderRadius: theme.BORDERS.smallRadius,
-    animation: `${theme.ANIMATIONS.fadeIn} 200ms ${theme.EASINGS.easeInOutCubic}`,
+    background: theme.colors.bgWhite,
+    boxShadow: theme.shadows.float,
+    borderRadius: theme.borders.smallRadius,
+    animation: `${theme.animations.fadeIn} 200ms ${theme.easings.easeInOutCubic}`,
   },
   Button: {
     padding: 0,
@@ -19,21 +19,21 @@ export const styles = stylesheet({
     fontSize: '0.875rem',
     outline: 'none',
     border: 'none',
-    borderRadius: theme.BORDERS.smallRadius,
-    color: theme.COLORS.uiBlack,
-    background: theme.COLORS.bgWhite,
+    borderRadius: theme.borders.smallRadius,
+    color: theme.colors.uiBlack,
+    background: theme.colors.bgWhite,
     cursor: 'pointer',
-    transition: `background 0.1s ${theme.EASINGS.easeInOutCubic}`,
+    transition: `background 0.1s ${theme.easings.easeInOutCubic}`,
     $nest: {
       '&:hover': {
-        background: theme.COLORS.bgHover,
+        background: theme.colors.bgHover,
       },
       '&:active': {
-        background: theme.COLORS.bgActive,
+        background: theme.colors.bgActive,
       },
     },
   },
   ButtonSelected: {
-    color: theme.COLORS.uiPrimary,
+    color: theme.colors.uiPrimary,
   },
 })

@@ -27,16 +27,16 @@ export const styles = stylesheet({
     overflow: 'hidden',
     transition: 'background 0.2s, flex-basis 0.3s',
     padding: '0 5px',
-    borderRadius: theme.BORDERS.smallRadius,
+    borderRadius: theme.borders.smallRadius,
     $nest: {
       '&:hover': {
-        background: theme.COLORS.bgHover,
+        background: theme.colors.bgHover,
         /* flex: '1 0 200px', */
         overflowY: 'scroll',
         paddingRight: 0,
       },
       '&:active': {
-        background: theme.COLORS.bgActive,
+        background: theme.colors.bgActive,
       },
       '&::-webkit-scrollbar': {
         width: 5,

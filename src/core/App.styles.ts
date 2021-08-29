@@ -32,8 +32,8 @@ export const AppStyles = stylesheet({
   App: {
     overflow: 'hidden',
     height: '100%',
-    color: theme.COLORS.uiBlack,
-    background: theme.COLORS.bgPrimary,
+    color: theme.colors.uiBlack,
+    background: theme.colors.bgPrimary,
   },
   'App--BlockMoving': {
     cursor: 'grabbing',
