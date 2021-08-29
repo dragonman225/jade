@@ -24,11 +24,11 @@ export const styles = stylesheet({
   },
   PMTextNavItem: {
     fontSize: '.8rem',
-    padding: '.5rem',
+    padding: theme.paddings.navComfort,
     maxHeight: '100%',
   },
   PMTextBlock: {
-    padding: '0.5rem 1.25rem',
+    padding: theme.paddings.blockComfort,
   },
   PMTextCardTitle: {
     fontSize: '1.2rem',
