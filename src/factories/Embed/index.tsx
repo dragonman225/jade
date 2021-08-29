@@ -37,8 +37,11 @@ export const Embed: React.FunctionComponent<Props> = props => {
             top: 12,
             right: 12,
           }}>
-          <button style={{ cursor: 'move' }}>Move</button>
+          <button className={styles.Button} style={{ cursor: 'move' }}>
+            Move
+          </button>
           <button
+            className={styles.Button}
             onClick={() => onChange({ initialized: true, url: undefined })}>
             Replace
           </button>
@@ -47,21 +50,23 @@ export const Embed: React.FunctionComponent<Props> = props => {
     )
   } else {
     return (
-      <>
+      <div className={styles.EmbedBlock}>
         <input
           ref={inputRef}
-          placeholder="Paste in https://…"
+          className={styles.Input}
+          placeholder="Paste in https://..."
           type="url"
           onFocus={onInteractionStart}
           onBlur={onInteractionEnd}
         />
         <button
+          className={styles.Button}
           onClick={() => {
             onChange({ initialized: true, url: inputRef.current.value })
           }}>
           Embed link
         </button>
-      </>
+      </div>
     )
   }
 }
