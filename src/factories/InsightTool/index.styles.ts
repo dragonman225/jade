@@ -1,6 +1,7 @@
 import { stylesheet } from 'typestyle'
 
 import theme from '../../theme'
+import { buttonTransparent } from '../../lightComponents'
 
 export const styles = stylesheet({
   Insight: {
@@ -50,27 +51,17 @@ export const styles = stylesheet({
         flex: '1 1 0',
       },
       '& > button': {
+        ...buttonTransparent,
         flex: '0 0 1.4rem',
         width: '1.4rem',
         height: '1.4rem',
-        outline: 'none',
-        border: 'none',
-        borderRadius: theme.borders.smallRadius,
-        background: theme.colors.bgWhite,
         padding: '.15rem',
-        transition: 'background 0.1s ease-in-out',
-        cursor: 'pointer',
         $nest: {
+          ...buttonTransparent.$nest,
           '& > svg': {
             fill: theme.colors.uiGrey,
           },
         },
-      },
-      '& > button:hover': {
-        background: theme.colors.bgHover,
-      },
-      '& > button:active': {
-        background: theme.colors.bgActive,
       },
     },
   },
