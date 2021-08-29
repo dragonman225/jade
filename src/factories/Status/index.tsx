@@ -1,18 +1,20 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
+
+import theme from '../../theme'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
 
 const styles = stylesheet({
   StatNavItem: {
     fontSize: '.8rem',
-    padding: '.5rem',
+    padding: theme.paddings.navComfort,
     maxHeight: '100%',
     background: 'aquamarine',
   },
   StatBlock: {
     userSelect: 'none',
-    padding: '1rem',
+    padding: theme.paddings.blockComfort,
     $nest: {
       '& code': {
         fontSize: '.9rem',
@@ -21,6 +23,10 @@ const styles = stylesheet({
         padding: '.1rem .3rem',
         borderRadius: '.3rem',
         cursor: 'pointer',
+      },
+      '& ul': {
+        paddingLeft: '1.5rem',
+        margin: '.75rem 0',
       },
     },
   },
@@ -72,7 +78,7 @@ export const Status: React.FunctionComponent<Props> = props => {
               <code>{state.selecting ? 'Selecting' : 'Not Selecting'}</code>
             </li>
             <li>
-              <button
+              <code
                 onClick={() => {
                   function getRandomInt(start: number, end: number): number {
                     const rand = Math.floor(
@@ -92,7 +98,7 @@ export const Status: React.FunctionComponent<Props> = props => {
                   }
                 }}>
                 Create 100 blocks
-              </button>
+              </code>
             </li>
           </ul>
         </div>
