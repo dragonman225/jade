@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
 
+import theme from '../../theme'
+import { buttonPrimary, input } from '../../lightComponents'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
 function readAsDataUrl(file: File): Promise<string> {
@@ -58,11 +60,31 @@ const styles = stylesheet({
     },
   },
   ImageBlockChooser: {
-    padding: '.5rem 1.5rem',
+    padding: theme.paddings.blockComfort,
+    paddingBottom: '.7rem',
     $nest: {
       '&>input': {
         width: '100%',
       },
+    },
+  },
+  Title: {
+    fontWeight: 600,
+    marginBottom: '.3rem',
+  },
+  ImgLinkInput: {
+    ...input,
+    marginBottom: '.5rem',
+  },
+  ImgLinkButton: {
+    ...buttonPrimary,
+    marginBottom: '.7rem',
+  },
+  ChooseImgBtn: {
+    ...buttonPrimary,
+    $nest: {
+      ...buttonPrimary.$nest,
+      '& > input': { display: 'none' },
     },
   },
 })
@@ -76,10 +98,22 @@ interface ImageContent {
 type Props = ConceptDisplayProps<ImageContent>
 
 const Image: React.FunctionComponent<Props> = props => {
+  const { onInteractionStart, onInteractionEnd, onChange } = props
   const content = props.concept.summary.data
   const [imgState, setImgState] = React.useState(ImgState.NotLoaded)
   const [img, setImg] = React.useState('')
   const [error, setError] = React.useState('')
+  const inputRef = React.useRef<HTMLInputElement>(null)
+
+  function setImage(img: string) {
+    setImg(img)
+    setImgState(ImgState.Loaded)
+    onChange({
+      initialized: true,
+      valid: true,
+      imgData: img,
+    })
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const files = e.target.files
@@ -94,13 +128,7 @@ const Image: React.FunctionComponent<Props> = props => {
     }
     readAsDataUrl(file)
       .then(img => {
-        setImg(img)
-        setImgState(ImgState.Loaded)
-        props.onChange({
-          initialized: true,
-          valid: true,
-          imgData: img,
-        })
+        setImage(img)
       })
       .catch(err => {
         setError(err)
@@ -146,11 +174,31 @@ const Image: React.FunctionComponent<Props> = props => {
         case ImgState.NotLoaded:
           return (
             <div className={styles.ImageBlockChooser}>
+              <div className={styles.Title}>From the Web</div>
               <input
-                type="file"
-                accept=".jpg, .jpeg, .png"
-                onChange={handleFileSelect}
+                ref={inputRef}
+                className={styles.ImgLinkInput}
+                placeholder="Paste the image link..."
+                type="url"
+                onFocus={onInteractionStart}
+                onBlur={onInteractionEnd}
               />
+              <button
+                className={styles.ImgLinkButton}
+                onClick={() => {
+                  setImage(inputRef.current.value)
+                }}>
+                Embed image
+              </button>
+              <div className={styles.Title}>From your computer</div>
+              <label className={styles.ChooseImgBtn}>
+                <input
+                  type="file"
+                  accept=".jpg, .jpeg, .png"
+                  onChange={handleFileSelect}
+                />
+                <span>Choose an image</span>
+              </label>
             </div>
           )
         default:
