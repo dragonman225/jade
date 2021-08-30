@@ -32,11 +32,119 @@ interface Props {
   factoryRegistry: FactoryRegistry
 }
 
+interface BlockDriverProps {
+  block: BlockInstance
+  db: DatabaseInterface
+  state: AppState
+  factoryRegistry: FactoryRegistry
+  dispatchAction: (action: Actions) => void
+  createOverlay: (children: React.ReactNode) => React.ReactPortal
+}
+
+function BlockDriver(props: BlockDriverProps): JSX.Element {
+  const {
+    block,
+    db,
+    state,
+    factoryRegistry,
+    dispatchAction,
+    createOverlay,
+  } = props
+
+  const setMode = useCallback(
+    (mode: InteractionMode) => {
+      dispatchAction({
+        type: Action.BlockSetMode,
+        data: {
+          id: block.id,
+          mode,
+        },
+      })
+    },
+    [block.id, dispatchAction]
+  )
+
+  const handleChange = useCallback(
+    (content: unknown) => {
+      dispatchAction({
+        type: Action.ConceptWriteData,
+        data: {
+          id: block.concept.id,
+          type: block.concept.summary.type,
+          content,
+        },
+      })
+    },
+    [block.concept.id, block.concept.summary.type, dispatchAction]
+  )
+
+  const handleReplace = useCallback(
+    (type: string) => {
+      dispatchAction({
+        type: Action.ConceptWriteData,
+        data: {
+          id: block.concept.id,
+          type,
+          content: { initialized: false },
+        },
+      })
+    },
+    [block.concept.id, dispatchAction]
+  )
+
+  const handleInteractionStart = useCallback(() => {
+    setMode(InteractionMode.Focusing)
+  }, [setMode])
+
+  const handleInteractionEnd = useCallback(() => {
+    setMode(InteractionMode.Idle)
+  }, [setMode])
+
+  const blockClassName = useMemo(() => {
+    return block.posType > PositionType.Normal
+      ? style({
+          boxShadow: theme.shadows.ui,
+          borderRadius: theme.borders.largeRadius,
+        })
+      : undefined
+  }, [block.posType])
+
+  return (
+    <Block
+      id={block.id}
+      conceptId={block.concept.id}
+      mode={block.mode}
+      selected={block.selected}
+      highlighted={block.highlighted}
+      blink={Concept.isHighOrder(block.concept)}
+      dispatchAction={dispatchAction}
+      className={blockClassName}>
+      {factoryRegistry.createConceptDisplay(block.concept.summary.type, {
+        readOnly: block.mode === InteractionMode.Moving,
+        viewMode: 'Block',
+        concept: block.concept,
+        state,
+        dispatchAction,
+        factoryRegistry,
+        database: db,
+        onChange: handleChange,
+        onReplace: handleReplace,
+        onInteractionStart: handleInteractionStart,
+        onInteractionEnd: handleInteractionEnd,
+        createOverlay,
+      })}
+    </Block>
+  )
+}
+
 export function App(props: Props): JSX.Element {
   const { db, factoryRegistry } = props
 
-  const appStateReducer = useMemo(() => createReducer(db, factoryRegistry), [])
-  const initialState = useMemo(() => loadAppState(db), [])
+  const appStateReducer = useMemo(() => createReducer(db, factoryRegistry), [
+    db,
+    factoryRegistry,
+  ])
+  const initialState = useMemo(() => loadAppState(db), [db])
   const [stateSnapshot, setStateSnapshot] = useState<AppState>(initialState)
   const stateRef = useRef<AppState>(initialState)
   const dispatchAction = useCallback<(action: Actions) => void>(
@@ -57,74 +165,6 @@ export function App(props: Props): JSX.Element {
     },
     []
   )
-
-  const renderBlock = (block: BlockInstance): JSX.Element => {
-    const setMode = (mode: InteractionMode) => {
-      dispatchAction({
-        type: Action.BlockSetMode,
-        data: {
-          id: block.id,
-          mode,
-        },
-      })
-    }
-
-    return (
-      <Block
-        id={block.id}
-        conceptId={block.concept.id}
-        mode={block.mode}
-        selected={block.selected}
-        highlighted={block.highlighted}
-        blink={Concept.isHighOrder(block.concept)}
-        dispatchAction={dispatchAction}
-        className={
-          block.posType > PositionType.Normal
-            ? style({
-                boxShadow: theme.shadows.ui,
-                borderRadius: theme.borders.largeRadius,
-              })
-            : undefined
-        }>
-        {factoryRegistry.createConceptDisplay(block.concept.summary.type, {
-          readOnly: block.mode === InteractionMode.Moving,
-          viewMode: 'Block',
-          concept: block.concept,
-          state: stateSnapshot,
-          dispatchAction,
-          factoryRegistry,
-          database: db,
-          onChange: content => {
-            dispatchAction({
-              type: Action.ConceptWriteData,
-              data: {
-                id: block.concept.id,
-                type: block.concept.summary.type,
-                content,
-              },
-            })
-          },
-          onReplace: type => {
-            dispatchAction({
-              type: Action.ConceptWriteData,
-              data: {
-                id: block.concept.id,
-                type,
-                content: { initialized: false },
-              },
-            })
-          },
-          onInteractionStart: () => {
-            setMode(InteractionMode.Focusing)
-          },
-          onInteractionEnd: () => {
-            setMode(InteractionMode.Idle)
-          },
-          createOverlay,
-        })}
-      </Block>
-    )
-  }
 
   const normalBlocks = useMemo(() => {
     const windowWidth = window.innerWidth
@@ -185,7 +225,14 @@ export function App(props: Props): JSX.Element {
               posType={b.posType}
               pos={b.pos}
               size={b.size}>
-              {renderBlock(b)}
+              <BlockDriver
+                block={b}
+                db={db}
+                state={stateSnapshot}
+                factoryRegistry={factoryRegistry}
+                dispatchAction={dispatchAction}
+                createOverlay={createOverlay}
+              />
               {/* <Block
                 debug={stateSnapshot.debugging}
                 className={
@@ -211,7 +258,14 @@ export function App(props: Props): JSX.Element {
             posType={b.posType}
             pos={b.pos}
             size={b.size}>
-            {renderBlock(b)}
+            <BlockDriver
+              block={b}
+              db={db}
+              state={stateSnapshot}
+              factoryRegistry={factoryRegistry}
+              dispatchAction={dispatchAction}
+              createOverlay={createOverlay}
+            />
             {/* <Block
                 debug={stateSnapshot.debugging}
                 className={
