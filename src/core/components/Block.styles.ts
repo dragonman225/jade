@@ -56,10 +56,10 @@ export const styles = stylesheet({
     },
   },
   'Block--Selected': {
-    boxShadow: `0px 0px 0px 2px ${theme.colors.uiPrimary}`,
+    boxShadow: `0px 0px 1px 2px ${theme.colors.uiPrimary}`,
   },
   'Block--Focusing': {
-    boxShadow: `0px 0px 0px 2px ${theme.colors.uiBlack}`,
+    boxShadow: `0px 0px 1px 2px ${theme.colors.uiBlack}`,
     $nest: {
       '&:hover': {
         cursor: 'auto',
