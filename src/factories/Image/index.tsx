@@ -1,8 +1,7 @@
 import * as React from 'react'
-import { stylesheet } from 'typestyle'
+import { useRef, useEffect, useState } from 'react'
 
-import theme from '../../theme'
-import { buttonPrimary, input } from '../../lightComponents'
+import { styles } from './index.styles'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
 function readAsDataUrl(file: File): Promise<string> {
@@ -19,101 +18,46 @@ function readAsDataUrl(file: File): Promise<string> {
   })
 }
 
-const ImgState = {
-  NotLoaded: Symbol('notloaded'),
-  Loaded: Symbol('loaded'),
-  Error: Symbol('error'),
+const IMAGE_STATE = {
+  NOT_LOADED: Symbol('notloaded'),
+  LOADED: Symbol('loaded'),
+  ERROR: Symbol('error'),
 }
 
-const styles = stylesheet({
-  ImageNavItem: {
-    height: '100%',
-    maxHeight: 'inherit',
-    overflow: 'hidden',
-    $nest: {
-      '&>img': {
-        width: '100%',
-        height: '100%',
-        maxHeight: 'inherit',
-        objectFit: 'contain',
-      },
-    },
-  },
-  ImageErrorMsg: {
-    fontSize: '.8rem',
-    padding: '.5rem',
-    maxHeight: '100%',
-  },
-  ImageBlockViewer: {
-    display: 'flex' /* Remove extra space below img. */,
-    height: '100%',
-    overflow: 'hidden',
-    $nest: {
-      '&>img': {
-        width: '100%',
-      },
-      "&>img[data-view-mode='CardTitle']": {
-        height: '100%',
-        objectFit: 'contain',
-        objectPosition: 'left center',
-      },
-    },
-  },
-  ImageBlockChooser: {
-    padding: theme.paddings.blockComfort,
-    paddingBottom: '.7rem',
-    $nest: {
-      '&>input': {
-        width: '100%',
-      },
-    },
-  },
-  Title: {
-    fontWeight: 600,
-    marginBottom: '.3rem',
-  },
-  ImgLinkInput: {
-    ...input,
-    marginBottom: '.5rem',
-  },
-  ImgLinkButton: {
-    ...buttonPrimary,
-    marginBottom: '.7rem',
-  },
-  ChooseImgBtn: {
-    ...buttonPrimary,
-    $nest: {
-      ...buttonPrimary.$nest,
-      '& > input': { display: 'none' },
-    },
-  },
-})
-
 interface ImageContent {
-  initialized?: boolean
-  valid?: boolean
-  imgData?: string
+  imgSrc?: string
+  imgData?: string // Legacy prop, for backward compatibility.
 }
 
 type Props = ConceptDisplayProps<ImageContent>
 
-const Image: React.FunctionComponent<Props> = props => {
-  const { onInteractionStart, onInteractionEnd, onChange } = props
-  const content = props.concept.summary.data
-  const [imgState, setImgState] = React.useState(ImgState.NotLoaded)
-  const [img, setImg] = React.useState('')
-  const [error, setError] = React.useState('')
-  const inputRef = React.useRef<HTMLInputElement>(null)
+function Image(props: Props): JSX.Element {
+  const {
+    viewMode,
+    concept,
+    onInteractionStart,
+    onInteractionEnd,
+    onChange,
+  } = props
+  const content = concept.summary.data
 
-  function setImage(img: string) {
-    setImg(img)
-    setImgState(ImgState.Loaded)
-    onChange({
-      initialized: true,
-      valid: true,
-      imgData: img,
-    })
+  /** Migrate the legacy format to the new one. */
+  if (content.imgData) {
+    onChange({ imgSrc: content.imgData })
   }
+
+  const [imgState, setImgState] = useState(
+    content.imgSrc ? IMAGE_STATE.LOADED : IMAGE_STATE.NOT_LOADED
+  )
+  const [img, setImg] = useState(content.imgSrc)
+  const [error, setError] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  /** Update state on content change. */
+  useEffect(() => {
+    setImgState(content.imgSrc ? IMAGE_STATE.LOADED : IMAGE_STATE.NOT_LOADED)
+    setImg(content.imgSrc)
+  }, [content])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const files = e.target.files
@@ -128,50 +72,38 @@ const Image: React.FunctionComponent<Props> = props => {
     }
     readAsDataUrl(file)
       .then(img => {
-        setImage(img)
+        onChange({ imgSrc: img })
       })
       .catch(err => {
         setError(err)
-        setImgState(ImgState.Error)
+        setImgState(IMAGE_STATE.ERROR)
       })
   }
 
-  /** Load image on first render or props change. */
-  React.useEffect(() => {
-    if (content.initialized && content.valid) {
-      setImg(content.imgData)
-      setImgState(ImgState.Loaded)
-    }
-  }, [content.imgData, content.initialized, content.valid])
-
-  switch (props.viewMode) {
+  switch (viewMode) {
     case 'NavItem': {
-      if (imgState === ImgState.Loaded)
+      if (imgState === IMAGE_STATE.LOADED) {
         return (
           <div className={styles.ImageNavItem}>
             <img src={img} draggable={false} />
           </div>
         )
-      else
-        return (
-          <div className={styles.ImageErrorMsg}>
-            Image not loaded or error occurred.
-          </div>
-        )
+      } else if (error) {
+        return <div className={styles.ImageErrorMsg}>{error}</div>
+      } else {
+        return <div className={styles.ImageErrorMsg}>An empty image</div>
+      }
     }
     default: {
       switch (imgState) {
-        case ImgState.Loaded:
+        case IMAGE_STATE.LOADED:
           return (
             <div className={styles.ImageBlockViewer}>
-              <img
-                src={img}
-                draggable={false}
-                data-view-mode={props.viewMode}
-              />
+              <img src={img} draggable={false} data-view-mode={viewMode} />
+              <button onClick={() => onChange({ imgSrc: '' })}>Replace</button>
             </div>
           )
-        case ImgState.NotLoaded:
+        case IMAGE_STATE.NOT_LOADED:
           return (
             <div className={styles.ImageBlockChooser}>
               <div className={styles.Title}>From the Web</div>
@@ -186,7 +118,7 @@ const Image: React.FunctionComponent<Props> = props => {
               <button
                 className={styles.ImgLinkButton}
                 onClick={() => {
-                  setImage(inputRef.current.value)
+                  onChange({ imgSrc: inputRef.current.value })
                 }}>
                 Embed image
               </button>

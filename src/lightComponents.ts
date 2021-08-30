@@ -25,6 +25,21 @@ export const buttonTransparent = {
   },
 }
 
+export const buttonTranslucent = {
+  ...buttonBase,
+  color: theme.colors.uiWhite,
+  background: 'rgba(0, 0, 0, 0.4)',
+  backdropFilter: 'blur(5px)',
+  $nest: {
+    '&:hover': {
+      background: 'rgba(0, 0, 0, 0.5)',
+    },
+    '&:active': {
+      background: 'rgba(0, 0, 0, 0.65)',
+    },
+  },
+}
+
 export const buttonPrimary = {
   ...buttonBase,
   color: theme.colors.uiWhite,
