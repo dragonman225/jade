@@ -55,14 +55,14 @@ export const Embed: React.FunctionComponent<Props> = props => {
             right: 20,
           }}>
           <button
-            className={styles.Button}
+            className={styles.ControlButton}
             style={{ cursor: 'move' }}
             onMouseDown={startMoving}
             onTouchStart={startMoving}>
             Move
           </button>
           <button
-            className={styles.Button}
+            className={styles.ControlButton}
             onClick={() => onChange({ initialized: true, url: undefined })}>
             Replace
           </button>
@@ -81,7 +81,7 @@ export const Embed: React.FunctionComponent<Props> = props => {
           onBlur={onInteractionEnd}
         />
         <button
-          className={styles.Button}
+          className={styles.ConfirmButton}
           onClick={() => {
             onChange({ initialized: true, url: inputRef.current.value })
           }}>

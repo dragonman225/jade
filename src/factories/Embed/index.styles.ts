@@ -1,7 +1,7 @@
 import { stylesheet } from 'typestyle'
 
 import theme from '../../theme'
-import { buttonPrimary, input } from '../../lightComponents'
+import { buttonPrimary, buttonTranslucent, input } from '../../lightComponents'
 
 export const styles = stylesheet({
   EmbedBlock: {
@@ -26,7 +26,10 @@ export const styles = stylesheet({
     ...input,
     width: '100%',
   },
-  Button: {
+  ControlButton: {
+    ...buttonTranslucent,
+  },
+  ConfirmButton: {
     ...buttonPrimary,
   },
   FrameWrapper: {
