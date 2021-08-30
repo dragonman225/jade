@@ -1,7 +1,8 @@
 import * as React from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 
 import { styles } from './index.styles'
+import { AppStateContext } from '../../core/store/appStateContext'
 import { ExpandUp } from '../../core/components/Icons/ExpandUp'
 import { ExpandDown } from '../../core/components/Icons/ExpandDown'
 import {
@@ -26,7 +27,8 @@ function getBacklinksOf(
 }
 
 export const InsightTool: React.FunctionComponent<Props> = props => {
-  const { viewMode, state, dispatchAction, database, factoryRegistry } = props
+  const { viewMode, dispatchAction, database, factoryRegistry } = props
+  const state = useContext(AppStateContext)
   const [backlinks, setBacklinks] = useState<TypedConcept<unknown>[]>([])
   const [collapsed, setCollapsed] = useState(true)
 
@@ -82,7 +84,6 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
                       {
                         viewMode: 'NavItem',
                         readOnly: true,
-                        state,
                         concept,
                         dispatchAction,
                         factoryRegistry,

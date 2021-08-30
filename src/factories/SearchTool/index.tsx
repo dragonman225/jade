@@ -1,7 +1,8 @@
 import * as React from 'react'
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { stylesheet, classes } from 'typestyle'
 
+import { AppStateContext } from '../../core/store/appStateContext'
 import {
   distance,
   getUnifiedClientCoords,
@@ -116,15 +117,14 @@ const styles = stylesheet({
 
 type SearchItemContentProps = Pick<
   ConceptDisplayProps<unknown>,
-  'viewMode' | 'concept' | 'database' | 'state' | 'dispatchAction'
+  'viewMode' | 'concept' | 'database' | 'dispatchAction'
 >
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props => {
-  const { viewMode, concept, database, state, dispatchAction } = props
+  const { viewMode, concept, database, dispatchAction } = props
   return factoryRegistry.createConceptDisplay(concept.summary.type, {
     viewMode,
     readOnly: true,
     concept,
-    state,
     dispatchAction,
     factoryRegistry,
     database,
@@ -187,7 +187,8 @@ function getSearchResult(keyword: string, concepts: TypedConcept<unknown>[]) {
 }
 
 const SearchToolBlock: React.FunctionComponent<Props> = props => {
-  const { state, dispatchAction, database } = props
+  const { dispatchAction, database } = props
+  const state = useContext(AppStateContext)
   const searchRef = React.useRef<HTMLDivElement>(null)
   const [text, setText] = React.useState('')
   const [minimized, setMinimized] = React.useState(true)
@@ -228,7 +229,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const s2lBlockRef = React.useRef<S2LBlock>(null)
   const s2lStartOffsetRef = React.useRef<Vec2>(null)
   const s2lDeltaRef = React.useRef<Vec2>(null)
-  const stateRef = React.useRef<Props['state']>(null)
+  const stateRef = React.useRef<typeof state>(null)
 
   const handleWindowPointerDown = (e: MouseEvent | TouchEvent) => {
     // HACK: Click outside to minimize.
@@ -436,7 +437,6 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                                 <SearchItemContent
                                   concept={concept}
                                   viewMode="NavItem"
-                                  state={state}
                                   dispatchAction={dispatchAction}
                                   database={database}
                                 />
@@ -449,7 +449,6 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                                 <SearchItemContent
                                   concept={concept}
                                   viewMode="NavItem"
-                                  state={state}
                                   dispatchAction={dispatchAction}
                                   database={database}
                                 />
@@ -513,7 +512,6 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 concept={concept}
                 database={database}
                 dispatchAction={dispatchAction}
-                state={state}
                 viewMode="Block"
               />
             </div>

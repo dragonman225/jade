@@ -1,6 +1,8 @@
 import * as React from 'react'
+import { useContext } from 'react'
 import { stylesheet } from 'typestyle'
 
+import { AppStateContext } from '../../core/store/appStateContext'
 import { Home } from '../../core/components/Icons/Home'
 import { Action } from '../../core/store/actions'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
@@ -51,6 +53,7 @@ const styles = stylesheet({
 
 const HeaderTool: React.FunctionComponent<Props> = props => {
   const { viewMode, onInteractionStart, onInteractionEnd } = props
+  const state = useContext(AppStateContext)
 
   if (viewMode !== 'Block') {
     return <span>Recent Tool</span>
@@ -64,7 +67,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
           onClick={() =>
             props.dispatchAction({
               type: Action.BlockOpenAsCanvas,
-              data: { id: props.state.homeConceptId },
+              data: { id: state.homeConceptId },
             })
           }>
           <Home />
@@ -77,17 +80,16 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
           } = {
             viewMode: 'CardTitle',
             readOnly: false,
-            state: props.state,
             dispatchAction: props.dispatchAction,
             factoryRegistry: props.factoryRegistry,
             database: props.database,
-            concept: props.state.viewingConcept,
+            concept: state.viewingConcept,
             onChange: data =>
               props.dispatchAction({
                 type: Action.ConceptWriteData,
                 data: {
-                  id: props.state.viewingConcept.id,
-                  type: props.state.viewingConcept.summary.type,
+                  id: state.viewingConcept.id,
+                  type: state.viewingConcept.summary.type,
                   content: data,
                 },
               }),
@@ -95,18 +97,18 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
               props.dispatchAction({
                 type: Action.ConceptWriteData,
                 data: {
-                  id: props.state.viewingConcept.id,
+                  id: state.viewingConcept.id,
                   type: typeId,
                   content: { initialized: false },
                 },
               }),
             onInteractionStart,
             onInteractionEnd,
-            key: 'CardTitle-' + props.state.viewingConcept.id,
+            key: 'CardTitle-' + state.viewingConcept.id,
           }
 
           return props.factoryRegistry.createConceptDisplay(
-            props.state.viewingConcept.summary.type,
+            state.viewingConcept.summary.type,
             contentProps
           )
         })()}

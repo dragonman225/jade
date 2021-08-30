@@ -32,7 +32,6 @@ export interface ConceptDisplayProps<T> {
   readOnly: boolean
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
   concept: TypedConcept<T>
-  state: AppState
   dispatchAction: (action: Actions) => void
   factoryRegistry: FactoryRegistry
   database: DatabaseInterface

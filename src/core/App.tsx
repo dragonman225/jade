@@ -11,6 +11,7 @@ import { PinnedLayer } from './components/PinnedLayer'
 import { NormalLayer } from './components/NormalLayer'
 import { ViewObject } from './components/ViewObject'
 import { AppStyles } from './App.styles'
+import { AppStateContext } from './store/appStateContext'
 import theme from '../theme'
 import { useAnimationFrame } from './useAnimationFrame'
 import { createReducer, loadAppState } from './store/reducer'
@@ -35,21 +36,18 @@ interface Props {
 interface BlockDriverProps {
   block: BlockInstance
   db: DatabaseInterface
-  state: AppState
   factoryRegistry: FactoryRegistry
   dispatchAction: (action: Actions) => void
   createOverlay: (children: React.ReactNode) => React.ReactPortal
 }
 
+// const debugBlockStyle = { height: 50 }
+// const Debug = React.memo(function Debug() {
+//   return <div style={debugBlockStyle} />
+// })
+
 function BlockDriver(props: BlockDriverProps): JSX.Element {
-  const {
-    block,
-    db,
-    state,
-    factoryRegistry,
-    dispatchAction,
-    createOverlay,
-  } = props
+  const { block, db, factoryRegistry, dispatchAction, createOverlay } = props
 
   const setMode = useCallback(
     (mode: InteractionMode) => {
@@ -123,7 +121,6 @@ function BlockDriver(props: BlockDriverProps): JSX.Element {
         readOnly: block.mode === InteractionMode.Moving,
         viewMode: 'Block',
         concept: block.concept,
-        state,
         dispatchAction,
         factoryRegistry,
         database: db,
@@ -133,6 +130,7 @@ function BlockDriver(props: BlockDriverProps): JSX.Element {
         onInteractionEnd: handleInteractionEnd,
         createOverlay,
       })}
+      {/* <Debug /> */}
     </Block>
   )
 }
@@ -206,20 +204,39 @@ export function App(props: Props): JSX.Element {
   )
 
   return (
-    <div
-      className={classes(
-        AppStyles.App,
-        stateSnapshot.blocks.find(b => b.mode === InteractionMode.Moving)
-          ? AppStyles['App--BlockMoving']
-          : undefined
-      )}>
-      <Viewport dispatchAction={dispatchAction}>
-        <NormalLayer
-          focus={stateSnapshot.camera.focus}
-          scale={stateSnapshot.camera.scale}
-          selecting={stateSnapshot.selecting}
-          selectionBox={stateSnapshot.selectionBox}>
-          {normalBlocks.map(b => (
+    <AppStateContext.Provider value={stateSnapshot}>
+      <div
+        className={classes(
+          AppStyles.App,
+          stateSnapshot.blocks.find(b => b.mode === InteractionMode.Moving)
+            ? AppStyles['App--BlockMoving']
+            : undefined
+        )}>
+        <Viewport dispatchAction={dispatchAction}>
+          <NormalLayer
+            focus={stateSnapshot.camera.focus}
+            scale={stateSnapshot.camera.scale}
+            selecting={stateSnapshot.selecting}
+            selectionBox={stateSnapshot.selectionBox}>
+            {normalBlocks.map(b => (
+              <ViewObject
+                key={`vo--${b.id}`}
+                posType={b.posType}
+                pos={b.pos}
+                size={b.size}>
+                <BlockDriver
+                  block={b}
+                  db={db}
+                  factoryRegistry={factoryRegistry}
+                  dispatchAction={dispatchAction}
+                  createOverlay={createOverlay}
+                />
+              </ViewObject>
+            ))}
+          </NormalLayer>
+        </Viewport>
+        <PinnedLayer>
+          {pinnedBlocks.map(b => (
             <ViewObject
               key={`vo--${b.id}`}
               posType={b.posType}
@@ -228,62 +245,15 @@ export function App(props: Props): JSX.Element {
               <BlockDriver
                 block={b}
                 db={db}
-                state={stateSnapshot}
                 factoryRegistry={factoryRegistry}
                 dispatchAction={dispatchAction}
                 createOverlay={createOverlay}
               />
-              {/* <Block
-                debug={stateSnapshot.debugging}
-                className={
-                  b.posType > PositionType.Normal
-                    ? style({
-                        boxShadow: theme.SHADOWS.ui,
-                        borderRadius: theme.BORDERS.largeRadius,
-                      })
-                    : undefined
-                }
-                block={b}
-                dispatchAction={dispatchAction}>
-                <div style={{ height: 50 }} />
-              </Block> */}
             </ViewObject>
           ))}
-        </NormalLayer>
-      </Viewport>
-      <PinnedLayer>
-        {pinnedBlocks.map(b => (
-          <ViewObject
-            key={`vo--${b.id}`}
-            posType={b.posType}
-            pos={b.pos}
-            size={b.size}>
-            <BlockDriver
-              block={b}
-              db={db}
-              state={stateSnapshot}
-              factoryRegistry={factoryRegistry}
-              dispatchAction={dispatchAction}
-              createOverlay={createOverlay}
-            />
-            {/* <Block
-                debug={stateSnapshot.debugging}
-                className={
-                  b.posType > PositionType.Normal
-                    ? style({
-                        boxShadow: theme.SHADOWS.ui,
-                        borderRadius: theme.BORDERS.largeRadius,
-                      })
-                    : undefined
-                }
-                block={b}
-                dispatchAction={dispatchAction}>
-                <div style={{ height: 50 }} />
-              </Block> */}
-          </ViewObject>
-        ))}
-      </PinnedLayer>
-      <Overlay ref={overlayRef} />
-    </div>
+        </PinnedLayer>
+        <Overlay ref={overlayRef} />
+      </div>
+    </AppStateContext.Provider>
   )
 }

@@ -1,14 +1,16 @@
 import * as React from 'react'
-import { useRef } from 'react'
+import { useRef, useContext } from 'react'
 
 import { styles } from './index.styles'
+import { AppStateContext } from '../../core/store/appStateContext'
 import { Action } from '../../core/store/actions'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
 type Props = ConceptDisplayProps<undefined>
 
 export const RecentTool: React.FunctionComponent<Props> = props => {
-  const { viewMode, state, dispatchAction, database, factoryRegistry } = props
+  const { viewMode, dispatchAction, database, factoryRegistry } = props
+  const state = useContext(AppStateContext)
 
   const recentRef = useRef<HTMLDivElement>(null)
 
@@ -44,7 +46,6 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
             viewMode: 'NavItem',
             readOnly: true,
             concept,
-            state,
             dispatchAction,
             database,
             factoryRegistry,

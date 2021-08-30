@@ -1,7 +1,9 @@
 import * as React from 'react'
+import { useContext } from 'react'
 import { stylesheet } from 'typestyle'
 
 import theme from '../../theme'
+import { AppStateContext } from '../../core/store/appStateContext'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
 
@@ -45,7 +47,8 @@ const styles = stylesheet({
 type Props = ConceptDisplayProps<undefined>
 
 export const Status: React.FunctionComponent<Props> = props => {
-  const { state, dispatchAction } = props
+  const { dispatchAction } = props
+  const state = useContext(AppStateContext)
 
   switch (props.viewMode) {
     case 'Block':
