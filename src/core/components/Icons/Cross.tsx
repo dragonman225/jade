@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IconStyle } from './Icon.styles'
 
-export const Cross: React.FunctionComponent = () => {
+export const Cross: React.FunctionComponent = React.memo(function Cross() {
   return (
     <svg
       className={IconStyle}
@@ -23,4 +23,4 @@ export const Cross: React.FunctionComponent = () => {
       />
     </svg>
   )
-}
+})

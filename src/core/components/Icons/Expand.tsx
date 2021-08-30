@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IconStyle } from './Icon.styles'
 
-export const Expand: React.FunctionComponent = () => {
+export const Expand: React.FunctionComponent = React.memo(function Expand() {
   return (
     <svg
       className={IconStyle}
@@ -14,4 +14,4 @@ export const Expand: React.FunctionComponent = () => {
       <path d="M0.674774 16.1478L2.68106 9.70677L7.31391 14.6469L0.674774 16.1478Z" />
     </svg>
   )
-}
+})
