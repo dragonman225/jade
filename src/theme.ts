@@ -2,7 +2,7 @@ import { keyframes } from 'typestyle'
 
 export default {
   colors: {
-    bgPrimary: '#f3f3f3',
+    bgPrimary: 'rgba(245, 245, 242)',
     bgWhite: '#ffffff',
     bgGrey: '#eeeeee',
     bgHover: 'rgba(55, 53, 47, 0.08)',
