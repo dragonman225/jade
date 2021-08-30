@@ -214,6 +214,13 @@ export function createReducer(
         const { id, pointerInViewportCoords } = action.data
         const { blocks, selectedBlockIds: currSeletedBlockIds, camera } = state
 
+        if (blocks.find(b => id === b.id)?.posType !== PositionType.Normal) {
+          console.warn(
+            'reducer: No support for moving non-normal positioned blocks.'
+          )
+          return state
+        }
+
         const selectedBlockIds = currSeletedBlockIds.length
           ? currSeletedBlockIds.includes(id)
             ? currSeletedBlockIds
@@ -256,6 +263,13 @@ export function createReducer(
           pointerOffsetInSelectionBoundingBox: pointerOffsetInBoundingBox,
           camera,
         } = state
+
+        if (blocks.find(b => id === b.id)?.posType !== PositionType.Normal) {
+          console.warn(
+            'reducer: No support for moving non-normal positioned blocks.'
+          )
+          return state
+        }
 
         /** Blocks to move are those selected. */
         const movingBlocks = blocks.filter(b => selectedBlockIds.includes(b.id))
