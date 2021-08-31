@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { useMemo, useCallback, useRef, useState } from 'react'
+import { useMemo, useCallback, useRef, useState, useContext } from 'react'
 import { classes, style } from 'typestyle'
 
 import { Viewport } from './components/Viewport'
@@ -28,11 +28,6 @@ import { Action, Actions } from './store/actions'
 import { isBoxBoxIntersectingObjVer } from './utils'
 import { getElementRect } from './utils/element-pool'
 
-interface Props {
-  db: DatabaseInterface
-  factoryRegistry: FactoryRegistry
-}
-
 interface BlockDriverProps {
   block: BlockInstance
   db: DatabaseInterface
@@ -46,7 +41,9 @@ interface BlockDriverProps {
 //   return <div style={debugBlockStyle} />
 // })
 
-function BlockDriver(props: BlockDriverProps): JSX.Element {
+const BlockDriver = React.memo(function BlockDriver(
+  props: BlockDriverProps
+): JSX.Element {
   const { block, db, factoryRegistry, dispatchAction, createOverlay } = props
 
   const setMode = useCallback(
@@ -133,30 +130,19 @@ function BlockDriver(props: BlockDriverProps): JSX.Element {
       {/* <Debug /> */}
     </Block>
   )
+})
+
+interface AppProps {
+  db: DatabaseInterface
+  factoryRegistry: FactoryRegistry
+  dispatchAction: (action: Actions) => void
 }
 
-export function App(props: Props): JSX.Element {
-  const { db, factoryRegistry } = props
-
-  const appStateReducer = useMemo(() => createReducer(db, factoryRegistry), [
-    db,
-    factoryRegistry,
-  ])
-  const initialState = useMemo(() => loadAppState(db), [db])
-  const [stateSnapshot, setStateSnapshot] = useState<AppState>(initialState)
-  const stateRef = useRef<AppState>(initialState)
-  const dispatchAction = useCallback<(action: Actions) => void>(
-    action => {
-      stateRef.current = appStateReducer(stateRef.current, action)
-    },
-    [appStateReducer]
-  )
-  useAnimationFrame(() => {
-    setStateSnapshot(stateRef.current)
-  })
+const App = React.memo(function App(props: AppProps) {
+  const { db, factoryRegistry, dispatchAction } = props
+  const state = useContext(AppStateContext)
 
   const overlayRef = useRef<HTMLDivElement>(null)
-
   const createOverlay = useCallback(
     (children: React.ReactNode): React.ReactPortal => {
       return ReactDOM.createPortal(children, overlayRef.current)
@@ -167,8 +153,16 @@ export function App(props: Props): JSX.Element {
   const normalBlocks = useMemo(() => {
     const windowWidth = window.innerWidth
     const windowHeight = window.innerHeight
+    const overscanX = windowWidth * 0.125
+    const overscanY = windowHeight * 0.125
+    const visibleArea = {
+      x: state.camera.focus.x - overscanX,
+      y: state.camera.focus.y - overscanY,
+      w: windowWidth / state.camera.scale + 2 * overscanX,
+      h: windowHeight / state.camera.scale + 2 * overscanY,
+    }
 
-    return stateSnapshot.blocks.filter(
+    return state.blocks.filter(
       b =>
         b.posType === PositionType.Normal &&
         /**
@@ -189,54 +183,28 @@ export function App(props: Props): JSX.Element {
                   ? b.size.h
                   : getElementRect(b.id).height,
             },
-            {
-              x: stateSnapshot.camera.focus.x,
-              y: stateSnapshot.camera.focus.y,
-              w: windowWidth / stateSnapshot.camera.scale,
-              h: windowHeight / stateSnapshot.camera.scale,
-            }
+            visibleArea
           ))
     )
-  }, [stateSnapshot.blocks, stateSnapshot.camera])
+  }, [state.blocks, state.camera])
 
-  const pinnedBlocks = stateSnapshot.blocks.filter(
-    b => b.posType > PositionType.Normal
-  )
+  const pinnedBlocks = state.blocks.filter(b => b.posType > PositionType.Normal)
 
   return (
-    <AppStateContext.Provider value={stateSnapshot}>
-      <div
-        className={classes(
-          AppStyles.App,
-          stateSnapshot.blocks.find(b => b.mode === InteractionMode.Moving)
-            ? AppStyles['App--BlockMoving']
-            : undefined
-        )}>
-        <Viewport dispatchAction={dispatchAction}>
-          <NormalLayer
-            focus={stateSnapshot.camera.focus}
-            scale={stateSnapshot.camera.scale}
-            selecting={stateSnapshot.selecting}
-            selectionBox={stateSnapshot.selectionBox}>
-            {normalBlocks.map(b => (
-              <ViewObject
-                key={`vo--${b.id}`}
-                posType={b.posType}
-                pos={b.pos}
-                size={b.size}>
-                <BlockDriver
-                  block={b}
-                  db={db}
-                  factoryRegistry={factoryRegistry}
-                  dispatchAction={dispatchAction}
-                  createOverlay={createOverlay}
-                />
-              </ViewObject>
-            ))}
-          </NormalLayer>
-        </Viewport>
-        <PinnedLayer>
-          {pinnedBlocks.map(b => (
+    <div
+      className={classes(
+        AppStyles.App,
+        state.blocks.find(b => b.mode === InteractionMode.Moving)
+          ? AppStyles['App--BlockMoving']
+          : undefined
+      )}>
+      <Viewport dispatchAction={dispatchAction}>
+        <NormalLayer
+          focus={state.camera.focus}
+          scale={state.camera.scale}
+          selecting={state.selecting}
+          selectionBox={state.selectionBox}>
+          {normalBlocks.map(b => (
             <ViewObject
               key={`vo--${b.id}`}
               posType={b.posType}
@@ -251,9 +219,62 @@ export function App(props: Props): JSX.Element {
               />
             </ViewObject>
           ))}
-        </PinnedLayer>
-        <Overlay ref={overlayRef} />
-      </div>
+        </NormalLayer>
+      </Viewport>
+      <PinnedLayer>
+        {pinnedBlocks.map(b => (
+          <ViewObject
+            key={`vo--${b.id}`}
+            posType={b.posType}
+            pos={b.pos}
+            size={b.size}>
+            <BlockDriver
+              block={b}
+              db={db}
+              factoryRegistry={factoryRegistry}
+              dispatchAction={dispatchAction}
+              createOverlay={createOverlay}
+            />
+          </ViewObject>
+        ))}
+      </PinnedLayer>
+      <Overlay ref={overlayRef} />
+    </div>
+  )
+})
+
+interface AppRootProps {
+  db: DatabaseInterface
+  factoryRegistry: FactoryRegistry
+}
+
+export function AppRoot(props: AppRootProps): JSX.Element {
+  const { db, factoryRegistry } = props
+
+  const appStateReducer = useMemo(() => createReducer(db, factoryRegistry), [
+    db,
+    factoryRegistry,
+  ])
+  const initialState = useMemo(() => loadAppState(db), [db])
+  const [stateSnapshot, setStateSnapshot] = useState<AppState>(initialState)
+  const stateRef = useRef<AppState>(initialState)
+  const dispatchAction = useCallback<(action: Actions) => void>(
+    action => {
+      stateRef.current = appStateReducer(stateRef.current, action)
+    },
+    [appStateReducer]
+  )
+  useAnimationFrame(() => {
+    setStateSnapshot(stateRef.current)
+  })
+
+  return (
+    <AppStateContext.Provider value={stateSnapshot}>
+      <App
+        db={db}
+        factoryRegistry={factoryRegistry}
+        dispatchAction={dispatchAction}
+      />
     </AppStateContext.Provider>
   )
 }

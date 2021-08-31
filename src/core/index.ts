@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
-import { App } from './App'
+import { AppRoot } from './App'
 import { isNaN } from './utils'
 import { factoryRegistry } from '../factories'
 import { legacyLoadState } from './utils/db-legacy'
@@ -86,7 +86,7 @@ export function startApp(database: DatabaseInterface): void {
   }
 
   ReactDOM.render(
-    React.createElement(App, { db: database, factoryRegistry }),
+    React.createElement(AppRoot, { db: database, factoryRegistry }),
     document.getElementById('react-root')
   )
 }
