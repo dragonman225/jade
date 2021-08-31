@@ -1,6 +1,6 @@
 import { Actions } from '../store/actions'
 import { TypedConcept } from './concept'
-import { DatabaseInterface, AppState } from './core'
+import { DatabaseInterface } from './core'
 import { Origin } from './util'
 
 export type FactoryId = string
