@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { useState, useContext } from 'react'
-import { stylesheet, classes } from 'typestyle'
+import { classes } from 'typestyle'
 
+import { styles } from './index.style'
 import { AppStateContext } from '../../core/store/appStateContext'
 import {
   distance,
@@ -11,7 +12,6 @@ import {
 } from '../../core/utils'
 import { factoryRegistry } from '..'
 import { styles as blockStyles } from '../../core/components/Block.styles'
-import theme from '../../theme'
 import {
   Concept,
   ConceptDisplayProps,
@@ -20,100 +20,6 @@ import {
   Vec2,
 } from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
-
-const styles = stylesheet({
-  'Search--Linking': {
-    cursor: 'grabbing',
-  },
-  SearchInput: {
-    height: 50,
-    display: 'flex',
-    alignItems: 'center',
-    paddingLeft: '1rem',
-    paddingRight: '1rem',
-    $nest: {
-      '&>input': {
-        outline: 'none',
-        border: 'none',
-        width: '100%',
-        fontSize: '.8rem',
-      },
-      '&>input::placeholder': {
-        color: theme.colors.uiGrey,
-        fontSize: '.8rem',
-      },
-    },
-  },
-  ScrollList: {
-    height: '100%',
-    maxHeight: 500,
-    overflow: 'auto',
-    paddingLeft: '1rem',
-    paddingRight: '1rem',
-  },
-  ScrollListItem: {
-    maxHeight: 150,
-    overflow: 'hidden',
-    marginLeft: '-.5rem',
-    marginRight: '-.5rem',
-    borderRadius: theme.borders.smallRadius,
-    transition: 'background 0.1s ease-in-out',
-    $nest: {
-      '&:hover': {
-        background: theme.colors.bgHover,
-      },
-      '&:active': {
-        background: theme.colors.bgActive,
-      },
-      '&:first-of-type': {
-        marginTop: '.5rem',
-      },
-      '&:last-of-type': {
-        marginBottom: '.5rem',
-      },
-    },
-  },
-  Divider: {
-    border: 'none',
-    borderBottom: `1px solid ${theme.colors.uiGreyLight}`,
-    $nest: {
-      '&:last-of-type': {
-        display: 'none',
-      },
-    },
-  },
-  VisualCopy: {
-    width: 300,
-    maxHeight: 200,
-    overflow: 'hidden',
-    zIndex: 99999,
-  },
-  Pager: {
-    display: 'flex',
-    padding: '.5rem 1rem',
-    fontSize: '.8rem',
-    textAlign: 'center',
-    color: theme.colors.uiGrey,
-  },
-  Arrow: {
-    flex: '0 0 50px',
-    padding: '0px 3px',
-    borderRadius: theme.borders.smallRadius,
-    transition: 'background 0.1s ease-in-out',
-    cursor: 'pointer',
-    $nest: {
-      '&:hover': {
-        background: theme.colors.bgHover,
-      },
-      '&:active': {
-        background: theme.colors.bgActive,
-      },
-    },
-  },
-  Info: {
-    flex: '1 1 0px',
-  },
-})
 
 type SearchItemContentProps = Pick<
   ConceptDisplayProps<unknown>,
