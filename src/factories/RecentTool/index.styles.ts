@@ -4,13 +4,14 @@ import theme from '../../theme'
 export const styles = stylesheet({
   Recent: {
     width: '100%',
-    height: 50,
+    height: 40,
     display: 'flex',
     padding: '0px 20px',
     $nest: {
       '& button': {
         border: 'none',
         background: 'unset',
+        lineHeight: 1.3,
       },
       '& button:focus': {
         outline: 'none',
