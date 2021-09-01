@@ -40,7 +40,7 @@ export const styles = stylesheet({
   },
   TitleContainer: {
     flex: '1 1 0',
-    padding: '0 .5rem',
+    padding: '.1rem .5rem',
     margin: 'auto 0',
     fontSize: '.95rem',
   },
