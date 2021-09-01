@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { useRef, useState, useCallback } from 'react'
+import { classes } from 'typestyle'
 
 import { styles } from './index.styles'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
-import { classes } from 'typestyle'
 
 interface EmbedContent {
   initialized?: boolean
@@ -33,7 +33,7 @@ export const Embed: React.FunctionComponent<Props> = props => {
 
   if (url) {
     return (
-      <div style={{ position: 'relative' }}>
+      <div className={styles.EmbedBlockDisplay}>
         <div className={styles.FrameWrapper}>
           <iframe
             className={classes(
@@ -48,12 +48,7 @@ export const Embed: React.FunctionComponent<Props> = props => {
             allowFullScreen
           />
         </div>
-        <div
-          style={{
-            position: 'absolute',
-            top: 12,
-            right: 20,
-          }}>
+        <div className={styles.ControlButtonGroup}>
           <button
             className={styles.ControlButton}
             style={{ cursor: 'move' }}
@@ -71,17 +66,17 @@ export const Embed: React.FunctionComponent<Props> = props => {
     )
   } else {
     return (
-      <div className={styles.EmbedBlock}>
+      <div className={styles.EmbedBlockEmpty}>
         <input
           ref={inputRef}
-          className={styles.Input}
+          className={styles.LinkInput}
           placeholder="Paste in https://..."
           type="url"
           onFocus={onInteractionStart}
           onBlur={onInteractionEnd}
         />
         <button
-          className={styles.ConfirmButton}
+          className={styles.LinkConfirmButton}
           onClick={() => {
             onChange({ initialized: true, url: inputRef.current.value })
           }}>

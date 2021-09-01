@@ -3,34 +3,22 @@ import { stylesheet } from 'typestyle'
 import theme from '../../theme'
 import { buttonPrimary, buttonTranslucent, input } from '../../lightComponents'
 
-export const styles = stylesheet({
-  EmbedBlock: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.paddings.blockComfort,
-    $nest: {
-      '& > *': {
-        display: 'block',
-      },
-      '& > input': {
-        marginBottom: '.7rem',
-      },
-      '& > button': {
-        width: 200,
-      },
-    },
-  },
-  Input: {
+const atoms = stylesheet({
+  LinkInput: {
     ...input,
     width: '100%',
   },
+  LinkConfirmButton: {
+    ...buttonPrimary,
+  },
   ControlButton: {
     ...buttonTranslucent,
-  },
-  ConfirmButton: {
-    ...buttonPrimary,
+    $nest: {
+      ...buttonTranslucent.$nest,
+      '&:not(:last-child)': {
+        marginRight: '.3rem',
+      },
+    },
   },
   FrameWrapper: {
     position: 'relative',
@@ -49,3 +37,48 @@ export const styles = stylesheet({
     pointerEvents: 'none',
   },
 })
+
+const molecules = stylesheet({
+  ControlButtonGroup: {
+    position: 'absolute',
+    top: 12,
+    right: 20,
+    opacity: 0,
+    transition: `opacity 0.15s ${theme.easings.easeInOutCubic}`,
+  },
+})
+
+const organisms = stylesheet({
+  EmbedBlockDisplay: {
+    position: 'relative',
+    $nest: {
+      [`&:hover > .${molecules.ControlButtonGroup}`]: {
+        opacity: 1,
+      },
+    },
+  },
+  EmbedBlockEmpty: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.paddings.blockComfort,
+    $nest: {
+      '& > *': {
+        display: 'block',
+      },
+      '& > input': {
+        marginBottom: '.7rem',
+      },
+      '& > button': {
+        width: 200,
+      },
+    },
+  },
+})
+
+export const styles = {
+  ...atoms,
+  ...molecules,
+  ...organisms,
+}
