@@ -363,10 +363,8 @@ const PMText: React.FunctionComponent<Props> = props => {
 
   const editorContainer = (
     <div ref={editorContainerRef} className={styles.EditorContainer}>
-      {showPlaceholder ? (
+      {showPlaceholder && (
         <div className={styles.Placeholder}>Type &#39;/&#39; for commands</div>
-      ) : (
-        <></>
       )}
     </div>
   )
