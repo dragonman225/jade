@@ -39,5 +39,5 @@ export interface ConceptDisplayProps<T> {
   onReplace: (type: string) => void
   onInteractionStart: () => void
   onInteractionEnd: () => void
-  createOverlay?(children: React.ReactNode): React.ReactPortal
+  createOverlay?: (children: React.ReactNode) => React.ReactPortal
 }
