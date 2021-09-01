@@ -73,6 +73,7 @@ export const inputRulesPlugin = inputRules({
     new InputRule(/->$/, '→'),
     new InputRule(/=>$/, '⇒'),
     new InputRule(/!=$/, '≠'),
+    new InputRule(/--$/, '—'),
     makeInlineMathInputRule(
       REGEX_INLINE_MATH_DOLLARS,
       schema.nodes.math_inline
