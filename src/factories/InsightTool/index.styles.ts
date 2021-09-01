@@ -5,7 +5,7 @@ import { buttonTransparent } from '../../lightComponents'
 
 export const styles = stylesheet({
   Insight: {
-    padding: '20px 1rem',
+    padding: theme.paddings.blockComfort,
     maxHeight: 500,
     overflow: 'auto',
   },

@@ -101,7 +101,7 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
             })}
         </>
       ) : (
-        <div className={styles.HeaderText}>Not appearing in any concepts</div>
+        <div className={styles.HeaderText}>Not appearing in any concept</div>
       )}
     </div>
   )
