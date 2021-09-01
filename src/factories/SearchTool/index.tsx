@@ -507,6 +507,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 transformOrigin: 'top left',
                 transform: `translate3d(${pos.x}px, ${pos.y}px, 0px) scale(${scale})`,
                 width: 300,
+                pointerEvents: 'none', // Since we use `viewMode: 'Block'` here.
               }}>
               <SearchItemContent
                 concept={concept}
