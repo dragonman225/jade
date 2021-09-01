@@ -62,3 +62,8 @@ export const input = {
   background: theme.colors.bgGrey,
   lineHeight: 1.25,
 }
+
+export const navBasic = {
+  padding: theme.paddings.navComfort,
+  fontSize: '.8rem',
+}

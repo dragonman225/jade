@@ -31,13 +31,9 @@ export const styles = stylesheet({
     padding: theme.paddings.blockComfort,
   },
   PMTextCardTitle: {
-    fontSize: '1.2rem',
-    fontWeight: 'bold',
-    padding: '.3rem .5rem',
-    /** auto vertical center when it is smaller than HeaderTool's content 
+    /** auto vertical center when it is smaller than HeaderTool's content
         min-height. */
     margin: 'auto',
-    overflow: 'auto',
     width: '100%',
   },
   SlashMenu: {

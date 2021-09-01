@@ -1,91 +1,84 @@
 import * as React from 'react'
-import { useContext } from 'react'
-import { stylesheet } from 'typestyle'
+import { useContext, useState, useCallback } from 'react'
 
+import { styles } from './index.styles'
 import { AppStateContext } from '../../core/store/appStateContext'
+import { ArrowBack } from '../../core/components/Icons/ArrowBack'
 import { Home } from '../../core/components/Icons/Home'
+import { ExpandDown } from '../../core/components/Icons/ExpandDown'
+import { ExpandUp } from '../../core/components/Icons/ExpandUp'
 import { Action } from '../../core/store/actions'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
+import { classes } from 'typestyle'
 
 type Props = ConceptDisplayProps<undefined>
 
-const styles = stylesheet({
-  HeaderTool: {
-    width: '100%',
-    display: 'flex',
-    flexWrap: 'nowrap',
-    padding: '0px 20px',
-  },
-  HomeBtnContainer: {
-    flex: '0 0 50px',
-    height: 50,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  HomeBtn: {
-    width: 30,
-    height: 30,
-    fill: '#000',
-    transition: 'transform 0.2s ease-in-out',
-    border: 'none',
-    background: 'unset',
-    $nest: {
-      '&:hover': {
-        transform: 'scale(1.2)',
-      },
-      '&:active': {
-        transform: 'scale(0.9)',
-      },
-      '&:focus': {
-        outline: 'none',
-      },
-    },
-  },
-  CardTitleContainer: {
-    flex: '1 1 50px',
-    minHeight: 50,
-    maxHeight: 200,
-    overflow: 'auto',
-    display: 'flex',
-  },
-})
-
 const HeaderTool: React.FunctionComponent<Props> = props => {
-  const { viewMode, onInteractionStart, onInteractionEnd } = props
+  const {
+    viewMode,
+    dispatchAction,
+    createOverlay,
+    onInteractionStart,
+    onInteractionEnd,
+  } = props
   const state = useContext(AppStateContext)
 
+  const [titleCollapsed, setTitleCollapsed] = useState(true)
+  const toggleTitleCollapsed = useCallback(() => setTitleCollapsed(c => !c), [])
+
   if (viewMode !== 'Block') {
-    return <span>Recent Tool</span>
+    return <div className={styles.HeaderToolNav}>🔧 Header Tool</div>
   }
 
   return (
-    <div className={styles.HeaderTool}>
-      <div className={styles.HomeBtnContainer}>
-        <button
-          className={styles.HomeBtn}
-          onClick={() =>
-            props.dispatchAction({
+    <div
+      className={classes(
+        styles.HeaderToolBlock,
+        !titleCollapsed && styles.HeaderToolBlockNotCollapsed
+      )}>
+      <button
+        className={styles.Button}
+        onClick={() => {
+          setTitleCollapsed(true)
+          const prevConceptId =
+            state.expandHistory[state.expandHistory.length - 2]
+          prevConceptId &&
+            dispatchAction({
               type: Action.BlockOpenAsCanvas,
-              data: { id: state.homeConceptId },
+              data: { id: prevConceptId },
             })
-          }>
-          <Home />
-        </button>
-      </div>
-      <div className={styles.CardTitleContainer}>
+        }}>
+        <ArrowBack />
+      </button>
+      <button
+        className={styles.Button}
+        onClick={() => {
+          setTitleCollapsed(true)
+          dispatchAction({
+            type: Action.BlockOpenAsCanvas,
+            data: { id: state.homeConceptId },
+          })
+        }}>
+        <Home />
+      </button>
+      <div
+        className={classes(
+          styles.TitleContainer,
+          !titleCollapsed && styles.TitleContainerNotCollapsed
+        )}>
         {(function () {
           const contentProps: ConceptDisplayProps<unknown> & {
             key: string
           } = {
             viewMode: 'CardTitle',
             readOnly: false,
-            dispatchAction: props.dispatchAction,
+            dispatchAction,
             factoryRegistry: props.factoryRegistry,
             database: props.database,
             concept: state.viewingConcept,
+            createOverlay,
             onChange: data =>
-              props.dispatchAction({
+              dispatchAction({
                 type: Action.ConceptWriteData,
                 data: {
                   id: state.viewingConcept.id,
@@ -94,7 +87,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
                 },
               }),
             onReplace: typeId =>
-              props.dispatchAction({
+              dispatchAction({
                 type: Action.ConceptWriteData,
                 data: {
                   id: state.viewingConcept.id,
@@ -113,6 +106,9 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
           )
         })()}
       </div>
+      <button className={styles.Button} onClick={toggleTitleCollapsed}>
+        {titleCollapsed ? <ExpandDown /> : <ExpandUp />}
+      </button>
     </div>
   )
 }
