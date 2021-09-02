@@ -12,10 +12,7 @@ export const styles = stylesheet({
     padding: theme.paddings.blockComfort,
   },
   CardTitle: {
-    fontSize: '1.2rem',
-    fontWeight: 'bold',
-    padding: '.5rem',
-    overflow: 'auto',
+    margin: 'auto',
     width: '100%',
   },
 })
