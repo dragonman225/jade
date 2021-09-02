@@ -35,6 +35,7 @@ import {
   Camera,
   FactoryRegistry,
   TypedConcept,
+  BlockId,
 } from '../interfaces'
 
 export function synthesizeView(
@@ -631,10 +632,21 @@ export function createReducer(
           ...cursorBlockNewSize,
         }
 
+        /**
+         * A block should be resized if:
+         * 1. It's the source of this action, no matter if it's selected.
+         * 2. It's selected, and the source of this action is selected.
+         */
+        const shouldResize = (blockId: BlockId): boolean => {
+          return cursorBlock.selected
+            ? selectedBlockIds.includes(blockId)
+            : blockId === cursorBlock.id
+        }
+
         const guidelineRects = blocks
           .filter(
             /** Not cursor block, not selected, position normal. */
-            b => b.id !== id && !b.selected && b.posType === PositionType.Normal
+            b => !shouldResize(b.id)
           )
           .map(b => {
             const viewportRect = getBlockRect(b.id)
@@ -709,7 +721,7 @@ export function createReducer(
         const newViewingConcept = updateConcept(state.viewingConcept, {
           references: state.viewingConcept.references.map(ref => {
             /** A block can be resized without being selected. */
-            if (id === ref.id || selectedBlockIds.includes(ref.id)) {
+            if (shouldResize(ref.id)) {
               return {
                 ...ref,
                 size: {
@@ -742,7 +754,7 @@ export function createReducer(
             .concat(blocks.slice(cursorBlockIndex + 1))
             .concat(blocks[cursorBlockIndex])
             .map(b => {
-              if (id === b.id || b.selected) {
+              if (shouldResize(b.id)) {
                 return updateBlockInstance(b, {
                   size: {
                     w:
