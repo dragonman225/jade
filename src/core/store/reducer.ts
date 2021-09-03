@@ -1008,6 +1008,29 @@ export function createReducer(
           debugging: !state.debugging,
         }
       }
+      case Action.Undo: {
+        clearElementRectMap()
+
+        const { expandHistory } = state
+        const backToConceptId = expandHistory[expandHistory.length - 2]
+        const concept = db.getConcept(backToConceptId)
+
+        if (!concept) return state
+
+        db.saveSettings({
+          debugging: state.debugging,
+          homeConceptId: state.homeConceptId,
+          viewingConceptId: backToConceptId,
+        })
+
+        return {
+          ...state,
+          viewingConcept: concept,
+          camera: concept.camera,
+          blocks: synthesizeView(concept, db),
+          expandHistory: [''].concat(expandHistory.slice(0, -1)),
+        }
+      }
     }
   }
 }

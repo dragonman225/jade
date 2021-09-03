@@ -40,13 +40,9 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
         className={styles.Button}
         onClick={() => {
           setTitleCollapsed(true)
-          const prevConceptId =
-            state.expandHistory[state.expandHistory.length - 2]
-          prevConceptId &&
-            dispatchAction({
-              type: Action.BlockOpenAsCanvas,
-              data: { id: prevConceptId },
-            })
+          dispatchAction({
+            type: Action.Undo,
+          })
         }}>
         <ArrowBack />
       </button>

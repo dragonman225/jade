@@ -21,6 +21,8 @@ export enum Action {
   SelectionBoxSetEnd = 'selectionBox::setEnd',
   SelectionBoxClear = 'selectionBox::clear',
   DebuggingToggle = 'debugging::toggle',
+  /** Now only for undo `BlockOpenAsCanvas`, but will evolve to real undo. */
+  Undo = 'undo',
 }
 
 interface ConceptCreateAction {
@@ -146,6 +148,10 @@ interface DebuggingToggleAction {
   type: Action.DebuggingToggle
 }
 
+interface UndoAction {
+  type: Action.Undo
+}
+
 export type Actions =
   | ConceptCreateAction
   | ConceptWriteDataAction
@@ -167,3 +173,4 @@ export type Actions =
   | SelectionBoxSetEndAction
   | SelectionBoxClearAction
   | DebuggingToggleAction
+  | UndoAction
