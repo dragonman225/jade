@@ -16,6 +16,11 @@ export const styles = stylesheet({
          * wraps.
          */
         overflowWrap: 'break-word',
+        /**
+         * Although this is deprecated, this is necessary to make texts
+         * wrap in a flex item.
+         */
+        wordBreak: 'break-word',
       },
       '& .ProseMirror:focus': {
         outline: 'none',
