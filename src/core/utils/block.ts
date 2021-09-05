@@ -10,6 +10,7 @@ import {
   PositionType,
   TypedConcept,
 } from '../interfaces'
+import { blockRectManager } from './element-pool'
 
 export function createBlock(
   properties: Pick<Block, 'pos' | 'posType' | 'size' | 'to'>
@@ -114,4 +115,21 @@ export function getSelectedBlockIds(
         })
     )
     .map(b => b.id)
+}
+
+export function findBlock(
+  blocks: BlockInstance[],
+  id: BlockId
+): BlockInstance | undefined {
+  return blocks.find(b => id === b.id)
+}
+
+export function blockToBox(block: BlockInstance): Box {
+  const rect = blockRectManager.getRect(block.id) || { width: 0, height: 0 }
+
+  return {
+    ...block.pos,
+    w: rect.width,
+    h: rect.height,
+  }
 }

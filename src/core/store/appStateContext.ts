@@ -1,4 +1,4 @@
-import * as React from 'react'
+import { createContext } from 'react'
 import { AppState } from '../interfaces'
 
-export const AppStateContext = React.createContext<AppState>(undefined)
+export const AppStateContext = createContext<AppState>(undefined)

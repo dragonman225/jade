@@ -4,24 +4,23 @@ import {
   vecSub,
   vecAdd,
   normalizeToBox,
-  isBoxBoxIntersecting,
   isPointInRect,
-  getBoundingBox,
 } from '../utils'
 import {
   createBlock,
   createBlockInstance,
   getSelectedBlockIds,
-  blockInstanceToBlock,
   updateBlockInstance,
+  blockToBox,
 } from '../utils/block'
 import { createConcept, updateConcept } from '../utils/concept'
-import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
 import {
-  clearElementRectMap,
-  deleteElementRects,
-  getBlockRect,
-} from '../utils/element-pool'
+  createSimpleRelation,
+  isBlockToBlockInCanvasRelation,
+  isRelationExists,
+} from '../utils/relation'
+import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
+import { blockRectManager } from '../utils/element-pool'
 import { Action, Actions } from './actions'
 import {
   ConceptId,
@@ -29,13 +28,13 @@ import {
   Block,
   PositionType,
   AppState,
-  Vec2,
   BlockInstance,
   Size,
   Camera,
   FactoryRegistry,
   TypedConcept,
   BlockId,
+  Entity,
 } from '../interfaces'
 
 export function synthesizeView(
@@ -89,9 +88,14 @@ export function loadAppState(db: DatabaseInterface): AppState {
     selectionBoxStart: { x: 0, y: 0 },
     selectionBoxEnd: { x: 0, y: 0 },
     selectionBox: { x: 0, y: 0, w: 0, h: 0 },
-    pointerOffsetInSelectionBoundingBox: { x: 0, y: 0 },
+    pointerOffsetInCursorBox: { x: 0, y: 0 },
     selectedBlockIds: [],
     blocks,
+    blocksRendered: false,
+    relations: [],
+    drawingRelation: false,
+    drawingRelationFromBlockId: '',
+    drawingRelationToPoint: { x: 0, y: 0 },
   }
 }
 
@@ -108,10 +112,11 @@ export function createReducer(
   let prevCursorBlockId = ''
   let cursorBlockNewSize: { w: number; h: number } = { w: 0, h: 0 }
   /** A block that the pointer is on. */
-  let pointerOverBlock: BlockInstance = undefined
+  let pointerOverBlock: BlockInstance | undefined = undefined
 
   return function appStateReducer(state: AppState, action: Actions): AppState {
     // console.log(`core/store/reducer: "${action.type}"`, action)
+    blockRectManager.updateCamera(state.camera)
 
     switch (action.type) {
       case Action.ConceptCreate: {
@@ -185,11 +190,18 @@ export function createReducer(
 
         db.updateConcept(newViewingConcept)
 
-        deleteElementRects([blockId])
+        blockRectManager.deleteBlocks([blockId])
 
         return {
           ...state,
           viewingConcept: newViewingConcept,
+          relations: state.relations.filter(
+            r =>
+              !(
+                isBlockToBlockInCanvasRelation(r) &&
+                (r.fromId === blockId || r.toId === blockId)
+              )
+          ),
           blocks: synthesizeView(newViewingConcept, db),
         }
       }
@@ -202,11 +214,17 @@ export function createReducer(
 
         db.updateConcept(newViewingConcept)
 
-        deleteElementRects(state.selectedBlockIds)
+        blockRectManager.deleteBlocks(state.selectedBlockIds)
 
         return {
           ...state,
           viewingConcept: newViewingConcept,
+          relations: state.relations.filter(
+            r =>
+              isBlockToBlockInCanvasRelation(r) &&
+              (state.selectedBlockIds.includes(r.fromId) ||
+                state.selectedBlockIds.includes(r.toId))
+          ),
           blocks: synthesizeView(newViewingConcept, db),
           selectedBlockIds: [],
         }
@@ -217,7 +235,7 @@ export function createReducer(
 
         if (blocks.find(b => id === b.id)?.posType !== PositionType.Normal) {
           console.warn(
-            'reducer: No support for moving non-normal positioned blocks.'
+            'reducer/BlockMoveStart: No support for moving non-normal positioned blocks.'
           )
           return state
         }
@@ -227,14 +245,7 @@ export function createReducer(
             ? currSeletedBlockIds
             : [id]
           : [id]
-
-        const movingBlocks = blocks.filter(b => selectedBlockIds.includes(b.id))
-
-        const boundingBoxPos: Vec2 = {
-          x: Math.min(...movingBlocks.map(b => b.pos.x)),
-          y: Math.min(...movingBlocks.map(b => b.pos.y)),
-        }
-
+        const cursorBlock = blocks.find(b => id === b.id)
         const pointerInEnvCoords = viewportCoordsToEnvCoords(
           pointerInViewportCoords,
           camera
@@ -248,10 +259,7 @@ export function createReducer(
             })
           ),
           selectedBlockIds,
-          pointerOffsetInSelectionBoundingBox: vecSub(
-            pointerInEnvCoords,
-            boundingBoxPos
-          ),
+          pointerOffsetInCursorBox: vecSub(pointerInEnvCoords, cursorBlock.pos),
         }
       }
       case Action.BlockMove: {
@@ -260,9 +268,8 @@ export function createReducer(
         const {
           selectedBlockIds,
           blocks,
-          viewingConcept,
-          pointerOffsetInSelectionBoundingBox: pointerOffsetInBoundingBox,
           camera,
+          pointerOffsetInCursorBox,
         } = state
 
         if (blocks.find(b => id === b.id)?.posType !== PositionType.Normal) {
@@ -272,201 +279,202 @@ export function createReducer(
           return state
         }
 
-        /** Blocks to move are those selected. */
-        const movingBlocks = blocks.filter(b => selectedBlockIds.includes(b.id))
-        /** Below are in viewport coordinates. */
-        const movingBlockRects = movingBlocks.map(b => getBlockRect(b.id))
-        const movingBlocksBoundingBox = getBoundingBox(movingBlockRects)
-        /** Below are in environment coordinates. */
-        const movingBlocksBoundingBoxSize = {
-          w:
-            (movingBlocksBoundingBox.right - movingBlocksBoundingBox.left) /
-            camera.scale,
-          h:
-            (movingBlocksBoundingBox.bottom - movingBlocksBoundingBox.top) /
-            camera.scale,
-        }
-        const movingBlocksBoundingBoxPos = {
-          x: Math.min(...movingBlocks.map(b => b.pos.x)),
-          y: Math.min(...movingBlocks.map(b => b.pos.y)),
-        }
         const pointerInEnvCoords = viewportCoordsToEnvCoords(
           pointerInViewportCoords,
           camera
         )
-        const movingBlocksBoundingBoxNextPos = vecSub(
+
+        const cursorBlock = blocks.find(b => id === b.id)
+        const cursorBlockBox = blockToBox(cursorBlock)
+        const cursorBlockDesiredPos = vecSub(
           pointerInEnvCoords,
-          pointerOffsetInBoundingBox
+          pointerOffsetInCursorBox
         )
+
+        const shouldMove = (blockId: BlockId): boolean => {
+          return cursorBlock.selected
+            ? /** If cursorBlock is selected, we move all selected blocks. */
+              selectedBlockIds.includes(blockId)
+            : /** Otherwise, we just move the cursorBlock. */
+              blockId === cursorBlock.id
+        }
+
+        const guidelineRects = blocks
+          .filter(b => !shouldMove(b.id) && b.posType === PositionType.Normal)
+          .map(b => {
+            const envRect = blockRectManager.getRect(b.id)
+            return {
+              ...b.pos,
+              w: typeof b.size.w === 'number' ? b.size.w : envRect.width,
+              h: typeof b.size.h === 'number' ? b.size.h : envRect.height,
+            }
+          })
+
+        const generationTolerance = 36
+        const gap = 10
+
+        const {
+          horizontalGuidelines,
+          verticalGuidelines,
+        } = generateGuidelinesFromRects(
+          cursorBlockBox,
+          guidelineRects,
+          generationTolerance
+        )
+
+        const snapTolerance = 12
 
         /**
-         * To make `snapRange` the same value physically (i.e. in pixel),
-         * we divide it by camera scale.
+         * Try to snap all sides to guidelines. (Since we are moving, all
+         * sides are changing.)
          */
-        const snapRange = 12 / camera.scale
-        const inRange = (a: number, b: number) => Math.abs(a - b) <= snapRange
+        const snapResult = {
+          left: snapValue(
+            cursorBlockDesiredPos.x,
+            verticalGuidelines,
+            snapTolerance
+          ),
+          top: snapValue(
+            cursorBlockDesiredPos.y,
+            horizontalGuidelines,
+            snapTolerance
+          ),
+          right: snapValue(
+            cursorBlockDesiredPos.x + cursorBlockBox.w,
+            verticalGuidelines,
+            snapTolerance
+          ),
+          bottom: snapValue(
+            cursorBlockDesiredPos.y + cursorBlockBox.h,
+            horizontalGuidelines,
+            snapTolerance
+          ),
+        }
 
-        const movedBlocksMap: { [key: string]: BlockInstance } = {}
-        const movement = vecSub(
-          movingBlocksBoundingBoxNextPos,
-          movingBlocksBoundingBoxPos
-        )
-
-        const staticBlocks = blocks
-          .filter(b => b.posType === PositionType.Normal)
-          .filter(b => !selectedBlockIds.includes(b.id))
-        staticBlocks.forEach(sb => {
-          const rect = getBlockRect(sb.id)
-          const gap = 10
-          const detectionZoneWidth = 35
-          const detectionAreaPos = viewportCoordsToEnvCoords(
-            {
-              x: rect.left - detectionZoneWidth,
-              y: rect.top - detectionZoneWidth,
-            },
-            camera
-          )
-          const detectionAreaSize = {
-            w: (rect.right - rect.left + detectionZoneWidth * 2) / camera.scale,
-            h: (rect.bottom - rect.top + detectionZoneWidth * 2) / camera.scale,
+        /**
+         * Calculate the final position, but note that x may come from
+         * snapping left or right, and y may come from snapping top or
+         * bottom, we need to do some coordination.
+         *
+         * Also, we need to consider whether to add a gap, depending on
+         * which side of a rect the guideline was generated from.
+         */
+        const xShouldUse = (() => {
+          if (snapResult.left.guideline && snapResult.right.guideline) {
+            /** Whether desire is closer to left or right? */
+            if (
+              Math.abs(cursorBlockDesiredPos.x - snapResult.left.value) <
+              Math.abs(
+                cursorBlockDesiredPos.x +
+                  cursorBlockBox.w -
+                  snapResult.right.value
+              )
+            ) {
+              return 'left'
+            } else {
+              return 'right'
+            }
+          } else if (snapResult.left.guideline) {
+            return 'left'
+          } else {
+            return 'right'
           }
+        })()
 
-          if (
-            isBoxBoxIntersecting(
-              movingBlocksBoundingBoxNextPos.x,
-              movingBlocksBoundingBoxNextPos.y,
-              movingBlocksBoundingBoxSize.w,
-              movingBlocksBoundingBoxSize.h,
-              detectionAreaPos.x,
-              detectionAreaPos.y,
-              detectionAreaSize.w,
-              detectionAreaSize.h
-            )
-          ) {
-            /** Left-Left */
-            if (inRange(movingBlocksBoundingBoxNextPos.x, sb.pos.x)) {
-              movement.x = sb.pos.x - movingBlocksBoundingBoxPos.x
-            }
-
-            /** Left-Right */
+        const yShouldUse = (() => {
+          if (snapResult.top.guideline && snapResult.bottom.guideline) {
+            /** Whether desire is closer to left or right? */
             if (
-              inRange(
-                movingBlocksBoundingBoxNextPos.x,
-                sb.pos.x + rect.width / camera.scale + gap
+              Math.abs(cursorBlockDesiredPos.y - snapResult.top.value) <
+              Math.abs(
+                cursorBlockDesiredPos.y +
+                  cursorBlockBox.h -
+                  snapResult.bottom.value
               )
             ) {
-              movement.x =
-                sb.pos.x +
-                rect.width / camera.scale -
-                movingBlocksBoundingBoxPos.x +
-                gap
+              return 'top'
+            } else {
+              return 'bottom'
             }
-
-            /** Top-Top */
-            if (inRange(movingBlocksBoundingBoxNextPos.y, sb.pos.y)) {
-              movement.y = sb.pos.y - movingBlocksBoundingBoxPos.y
-            }
-
-            /** Top-Bottom */
-            if (
-              inRange(
-                movingBlocksBoundingBoxNextPos.y,
-                sb.pos.y + rect.height / camera.scale + gap
-              )
-            ) {
-              movement.y =
-                sb.pos.y +
-                rect.height / camera.scale -
-                movingBlocksBoundingBoxPos.y +
-                gap
-            }
-
-            /** Right-Right */
-            if (
-              inRange(
-                movingBlocksBoundingBoxNextPos.x +
-                  movingBlocksBoundingBoxSize.w,
-                sb.pos.x + rect.width / camera.scale
-              )
-            ) {
-              movement.x =
-                sb.pos.x +
-                rect.width / camera.scale -
-                (movingBlocksBoundingBoxPos.x + movingBlocksBoundingBoxSize.w)
-            }
-
-            /** Right-Left */
-            if (
-              inRange(
-                movingBlocksBoundingBoxNextPos.x +
-                  movingBlocksBoundingBoxSize.w,
-                sb.pos.x - gap
-              )
-            ) {
-              movement.x =
-                sb.pos.x -
-                (movingBlocksBoundingBoxPos.x + movingBlocksBoundingBoxSize.w) -
-                gap
-            }
-
-            /** Bottom-Bottom */
-            if (
-              inRange(
-                movingBlocksBoundingBoxNextPos.y +
-                  movingBlocksBoundingBoxSize.h,
-                sb.pos.y + rect.height / camera.scale
-              )
-            ) {
-              movement.y =
-                sb.pos.y +
-                rect.height / camera.scale -
-                (movingBlocksBoundingBoxPos.y + movingBlocksBoundingBoxSize.h)
-            }
-
-            /** Bottom-Top */
-            if (
-              inRange(
-                movingBlocksBoundingBoxNextPos.y +
-                  movingBlocksBoundingBoxSize.h,
-                sb.pos.y - gap
-              )
-            ) {
-              movement.y =
-                sb.pos.y -
-                (movingBlocksBoundingBoxPos.y + movingBlocksBoundingBoxSize.h) -
-                gap
-            }
+          } else if (snapResult.top.guideline) {
+            return 'top'
+          } else {
+            return 'bottom'
           }
+        })()
+
+        const cursorBlockNewPos = {
+          x:
+            xShouldUse === 'right'
+              ? snapResult.right.guideline
+                ? snapResult.right.guideline.fromSide === RectSide.Left
+                  ? snapResult.right.value - gap - cursorBlockBox.w // another left - cursor right
+                  : snapResult.right.value - cursorBlockBox.w
+                : snapResult.right.value - cursorBlockBox.w
+              : snapResult.left.guideline
+              ? snapResult.left.guideline.fromSide === RectSide.Right
+                ? snapResult.left.value + gap // another right - cursor left
+                : snapResult.left.value
+              : snapResult.left.value, // Not snapping on left / right, just pass-through
+          y:
+            yShouldUse === 'bottom'
+              ? snapResult.bottom.guideline
+                ? snapResult.bottom.guideline.fromSide === RectSide.Top
+                  ? snapResult.bottom.value - gap - cursorBlockBox.h // another top - cursor bottom
+                  : snapResult.bottom.value - cursorBlockBox.h
+                : snapResult.bottom.value - cursorBlockBox.h
+              : snapResult.top.guideline
+              ? snapResult.top.guideline.fromSide === RectSide.Bottom
+                ? snapResult.top.value + gap // another bottom - cursor top
+                : snapResult.top.value
+              : snapResult.top.value, // Not snapping on top / bottom, just pass-through
+        }
+
+        /**
+         * Calculate the final movement so that we can apply it to all
+         * selected blocks.
+         */
+        const cursorBlockFinalMovement = {
+          x: cursorBlockNewPos.x - cursorBlock.pos.x,
+          y: cursorBlockNewPos.y - cursorBlock.pos.y,
+        }
+
+        const newViewingConcept = updateConcept(state.viewingConcept, {
+          references: state.viewingConcept.references.map(ref => {
+            if (shouldMove(ref.id)) {
+              return {
+                ...ref,
+                pos: vecAdd(ref.pos, cursorBlockFinalMovement),
+              }
+            } else {
+              return ref
+            }
+          }),
         })
 
-        movingBlocks.forEach(mb => {
-          movedBlocksMap[mb.id] = {
-            ...mb,
-            pos: vecAdd(mb.pos, movement),
-          }
-        })
-
-        const movedBlocks = Object.values(movedBlocksMap)
-
-        const newBlocks: Block[] = movedBlocks.map(blockInstanceToBlock)
-        const newViewingConcept = updateConcept(viewingConcept, {
-          references: viewingConcept.references
-            .filter(r => !selectedBlockIds.includes(r.id))
-            .concat(newBlocks),
-        })
+        const cursorBlockIndex = blocks.findIndex(b => b.id === id)
 
         pointerOverBlock = (() => {
           for (let i = blocks.length - 1; i >= 0; i--) {
             const block = blocks[i]
+            const blockRect = blockRectManager.getRect(block.id)
             if (
               /** It makes no sense to over itself. */
               block.id !== id &&
-              isPointInRect(pointerInViewportCoords, getBlockRect(block.id))
+              blockRect &&
+              isPointInRect(
+                viewportCoordsToEnvCoords(pointerInViewportCoords, camera),
+                blockRect
+              )
             )
               return block
           }
           return undefined
         })()
+
+        const shouldHighlight = (blockId: BlockId): boolean => {
+          return blockId === (pointerOverBlock && pointerOverBlock.id)
+        }
 
         db.updateConcept(newViewingConcept)
 
@@ -474,13 +482,17 @@ export function createReducer(
           ...state,
           viewingConcept: newViewingConcept,
           blocks: blocks
-            .filter(b => !selectedBlockIds.includes(b.id))
-            .concat(movedBlocks)
-            .map(b =>
-              updateBlockInstance(b, {
-                highlighted: b.id === (pointerOverBlock && pointerOverBlock.id),
-              })
-            ),
+            /** Bring to cursor block to the top. */
+            .slice(0, cursorBlockIndex)
+            .concat(blocks.slice(cursorBlockIndex + 1))
+            .concat(blocks[cursorBlockIndex])
+            .map(b => ({
+              ...b,
+              highlighted: shouldHighlight(b.id) ? true : false,
+              pos: shouldMove(b.id)
+                ? vecAdd(b.pos, cursorBlockFinalMovement)
+                : b.pos,
+            })),
         }
       }
       case Action.BlockMoveEnd: {
@@ -568,7 +580,7 @@ export function createReducer(
           return {
             ...state,
             viewingConcept: newViewingConcept,
-            pointerOffsetInSelectionBoundingBox: { x: 0, y: 0 },
+            pointerOffsetInCursorBox: { x: 0, y: 0 },
             blocks: blocks
               .filter(b => !movingBlocks.includes(b))
               .map(b => ({
@@ -579,12 +591,20 @@ export function createReducer(
                     : b.concept,
                 highlighted: false,
               })),
+            relations: state.relations.filter(
+              r =>
+                !(
+                  isBlockToBlockInCanvasRelation(r) &&
+                  (movingBlocks.find(b => b.id === r.fromId) ||
+                    movingBlocks.find(b => b.id === r.toId))
+                )
+            ),
           }
         }
 
         return {
           ...state,
-          pointerOffsetInSelectionBoundingBox: { x: 0, y: 0 },
+          pointerOffsetInCursorBox: { x: 0, y: 0 },
           blocks: state.blocks.map(b =>
             updateBlockInstance(b, { highlighted: false })
           ),
@@ -595,7 +615,7 @@ export function createReducer(
         const { camera, blocks, selectedBlockIds } = state
 
         const cursorBlock = state.blocks.find(b => b.id === id)
-        const cursorBlockRectInViewportCoords = getBlockRect(id)
+        const cursorBlockRectInEnvCoords = blockRectManager.getRect(id)
         const cursorBlockOldSize = cursorBlock.size
 
         cursorBlockNewSize =
@@ -606,12 +626,12 @@ export function createReducer(
                   typeof cursorBlockOldSize.w === 'number'
                     ? cursorBlockOldSize.w +
                       movementInViewportCoords.x / camera.scale
-                    : cursorBlockRectInViewportCoords.width / camera.scale,
+                    : cursorBlockRectInEnvCoords.width,
                 h:
                   typeof cursorBlockOldSize.h === 'number'
                     ? cursorBlockOldSize.h +
                       movementInViewportCoords.y / camera.scale
-                    : cursorBlockRectInViewportCoords.height / camera.scale,
+                    : cursorBlockRectInEnvCoords.height,
               }
             : {
                 w:
@@ -644,22 +664,13 @@ export function createReducer(
         }
 
         const guidelineRects = blocks
-          .filter(
-            /** Not cursor block, not selected, position normal. */
-            b => !shouldResize(b.id)
-          )
+          .filter(b => !shouldResize(b.id) && b.posType === PositionType.Normal)
           .map(b => {
-            const viewportRect = getBlockRect(b.id)
+            const envRect = blockRectManager.getRect(b.id)
             return {
               ...b.pos,
-              w:
-                typeof b.size.w === 'number'
-                  ? b.size.w
-                  : viewportRect.width / camera.scale,
-              h:
-                typeof b.size.h === 'number'
-                  ? b.size.h
-                  : viewportRect.height / camera.scale,
+              w: typeof b.size.w === 'number' ? b.size.w : envRect.width,
+              h: typeof b.size.h === 'number' ? b.size.h : envRect.height,
             }
           })
 
@@ -819,7 +830,7 @@ export function createReducer(
           return { ...state }
         }
 
-        clearElementRectMap()
+        blockRectManager.clear()
 
         db.saveSettings({
           debugging: state.debugging,
@@ -833,6 +844,8 @@ export function createReducer(
           viewingConcept: concept,
           camera: concept.camera,
           blocks: synthesizeView(concept, db),
+          blocksRendered: false,
+          relations: [],
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
         }
       }
@@ -997,6 +1010,74 @@ export function createReducer(
           camera: newCamera,
         }
       }
+      case Action.RelationDrawStart: {
+        const { id, pointerInViewportCoords } = action.data
+        const { camera } = state
+
+        return {
+          ...state,
+          drawingRelation: true,
+          drawingRelationFromBlockId: id,
+          drawingRelationToPoint: viewportCoordsToEnvCoords(
+            pointerInViewportCoords,
+            camera
+          ),
+        }
+      }
+      case Action.RelationDrawMove: {
+        const { pointerInViewportCoords } = action.data
+        const { camera } = state
+
+        return {
+          ...state,
+          drawingRelationToPoint: viewportCoordsToEnvCoords(
+            pointerInViewportCoords,
+            camera
+          ),
+        }
+      }
+      case Action.RelationDrawEnd: {
+        const { id, pointerInViewportCoords } = action.data
+        const { blocks, relations, camera } = state
+
+        const targetBlock = (() => {
+          for (let i = blocks.length - 1; i >= 0; i--) {
+            const block = blocks[i]
+            if (
+              /** Disallow drawing a relation to itself. */
+              block.id !== id &&
+              isPointInRect(
+                viewportCoordsToEnvCoords(pointerInViewportCoords, camera),
+                blockRectManager.getRect(block.id)
+              )
+            )
+              return block
+          }
+          return undefined
+        })()
+
+        const newRelationProps = targetBlock && {
+          type: 'block-to-block-in-canvas',
+          fromEntity: Entity.Block,
+          fromId: id,
+          toEntity: Entity.Block,
+          toId: targetBlock.id,
+        }
+
+        const newRelation =
+          newRelationProps &&
+          /** Disallow drawing duplicate 'block-to-block-in-canvas' relations. */
+          !isRelationExists(relations, newRelationProps) &&
+          createSimpleRelation(newRelationProps)
+
+        return {
+          ...state,
+          relations: newRelation ? relations.concat(newRelation) : relations,
+          drawingRelation: false,
+          drawingRelationFromBlockId: '',
+          drawingRelationToPoint: { x: 0, y: 0 },
+        }
+      }
       case Action.DebuggingToggle: {
         db.saveSettings({
           debugging: !state.debugging,
@@ -1009,7 +1090,7 @@ export function createReducer(
         }
       }
       case Action.Undo: {
-        clearElementRectMap()
+        blockRectManager.clear()
 
         const { expandHistory } = state
         const backToConceptId = expandHistory[expandHistory.length - 2]
@@ -1028,7 +1109,15 @@ export function createReducer(
           viewingConcept: concept,
           camera: concept.camera,
           blocks: synthesizeView(concept, db),
+          blocksRendered: false,
+          relations: [],
           expandHistory: [''].concat(expandHistory.slice(0, -1)),
+        }
+      }
+      case Action.BlocksRendered: {
+        return {
+          ...state,
+          blocksRendered: true,
         }
       }
     }

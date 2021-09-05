@@ -67,3 +67,9 @@ export interface Camera {
 }
 
 export type Timestamp = number
+
+export enum Entity {
+  Concept = 'concept',
+  Block = 'block',
+  View = 'view',
+}

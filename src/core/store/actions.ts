@@ -20,9 +20,13 @@ export enum Action {
   SelectionBoxSetStart = 'selectionBox::setStart',
   SelectionBoxSetEnd = 'selectionBox::setEnd',
   SelectionBoxClear = 'selectionBox::clear',
+  RelationDrawStart = 'relation::drawStart',
+  RelationDrawMove = 'relation::drawMove',
+  RelationDrawEnd = 'relation::drawEnd',
   DebuggingToggle = 'debugging::toggle',
   /** Now only for undo `BlockOpenAsCanvas`, but will evolve to real undo. */
   Undo = 'undo',
+  BlocksRendered = 'blocksRendered',
 }
 
 interface ConceptCreateAction {
@@ -144,12 +148,40 @@ interface SelectionBoxClearAction {
   type: Action.SelectionBoxClear
 }
 
+interface RelationDrawStartAction {
+  type: Action.RelationDrawStart
+  data: {
+    id: BlockId
+    pointerInViewportCoords: Vec2
+  }
+}
+
+interface RelationDrawMoveAction {
+  type: Action.RelationDrawMove
+  data: {
+    id: BlockId
+    pointerInViewportCoords: Vec2
+  }
+}
+
+interface RelationDrawEndAction {
+  type: Action.RelationDrawEnd
+  data: {
+    id: BlockId
+    pointerInViewportCoords: Vec2
+  }
+}
+
 interface DebuggingToggleAction {
   type: Action.DebuggingToggle
 }
 
 interface UndoAction {
   type: Action.Undo
+}
+
+interface BlocksRendered {
+  type: Action.BlocksRendered
 }
 
 export type Actions =
@@ -172,5 +204,9 @@ export type Actions =
   | SelectionBoxSetStartAction
   | SelectionBoxSetEndAction
   | SelectionBoxClearAction
+  | RelationDrawStartAction
+  | RelationDrawMoveAction
+  | RelationDrawEndAction
   | DebuggingToggleAction
   | UndoAction
+  | BlocksRendered

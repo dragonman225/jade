@@ -6,11 +6,7 @@ import { Cross } from './Icons/Cross'
 import { Expand } from './Icons/Expand'
 import { styles } from './Block.styles'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
-import {
-  deleteElement,
-  setElement,
-  setElementRect,
-} from '../utils/element-pool'
+import { blockRectManager } from '../utils/element-pool'
 import { Action, Actions } from '../store/actions'
 import { BlockId, ConceptId, InteractionMode } from '../interfaces'
 
@@ -41,13 +37,13 @@ export function Block(props: Props): JSX.Element {
 
   const blockRef = useRef<HTMLDivElement>(null)
   const resizerRef = useRef<HTMLDivElement>(null)
+  const arrowTriggerRef = useRef<HTMLDivElement>(null)
   const modeRef = useRef<InteractionMode>(mode)
 
   useEffect(() => {
-    setElement(id, blockRef.current)
-    setElementRect(id, blockRef.current.getBoundingClientRect())
+    blockRectManager.setElement(id, blockRef.current)
 
-    return () => deleteElement(id)
+    return () => blockRectManager.detachElement(id)
   }, [id])
 
   useEffect(() => {
@@ -56,7 +52,7 @@ export function Block(props: Props): JSX.Element {
 
   useEffect(() => {
     const gestureDetector = (() => {
-      let intent: '' | 'move' | 'resize' = ''
+      let intent: '' | 'move' | 'resize' | 'arrow' = ''
       let lastClientCoords = { x: 0, y: 0 }
 
       const handlePointerMove = (e: MouseEvent | TouchEvent) => {
@@ -76,23 +72,42 @@ export function Block(props: Props): JSX.Element {
         } else if (intent === 'move') {
           dispatchAction({
             type: Action.BlockMove,
-            data: { id, pointerInViewportCoords: clientCoords },
+            data: {
+              id,
+              pointerInViewportCoords: clientCoords,
+            },
           })
           dispatchAction({
             type: Action.BlockSetMode,
             data: { id, mode: InteractionMode.Moving },
           })
+        } else if (intent === 'arrow') {
+          dispatchAction({
+            type: Action.RelationDrawMove,
+            data: { id, pointerInViewportCoords: clientCoords },
+          })
         }
       }
 
-      const handlePointerUp = () => {
+      const handlePointerUp = (e: MouseEvent | TouchEvent) => {
         window.removeEventListener('mousemove', handlePointerMove)
         window.removeEventListener('touchmove', handlePointerMove)
         window.removeEventListener('mouseup', handlePointerUp)
         window.removeEventListener('touchend', handlePointerUp)
 
+        const clientCoords = getUnifiedClientCoords(e)
+
+        if (intent === 'arrow') {
+          dispatchAction({
+            type: Action.RelationDrawEnd,
+            data: {
+              id,
+              pointerInViewportCoords: clientCoords,
+            },
+          })
+        }
+
         intent = ''
-        lastClientCoords = { x: 0, y: 0 }
 
         if (modeRef.current === InteractionMode.Moving)
           dispatchAction({ type: Action.BlockMoveEnd })
@@ -119,9 +134,16 @@ export function Block(props: Props): JSX.Element {
           lastClientCoords = clientCoords
 
           const resizerRect = resizerRef.current.getBoundingClientRect()
+          const arrowTriggerRect = arrowTriggerRef.current.getBoundingClientRect()
 
           if (isPointInRect(clientCoords, resizerRect)) intent = 'resize'
-          else if (modeRef.current !== InteractionMode.Focusing) {
+          else if (isPointInRect(clientCoords, arrowTriggerRect)) {
+            intent = 'arrow'
+            dispatchAction({
+              type: Action.RelationDrawStart,
+              data: { id, pointerInViewportCoords: clientCoords },
+            })
+          } else if (modeRef.current !== InteractionMode.Focusing) {
             intent = 'move'
             dispatchAction({
               type: Action.BlockMoveStart,
@@ -213,6 +235,19 @@ export function Block(props: Props): JSX.Element {
               type: Action.BlockRemove,
               data: { id },
             })
+          }}>
+          <Cross />
+        </div>
+        <div
+          ref={arrowTriggerRef}
+          className="ActionBtn"
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 22,
+            width: 20,
+            height: 20,
+            padding: 4,
           }}>
           <Cross />
         </div>

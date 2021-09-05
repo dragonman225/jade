@@ -1,5 +1,6 @@
 export * from './block'
 export * from './concept'
+export * from './relation'
 export * from './core'
 export * from './factory'
 export * from './legacy'

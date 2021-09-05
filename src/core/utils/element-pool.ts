@@ -1,39 +1,57 @@
-import { BlockId } from '../interfaces'
+import { BlockId, Camera } from '../interfaces'
+import { viewportRectToEnvRect } from './math'
 
-const elementMap = new Map<BlockId, HTMLDivElement>()
+export class BlockRectManager {
+  private camera: Camera
+  private blockElementMap: Map<BlockId, HTMLDivElement>
+  private blockRectCacheMap: Map<BlockId, Omit<DOMRect, 'toJSON'>>
 
-export function setElement(blockId: BlockId, el: HTMLDivElement): void {
-  elementMap.set(blockId, el)
+  constructor() {
+    this.blockElementMap = new Map<BlockId, HTMLDivElement>()
+    this.blockRectCacheMap = new Map<BlockId, Omit<DOMRect, 'toJSON'>>()
+  }
+
+  setElement = (blockId: BlockId, el: HTMLDivElement): void => {
+    this.blockElementMap.set(blockId, el)
+    this.blockRectCacheMap.delete(blockId)
+  }
+
+  detachElement = (blockId: BlockId): void => {
+    const el = this.blockElementMap.get(blockId)
+    if (el) {
+      this.blockRectCacheMap.set(
+        blockId,
+        viewportRectToEnvRect(el.getBoundingClientRect(), this.camera)
+      )
+      this.blockElementMap.delete(blockId)
+    }
+  }
+
+  getRect = (blockId: BlockId): Omit<DOMRect, 'toJSON'> | undefined => {
+    const el = this.blockElementMap.get(blockId)
+    if (el) {
+      return viewportRectToEnvRect(el.getBoundingClientRect(), this.camera)
+    }
+    const rect = this.blockRectCacheMap.get(blockId)
+    if (rect) return rect
+    return undefined
+  }
+
+  updateCamera = (camera: Camera): void => {
+    this.camera = camera
+  }
+
+  clear = (): void => {
+    this.blockElementMap.clear()
+    this.blockRectCacheMap.clear()
+  }
+
+  deleteBlocks = (blockIds: BlockId[]): void => {
+    blockIds.forEach(id => {
+      this.blockElementMap.delete(id)
+      this.blockRectCacheMap.delete(id)
+    })
+  }
 }
 
-export function getElement(blockId: BlockId): HTMLDivElement | undefined {
-  return elementMap.get(blockId)
-}
-
-export function deleteElement(blockId: BlockId): void {
-  elementMap.delete(blockId)
-}
-
-const elementRectMap = new Map<BlockId, DOMRect>()
-
-export function setElementRect(blockId: BlockId, rect: DOMRect): void {
-  elementRectMap.set(blockId, rect)
-}
-
-export function getElementRect(blockId: BlockId): DOMRect | undefined {
-  return elementRectMap.get(blockId)
-}
-
-export function deleteElementRects(blockIds: BlockId[]): void {
-  blockIds.forEach(id => elementRectMap.delete(id))
-}
-
-export function clearElementRectMap(): void {
-  elementRectMap.clear()
-}
-
-export function getBlockRect(id: BlockId): DOMRect {
-  return getElement(id)
-    ? getElement(id).getBoundingClientRect()
-    : getElementRect(id)
-}
+export const blockRectManager = new BlockRectManager()

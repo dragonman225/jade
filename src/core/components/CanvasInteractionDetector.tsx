@@ -10,7 +10,7 @@ interface Props {
   children?: React.ReactNode
 }
 
-export function Viewport(props: Props): JSX.Element {
+export function CanvasInteractionDetector(props: Props): JSX.Element {
   const { dispatchAction, children } = props
 
   /**

@@ -11,7 +11,7 @@ interface Props {
   children?: React.ReactNode
 }
 
-export function NormalLayer(props: Props): JSX.Element {
+export function NormalPositioned(props: Props): JSX.Element {
   const { focus, scale, selecting, selectionBox, children } = props
 
   return (

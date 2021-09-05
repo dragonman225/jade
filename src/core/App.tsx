@@ -2,13 +2,13 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { useMemo, useCallback, useRef, useState, useContext } from 'react'
-import { classes, style } from 'typestyle'
+import { classes } from 'typestyle'
 
-import { Viewport } from './components/Viewport'
-import { Overlay } from './components/Overlay'
-import { Block } from './components/Block'
-import { PinnedLayer } from './components/PinnedLayer'
-import { NormalLayer } from './components/NormalLayer'
+import { Arrow } from './components/Arrow'
+import { Blocks } from './components/Blocks'
+import { CanvasInteractionDetector } from './components/CanvasInteractionDetector'
+import { PinnedPositioned } from './components/PinnedPositioned'
+import { NormalPositioned } from './components/NormalPositioned'
 import { ViewObject } from './components/ViewObject'
 import { AppStyles } from './App.styles'
 import { AppStateContext } from './store/appStateContext'
@@ -17,138 +17,30 @@ import { useAnimationFrame } from './useAnimationFrame'
 import { createReducer, loadAppState } from './store/reducer'
 import {
   AppState,
-  BlockInstance,
-  Concept,
   DatabaseInterface,
   FactoryRegistry,
   InteractionMode,
   PositionType,
 } from './interfaces'
 import { Action, Actions } from './store/actions'
-import { isBoxBoxIntersectingObjVer } from './utils'
-import { getElementRect } from './utils/element-pool'
+import {
+  boundingBoxOfBoxes,
+  growBox,
+  isBoxBoxIntersectingObjVer,
+} from './utils'
+import { blockRectManager } from './utils/element-pool'
+import { blockToBox, findBlock } from './utils/block'
+import { SystemContext } from './store/systemContext'
+import { Overlay } from './components/Overlay'
 
-interface BlockDriverProps {
-  block: BlockInstance
-  db: DatabaseInterface
-  factoryRegistry: FactoryRegistry
-  dispatchAction: (action: Actions) => void
-  createOverlay: (children: React.ReactNode) => React.ReactPortal
-}
+const zeroSize = { w: 0, h: 0 }
 
-// const debugBlockStyle = { height: 50 }
-// const Debug = React.memo(function Debug() {
-//   return <div style={debugBlockStyle} />
-// })
-
-const BlockDriver = React.memo(function BlockDriver(
-  props: BlockDriverProps
-): JSX.Element {
-  const { block, db, factoryRegistry, dispatchAction, createOverlay } = props
-
-  const setMode = useCallback(
-    (mode: InteractionMode) => {
-      dispatchAction({
-        type: Action.BlockSetMode,
-        data: {
-          id: block.id,
-          mode,
-        },
-      })
-    },
-    [block.id, dispatchAction]
-  )
-
-  const handleChange = useCallback(
-    (content: unknown) => {
-      dispatchAction({
-        type: Action.ConceptWriteData,
-        data: {
-          id: block.concept.id,
-          type: block.concept.summary.type,
-          content,
-        },
-      })
-    },
-    [block.concept.id, block.concept.summary.type, dispatchAction]
-  )
-
-  const handleReplace = useCallback(
-    (type: string) => {
-      dispatchAction({
-        type: Action.ConceptWriteData,
-        data: {
-          id: block.concept.id,
-          type,
-          content: { initialized: false },
-        },
-      })
-    },
-    [block.concept.id, dispatchAction]
-  )
-
-  const handleInteractionStart = useCallback(() => {
-    setMode(InteractionMode.Focusing)
-  }, [setMode])
-
-  const handleInteractionEnd = useCallback(() => {
-    setMode(InteractionMode.Idle)
-  }, [setMode])
-
-  const blockClassName = useMemo(() => {
-    return block.posType > PositionType.Normal
-      ? style({
-          boxShadow: theme.shadows.ui,
-          borderRadius: theme.borders.largeRadius,
-        })
-      : undefined
-  }, [block.posType])
-
-  return (
-    <Block
-      id={block.id}
-      conceptId={block.concept.id}
-      mode={block.mode}
-      selected={block.selected}
-      highlighted={block.highlighted}
-      blink={Concept.isHighOrder(block.concept)}
-      dispatchAction={dispatchAction}
-      className={blockClassName}>
-      {factoryRegistry.createConceptDisplay(block.concept.summary.type, {
-        readOnly: block.mode === InteractionMode.Moving,
-        viewMode: 'Block',
-        concept: block.concept,
-        dispatchAction,
-        factoryRegistry,
-        database: db,
-        onChange: handleChange,
-        onReplace: handleReplace,
-        onInteractionStart: handleInteractionStart,
-        onInteractionEnd: handleInteractionEnd,
-        createOverlay,
-      })}
-      {/* <Debug /> */}
-    </Block>
-  )
-})
-
-interface AppProps {
-  db: DatabaseInterface
-  factoryRegistry: FactoryRegistry
-  dispatchAction: (action: Actions) => void
-}
-
-const App = React.memo(function App(props: AppProps) {
-  const { db, factoryRegistry, dispatchAction } = props
+const App = React.memo(function App() {
   const state = useContext(AppStateContext)
-
-  const overlayRef = useRef<HTMLDivElement>(null)
-  const createOverlay = useCallback(
-    (children: React.ReactNode): React.ReactPortal => {
-      return ReactDOM.createPortal(children, overlayRef.current)
-    },
-    []
-  )
+  const { dispatchAction } = useContext(SystemContext)
+  const notifyBlocksRendered = useCallback(() => {
+    dispatchAction({ type: Action.BlocksRendered })
+  }, [dispatchAction])
 
   const normalBlocks = useMemo(() => {
     const windowWidth = window.innerWidth
@@ -162,30 +54,27 @@ const App = React.memo(function App(props: AppProps) {
       h: windowHeight / state.camera.scale + 2 * overscanY,
     }
 
-    return state.blocks.filter(
-      b =>
+    return state.blocks.filter(b => {
+      const rect = blockRectManager.getRect(b.id)
+
+      return (
         b.posType === PositionType.Normal &&
         /**
          * If a Block haven't reported its rect, render it anyway so it can
          * report. Usually this happens when opening a Canvas and
          * double-clicking to create a new Block + Concept.
          */
-        (!getElementRect(b.id) ||
+        (!rect ||
           isBoxBoxIntersectingObjVer(
             {
               ...b.pos,
-              w:
-                typeof b.size.w === 'number'
-                  ? b.size.w
-                  : getElementRect(b.id).width,
-              h:
-                typeof b.size.h === 'number'
-                  ? b.size.h
-                  : getElementRect(b.id).height,
+              w: typeof b.size.w === 'number' ? b.size.w : rect.width,
+              h: typeof b.size.h === 'number' ? b.size.h : rect.height,
             },
             visibleArea
           ))
-    )
+      )
+    })
   }, [state.blocks, state.camera])
 
   const pinnedBlocks = state.blocks.filter(b => b.posType > PositionType.Normal)
@@ -194,51 +83,70 @@ const App = React.memo(function App(props: AppProps) {
     <div
       className={classes(
         AppStyles.App,
-        state.blocks.find(b => b.mode === InteractionMode.Moving)
-          ? AppStyles['App--BlockMoving']
-          : undefined
+        state.blocks.find(b => b.mode === InteractionMode.Moving) &&
+          AppStyles['App--BlockMoving']
       )}>
-      <Viewport dispatchAction={dispatchAction}>
-        <NormalLayer
+      <CanvasInteractionDetector dispatchAction={dispatchAction}>
+        <NormalPositioned
           focus={state.camera.focus}
           scale={state.camera.scale}
           selecting={state.selecting}
           selectionBox={state.selectionBox}>
-          {normalBlocks.map(b => (
-            <ViewObject
-              key={`vo--${b.id}`}
-              posType={b.posType}
-              pos={b.pos}
-              size={b.size}>
-              <BlockDriver
-                block={b}
-                db={db}
-                factoryRegistry={factoryRegistry}
-                dispatchAction={dispatchAction}
-                createOverlay={createOverlay}
-              />
-            </ViewObject>
-          ))}
-        </NormalLayer>
-      </Viewport>
-      <PinnedLayer>
-        {pinnedBlocks.map(b => (
-          <ViewObject
-            key={`vo--${b.id}`}
-            posType={b.posType}
-            pos={b.pos}
-            size={b.size}>
-            <BlockDriver
-              block={b}
-              db={db}
-              factoryRegistry={factoryRegistry}
-              dispatchAction={dispatchAction}
-              createOverlay={createOverlay}
-            />
-          </ViewObject>
-        ))}
-      </PinnedLayer>
-      <Overlay ref={overlayRef} />
+          {state.blocksRendered &&
+            state.relations.map(relation => {
+              const fromBox = blockToBox(
+                findBlock(state.blocks, relation.fromId)
+              )
+              const toBox = blockToBox(findBlock(state.blocks, relation.toId))
+              const viewBox = growBox(boundingBoxOfBoxes([fromBox, toBox]), 10)
+
+              return (
+                <ViewObject
+                  key={`vo-r-${relation.id}`}
+                  posType={PositionType.Normal}
+                  pos={viewBox}
+                  size={zeroSize}>
+                  <Arrow
+                    fromBox={fromBox}
+                    toBox={toBox}
+                    viewBox={viewBox}
+                    color={theme.colors.uiGrey}
+                    size={9}
+                  />
+                </ViewObject>
+              )
+            })}
+          <Blocks blocks={normalBlocks} onRender={notifyBlocksRendered} />
+          {state.blocksRendered &&
+            state.drawingRelation &&
+            (() => {
+              const fromBox = blockToBox(
+                findBlock(state.blocks, state.drawingRelationFromBlockId)
+              )
+              const toBox = { ...state.drawingRelationToPoint, w: 0, h: 0 }
+              const viewBox = growBox(boundingBoxOfBoxes([fromBox, toBox]), 10)
+
+              return (
+                <ViewObject
+                  key={'drawingRelation'}
+                  posType={PositionType.Normal}
+                  pos={viewBox}
+                  size={zeroSize}>
+                  <Arrow
+                    fromBox={fromBox}
+                    toBox={toBox}
+                    viewBox={viewBox}
+                    color={theme.colors.uiPrimaryLight}
+                    size={9}
+                  />
+                </ViewObject>
+              )
+            })()}
+        </NormalPositioned>
+      </CanvasInteractionDetector>
+      <PinnedPositioned>
+        <Blocks blocks={pinnedBlocks} />
+      </PinnedPositioned>
     </div>
   )
 })
@@ -267,14 +175,31 @@ export function AppRoot(props: AppRootProps): JSX.Element {
   useAnimationFrame(() => {
     setStateSnapshot(stateRef.current)
   })
+  const overlayRef = useRef<HTMLDivElement>(null)
+  const createOverlay = useCallback(
+    (children: React.ReactNode): React.ReactPortal => {
+      return ReactDOM.createPortal(children, overlayRef.current)
+    },
+    []
+  )
+  const system = useMemo(
+    () => ({
+      db,
+      factoryRegistry,
+      dispatchAction,
+      createOverlay,
+    }),
+    [db, factoryRegistry, dispatchAction, createOverlay]
+  )
 
   return (
-    <AppStateContext.Provider value={stateSnapshot}>
-      <App
-        db={db}
-        factoryRegistry={factoryRegistry}
-        dispatchAction={dispatchAction}
-      />
-    </AppStateContext.Provider>
+    <>
+      <SystemContext.Provider value={system}>
+        <AppStateContext.Provider value={stateSnapshot}>
+          <App />
+        </AppStateContext.Provider>
+      </SystemContext.Provider>
+      <Overlay ref={overlayRef} />
+    </>
   )
 }
