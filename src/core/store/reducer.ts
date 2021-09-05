@@ -830,8 +830,6 @@ export function createReducer(
           return { ...state }
         }
 
-        blockRectManager.clear()
-
         db.saveSettings({
           debugging: state.debugging,
           homeConceptId: state.homeConceptId,
@@ -1046,6 +1044,8 @@ export function createReducer(
             if (
               /** Disallow drawing a relation to itself. */
               block.id !== id &&
+              /** Disallow drawing a relation to non-normal blocks. */
+              block.posType === PositionType.Normal &&
               isPointInRect(
                 viewportCoordsToEnvCoords(pointerInViewportCoords, camera),
                 blockRectManager.getRect(block.id)
@@ -1090,8 +1090,6 @@ export function createReducer(
         }
       }
       case Action.Undo: {
-        blockRectManager.clear()
-
         const { expandHistory } = state
         const backToConceptId = expandHistory[expandHistory.length - 2]
         const concept = db.getConcept(backToConceptId)

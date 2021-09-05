@@ -18,7 +18,7 @@ export function Blocks({ blocks, onRender }: Props): JSX.Element {
 
   useEffect(() => {
     onRender && onRender()
-  }, [onRender])
+  })
 
   return (
     <>
