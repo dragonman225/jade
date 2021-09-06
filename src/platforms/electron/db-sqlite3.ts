@@ -231,7 +231,7 @@ function createDatabase(path: string): DatabaseInterface {
       const end = Date.now()
       log(`Select concept "${id}" in ${mid - start}ms, \
 parse JSON in ${end - mid}ms.`)
-      return concept
+      return concept.relations ? concept : { ...concept, relations: [] }
     } catch (error) {
       log(error)
       return undefined
@@ -245,7 +245,10 @@ parse JSON in ${end - mid}ms.`)
       const dryConcepts = stmt.all<DryConcept>()
       const end = Date.now()
       log(`Select all concepts in ${end - start} ms`)
-      return dryConcepts.map(c => hydrateConcept(c))
+      return dryConcepts.map(c => {
+        const concept = hydrateConcept(c)
+        return concept.relations ? concept : { ...concept, relations: [] }
+      })
     } catch (error) {
       log(error)
       return undefined

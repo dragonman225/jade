@@ -5,7 +5,7 @@ import { FactoryId, TypedConcept } from '../interfaces'
 export function createConcept(
   type: FactoryId,
   properties: Partial<
-    Pick<TypedConcept<unknown>, 'camera' | 'drawing' | 'references' | 'summary'>
+    Omit<TypedConcept<unknown>, 'id' | 'createdTime' | 'lastEditedTime'>
   > = {}
 ): TypedConcept<unknown> {
   return {
@@ -15,6 +15,7 @@ export function createConcept(
       data: {},
     },
     references: [],
+    relations: [],
     drawing: [],
     camera: {
       focus: { x: 0, y: 0 },
@@ -29,15 +30,15 @@ export function createConcept(
 export function updateConcept(
   concept: TypedConcept<unknown>,
   newProperties: Partial<
-    Pick<TypedConcept<unknown>, 'camera' | 'drawing' | 'references' | 'summary'>
+    Omit<TypedConcept<unknown>, 'id' | 'createdTime' | 'lastEditedTime'>
   >
 ): TypedConcept<unknown> {
   return {
     ...concept,
     ...newProperties,
     /**
-     * Track only content changes. "camera", "drawing", and "references"
-     * should be extracted to a new entity "Canvas".
+     * Track only content changes. "camera", "drawing", "relations", and
+     * "references" should be extracted to a new entity "Canvas".
      *
      * Why calling from prototype?
      * @see https://eslint.org/docs/rules/no-prototype-builtins

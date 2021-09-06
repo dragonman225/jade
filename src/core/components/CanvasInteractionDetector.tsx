@@ -148,7 +148,8 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
             })
           } else if (e.key === 'Delete') {
             dispatchAction({
-              type: Action.BlockRemoveSelected,
+              type: Action.BlockRemove,
+              data: {},
             })
           }
         },

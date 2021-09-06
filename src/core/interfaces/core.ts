@@ -1,6 +1,6 @@
 import { BlockId, BlockInstance } from './block'
 import { ConceptId, TypedConcept } from './concept'
-import { SimpleRelation } from './relation'
+import { Relation } from './relation'
 import { Box, Camera, Vec2 } from './util'
 
 /** App state. */
@@ -21,7 +21,7 @@ export interface AppState {
   selectedBlockIds: BlockId[]
   blocks: BlockInstance[]
   blocksRendered: boolean
-  relations: SimpleRelation[]
+  relations: Relation<unknown>[]
   drawingRelation: boolean
   drawingRelationFromBlockId: BlockId
   drawingRelationToPoint: Vec2 // in environment coords

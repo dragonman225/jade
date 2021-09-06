@@ -49,7 +49,7 @@ export function Arrow({
           c2.y - viewBoxFloored.y
         }, ${end.x - viewBoxFloored.x} ${end.y - viewBoxFloored.y}`}
         stroke={color}
-        strokeWidth={size / 1.618}
+        strokeWidth={size / 2}
         fill="transparent"
         onClick={e => console.log(e)}
       />

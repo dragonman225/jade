@@ -36,7 +36,7 @@ export const database: DatabaseInterface = {
     try {
       const item = localStorage.getItem(`concept/${id}`)
       const concept = JSON.parse(item) as TypedConcept<unknown>
-      return concept
+      return concept.relations ? concept : { ...concept, relations: [] }
     } catch (error) {
       return undefined
     }
@@ -49,7 +49,9 @@ export const database: DatabaseInterface = {
         const concept = JSON.parse(
           localStorage.getItem(key)
         ) as TypedConcept<unknown>
-        concepts.push(concept)
+        concepts.push(
+          concept.relations ? concept : { ...concept, relations: [] }
+        )
       }
     }
     return concepts

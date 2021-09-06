@@ -1,6 +1,7 @@
 import { Camera, Timestamp, Vec2 } from './util'
 import { DatabaseInterface } from './core'
 import { Block } from './block'
+import { Relation } from './relation'
 
 /** Drawing. */
 export type Point = Vec2
@@ -28,6 +29,7 @@ export interface TypedConcept<T> {
     data: T
   }
   references: Block[]
+  relations: Relation<unknown>[]
   drawing: Stroke[]
   camera: Camera
   createdTime: Timestamp

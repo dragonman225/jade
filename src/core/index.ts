@@ -29,7 +29,10 @@ export function startApp(database: DatabaseInterface): void {
         homeConceptId: state3.homeConceptId,
         viewingConceptId: state3.viewingConceptId,
       },
-      Object.values(state3.conceptMap)
+      Object.values(state3.conceptMap).map(c => ({
+        ...c,
+        relations: [],
+      }))
     )
   }
 
@@ -61,6 +64,7 @@ export function startApp(database: DatabaseInterface): void {
           createdTime: migrationTime,
           lastEditedTime: migrationTime,
         })),
+        relations: [],
         summary: c.summary,
         createdTime: migrationTime,
         lastEditedTime: migrationTime,

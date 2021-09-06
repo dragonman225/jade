@@ -92,7 +92,9 @@ export function loadAppState(db: DatabaseInterface): AppState {
     selectedBlockIds: [],
     blocks,
     blocksRendered: false,
-    relations: [],
+    relations: viewingConcept.relations.filter(r =>
+      isBlockToBlockInCanvasRelation(r)
+    ),
     drawingRelation: false,
     drawingRelationFromBlockId: '',
     drawingRelationToPoint: { x: 0, y: 0 },
@@ -181,52 +183,41 @@ export function createReducer(
         }
       }
       case Action.BlockRemove: {
-        const blockId = action.data.id
-        const newViewingConcept = updateConcept(state.viewingConcept, {
-          references: state.viewingConcept.references.filter(
-            b => blockId !== b.id
-          ),
-        })
+        const { blocks, selectedBlockIds } = state
+        const cursorBlockId = action.data.id
+        const cursorBlock =
+          cursorBlockId && blocks.find(b => cursorBlockId === b.id)
 
-        db.updateConcept(newViewingConcept)
-
-        blockRectManager.deleteBlocks([blockId])
-
-        return {
-          ...state,
-          viewingConcept: newViewingConcept,
-          relations: state.relations.filter(
-            r =>
-              !(
-                isBlockToBlockInCanvasRelation(r) &&
-                (r.fromId === blockId || r.toId === blockId)
-              )
-          ),
-          blocks: synthesizeView(newViewingConcept, db),
+        const shouldRemove = (blockId: BlockId): boolean => {
+          return cursorBlock
+            ? cursorBlock.selected
+              ? /** If cursorBlock is selected, we remove all selected blocks. */
+                selectedBlockIds.includes(blockId)
+              : /** Otherwise, we just remove the cursorBlock. */
+                blockId === cursorBlock.id
+            : selectedBlockIds.includes(blockId)
         }
-      }
-      case Action.BlockRemoveSelected: {
+
         const newViewingConcept = updateConcept(state.viewingConcept, {
           references: state.viewingConcept.references.filter(
-            b => !state.selectedBlockIds.find(sbId => sbId === b.id)
+            b => !shouldRemove(b.id)
+          ),
+          relations: state.viewingConcept.relations.filter(
+            r => !shouldRemove(r.fromId) && !shouldRemove(r.toId)
           ),
         })
 
         db.updateConcept(newViewingConcept)
 
-        blockRectManager.deleteBlocks(state.selectedBlockIds)
+        blockRectManager.deleteBlocks(
+          blocks.filter(b => shouldRemove(b.id)).map(b => b.id)
+        )
 
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          relations: state.relations.filter(
-            r =>
-              isBlockToBlockInCanvasRelation(r) &&
-              (state.selectedBlockIds.includes(r.fromId) ||
-                state.selectedBlockIds.includes(r.toId))
-          ),
+          relations: newViewingConcept.relations,
           blocks: synthesizeView(newViewingConcept, db),
-          selectedBlockIds: [],
         }
       }
       case Action.BlockMoveStart: {
@@ -843,7 +834,7 @@ export function createReducer(
           camera: concept.camera,
           blocks: synthesizeView(concept, db),
           blocksRendered: false,
-          relations: [],
+          relations: concept.relations,
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
         }
       }
@@ -1036,7 +1027,7 @@ export function createReducer(
       }
       case Action.RelationDrawEnd: {
         const { id, pointerInViewportCoords } = action.data
-        const { blocks, relations, camera } = state
+        const { blocks, relations, camera, viewingConcept } = state
 
         const targetBlock = (() => {
           for (let i = blocks.length - 1; i >= 0; i--) {
@@ -1070,9 +1061,18 @@ export function createReducer(
           !isRelationExists(relations, newRelationProps) &&
           createSimpleRelation(newRelationProps)
 
+        const newViewingConcept = updateConcept(viewingConcept, {
+          relations: newRelation
+            ? relations.concat(newRelation)
+            : viewingConcept.relations,
+        })
+
+        db.updateConcept(newViewingConcept)
+
         return {
           ...state,
-          relations: newRelation ? relations.concat(newRelation) : relations,
+          viewingConcept: newViewingConcept,
+          relations: newViewingConcept.relations,
           drawingRelation: false,
           drawingRelationFromBlockId: '',
           drawingRelationToPoint: { x: 0, y: 0 },
@@ -1108,7 +1108,7 @@ export function createReducer(
           camera: concept.camera,
           blocks: synthesizeView(concept, db),
           blocksRendered: false,
-          relations: [],
+          relations: concept.relations,
           expandHistory: [''].concat(expandHistory.slice(0, -1)),
         }
       }

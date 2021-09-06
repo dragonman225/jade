@@ -48,6 +48,7 @@ export const toolMaskConcept: TypedConcept<unknown> = {
       size: { w: 270, h: 'auto' },
     }),
   ],
+  relations: [],
   drawing: [],
   camera: createDefaultCamera(),
   createdTime: now,
