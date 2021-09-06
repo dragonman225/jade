@@ -18,6 +18,7 @@ import {
   createSimpleRelation,
   isBlockToBlockInCanvasRelation,
   isRelationExists,
+  removeInvalidRelations,
 } from '../utils/relation'
 import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
 import { blockRectManager } from '../utils/element-pool'
@@ -92,8 +93,9 @@ export function loadAppState(db: DatabaseInterface): AppState {
     selectedBlockIds: [],
     blocks,
     blocksRendered: false,
-    relations: viewingConcept.relations.filter(r =>
-      isBlockToBlockInCanvasRelation(r)
+    relations: removeInvalidRelations(
+      viewingConcept.relations.filter(r => isBlockToBlockInCanvasRelation(r)),
+      blocks
     ),
     drawingRelation: false,
     drawingRelationFromBlockId: '',
@@ -552,6 +554,11 @@ export function createReducer(
             references: viewingConcept.references.filter(
               r => !selectedBlockIds.includes(r.id)
             ),
+            relations: viewingConcept.relations.filter(
+              r =>
+                !selectedBlockIds.includes(r.fromId) &&
+                !selectedBlockIds.includes(r.toId)
+            ),
           })
 
           const newTargetConcept = updateConcept(targetConcept, {
@@ -562,6 +569,13 @@ export function createReducer(
                   ...r,
                   pos: vecAdd(r.pos, vectorToMove),
                 }))
+            ),
+            relations: targetConcept.relations.concat(
+              viewingConcept.relations.filter(
+                r =>
+                  selectedBlockIds.includes(r.fromId) &&
+                  selectedBlockIds.includes(r.toId)
+              )
             ),
           })
 
@@ -582,14 +596,9 @@ export function createReducer(
                     : b.concept,
                 highlighted: false,
               })),
-            relations: state.relations.filter(
-              r =>
-                !(
-                  isBlockToBlockInCanvasRelation(r) &&
-                  (movingBlocks.find(b => b.id === r.fromId) ||
-                    movingBlocks.find(b => b.id === r.toId))
-                )
-            ),
+            relations: newViewingConcept.relations,
+            /** Blocks are moved into another concept, so reset it. */
+            selectedBlockIds: [],
           }
         }
 

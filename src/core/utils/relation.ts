@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import { Entity, Relation, SimpleRelation } from '../interfaces'
+import { BlockInstance, Entity, Relation, SimpleRelation } from '../interfaces'
 
 export function createSimpleRelation(
   properties: Omit<SimpleRelation, 'id' | 'userData'>
@@ -33,5 +33,15 @@ export function isBlockToBlockInCanvasRelation(
     relation.type === 'block-to-block-in-canvas' &&
     relation.fromEntity === Entity.Block &&
     relation.toEntity === Entity.Block
+  )
+}
+
+export function removeInvalidRelations(
+  relations: Relation<unknown>[],
+  blocks: BlockInstance[]
+): Relation<unknown>[] {
+  const blockIds = blocks.map(b => b.id)
+  return relations.filter(
+    r => blockIds.includes(r.fromId) && blockIds.includes(r.toId)
   )
 }
