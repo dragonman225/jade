@@ -212,7 +212,8 @@ function createDatabase(path: string): DatabaseInterface {
 
   function hydrateConcept(dryConcept: DryConcept): TypedConcept<unknown> {
     try {
-      return JSON.parse(dryConcept.json) as TypedConcept<unknown>
+      const concept = JSON.parse(dryConcept.json) as TypedConcept<unknown>
+      return concept.relations ? concept : { ...concept, relations: [] }
     } catch (error) {
       log(error)
       return undefined
@@ -231,7 +232,7 @@ function createDatabase(path: string): DatabaseInterface {
       const end = Date.now()
       log(`Select concept "${id}" in ${mid - start}ms, \
 parse JSON in ${end - mid}ms.`)
-      return concept.relations ? concept : { ...concept, relations: [] }
+      return concept
     } catch (error) {
       log(error)
       return undefined
@@ -245,10 +246,7 @@ parse JSON in ${end - mid}ms.`)
       const dryConcepts = stmt.all<DryConcept>()
       const end = Date.now()
       log(`Select all concepts in ${end - start} ms`)
-      return dryConcepts.map(c => {
-        const concept = hydrateConcept(c)
-        return concept.relations ? concept : { ...concept, relations: [] }
-      })
+      return dryConcepts.map(c => hydrateConcept(c))
     } catch (error) {
       log(error)
       return undefined
