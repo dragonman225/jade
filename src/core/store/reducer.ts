@@ -1015,10 +1015,29 @@ export function createReducer(
       }
       case Action.RelationDrawMove: {
         const { pointerInViewportCoords } = action.data
-        const { camera } = state
+        const { camera, blocks } = state
+
+        const pointerInEnvCoords = viewportCoordsToEnvCoords(
+          pointerInViewportCoords,
+          camera
+        )
+
+        const targetBlock = (() => {
+          for (let i = blocks.length - 1; i >= 0; i--) {
+            const block = blocks[i]
+            const rect = blockRectManager.getRect(block.id)
+            if (rect && isPointInRect(pointerInEnvCoords, rect)) return block
+          }
+          return undefined
+        })()
 
         return {
           ...state,
+          blocks: blocks.map(b =>
+            updateBlockInstance(b, {
+              highlighted: !!targetBlock && b.id === targetBlock.id,
+            })
+          ),
           drawingRelationToPoint: viewportCoordsToEnvCoords(
             pointerInViewportCoords,
             camera
@@ -1072,6 +1091,9 @@ export function createReducer(
         return {
           ...state,
           viewingConcept: newViewingConcept,
+          blocks: blocks.map(b =>
+            updateBlockInstance(b, { highlighted: false })
+          ),
           relations: newViewingConcept.relations,
           drawingRelation: false,
           drawingRelationFromBlockId: '',
