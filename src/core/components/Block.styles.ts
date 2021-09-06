@@ -4,7 +4,7 @@ import theme from '../../theme'
 
 export const styles = stylesheet({
   Block: {
-    background: 'white',
+    background: theme.colors.bgSecondary,
     borderRadius: theme.borders.smallRadius,
     overflow: 'hidden',
     /**
@@ -12,7 +12,8 @@ export const styles = stylesheet({
      * obey `overflow: hidden` set above.
      */
     position: 'relative',
-    animation: `${theme.animations.fadeIn} 200ms ${theme.easings.easeInOutCubic}`,
+    // animation: `${theme.animations.fadeIn} 0.2s ${theme.easings.easeInOutCubic}`,
+    transition: `opacity 0.2s ${theme.easings.easeInOutCubic}`,
     $nest: {
       '&:hover': {
         cursor: 'pointer',
@@ -59,7 +60,7 @@ export const styles = stylesheet({
     boxShadow: `0px 0px 1px 2px ${theme.colors.uiPrimary}`,
   },
   'Block--Focusing': {
-    boxShadow: `0px 0px 1px 2px ${theme.colors.uiBlack}`,
+    boxShadow: `0px 0px 1px 2px ${theme.colors.contentText}`,
     $nest: {
       '&:hover': {
         cursor: 'auto',

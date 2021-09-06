@@ -32,7 +32,7 @@ export const AppStyles = stylesheet({
   App: {
     overflow: 'hidden',
     height: '100%',
-    color: theme.colors.uiBlack,
+    color: theme.colors.contentText,
     background: theme.colors.bgPrimary,
   },
   'App--BlockMoving': {

@@ -30,7 +30,7 @@ export const styles = stylesheet({
     width: '1.5rem',
     height: '1.5rem',
     padding: '.2rem',
-    fill: theme.colors.uiBlack,
+    fill: theme.colors.contentText,
     $nest: {
       ...buttonTransparent.$nest,
       '&:first-child': {

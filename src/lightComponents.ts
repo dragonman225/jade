@@ -13,8 +13,8 @@ export const buttonBase = {
 
 export const buttonTransparent = {
   ...buttonBase,
-  color: theme.colors.uiBlack,
-  background: theme.colors.bgWhite,
+  color: theme.colors.uiText,
+  background: theme.colors.bgSecondary,
   $nest: {
     '&:hover': {
       background: theme.colors.bgHover,
@@ -27,29 +27,29 @@ export const buttonTransparent = {
 
 export const buttonTranslucent = {
   ...buttonBase,
-  color: theme.colors.uiWhite,
-  background: 'rgba(0, 0, 0, 0.4)',
+  color: theme.colors.bgSecondary,
+  background: 'rgba(0, 0, 0, 0.45)',
   backdropFilter: 'blur(5px)',
   $nest: {
     '&:hover': {
-      background: 'rgba(0, 0, 0, 0.5)',
+      background: 'rgba(0, 0, 0, 0.55)',
     },
     '&:active': {
-      background: 'rgba(0, 0, 0, 0.65)',
+      background: 'rgba(0, 0, 0, 0.7)',
     },
   },
 }
 
 export const buttonPrimary = {
   ...buttonBase,
-  color: theme.colors.uiWhite,
-  background: theme.colors.primary2,
+  color: theme.colors.uiText,
+  background: theme.colors.uiPrimaryAttractive,
   $nest: {
     '&:hover': {
-      background: theme.colors.primary2Hover,
+      background: theme.colors.uiPrimaryAttractiveHover,
     },
     '&:active': {
-      background: theme.colors.primary2Active,
+      background: theme.colors.uiPrimaryAttractiveActive,
     },
   },
 }
@@ -61,6 +61,11 @@ export const input = {
   padding: '.3rem .5rem',
   background: theme.colors.bgGrey,
   lineHeight: 1.25,
+}
+
+export const inputTransparent = {
+  ...input,
+  background: theme.colors.bgSecondary,
 }
 
 export const navBasic = {

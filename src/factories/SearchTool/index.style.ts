@@ -1,6 +1,7 @@
 import { stylesheet } from 'typestyle'
 
 import theme from '../../theme'
+import { inputTransparent } from '../../lightComponents'
 
 export const styles = stylesheet({
   'Search--Linking': {
@@ -12,12 +13,10 @@ export const styles = stylesheet({
     padding: theme.paddings.blockComfort,
     $nest: {
       '&>input': {
-        outline: 'none',
-        border: 'none',
+        ...inputTransparent,
         width: '100%',
         padding: '.1rem',
         fontSize: '.8rem',
-        lineHeight: 1.25,
       },
       '&>input::placeholder': {
         color: theme.colors.uiGrey,

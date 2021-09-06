@@ -17,13 +17,13 @@ const math = (
       width: '100%',
       height: '100%',
     }}>
-    <span style={{ position: 'absolute', top: '.25rem', left: '.2rem' }}>
+    <span style={{ position: 'absolute', top: '.35rem', left: '.3rem' }}>
       T
     </span>
-    <span style={{ position: 'absolute', bottom: '.25rem', left: '.5rem' }}>
+    <span style={{ position: 'absolute', bottom: '.35rem', left: '.6rem' }}>
       E
     </span>
-    <span style={{ position: 'absolute', top: '.25rem', right: '.2rem' }}>
+    <span style={{ position: 'absolute', top: '.35rem', right: '.3rem' }}>
       X
     </span>
   </div>

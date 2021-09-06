@@ -110,8 +110,8 @@ const App = React.memo(function App() {
                     fromBox={fromBox}
                     toBox={toBox}
                     viewBox={viewBox}
-                    color={theme.colors.uiGrey}
-                    size={9}
+                    color={theme.colors.uiPrimaryHarder}
+                    size={theme.arrowSize}
                   />
                 </ViewObject>
               )
@@ -136,8 +136,8 @@ const App = React.memo(function App() {
                     fromBox={fromBox}
                     toBox={toBox}
                     viewBox={viewBox}
-                    color={theme.colors.uiPrimaryLight}
-                    size={9}
+                    color={theme.colors.uiPrimaryHarder}
+                    size={theme.arrowSize}
                   />
                 </ViewObject>
               )

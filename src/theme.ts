@@ -2,26 +2,22 @@ import { keyframes } from 'typestyle'
 
 export default {
   colors: {
-    bgPrimary: 'rgba(245, 245, 242)',
-    bgWhite: '#ffffff',
+    bgPrimary: 'hsl(42deg, 70%, 96%)',
+    bgSecondary: 'hsl(42deg, 70%, 98.5%)',
+    bgHover: 'hsla(165deg, 10%, 25%, 0.08)',
+    bgActive: 'hsla(165deg, 10%, 25%, 0.16)',
     bgGrey: '#eeeeee',
-    bgHover: 'rgba(55, 53, 47, 0.08)',
-    bgActive: 'rgba(55, 53, 47, 0.16)',
-    /** First-gen purple-based color */
-    // uiPrimary: 'rgb(115, 0, 216)',
-    // uiPrimaryLight: 'rgba(115, 0, 216, 0.8)',
-    // uiPrimaryVeryLight: 'rgba(115, 0, 216, 0.2)',
-    /** Second-gen green-based color */
-    uiPrimary: 'hsl(165deg, 100%, 33%)',
-    uiPrimaryLight: 'hsla(165deg, 100%, 33%, 0.8)',
-    uiPrimaryVeryLight: 'hsla(165deg, 100%, 33%, 0.2)',
-    primary2: 'hsl(165deg, 100%, 33%)',
-    primary2Hover: 'hsl(165deg, 100%, 39%)',
-    primary2Active: 'hsl(165deg, 100%, 35%)',
+    contentText: 'hsl(165deg, 10%, 25%)',
+    uiText: 'hsl(165deg, 80%, 21%)',
+    uiPrimaryVeryLight: 'hsla(165deg, 65%, 55%, 0.2)',
+    uiPrimaryLight: 'hsla(165deg, 65%, 55%, 0.8)',
+    uiPrimary: 'hsl(165deg, 65%, 55%)',
+    uiPrimaryHarder: 'hsl(42deg, 20%, 35%)',
+    uiPrimaryAttractive: 'hsl(165deg, 80%, 79%)',
+    uiPrimaryAttractiveHover: 'hsl(165deg, 80%, 74%)',
+    uiPrimaryAttractiveActive: 'hsl(165deg, 80%, 69%)',
     uiGrey: '#8e8e8e',
     uiGreyLight: '#e4e4e4',
-    uiBlack: 'rgb(55, 53, 47)',
-    uiWhite: '#fff',
   },
   shadows: {
     ui: `
@@ -49,4 +45,5 @@ export default {
     /** Create comfortable paddings for view mode "navItem". */
     navComfort: '.5rem',
   },
+  arrowSize: 6,
 }
