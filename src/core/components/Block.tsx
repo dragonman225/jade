@@ -2,8 +2,9 @@ import * as React from 'react'
 import { useRef, useEffect, useMemo } from 'react'
 import { classes } from 'typestyle'
 
+import { ArrowNorthEast } from './Icons/ArrowNorthEast'
 import { Cross } from './Icons/Cross'
-import { Expand } from './Icons/Expand'
+import { OpenInFull } from './Icons/OpenInFull'
 import { styles } from './Block.styles'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
 import { blockRectManager } from '../utils/element-pool'
@@ -21,6 +22,8 @@ interface Props {
   className?: string
   children?: React.ReactNode
 }
+
+const iconSize = 18
 
 export function Block(props: Props): JSX.Element {
   const {
@@ -194,7 +197,7 @@ export function Block(props: Props): JSX.Element {
           ref={resizerRef}
           style={{
             position: 'absolute',
-            top: 0,
+            top: iconSize + 2,
             right: 0,
             bottom: 0,
             width: 20,
@@ -203,32 +206,14 @@ export function Block(props: Props): JSX.Element {
         />
         {blink && <div className="Blink" />}
         <div
-          className="ActionBtn ActionBtn--Green"
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: 20,
-            height: 20,
-            padding: 4,
-          }}
-          onClick={() => {
-            dispatchAction({
-              type: Action.BlockOpenAsCanvas,
-              data: { id: conceptId },
-            })
-          }}>
-          <Expand />
-        </div>
-        <div
           className="ActionBtn ActionBtn--Red"
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
-            width: 20,
-            height: 20,
-            padding: 4,
+            width: iconSize,
+            height: iconSize,
+            padding: 1,
           }}
           onClick={() => {
             dispatchAction({
@@ -239,17 +224,35 @@ export function Block(props: Props): JSX.Element {
           <Cross />
         </div>
         <div
+          className="ActionBtn ActionBtn--Green"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: iconSize + 2,
+            width: iconSize - 2,
+            height: iconSize - 2,
+            padding: 2,
+          }}
+          onClick={() => {
+            dispatchAction({
+              type: Action.BlockOpenAsCanvas,
+              data: { id: conceptId },
+            })
+          }}>
+          <OpenInFull />
+        </div>
+        <div
           ref={arrowTriggerRef}
           className="ActionBtn"
           style={{
             position: 'absolute',
             top: 0,
-            right: 22,
-            width: 20,
-            height: 20,
-            padding: 4,
+            right: 0,
+            width: iconSize,
+            height: iconSize,
+            padding: 1,
           }}>
-          <Cross />
+          <ArrowNorthEast />
         </div>
         {highlighted && <div className={styles.HighlightOverlay} />}
       </div>
