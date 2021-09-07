@@ -14,7 +14,7 @@ export const buttonBase = {
 export const buttonTransparent = {
   ...buttonBase,
   color: theme.colors.uiText,
-  background: theme.colors.bgSecondary,
+  background: 'transparent',
   $nest: {
     '&:hover': {
       background: theme.colors.bgHover,
@@ -65,7 +65,7 @@ export const input = {
 
 export const inputTransparent = {
   ...input,
-  background: theme.colors.bgSecondary,
+  background: 'transparent',
 }
 
 export const navBasic = {
