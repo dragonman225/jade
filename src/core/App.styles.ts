@@ -4,7 +4,7 @@ import theme from '../theme'
 
 cssRaw(`
 *::selection {
-  background: rgba(45, 170, 219, 0.3);
+  background: hsla(165deg, 100%, 60%, 0.3);
 }
 
 * {
