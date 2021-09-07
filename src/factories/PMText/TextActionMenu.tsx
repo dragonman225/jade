@@ -1,7 +1,14 @@
 import * as React from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './TextActionMenu.styles'
+import {
+  HighlightColor,
+  isBackgroundHighlight,
+  isColorHighlight,
+  styles as highlightStyles,
+} from './marks/highlight'
 
 const bold = <span style={{ fontWeight: 600 }}>B</span>
 const italic = <span style={{ fontStyle: 'italic' }}>I</span>
@@ -28,6 +35,7 @@ const math = (
     </span>
   </div>
 )
+const highlight = <span style={{ padding: '0 .3rem' }}>A</span>
 
 interface ButtonProps {
   glow?: boolean
@@ -45,18 +53,73 @@ function Button(props: ButtonProps): JSX.Element {
   )
 }
 
+interface HighlightPickerProps {
+  setHighlight: (color: HighlightColor | undefined) => void
+}
+
+function HighlightPicker(props: HighlightPickerProps): JSX.Element {
+  return (
+    <div className={styles.HighlightPicker}>
+      <div>
+        <div className={styles.Label}>COLOR</div>
+        <div>
+          {Object.values(HighlightColor)
+            .filter(isColorHighlight)
+            .map(color => (
+              <Button key={color} onClick={() => props.setHighlight(color)}>
+                <mark className={highlightStyles.Highlight} data-color={color}>
+                  {highlight}
+                </mark>
+              </Button>
+            ))
+            .concat(
+              <Button
+                key={'no-color'}
+                onClick={() => props.setHighlight(undefined)}>
+                <mark className={highlightStyles.Highlight}>{highlight}</mark>
+              </Button>
+            )}
+        </div>
+      </div>
+      <div>
+        <div className={styles.Label}>BACKGROUND</div>
+        <div>
+          {Object.values(HighlightColor)
+            .filter(isBackgroundHighlight)
+            .map(color => (
+              <Button key={color} onClick={() => props.setHighlight(color)}>
+                <mark className={highlightStyles.Highlight} data-color={color}>
+                  {highlight}
+                </mark>
+              </Button>
+            ))
+            .concat(
+              <Button
+                key={'no-color'}
+                onClick={() => props.setHighlight(undefined)}>
+                <mark className={highlightStyles.Highlight}>{highlight}</mark>
+              </Button>
+            )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 interface TextActionMenuProps {
   boldActive: boolean
   italicActive: boolean
   strikeActive: boolean
   underlineActive: boolean
   codeActive: boolean
+  activeHighlightColor: HighlightColor | undefined
   toggleBold: () => void
   toggleItalic: () => void
   toggleStrike: () => void
   toggleUnderline: () => void
   toggleCode: () => void
   turnIntoMath: () => void
+  setHighlight: (color: HighlightColor | undefined) => void
 }
 
 /** An UI to trigger commands that operate on a selection. */
@@ -64,6 +127,25 @@ export const TextActionMenu = React.forwardRef<
   HTMLDivElement,
   TextActionMenuProps
 >(function TextActionMenu(props, ref) {
+  const { setHighlight } = props
+
+  const [showHighlightPicker, setShowHighlightPicker] = useState(false)
+
+  /** Close highlight picker when TextActionMenu unmounts. */
+  useEffect(() => {
+    return () => {
+      setShowHighlightPicker(false)
+    }
+  }, [])
+
+  const handleSetHighlight = useCallback(
+    (color: HighlightColor) => {
+      setHighlight(color)
+      setShowHighlightPicker(false)
+    },
+    [setHighlight]
+  )
+
   return (
     <div className={styles.TextActionMenu} ref={ref}>
       <Button glow={props.boldActive} onClick={props.toggleBold}>
@@ -81,7 +163,17 @@ export const TextActionMenu = React.forwardRef<
       <Button glow={props.codeActive} onClick={props.toggleCode}>
         {code}
       </Button>
+      <Button onClick={() => setShowHighlightPicker(true)}>
+        <mark
+          className={highlightStyles.Highlight}
+          data-color={props.activeHighlightColor || null}>
+          {highlight}
+        </mark>
+      </Button>
       <Button onClick={props.turnIntoMath}>{math}</Button>
+      {showHighlightPicker && (
+        <HighlightPicker setHighlight={handleSetHighlight} />
+      )}
     </div>
   )
 })

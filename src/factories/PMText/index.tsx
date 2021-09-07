@@ -14,6 +14,7 @@ import { styles } from './index.styles'
 import { TextActionMenu } from './TextActionMenu'
 import { schema } from './schema'
 import {
+  getActiveHighlightColor,
   getActiveMarks,
   getProseMirrorDoc,
   inputRulesPlugin,
@@ -25,6 +26,7 @@ import {
   isUnderlineActive,
   keymapPlugin,
   MarkActiveMap,
+  setHighlightColor,
   toggleMarkOnSelection,
   turnIntoMath,
 } from './utils'
@@ -33,6 +35,7 @@ import { observeInlineSelection } from './observeInlineSelection'
 import { observeKeyword } from './observeKeyword'
 import { getUnifiedClientCoords, isPointInRect } from '../../core/utils'
 import { ConceptDisplayProps, Vec2, Factory } from '../../core/interfaces'
+import { HighlightColor } from './marks/highlight'
 
 /**
  * Problems of ProseMirror:
@@ -95,6 +98,17 @@ const PMText: React.FunctionComponent<Props> = props => {
   const toggleStrike = createToggleMark(schema.marks.strike)
   const toggleUnderline = createToggleMark(schema.marks.underline)
   const toggleCode = createToggleMark(schema.marks.code)
+  const [activeHighlightColor, setActiveHighlightColor] = useState<
+    HighlightColor | undefined
+  >(undefined)
+  const setHighlight = (color: HighlightColor) => {
+    editorView.current.focus()
+    setHighlightColor(
+      editorView.current,
+      editorView.current.state.selection,
+      color
+    )
+  }
 
   /** Slash Menu. */
   const [showSlashMenu, setShowSlashMenu] = useState(false)
@@ -207,6 +221,7 @@ const PMText: React.FunctionComponent<Props> = props => {
 
         setShowPlaceholder(isProseMirrorDocEmpty(newState.doc))
         setMarkActiveMap(getActiveMarks(view.state.selection))
+        setActiveHighlightColor(getActiveHighlightColor(view.state.selection))
 
         /**
          * Submit changes only when the transaction modifies the doc and
@@ -413,6 +428,7 @@ const PMText: React.FunctionComponent<Props> = props => {
                   strikeActive={strikeActive}
                   underlineActive={underlineActive}
                   codeActive={codeActive}
+                  activeHighlightColor={activeHighlightColor}
                   toggleBold={toggleBold}
                   toggleItalic={toggleItalic}
                   toggleStrike={toggleStrike}
@@ -426,6 +442,7 @@ const PMText: React.FunctionComponent<Props> = props => {
                     editorView.current.focus()
                     setShowTextActionMenu(false)
                   }}
+                  setHighlight={setHighlight}
                 />
               </div>
             )}

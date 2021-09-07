@@ -12,6 +12,11 @@ import {
 
 import { schema } from './schema'
 import { markingInputRule, markingPatterns } from './markingInputRule'
+import {
+  HighlightColor,
+  highlightMarkName,
+  HighlightMark,
+} from './marks/highlight'
 
 export function isProseMirrorDocEmpty(doc: Node): boolean {
   return doc && doc.content.size === 0
@@ -105,6 +110,15 @@ export function whenHasFocus(command: Command): Command {
   }
 }
 
+export function collectTextNodes(selection: Selection): Node[] {
+  const slice = selection.content()
+  const textNodes: Node[] = []
+  slice.content.descendants(node => {
+    if (node.isText) textNodes.push(node)
+  })
+  return textNodes
+}
+
 export type MarkActiveMap = Map<MarkType, boolean>
 
 export function toggleMarkOnSelection(
@@ -123,11 +137,7 @@ export function toggleMarkOnSelection(
 
 /** A mark is active if all text nodes in the selection has it. */
 export function getActiveMarks(selection: Selection): MarkActiveMap {
-  const slice = selection.content()
-  const textNodes: Node[] = []
-  slice.content.descendants(node => {
-    if (node.isText) textNodes.push(node)
-  })
+  const textNodes = collectTextNodes(selection)
   const markActiveMap = new Map<MarkType, boolean>()
   if (!textNodes) return markActiveMap
   const markCountMap = new Map<MarkType, number>()
@@ -176,4 +186,49 @@ export function turnIntoMath(view: EditorView, selection: Selection): void {
   const fragment = Fragment.from(mathInlineNode)
   const slice = new Slice(fragment, 0, 0)
   view.dispatch(view.state.tr.replaceRange(selection.from, selection.to, slice))
+}
+
+export function getActiveHighlightColor(
+  selection: Selection
+): HighlightColor | undefined {
+  const textNodes = collectTextNodes(selection)
+
+  /** The first text node determines the color to look for. */
+  if (!textNodes[0]) return undefined
+  const firstHighlightColor = (() => {
+    const firstHighlightMark = textNodes[0].marks.find(
+      m => m.type.name === highlightMarkName
+    ) as HighlightMark
+    return firstHighlightMark && firstHighlightMark.attrs.color
+  })()
+
+  /** Ensure all text nodes has highlight mark and the colors are the same. */
+  for (let i = 1; i < textNodes.length; i++) {
+    const textNode = textNodes[i]
+    const highlightMark = textNode.marks.find(
+      m => m.type.name === highlightMarkName
+    ) as HighlightMark
+    if (!highlightMark) return undefined
+    if (highlightMark.attrs.color !== firstHighlightColor) return undefined
+  }
+
+  return firstHighlightColor
+}
+
+export function setHighlightColor(
+  view: EditorView,
+  selection: Selection,
+  color: HighlightColor | undefined
+): void {
+  const mark = schema.mark(highlightMarkName, { color }) as HighlightMark
+  if (color)
+    view.dispatch(view.state.tr.addMark(selection.from, selection.to, mark))
+  else
+    view.dispatch(
+      view.state.tr.removeMark(
+        selection.from,
+        selection.to,
+        schema.marks.highlight
+      )
+    )
 }
