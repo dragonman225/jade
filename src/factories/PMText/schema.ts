@@ -1,6 +1,8 @@
 import { Schema } from 'prosemirror-model'
 
 import { styles } from './index.styles'
+import { highlightMarkSpec } from './marks/highlight'
+import { linkMarkSpec } from './marks/link'
 
 export const schema = new Schema({
   nodes: {
@@ -66,5 +68,7 @@ export const schema = new Schema({
       },
       parseDOM: [{ tag: 'code' }],
     },
+    highlight: highlightMarkSpec,
+    link: linkMarkSpec,
   },
 })
