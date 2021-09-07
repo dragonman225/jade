@@ -16,6 +16,7 @@ export default {
     uiPrimaryAttractive: 'hsl(165deg, 80%, 79%)',
     uiPrimaryAttractiveHover: 'hsl(165deg, 80%, 74%)',
     uiPrimaryAttractiveActive: 'hsl(165deg, 80%, 69%)',
+    uiSecondaryDumb: 'hsl(42deg, 8%, 75%)',
     uiGrey: '#8e8e8e',
     uiGreyLight: '#e4e4e4',
   },

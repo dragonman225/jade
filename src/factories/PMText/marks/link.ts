@@ -1,5 +1,9 @@
+import { stylesheet } from 'typestyle'
 import { MarkSpec, Mark, ParseRule } from 'prosemirror-model'
 
+import theme from '../../../theme'
+
+/** Better types. */
 interface LinkMark extends Mark {
   attrs: {
     href: string
@@ -28,15 +32,32 @@ interface LinkMarkSpec extends MarkSpec {
   parseDOM: LinkParseRule[]
 }
 
+/** Styles for link. */
+export const styles = stylesheet({
+  Link: {
+    color: 'inherit',
+    opacity: 0.75,
+    cursor: 'pointer',
+    textDecoration: 'none',
+    borderBottom: `0.05em solid ${theme.colors.uiSecondaryDumb}`,
+    $nest: {
+      '&:hover': {
+        borderBottom: `0.05em solid ${theme.colors.uiPrimary}`,
+      },
+    },
+  },
+})
+
+/** MarkSpec for link. */
 export const linkMarkSpec = {
   attrs: {
-    href: {},
+    href: { default: '#' },
     title: { default: null },
   },
   inclusive: false,
   toDOM(node) {
     const { href, title } = node.attrs
-    return ['a', { href, title }, 0]
+    return ['a', { class: styles.Link, href, title }, 0]
   },
   parseDOM: [
     {
