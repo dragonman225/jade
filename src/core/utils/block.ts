@@ -89,31 +89,42 @@ export function blockInstanceToBlock(blockInstance: BlockInstance): Block {
   }
 }
 
+/** A filter that pass-through normal positioned blocks. */
+export function isNormalPositioned(block: BlockInstance): boolean {
+  return block.posType === PositionType.Normal
+}
+
+/**
+ * A filter creator to create a filter that pass-through blocks that are
+ * intersecting with a box.
+ */
+export function isIntersectingWithBox(
+  box: Box
+): (block: BlockInstance) => boolean {
+  return function (block): boolean {
+    const blockRect = blockRectManager.getRect(block.id)
+    return (
+      !!blockRect &&
+      isBoxBoxIntersectingObjVer(box, {
+        x: blockRect.x,
+        y: blockRect.y,
+        w: blockRect.width,
+        h: blockRect.height,
+      })
+    )
+  }
+}
+
+/** Get ids of selected blocks, using `blockRectManager` to get rects. */
 export function getSelectedBlockIds(
   blocks: BlockInstance[],
   selectionBox: Box
 ): BlockId[] {
+  const isIntersectingWithSelectionBox = isIntersectingWithBox(selectionBox)
+
   return blocks
-    .map(b => {
-      /** TODO: Resolve 'auto' to actual size. */
-      const { size } = b
-      return {
-        ...b,
-        size: {
-          w: size.w === 'auto' ? 0 : size.w,
-          h: size.h === 'auto' ? 0 : size.h,
-        },
-      }
-    })
-    .filter(
-      /** Filter out pinned blocks. */
-      b =>
-        b.posType === PositionType.Normal &&
-        isBoxBoxIntersectingObjVer(selectionBox, {
-          ...b.pos,
-          ...b.size,
-        })
-    )
+    .filter(isNormalPositioned)
+    .filter(isIntersectingWithSelectionBox)
     .map(b => b.id)
 }
 

@@ -122,6 +122,7 @@ export function createReducer(
     // console.log(`core/store/reducer: "${action.type}"`, action)
     blockRectManager.updateCamera(state.camera)
 
+    /** Press `Ctrl` + `K` > `4` to fold all actions. */
     switch (action.type) {
       case Action.ConceptCreate: {
         const defaultType = factoryRegistry.getDefaultContentFactory().id
