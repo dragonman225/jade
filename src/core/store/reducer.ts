@@ -36,6 +36,7 @@ import {
   BlockId,
   Entity,
   Vec2,
+  Size,
 } from '../interfaces'
 
 export function synthesizeView(
@@ -130,13 +131,16 @@ export function createReducer(
         const { camera } = state
         const defaultType = factoryRegistry.getDefaultContentFactory().id
         const newConcept = createConcept(defaultType)
-        const newBlockPos: Vec2 | undefined = (() => {
+        const newBlockBox: (Vec2 & Size) | undefined = (() => {
           switch (action.data.intent) {
             case ConceptCreatePositionIntent.ExactAt: {
-              return viewportCoordsToEnvCoords(
-                action.data.pointerInViewportCoords,
-                camera
-              )
+              return {
+                ...viewportCoordsToEnvCoords(
+                  action.data.pointerInViewportCoords,
+                  camera
+                ),
+                ...defaultSize,
+              }
             }
             case ConceptCreatePositionIntent.Below: {
               const targetBlockRect = blockRectManager.getRect(
@@ -146,6 +150,8 @@ export function createReducer(
                 targetBlockRect && {
                   x: targetBlockRect.left,
                   y: targetBlockRect.bottom + defaultGap,
+                  w: targetBlockRect.width,
+                  h: defaultSize.h,
                 }
               )
             }
@@ -157,6 +163,8 @@ export function createReducer(
                 targetBlockRect && {
                   x: targetBlockRect.left,
                   y: targetBlockRect.top - 50 + defaultGap,
+                  w: targetBlockRect.width,
+                  h: defaultSize.h,
                 }
               )
             }
@@ -168,6 +176,8 @@ export function createReducer(
                 targetBlockRect && {
                   x: targetBlockRect.left - defaultSize.w - defaultGap,
                   y: targetBlockRect.top,
+                  w: targetBlockRect.width,
+                  h: defaultSize.h,
                 }
               )
             }
@@ -179,16 +189,19 @@ export function createReducer(
                 targetBlockRect && {
                   x: targetBlockRect.right + defaultGap,
                   y: targetBlockRect.top,
+                  w: targetBlockRect.width,
+                  h: defaultSize.h,
                 }
               )
             }
           }
         })()
+        if (!newBlockBox) return state
         const newBlock = createBlock({
           to: newConcept.id,
           posType,
-          pos: newBlockPos,
-          size: defaultSize,
+          pos: newBlockBox,
+          size: newBlockBox,
         })
         const newBlockInstance = createBlockInstance(newBlock, newConcept)
         const newViewingConcept = updateConcept(state.viewingConcept, {
