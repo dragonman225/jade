@@ -27,7 +27,7 @@ function getBacklinksOf(
 }
 
 export const InsightTool: React.FunctionComponent<Props> = props => {
-  const { viewMode, dispatchAction, database, factoryRegistry } = props
+  const { viewMode, blockId, dispatchAction, database, factoryRegistry } = props
   const state = useContext(AppStateContext)
   const [backlinks, setBacklinks] = useState<TypedConcept<unknown>[]>([])
   const [collapsed, setCollapsed] = useState(true)
@@ -85,6 +85,7 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
                         viewMode: 'NavItem',
                         readOnly: true,
                         concept,
+                        blockId,
                         dispatchAction,
                         factoryRegistry,
                         database,

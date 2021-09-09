@@ -34,8 +34,14 @@ import { disableFocusAndPasteWithMouseMiddleButton } from './disableFocusAndPast
 import { observeInlineSelection } from './observeInlineSelection'
 import { observeKeyword } from './observeKeyword'
 import { getUnifiedClientCoords, isPointInRect } from '../../core/utils'
-import { ConceptDisplayProps, Vec2, Factory } from '../../core/interfaces'
+import {
+  ConceptDisplayProps,
+  Vec2,
+  Factory,
+  PositionType,
+} from '../../core/interfaces'
 import { HighlightColor } from './marks/highlight'
+import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 
 /**
  * Problems of ProseMirror:
@@ -58,11 +64,13 @@ const PMText: React.FunctionComponent<Props> = props => {
   const {
     factoryRegistry,
     concept,
+    blockId,
     readOnly,
     onChange,
     onReplace,
     onInteractionStart,
     onInteractionEnd,
+    dispatchAction,
   } = props
 
   /** ProseMirror. */
@@ -140,13 +148,23 @@ const PMText: React.FunctionComponent<Props> = props => {
             index < slashMenuItems.length - 1 ? index + 1 : index
           )
         }
-      } else if (event.key === 'Enter') {
+      } else if (event.key === 'Enter' && !event.shiftKey) {
         if (showSlashMenu) {
           setShowSlashMenu(false)
           /** The "blur" event will not fire after replace, so we need to 
             signal interaction end here. */
           onInteractionEnd()
           onReplace(slashMenuItems[slashMenuChosenItemIndex].type)
+        } else {
+          dispatchAction({
+            type: Action.ConceptCreate,
+            data: {
+              posType: PositionType.Normal,
+              intent: ConceptCreatePositionIntent.Below,
+              blockId,
+            },
+          })
+          onInteractionEnd()
         }
       } else {
         setShowSlashMenu(false)
@@ -154,8 +172,10 @@ const PMText: React.FunctionComponent<Props> = props => {
       return false
     },
     [
-      // onInteractionEnd,
-      // onReplace,
+      onInteractionEnd,
+      onReplace,
+      dispatchAction,
+      blockId,
       showSlashMenu,
       slashMenuChosenItemIndex,
       slashMenuItems,

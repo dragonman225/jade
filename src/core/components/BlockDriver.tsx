@@ -101,6 +101,7 @@ export const BlockDriver = React.memo(function BlockDriver(
         readOnly: block.mode === InteractionMode.Moving,
         viewMode: 'Block',
         concept: block.concept,
+        blockId: block.id,
         dispatchAction,
         factoryRegistry,
         database: db,

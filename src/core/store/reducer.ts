@@ -22,7 +22,7 @@ import {
 } from '../utils/relation'
 import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
 import { blockRectManager } from '../utils/element-pool'
-import { Action, Actions } from './actions'
+import { Action, Actions, ConceptCreatePositionIntent } from './actions'
 import {
   ConceptId,
   DatabaseInterface,
@@ -30,12 +30,12 @@ import {
   PositionType,
   AppState,
   BlockInstance,
-  Size,
   Camera,
   FactoryRegistry,
   TypedConcept,
   BlockId,
   Entity,
+  Vec2,
 } from '../interfaces'
 
 export function synthesizeView(
@@ -107,7 +107,8 @@ export function createReducer(
   db: DatabaseInterface,
   factoryRegistry: FactoryRegistry
 ): (state: AppState, action: Actions) => AppState {
-  const defaultSize: Size = { w: 300, h: 'auto' }
+  const defaultSize: { w: number; h: 'auto' } = { w: 300, h: 'auto' }
+  const defaultGap = 10
 
   /**
    * "Cursor Block" is a block that fires actions when multiple blocks are
@@ -125,12 +126,68 @@ export function createReducer(
     /** Press `Ctrl` + `K` > `4` to fold all actions. */
     switch (action.type) {
       case Action.ConceptCreate: {
+        const { posType } = action.data
+        const { camera } = state
         const defaultType = factoryRegistry.getDefaultContentFactory().id
         const newConcept = createConcept(defaultType)
+        const newBlockPos: Vec2 | undefined = (() => {
+          switch (action.data.intent) {
+            case ConceptCreatePositionIntent.ExactAt: {
+              return viewportCoordsToEnvCoords(
+                action.data.pointerInViewportCoords,
+                camera
+              )
+            }
+            case ConceptCreatePositionIntent.Below: {
+              const targetBlockRect = blockRectManager.getRect(
+                action.data.blockId
+              )
+              return (
+                targetBlockRect && {
+                  x: targetBlockRect.left,
+                  y: targetBlockRect.bottom + defaultGap,
+                }
+              )
+            }
+            case ConceptCreatePositionIntent.Above: {
+              const targetBlockRect = blockRectManager.getRect(
+                action.data.blockId
+              )
+              return (
+                targetBlockRect && {
+                  x: targetBlockRect.left,
+                  y: targetBlockRect.top - 50 + defaultGap,
+                }
+              )
+            }
+            case ConceptCreatePositionIntent.LeftOf: {
+              const targetBlockRect = blockRectManager.getRect(
+                action.data.blockId
+              )
+              return (
+                targetBlockRect && {
+                  x: targetBlockRect.left - defaultSize.w - defaultGap,
+                  y: targetBlockRect.top,
+                }
+              )
+            }
+            case ConceptCreatePositionIntent.RightOf: {
+              const targetBlockRect = blockRectManager.getRect(
+                action.data.blockId
+              )
+              return (
+                targetBlockRect && {
+                  x: targetBlockRect.right + defaultGap,
+                  y: targetBlockRect.top,
+                }
+              )
+            }
+          }
+        })()
         const newBlock = createBlock({
           to: newConcept.id,
-          posType: PositionType.Normal,
-          pos: viewportCoordsToEnvCoords(action.data.position, state.camera),
+          posType,
+          pos: newBlockPos,
           size: defaultSize,
         })
         const newBlockInstance = createBlockInstance(newBlock, newConcept)
@@ -305,7 +362,7 @@ export function createReducer(
           })
 
         const generationTolerance = 36
-        const gap = 10
+        const gap = defaultGap
 
         const {
           horizontalGuidelines,
@@ -676,7 +733,7 @@ export function createReducer(
           })
 
         const generationTolerance = 36 / camera.scale
-        const gap = 10
+        const gap = defaultGap
 
         const {
           horizontalGuidelines,

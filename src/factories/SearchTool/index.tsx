@@ -23,12 +23,13 @@ import { Action } from '../../core/store/actions'
 
 type SearchItemContentProps = Pick<
   ConceptDisplayProps<unknown>,
-  'viewMode' | 'concept' | 'database' | 'dispatchAction'
+  'viewMode' | 'concept' | 'database' | 'dispatchAction' | 'blockId'
 >
 const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props => {
-  const { viewMode, concept, database, dispatchAction } = props
+  const { viewMode, concept, database, dispatchAction, blockId } = props
   return factoryRegistry.createConceptDisplay(concept.summary.type, {
     viewMode,
+    blockId,
     readOnly: true,
     concept,
     dispatchAction,
@@ -93,7 +94,7 @@ function getSearchResult(keyword: string, concepts: TypedConcept<unknown>[]) {
 }
 
 const SearchToolBlock: React.FunctionComponent<Props> = props => {
-  const { dispatchAction, database } = props
+  const { dispatchAction, database, blockId } = props
   const state = useContext(AppStateContext)
   const searchRef = React.useRef<HTMLDivElement>(null)
   const [text, setText] = React.useState('')
@@ -341,6 +342,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                                   setS2lBlock({ valid: false })
                                 }}>
                                 <SearchItemContent
+                                  blockId={blockId}
                                   concept={concept}
                                   viewMode="NavItem"
                                   dispatchAction={dispatchAction}
@@ -353,6 +355,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                             return (
                               <div className={styles.ScrollListItem}>
                                 <SearchItemContent
+                                  blockId={blockId}
                                   concept={concept}
                                   viewMode="NavItem"
                                   dispatchAction={dispatchAction}
@@ -416,6 +419,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 pointerEvents: 'none', // Since we use `viewMode: 'Block'` here.
               }}>
               <SearchItemContent
+                blockId={blockId}
                 concept={concept}
                 database={database}
                 dispatchAction={dispatchAction}

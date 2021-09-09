@@ -16,6 +16,7 @@ type Props = ConceptDisplayProps<undefined>
 const HeaderTool: React.FunctionComponent<Props> = props => {
   const {
     viewMode,
+    blockId,
     dispatchAction,
     createOverlay,
     onInteractionStart,
@@ -72,6 +73,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
             factoryRegistry: props.factoryRegistry,
             database: props.database,
             concept: state.viewingConcept,
+            blockId,
             createOverlay,
             onChange: data =>
               dispatchAction({

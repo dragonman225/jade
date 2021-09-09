@@ -4,8 +4,12 @@ import { stylesheet } from 'typestyle'
 
 import theme from '../../theme'
 import { AppStateContext } from '../../core/store/appStateContext'
-import { ConceptDisplayProps, Factory } from '../../core/interfaces'
-import { Action } from '../../core/store/actions'
+import {
+  ConceptDisplayProps,
+  Factory,
+  PositionType,
+} from '../../core/interfaces'
+import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 
 const styles = stylesheet({
   StatNavItem: {
@@ -96,7 +100,11 @@ export const Status: React.FunctionComponent<Props> = props => {
                     }
                     dispatchAction({
                       type: Action.ConceptCreate,
-                      data: { position: pos },
+                      data: {
+                        posType: PositionType.Normal,
+                        intent: ConceptCreatePositionIntent.ExactAt,
+                        pointerInViewportCoords: pos,
+                      },
                     })
                   }
                 }}>

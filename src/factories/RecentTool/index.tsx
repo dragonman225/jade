@@ -9,7 +9,7 @@ import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 type Props = ConceptDisplayProps<undefined>
 
 export const RecentTool: React.FunctionComponent<Props> = props => {
-  const { viewMode, dispatchAction, database, factoryRegistry } = props
+  const { viewMode, blockId, dispatchAction, database, factoryRegistry } = props
   const state = useContext(AppStateContext)
 
   const recentRef = useRef<HTMLDivElement>(null)
@@ -46,6 +46,7 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
             viewMode: 'NavItem',
             readOnly: true,
             concept,
+            blockId,
             dispatchAction,
             database,
             factoryRegistry,

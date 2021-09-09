@@ -1,7 +1,8 @@
-import { Actions } from '../store/actions'
+import { BlockId } from './block'
 import { TypedConcept } from './concept'
 import { DatabaseInterface } from './core'
 import { Origin } from './util'
+import { Actions } from '../store/actions'
 
 export type FactoryId = string
 
@@ -32,6 +33,7 @@ export interface ConceptDisplayProps<T> {
   readOnly: boolean
   viewMode: 'Block' | 'CardTitle' | 'NavItem'
   concept: TypedConcept<T>
+  blockId: BlockId
   dispatchAction: (action: Actions) => void
   factoryRegistry: FactoryRegistry
   database: DatabaseInterface

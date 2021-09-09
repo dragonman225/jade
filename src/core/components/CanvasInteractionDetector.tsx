@@ -2,8 +2,8 @@ import * as React from 'react'
 import { useRef, useEffect } from 'react'
 
 import { getUnifiedClientCoords, vecSub } from '../utils'
-import { Action, Actions } from '../store/actions'
-import { Vec2 } from '../interfaces'
+import { Action, Actions, ConceptCreatePositionIntent } from '../store/actions'
+import { PositionType, Vec2 } from '../interfaces'
 
 interface Props {
   dispatchAction: (action: Actions) => void
@@ -53,7 +53,9 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
         dispatchAction({
           type: Action.ConceptCreate,
           data: {
-            position: viewportCoords,
+            posType: PositionType.Normal,
+            intent: ConceptCreatePositionIntent.ExactAt,
+            pointerInViewportCoords: viewportCoords,
           },
         })
       }
@@ -64,25 +66,6 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
       let selecting = false
       let lastClientCoords = { x: 0, y: 0 }
 
-      function handlePointerMove(e: MouseEvent | TouchEvent) {
-        const clientCoords = getUnifiedClientCoords(e)
-
-        if (panning) {
-          const movement = vecSub(clientCoords, lastClientCoords)
-          dispatchAction({
-            type: Action.CameraMoveDelta,
-            data: movement,
-          })
-        } else if (selecting) {
-          dispatchAction({
-            type: Action.SelectionBoxSetEnd,
-            data: clientCoords,
-          })
-        }
-
-        lastClientCoords = clientCoords
-      }
-
       function handlePointerUp() {
         panning = false
         if (selecting) {
@@ -92,12 +75,7 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
           selecting = false
         }
 
-        lastClientCoords = { x: 0, y: 0 }
-
-        window.removeEventListener('mousemove', handlePointerMove)
         window.removeEventListener('mouseup', handlePointerUp)
-
-        window.removeEventListener('touchmove', handlePointerMove)
         window.removeEventListener('touchend', handlePointerUp)
       }
 
@@ -132,18 +110,35 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
 
           lastClientCoords = clientCoords
 
-          window.addEventListener('mousemove', handlePointerMove)
           window.addEventListener('mouseup', handlePointerUp)
-
-          window.addEventListener('touchmove', handlePointerMove)
           window.addEventListener('touchend', handlePointerUp)
+        },
+        handlePointerMove: (e: MouseEvent | TouchEvent) => {
+          const clientCoords = getUnifiedClientCoords(e)
+
+          if (panning) {
+            const movement = vecSub(clientCoords, lastClientCoords)
+            dispatchAction({
+              type: Action.CameraMoveDelta,
+              data: movement,
+            })
+          } else if (selecting) {
+            dispatchAction({
+              type: Action.SelectionBoxSetEnd,
+              data: clientCoords,
+            })
+          }
+
+          lastClientCoords = clientCoords
         },
         handleKeydown: (e: KeyboardEvent) => {
           if (e.altKey && e.key === 'n') {
             dispatchAction({
               type: Action.ConceptCreate,
               data: {
-                position: lastClientCoords,
+                posType: PositionType.Normal,
+                intent: ConceptCreatePositionIntent.ExactAt,
+                pointerInViewportCoords: lastClientCoords,
               },
             })
           } else if (e.key === 'Delete') {
@@ -162,6 +157,9 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
     cameraEl.addEventListener('mousedown', inputDetector.handlePointerDown)
     cameraEl.addEventListener('touchstart', inputDetector.handlePointerDown)
     window.addEventListener('keydown', inputDetector.handleKeydown)
+    /** Need to keep track of mouse position for creating a block with `Alt` + `N`. */
+    window.addEventListener('mousemove', inputDetector.handlePointerMove)
+    window.addEventListener('touchmove', inputDetector.handlePointerMove)
 
     return () => {
       cameraEl.removeEventListener('wheel', handleWheel)
@@ -172,6 +170,8 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
         inputDetector.handlePointerDown
       )
       window.removeEventListener('keydown', inputDetector.handleKeydown)
+      window.removeEventListener('mousemove', inputDetector.handlePointerMove)
+      window.removeEventListener('touchmove', inputDetector.handlePointerMove)
     }
   }, [dispatchAction])
 

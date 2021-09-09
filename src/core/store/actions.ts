@@ -1,4 +1,4 @@
-import { BlockId, BlockInstance, Vec2 } from '../interfaces'
+import { BlockId, BlockInstance, PositionType, Vec2 } from '../interfaces'
 
 export enum Action {
   ConceptCreate = 'concept::create',
@@ -28,11 +28,31 @@ export enum Action {
   BlocksRendered = 'blocksRendered',
 }
 
+export enum ConceptCreatePositionIntent {
+  ExactAt = 'exactAt',
+  Below = 'below',
+  Above = 'above',
+  LeftOf = 'leftOf',
+  RightOf = 'rightOf',
+}
+
 interface ConceptCreateAction {
   type: Action.ConceptCreate
-  data: {
-    position: Vec2
-  }
+  data:
+    | {
+        posType: PositionType
+        intent: ConceptCreatePositionIntent.ExactAt
+        pointerInViewportCoords: Vec2
+      }
+    | {
+        posType: PositionType
+        intent:
+          | ConceptCreatePositionIntent.Below
+          | ConceptCreatePositionIntent.Above
+          | ConceptCreatePositionIntent.LeftOf
+          | ConceptCreatePositionIntent.RightOf
+        blockId: BlockId
+      }
 }
 
 interface ConceptWriteDataAction {
