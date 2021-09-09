@@ -33,6 +33,7 @@ export enum HighlightColor {
   BackgroundGreen = 'background-green',
   BackgroundBlue = 'background-blue',
   BackgroundPurple = 'background-purple',
+  BackgroundPink = 'background-pink',
   BluePurpleGradient = 'blue-purple-gradient',
   OrangePinkGradient = 'orange-pink-gradient',
 }
@@ -51,22 +52,25 @@ export const styles = stylesheet({
     borderRadius: theme.borders.smallRadius,
     $nest: {
       [`&[data-color="${HighlightColor.BackgroundRed}"]`]: {
-        background: '#ffa8a8',
+        background: 'rgb(255, 214, 214)',
+      },
+      [`&[data-color="${HighlightColor.BackgroundPink}"]`]: {
+        background: 'rgb(255, 213, 249)',
       },
       [`&[data-color="${HighlightColor.BackgroundOrange}"]`]: {
-        background: '#ffc078',
+        background: 'rgb(255, 235, 214)',
       },
       [`&[data-color="${HighlightColor.BackgroundYellow}"]`]: {
-        background: '#ffe066',
+        background: 'rgb(255, 249, 153)',
       },
       [`&[data-color="${HighlightColor.BackgroundGreen}"]`]: {
-        background: '#8ce99a',
+        background: 'rgb(176, 255, 211)',
       },
       [`&[data-color="${HighlightColor.BackgroundBlue}"]`]: {
-        background: '#74c0fc',
+        background: 'rgb(199, 231, 255)',
       },
       [`&[data-color="${HighlightColor.BackgroundPurple}"]`]: {
-        background: '#b197fc',
+        background: 'rgb(231, 215, 255)',
       },
       /**
        * Gradient colors from Craft
