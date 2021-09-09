@@ -24,7 +24,14 @@ export default {
     ui: `
       rgba(15, 15, 15, 0.15) 0px 0px 2px, 
       rgba(15, 15, 15, 0.1) 0px 0px 7px`,
-    float: `rgba(17, 12, 46, 0.15) 0px 38px 100px 0px`,
+    ui2: `
+      rgba(34, 20, 66, 0.03) 0px 4px 4px,
+      rgba(34, 20, 66, 0.03) 0px 8px 8px ,
+      rgba(34, 20, 66, 0.03) 0px 16px 16px`,
+    float: `rgba(17, 12, 46, 0.15) 0px 38px 100px`,
+    float2: `
+      hsla(42deg, 15%, 70%, 0.05) 0px 16px 36px 8px,
+      hsla(42deg, 30%, 20%, 0.1) 0px 32px 72px 8px`,
   },
   borders: {
     largeRadius: '.6rem',
