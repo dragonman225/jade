@@ -40,8 +40,8 @@ export enum HighlightColor {
 /** Styles for highlight. */
 const gradientBase = {
   '-webkit-background-clip': 'text',
+  '-webkit-text-fill-color': 'transparent',
   '-webkit-box-decoration-break': 'clone',
-  color: 'transparent',
   backgroundClip: 'text',
 } as NestedCSSProperties
 
