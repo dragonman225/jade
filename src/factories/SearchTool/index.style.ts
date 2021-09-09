@@ -7,20 +7,42 @@ export const styles = stylesheet({
   'Search--Linking': {
     cursor: 'grabbing',
   },
-  SearchInput: {
+  SearchBar: {
     display: 'flex',
     alignItems: 'center',
-    padding: theme.paddings.blockComfort,
+    padding: theme.paddings.blockCompact,
+  },
+  SearchIcon: {
+    flex: '0 0 1.5rem',
+    width: '1.5rem',
+    height: '1.5rem',
+    padding: '.2rem',
+    marginRight: '.3rem',
+    fill: theme.colors.uiGrey,
+  },
+  SearchInput: {
+    ...inputTransparent,
+    flex: '1 1 0',
+    padding: '.1rem',
+    fontSize: '.8rem',
+    width: '100%',
     $nest: {
-      '&>input': {
-        ...inputTransparent,
-        width: '100%',
-        padding: '.1rem',
-        fontSize: '.8rem',
-      },
-      '&>input::placeholder': {
+      '&::placeholder': {
         color: theme.colors.uiGrey,
         fontSize: '.8rem',
+      },
+    },
+  },
+  SearchShortcutHint: {
+    flex: '0 0 1.5rem',
+    width: '1.5rem',
+    height: '1.5rem',
+    padding: '.2rem',
+    marginLeft: '.3rem',
+    $nest: {
+      '& > svg': {
+        fill: 'none',
+        stroke: theme.colors.uiGrey,
       },
     },
   },
@@ -28,8 +50,8 @@ export const styles = stylesheet({
     height: '100%',
     maxHeight: 500,
     overflow: 'auto',
-    paddingLeft: '1rem',
-    paddingRight: '1rem',
+    paddingLeft: '1.25rem',
+    paddingRight: '1.25rem',
   },
   ScrollListItem: {
     maxHeight: 150,
@@ -37,16 +59,13 @@ export const styles = stylesheet({
     marginLeft: '-.5rem',
     marginRight: '-.5rem',
     borderRadius: theme.borders.smallRadius,
-    transition: 'background 0.1s ease-in-out',
+    transition: `background 50ms ${theme.easings.easeInOutCubic}`,
     $nest: {
       '&:hover': {
         background: theme.colors.bgHover,
       },
       '&:active': {
         background: theme.colors.bgActive,
-      },
-      '&:first-of-type': {
-        marginTop: '.5rem',
       },
       '&:last-of-type': {
         marginBottom: '.5rem',
@@ -68,16 +87,17 @@ export const styles = stylesheet({
     overflow: 'hidden',
     zIndex: 99999,
   },
-  Pager: {
+  PageBar: {
     display: 'flex',
-    padding: '.5rem 1rem',
+    alignItems: 'center',
+    padding: theme.paddings.blockComfort,
     fontSize: '.8rem',
     textAlign: 'center',
     color: theme.colors.uiGrey,
   },
   Arrow: {
     flex: '0 0 50px',
-    padding: '0px 3px',
+    padding: '.2rem .6rem',
     borderRadius: theme.borders.smallRadius,
     transition: 'background 0.1s ease-in-out',
     cursor: 'pointer',

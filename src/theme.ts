@@ -50,6 +50,8 @@ export default {
   paddings: {
     /** Create comfortable paddings for view mode "block". */
     blockComfort: '.5rem 1.25rem',
+    /** Create compact paddings for view mode "block". */
+    blockCompact: '.35rem 1.25rem',
     /** Create comfortable paddings for view mode "navItem". */
     navComfort: '.5rem',
   },

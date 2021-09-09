@@ -1,8 +1,10 @@
 import * as React from 'react'
-import { useState, useContext } from 'react'
+import { useState, useContext, useRef } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './index.style'
+import { Search } from '../../core/components/Icons/Search'
+import { SlashHint } from '../../core/components/Icons/Slash'
 import { AppStateContext } from '../../core/store/appStateContext'
 import {
   distance,
@@ -97,6 +99,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const { dispatchAction, database, blockId } = props
   const state = useContext(AppStateContext)
   const searchRef = React.useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const [text, setText] = React.useState('')
   const [minimized, setMinimized] = React.useState(true)
   const [resultConcepts, setResultConcepts] = useState<TypedConcept<unknown>[]>(
@@ -261,6 +264,20 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
           window.addEventListener('mouseup', handlePointerUp)
           window.addEventListener('touchend', handlePointerUp)
         },
+        handleKeyDown: (e: KeyboardEvent) => {
+          if (state !== 'idle') return
+          /** Only when there is no other focus. */
+          if (e.key === '/' && document.activeElement === document.body) {
+            inputRef.current && inputRef.current.focus()
+            e.preventDefault() /** Prevent "/" being typed. */
+          } else if (
+            e.key === 'Escape' &&
+            document.activeElement === inputRef.current
+          ) {
+            inputRef.current && inputRef.current.blur()
+            setMinimized(true)
+          }
+        },
       }
     })()
 
@@ -269,6 +286,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
     searchEl.addEventListener('touchstart', gestureDetector.handlePointerDown)
     window.addEventListener('mousedown', handleWindowPointerDown)
     window.addEventListener('touchstart', handleWindowPointerDown)
+    window.addEventListener('keydown', gestureDetector.handleKeyDown)
 
     return () => {
       searchEl.removeEventListener(
@@ -281,8 +299,9 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
       )
       window.removeEventListener('mousedown', handleWindowPointerDown)
       window.removeEventListener('touchstart', handleWindowPointerDown)
+      window.removeEventListener('keydown', gestureDetector.handleKeyDown)
     }
-  })
+  }, [dispatchAction])
 
   const [pageNum, setPage] = useState<number>(0)
   const itemsPerPage = 20
@@ -302,18 +321,28 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
       className={classes(
         s2lState === S2LState.Linking && styles['Search--Linking']
       )}
-      ref={searchRef}
-      onFocus={() => {
-        setMinimized(false)
-      }}>
-      <div className={styles.SearchInput}>
+      ref={searchRef}>
+      <div className={styles.SearchBar}>
+        <div className={styles.SearchIcon}>
+          <Search />
+        </div>
         <input
-          placeholder="Search Concepts"
+          ref={inputRef}
+          className={styles.SearchInput}
+          placeholder="Search"
           onChange={e => {
             setText(e.target.value)
             setPage(0)
           }}
+          onFocus={() => {
+            setMinimized(false)
+          }}
         />
+        {minimized && (
+          <div className={styles.SearchShortcutHint}>
+            <SlashHint />
+          </div>
+        )}
       </div>
       {!minimized ? (
         <>
@@ -375,7 +404,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 })}
             </div>
           </div>
-          <div className={styles.Pager}>
+          <div className={styles.PageBar}>
             <div
               className={styles.Arrow}
               onClick={() => {
