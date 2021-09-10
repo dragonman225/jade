@@ -11,7 +11,9 @@ export function getMouseOffset(e: React.MouseEvent): Vec2 {
 export const getUnifiedClientCoords = (e: MouseEvent | TouchEvent): Vec2 => {
   return e instanceof MouseEvent
     ? { x: e.clientX, y: e.clientY }
-    : { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    : e.touches.length
+    ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    : { x: 0, y: 0 } // TODO: Why does this happen?
 }
 
 interface CaretCoordinates {
