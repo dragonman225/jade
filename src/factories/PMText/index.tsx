@@ -282,12 +282,11 @@ const PMText: React.FunctionComponent<Props> = props => {
             {
               trigger: /\/$/,
               onTrigger: e => {
-                console.log(e)
                 setShowSlashMenu(true)
                 setSlashMenuAnchorRect(e.keywordCoords.from)
               },
               onKeywordChange: console.log,
-              onKeywordStop: console.log,
+              onKeywordStop: () => setShowSlashMenu(false),
             },
           ],
         }),
