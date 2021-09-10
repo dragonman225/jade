@@ -6,7 +6,6 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { classes } from 'typestyle'
 import { AllSelection, EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
-import { MarkType } from 'prosemirror-model'
 import { history } from 'prosemirror-history'
 import { mathPlugin } from '@dragonman225/prosemirror-math'
 
@@ -18,21 +17,14 @@ import {
   getActiveMarks,
   getProseMirrorDoc,
   inputRulesPlugin,
-  isBoldActive,
-  isCodeActive,
-  isItalicActive,
   isProseMirrorDocEmpty,
-  isStrikeActive,
-  isUnderlineActive,
   keymapPlugin,
-  MarkActiveMap,
-  setHighlightColor,
-  toggleMarkOnSelection,
   turnIntoMath,
 } from './utils'
 import { disableFocusAndPasteWithMouseMiddleButton } from './disableFocusAndPasteWithMouseMiddleButton'
 import { observeInlineSelection } from './observeInlineSelection'
 import { observeKeyword } from './observeKeyword'
+import { useTextActionMenu } from './useTextActionMenu'
 import { getUnifiedClientCoords, isPointInRect } from '../../core/utils'
 import {
   ConceptDisplayProps,
@@ -40,7 +32,6 @@ import {
   PositionType,
   Rect,
 } from '../../core/interfaces'
-import { HighlightColor } from './marks/highlight'
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 import { PlaceMenu } from '../../core/components/PlaceMenu'
 
@@ -81,43 +72,27 @@ const PMText: React.FunctionComponent<Props> = props => {
   const editorView = useRef<EditorView>(null)
 
   /** Text Action Menu. */
-  const textActionMenuRef = useRef<HTMLDivElement>(null)
-  const [showTextActionMenu, setShowTextActionMenu] = useState(false)
-  const [textActionMenuPos, setTextActionMenuPos] = useState({
-    top: 0,
-    left: 0,
-  })
-  const [markActiveMap, setMarkActiveMap] = useState<MarkActiveMap>(new Map())
-  const boldActive = isBoldActive(markActiveMap)
-  const italicActive = isItalicActive(markActiveMap)
-  const strikeActive = isStrikeActive(markActiveMap)
-  const underlineActive = isUnderlineActive(markActiveMap)
-  const codeActive = isCodeActive(markActiveMap)
-  const createToggleMark = (markType: MarkType) => () => {
-    editorView.current.focus()
-    toggleMarkOnSelection(
-      editorView.current,
-      editorView.current.state.selection,
-      markActiveMap,
-      markType
-    )
-  }
-  const toggleBold = createToggleMark(schema.marks.bold)
-  const toggleItalic = createToggleMark(schema.marks.italic)
-  const toggleStrike = createToggleMark(schema.marks.strike)
-  const toggleUnderline = createToggleMark(schema.marks.underline)
-  const toggleCode = createToggleMark(schema.marks.code)
-  const [activeHighlightColor, setActiveHighlightColor] = useState<
-    HighlightColor | undefined
-  >(undefined)
-  const setHighlight = (color: HighlightColor) => {
-    editorView.current.focus()
-    setHighlightColor(
-      editorView.current,
-      editorView.current.state.selection,
-      color
-    )
-  }
+  const {
+    textActionMenuRef,
+    showTextActionMenu,
+    setShowTextActionMenu,
+    textActionMenuPos,
+    setTextActionMenuPos,
+    setMarkActiveMap,
+    boldActive,
+    italicActive,
+    strikeActive,
+    underlineActive,
+    codeActive,
+    toggleBold,
+    toggleItalic,
+    toggleStrike,
+    toggleUnderline,
+    toggleCode,
+    activeHighlightColor,
+    setActiveHighlightColor,
+    setHighlight,
+  } = useTextActionMenu(editorView.current)
 
   /** Slash Menu. */
   const [showSlashMenu, setShowSlashMenu] = useState(false)
