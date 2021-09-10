@@ -44,8 +44,6 @@ export const styles = stylesheet({
   SlashMenu: {
     width: 150,
     padding: '.3rem',
-    position: 'absolute',
-    zIndex: 10000,
     color: theme.colors.contentText,
     background: theme.colors.bgSecondary,
     boxShadow: theme.shadows.float,

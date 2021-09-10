@@ -36,12 +36,13 @@ import { observeKeyword } from './observeKeyword'
 import { getUnifiedClientCoords, isPointInRect } from '../../core/utils'
 import {
   ConceptDisplayProps,
-  Vec2,
   Factory,
   PositionType,
+  Rect,
 } from '../../core/interfaces'
 import { HighlightColor } from './marks/highlight'
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
+import { PlaceMenu } from '../../core/components/PlaceMenu'
 
 /**
  * Problems of ProseMirror:
@@ -120,7 +121,12 @@ const PMText: React.FunctionComponent<Props> = props => {
 
   /** Slash Menu. */
   const [showSlashMenu, setShowSlashMenu] = useState(false)
-  const [slashMenuPos, setSlashMenuPos] = useState<Vec2>({ x: 0, y: 0 })
+  const [slashMenuAnchorRect, setSlashMenuAnchorRect] = useState<Rect>({
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  })
   const [slashMenuChosenItemIndex, setSlashMenuChosenItemIndex] = useState(0)
   const slashMenuItems = useMemo(
     () =>
@@ -303,10 +309,7 @@ const PMText: React.FunctionComponent<Props> = props => {
               onTrigger: e => {
                 console.log(e)
                 setShowSlashMenu(true)
-                setSlashMenuPos({
-                  x: e.keywordCoords.from.right,
-                  y: e.keywordCoords.from.bottom,
-                })
+                setSlashMenuAnchorRect(e.keywordCoords.from)
               },
               onKeywordChange: console.log,
               onKeywordStop: console.log,
@@ -414,26 +417,23 @@ const PMText: React.FunctionComponent<Props> = props => {
           {editorContainer}
           {showSlashMenu ? (
             props.createOverlay(
-              <div
-                className={styles.SlashMenu}
-                style={{
-                  top: slashMenuPos.y + 5,
-                  left: slashMenuPos.x,
-                }}>
-                <p>BLOCKS</p>
-                {slashMenuItems.map((item, index) => (
-                  <div
-                    className={classes(
-                      styles.SlashMenuItem,
-                      index === slashMenuChosenItemIndex
-                        ? styles['SlashMenuItem--Chosen']
-                        : undefined
-                    )}
-                    key={item.name}>
-                    {item.name}
-                  </div>
-                ))}
-              </div>
+              <PlaceMenu near={slashMenuAnchorRect}>
+                <div className={styles.SlashMenu}>
+                  <p>BLOCKS</p>
+                  {slashMenuItems.map((item, index) => (
+                    <div
+                      className={classes(
+                        styles.SlashMenuItem,
+                        index === slashMenuChosenItemIndex
+                          ? styles['SlashMenuItem--Chosen']
+                          : undefined
+                      )}
+                      key={item.name}>
+                      {item.name}
+                    </div>
+                  ))}
+                </div>
+              </PlaceMenu>
             )
           ) : (
             <></>
