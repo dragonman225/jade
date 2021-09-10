@@ -92,20 +92,22 @@ export function Block(props: Props): JSX.Element {
         }
       }
 
-      const handlePointerUp = (e: MouseEvent | TouchEvent) => {
+      const handlePointerUp = (_e: MouseEvent | TouchEvent) => {
         window.removeEventListener('mousemove', handlePointerMove)
         window.removeEventListener('touchmove', handlePointerMove)
         window.removeEventListener('mouseup', handlePointerUp)
         window.removeEventListener('touchend', handlePointerUp)
-
-        const clientCoords = getUnifiedClientCoords(e)
 
         if (intent === 'arrow') {
           dispatchAction({
             type: Action.RelationDrawEnd,
             data: {
               id,
-              pointerInViewportCoords: clientCoords,
+              /**
+               * Use `lastClientCoords` since `e.touches` has zero-length
+               * on `touchend`.
+               */
+              pointerInViewportCoords: lastClientCoords,
             },
           })
         }
