@@ -1,7 +1,6 @@
 import * as React from 'react'
-import { useContext, useEffect } from 'react'
+import { useEffect } from 'react'
 
-import { SystemContext } from '../store/systemContext'
 import { BlockDriver } from './BlockDriver'
 import { ViewObject } from './ViewObject'
 import { BlockInstance } from '../interfaces'
@@ -12,10 +11,6 @@ interface Props {
 }
 
 export function Blocks({ blocks, onRender }: Props): JSX.Element {
-  const { db, factoryRegistry, dispatchAction, createOverlay } = useContext(
-    SystemContext
-  )
-
   useEffect(() => {
     onRender && onRender()
   })
@@ -28,13 +23,7 @@ export function Blocks({ blocks, onRender }: Props): JSX.Element {
           posType={b.posType}
           pos={b.pos}
           size={b.size}>
-          <BlockDriver
-            block={b}
-            db={db}
-            factoryRegistry={factoryRegistry}
-            dispatchAction={dispatchAction}
-            createOverlay={createOverlay}
-          />
+          <BlockDriver block={b} />
         </ViewObject>
       ))}
     </>

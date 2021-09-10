@@ -1,31 +1,45 @@
 import * as React from 'react'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useContext, useState, useEffect } from 'react'
 import { style } from 'typestyle'
 
 import { Block } from './Block'
+import { SystemContext } from '../store/systemContext'
 import theme from '../../theme'
 import {
   BlockInstance,
   Concept,
-  DatabaseInterface,
-  FactoryRegistry,
   InteractionMode,
   PositionType,
+  TypedConcept,
 } from '../interfaces'
-import { Actions, Action } from '../store/actions'
+import { Action } from '../store/actions'
 
 interface BlockDriverProps {
   block: BlockInstance
-  db: DatabaseInterface
-  factoryRegistry: FactoryRegistry
-  dispatchAction: (action: Actions) => void
-  createOverlay: (children: React.ReactNode) => React.ReactPortal
 }
 
 export const BlockDriver = React.memo(function BlockDriver(
   props: BlockDriverProps
 ): JSX.Element {
-  const { block, db, factoryRegistry, dispatchAction, createOverlay } = props
+  const { block } = props
+  const { db, factoryRegistry, dispatchAction, createOverlay } = useContext(
+    SystemContext
+  )
+  const [concept, setConcept] = useState<TypedConcept<unknown>>(() =>
+    db.getConcept(block.concept.id)
+  )
+
+  useEffect(() => {
+    function handleUpdate() {
+      setConcept(db.getConcept(concept.id))
+    }
+
+    db.subscribeConcept(concept.id, handleUpdate)
+
+    return () => {
+      db.unsubscribeConcept(concept.id, handleUpdate)
+    }
+  }, [concept.id, db])
 
   const setMode = useCallback(
     (mode: InteractionMode) => {
@@ -45,13 +59,13 @@ export const BlockDriver = React.memo(function BlockDriver(
       dispatchAction({
         type: Action.ConceptWriteData,
         data: {
-          id: block.concept.id,
-          type: block.concept.summary.type,
+          id: concept.id,
+          type: concept.summary.type,
           content,
         },
       })
     },
-    [block.concept.id, block.concept.summary.type, dispatchAction]
+    [concept.id, concept.summary.type, dispatchAction]
   )
 
   const handleReplace = useCallback(
@@ -59,13 +73,13 @@ export const BlockDriver = React.memo(function BlockDriver(
       dispatchAction({
         type: Action.ConceptWriteData,
         data: {
-          id: block.concept.id,
+          id: concept.id,
           type,
           content: { initialized: false },
         },
       })
     },
-    [block.concept.id, dispatchAction]
+    [concept.id, dispatchAction]
   )
 
   const handleInteractionStart = useCallback(() => {
@@ -90,17 +104,17 @@ export const BlockDriver = React.memo(function BlockDriver(
   return (
     <Block
       id={block.id}
-      conceptId={block.concept.id}
+      conceptId={concept.id}
       mode={block.mode}
       selected={block.selected}
       highlighted={block.highlighted}
-      blink={Concept.isHighOrder(block.concept)}
+      blink={Concept.isHighOrder(concept)}
       dispatchAction={dispatchAction}
       className={blockClassName}>
-      {factoryRegistry.createConceptDisplay(block.concept.summary.type, {
+      {factoryRegistry.createConceptDisplay(concept.summary.type, {
         readOnly: block.mode === InteractionMode.Moving,
         viewMode: 'Block',
-        concept: block.concept,
+        concept,
         blockId: block.id,
         dispatchAction,
         factoryRegistry,
