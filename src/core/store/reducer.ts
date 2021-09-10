@@ -104,7 +104,7 @@ export function loadAppState(db: DatabaseInterface): AppState {
   }
 }
 
-export function createReducer(
+export function createAppStateReducer(
   db: DatabaseInterface,
   factoryRegistry: FactoryRegistry
 ): (state: AppState, action: Actions) => AppState {

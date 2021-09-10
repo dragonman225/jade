@@ -14,7 +14,7 @@ import { AppStyles } from './App.styles'
 import { AppStateContext } from './store/appStateContext'
 import theme from '../theme'
 import { useAnimationFrame } from './useAnimationFrame'
-import { createReducer, loadAppState } from './store/reducer'
+import { createAppStateReducer, loadAppState } from './store/reducer'
 import {
   AppState,
   DatabaseInterface,
@@ -159,10 +159,10 @@ interface AppRootProps {
 export function AppRoot(props: AppRootProps): JSX.Element {
   const { db, factoryRegistry } = props
 
-  const appStateReducer = useMemo(() => createReducer(db, factoryRegistry), [
-    db,
-    factoryRegistry,
-  ])
+  const appStateReducer = useMemo(
+    () => createAppStateReducer(db, factoryRegistry),
+    [db, factoryRegistry]
+  )
   const initialState = useMemo(() => loadAppState(db), [db])
   const [stateSnapshot, setStateSnapshot] = useState<AppState>(initialState)
   const stateRef = useRef<AppState>(initialState)
