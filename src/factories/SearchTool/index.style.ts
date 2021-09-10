@@ -1,7 +1,7 @@
 import { stylesheet } from 'typestyle'
 
 import theme from '../../theme'
-import { inputTransparent } from '../../lightComponents'
+import { inputTransparent, buttonTransparent } from '../../lightComponents'
 
 export const styles = stylesheet({
   'Search--Linking': {
@@ -112,5 +112,22 @@ export const styles = stylesheet({
   },
   Info: {
     flex: '1 1 0px',
+  },
+  Tab: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: '.3rem',
+  },
+  TabButton: {
+    ...buttonTransparent,
+    color: theme.colors.uiGrey,
+    width: 80,
+    fontSize: '.8rem',
+    padding: '.2rem .6rem',
+    margin: '0 .15rem',
+  },
+  Selected: {
+    backgroundColor: theme.colors.bgHover,
   },
 })

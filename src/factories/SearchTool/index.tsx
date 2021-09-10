@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useState, useContext, useRef } from 'react'
+import { useState, useContext, useRef, useEffect, useMemo } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './index.style'
@@ -22,6 +22,7 @@ import {
   Vec2,
 } from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
+import { usePager } from './usePager'
 
 type SearchItemContentProps = Pick<
   ConceptDisplayProps<unknown>,
@@ -92,57 +93,43 @@ function getSearchResult(keyword: string, concepts: TypedConcept<unknown>[]) {
   const sortedConceptsWithChildren = conceptsWithChildren.sort(comparator)
   const sortedConceptsWithoutChildren = conceptsWithoutChildren.sort(comparator)
 
-  return sortedConceptsWithChildren.concat(sortedConceptsWithoutChildren)
+  return {
+    canvasConcepts: sortedConceptsWithChildren,
+    blockConcepts: sortedConceptsWithoutChildren,
+  }
 }
 
 const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const { dispatchAction, database, blockId } = props
   const state = useContext(AppStateContext)
-  const searchRef = React.useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const [text, setText] = React.useState('')
-  const [minimized, setMinimized] = React.useState(true)
-  const [resultConcepts, setResultConcepts] = useState<TypedConcept<unknown>[]>(
-    []
-  )
-
-  React.useEffect(() => {
-    // TODO: Can we avoid re-subscribing when text or minimized changes?
-    const updateSearchResult = () => {
-      if (minimized) return
-      const concepts = database.getAllConcepts()
-      const searchResult = getSearchResult(text, concepts)
-      setResultConcepts(searchResult)
-    }
-
-    updateSearchResult()
-
-    /**
-     * SearchTool don't need this reactivity at this time since you can't
-     * edit when searching (no multi-user).
-     */
-    // database.subscribeConcept('*', updateSearchResult)
-
-    // return () => {
-    //   database.unsubscribeConcept('*', updateSearchResult)
-    // }
-  }, [database, text, minimized])
+  const [text, setText] = useState('')
+  const [minimized, setMinimized] = useState(true)
+  const [tab, setTab] = useState<'canvas' | 'block'>('canvas')
+  const result = useMemo(() => {
+    return getSearchResult(text, database.getAllConcepts())
+    /** Should re-run on minimized change. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, database, minimized])
+  const resultConcepts =
+    tab === 'canvas' ? result.canvasConcepts : result.blockConcepts
 
   /** Search-to-Link */
-  const [s2lState, setS2lState] = React.useState(S2LState.Idle)
-  const [s2lBlock, setS2lBlock] = React.useState<S2LBlock>({ valid: false })
-  const [s2lStartOffset, setS2lStartOffset] = React.useState<Vec2>({
+  const [s2lState, setS2lState] = useState(S2LState.Idle)
+  const [s2lBlock, setS2lBlock] = useState<S2LBlock>({ valid: false })
+  const [s2lStartOffset, setS2lStartOffset] = useState<Vec2>({
     x: 0,
     y: 0,
   })
-  const [s2lDelta, setS2lDelta] = React.useState<Vec2>({ x: 0, y: 0 })
-  const s2lBlockRef = React.useRef<S2LBlock>(null)
-  const s2lStartOffsetRef = React.useRef<Vec2>(null)
-  const s2lDeltaRef = React.useRef<Vec2>(null)
-  const stateRef = React.useRef<typeof state>(null)
+  const [s2lDelta, setS2lDelta] = useState<Vec2>({ x: 0, y: 0 })
+  const s2lBlockRef = useRef<S2LBlock>(null)
+  const s2lStartOffsetRef = useRef<Vec2>(null)
+  const s2lDeltaRef = useRef<Vec2>(null)
+  const stateRef = useRef<typeof state>(null)
 
   const handleWindowPointerDown = (e: MouseEvent | TouchEvent) => {
-    // HACK: Click outside to minimize.
+    /** Click outside to minimize. */
     if (e.target instanceof Node) {
       if (!searchRef.current.contains(e.target)) {
         setMinimized(true)
@@ -150,23 +137,23 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
     }
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     s2lBlockRef.current = s2lBlock
   }, [s2lBlock])
 
-  React.useEffect(() => {
+  useEffect(() => {
     s2lStartOffsetRef.current = s2lStartOffset
   }, [s2lStartOffset])
 
-  React.useEffect(() => {
+  useEffect(() => {
     s2lDeltaRef.current = s2lDelta
   }, [s2lDelta])
 
-  React.useEffect(() => {
+  useEffect(() => {
     stateRef.current = state
   }, [state])
 
-  React.useEffect(() => {
+  useEffect(() => {
     const gestureDetector = (() => {
       let state: 'idle' | 'ready' | 'linking' = 'idle'
       let lastClientCoords = { x: 0, y: 0 }
@@ -303,18 +290,11 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
     }
   }, [dispatchAction])
 
-  const [pageNum, setPage] = useState<number>(0)
   const itemsPerPage = 20
-  const startItemIndex = pageNum * itemsPerPage
-  const nextStartItemIndex = (pageNum + 1) * itemsPerPage
-
-  function isFirstPage() {
-    return pageNum === 0
-  }
-
-  function isLastPage() {
-    return nextStartItemIndex > resultConcepts.length - 1
-  }
+  const canvasPager = usePager(result.canvasConcepts, itemsPerPage)
+  const blocksPager = usePager(result.blockConcepts, itemsPerPage)
+  const { page, start, nextStart, goPrevPage, goNextPage, resetPage } =
+    tab === 'canvas' ? canvasPager : blocksPager
 
   return (
     <div
@@ -332,7 +312,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
           placeholder="Search"
           onChange={e => {
             setText(e.target.value)
-            setPage(0)
+            resetPage()
           }}
           onFocus={() => {
             setMinimized(false)
@@ -346,82 +326,90 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
       </div>
       {!minimized ? (
         <>
+          <div className={styles.Tab}>
+            <button
+              className={classes(
+                styles.TabButton,
+                tab === 'canvas' && styles.Selected
+              )}
+              onClick={() => setTab('canvas')}>
+              Canvas
+            </button>
+            <button
+              className={classes(
+                styles.TabButton,
+                tab === 'block' && styles.Selected
+              )}
+              onClick={() => setTab('block')}>
+              Block
+            </button>
+          </div>
           <div className={styles.ScrollList}>
-            <div key={pageNum}>
-              {resultConcepts
-                .slice(startItemIndex, nextStartItemIndex)
-                .map(concept => {
-                  return (
-                    <React.Fragment key={concept.id}>
-                      {(function () {
-                        switch (s2lState) {
-                          case S2LState.Idle: {
-                            /** The following doesn't support touch. */
-                            return (
-                              <div
-                                className={`${styles.ScrollListItem} ScrollListItem`}
-                                onMouseEnter={e => {
-                                  setS2lBlock({
-                                    valid: true,
-                                    id: concept.id,
-                                    rect: e.currentTarget.getBoundingClientRect(),
-                                  })
-                                }}
-                                onMouseLeave={() => {
-                                  setS2lBlock({ valid: false })
-                                }}>
-                                <SearchItemContent
-                                  blockId={blockId}
-                                  concept={concept}
-                                  viewMode="NavItem"
-                                  dispatchAction={dispatchAction}
-                                  database={database}
-                                />
-                              </div>
-                            )
-                          }
-                          case S2LState.Linking: {
-                            return (
-                              <div className={styles.ScrollListItem}>
-                                <SearchItemContent
-                                  blockId={blockId}
-                                  concept={concept}
-                                  viewMode="NavItem"
-                                  dispatchAction={dispatchAction}
-                                  database={database}
-                                />
-                              </div>
-                            )
-                          }
-                          default: {
-                            return `Unknown s2lState "${s2lState.description}"`
-                          }
+            <div key={page}>
+              {resultConcepts.slice(start, nextStart).map(concept => {
+                return (
+                  <React.Fragment key={concept.id}>
+                    {(function () {
+                      switch (s2lState) {
+                        case S2LState.Idle: {
+                          /** The following doesn't support touch. */
+                          return (
+                            <div
+                              className={`${styles.ScrollListItem} ScrollListItem`}
+                              onMouseEnter={e => {
+                                setS2lBlock({
+                                  valid: true,
+                                  id: concept.id,
+                                  rect: e.currentTarget.getBoundingClientRect(),
+                                })
+                              }}
+                              onMouseLeave={() => {
+                                setS2lBlock({ valid: false })
+                              }}>
+                              <SearchItemContent
+                                blockId={blockId}
+                                concept={concept}
+                                viewMode="NavItem"
+                                dispatchAction={dispatchAction}
+                                database={database}
+                              />
+                            </div>
+                          )
                         }
-                      })()}
-                      <hr className={styles.Divider} />
-                    </React.Fragment>
-                  )
-                })}
+                        case S2LState.Linking: {
+                          return (
+                            <div className={styles.ScrollListItem}>
+                              <SearchItemContent
+                                blockId={blockId}
+                                concept={concept}
+                                viewMode="NavItem"
+                                dispatchAction={dispatchAction}
+                                database={database}
+                              />
+                            </div>
+                          )
+                        }
+                        default: {
+                          return `Unknown s2lState "${s2lState.description}"`
+                        }
+                      }
+                    })()}
+                    <hr className={styles.Divider} />
+                  </React.Fragment>
+                )
+              })}
             </div>
           </div>
           <div className={styles.PageBar}>
-            <div
-              className={styles.Arrow}
-              onClick={() => {
-                if (!isFirstPage()) setPage(pageNum - 1)
-              }}>
+            <div className={styles.Arrow} onClick={() => goPrevPage()}>
               Prev
             </div>
             <div className={styles.Info}>
-              {startItemIndex + 1} ~{' '}
-              {Math.min(startItemIndex + itemsPerPage, resultConcepts.length)}{' '}
-              of {resultConcepts.length}
+              {start + 1} ~{' '}
+              {Math.min(start + itemsPerPage, resultConcepts.length)} of{' '}
+              {resultConcepts.length}
             </div>
-            <div
-              className={styles.Arrow}
-              onClick={() => {
-                if (!isLastPage()) setPage(pageNum + 1)
-              }}>
+            <div className={styles.Arrow} onClick={() => goNextPage()}>
               Next
             </div>
           </div>
