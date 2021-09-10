@@ -26,7 +26,7 @@ export const BlockDriver = React.memo(function BlockDriver(
     SystemContext
   )
   const [concept, setConcept] = useState<TypedConcept<unknown>>(() =>
-    db.getConcept(block.concept.id)
+    db.getConcept(block.conceptId)
   )
 
   useEffect(() => {

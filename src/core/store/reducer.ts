@@ -45,21 +45,20 @@ export function synthesizeView(
   existingBlockInstances?: BlockInstance[]
 ): BlockInstance[] {
   function blockToBlockInstance(block: Block) {
-    if (!existingBlockInstances)
-      return createBlockInstance(block, db.getConcept(block.to))
+    if (!existingBlockInstances) return createBlockInstance(block)
 
     const existingBlockInstance = existingBlockInstances.find(
       b => b.id === block.id
     )
     if (existingBlockInstance) {
-      existingBlockInstance.concept = db.getConcept(block.to)
+      existingBlockInstance.conceptId = block.to
       existingBlockInstance.posType = block.posType
       existingBlockInstance.pos = block.pos
       existingBlockInstance.size = block.size
       existingBlockInstance.lastEditedTime = block.lastEditedTime
       return existingBlockInstance
     } else {
-      return createBlockInstance(block, db.getConcept(block.to))
+      return createBlockInstance(block)
     }
   }
 
@@ -203,7 +202,7 @@ export function createAppStateReducer(
           pos: newBlockBox,
           size: newBlockBox,
         })
-        const newBlockInstance = createBlockInstance(newBlock, newConcept)
+        const newBlockInstance = createBlockInstance(newBlock)
         const newViewingConcept = updateConcept(state.viewingConcept, {
           references: state.viewingConcept.references.concat(newBlock),
         })
@@ -580,7 +579,7 @@ export function createAppStateReducer(
             else return pv
           }, movingBlocks[0])
 
-          const targetConcept = db.getConcept(pointerOverBlock.concept.id)
+          const targetConcept = db.getConcept(pointerOverBlock.conceptId)
 
           /**
            * The top-right corner of the bounding box of all blocks in
@@ -661,10 +660,6 @@ export function createAppStateReducer(
               .filter(b => !movingBlocks.includes(b))
               .map(b => ({
                 ...b,
-                concept:
-                  b.concept.id === targetConcept.id
-                    ? newTargetConcept
-                    : b.concept,
                 highlighted: false,
               })),
             relations: newViewingConcept.relations,

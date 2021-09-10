@@ -1,4 +1,4 @@
-import { ConceptId, TypedConcept } from './concept'
+import { ConceptId } from './concept'
 import { Size, Timestamp, Vec2 } from './util'
 
 /** Describe how to position an object in the *Canvas*. */
@@ -46,7 +46,7 @@ export interface BlockInstance {
   mode: InteractionMode
   selected: boolean
   highlighted: boolean
-  concept: TypedConcept<unknown>
+  conceptId: ConceptId
   createdTime: Timestamp
   lastEditedTime: Timestamp
 }

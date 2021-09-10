@@ -8,7 +8,6 @@ import {
   Box,
   InteractionMode,
   PositionType,
-  TypedConcept,
 } from '../interfaces'
 import { blockRectManager } from './element-pool'
 
@@ -34,10 +33,7 @@ export function updateBlock(
   }
 }
 
-export function createBlockInstance(
-  block: Block,
-  concept: TypedConcept<unknown>
-): BlockInstance {
+export function createBlockInstance(block: Block): BlockInstance {
   return {
     id: block.id,
     posType: block.posType,
@@ -48,7 +44,7 @@ export function createBlockInstance(
     mode: InteractionMode.Idle,
     selected: false,
     highlighted: false,
-    concept,
+    conceptId: block.to,
   }
 }
 
@@ -80,7 +76,7 @@ export function updateBlockInstance(
 export function blockInstanceToBlock(blockInstance: BlockInstance): Block {
   return {
     id: blockInstance.id,
-    to: blockInstance.concept.id,
+    to: blockInstance.conceptId,
     posType: blockInstance.posType,
     pos: blockInstance.pos,
     size: blockInstance.size,
