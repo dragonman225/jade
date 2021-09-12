@@ -12,6 +12,7 @@ import {
   getSelectedBlockIds,
   updateBlockInstance,
   blockToBox,
+  deselectAllBlocks,
 } from '../utils/block'
 import { createConcept, updateConcept } from '../utils/concept'
 import {
@@ -213,7 +214,7 @@ export function createAppStateReducer(
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: state.blocks.concat(newBlockInstance),
+          blocks: deselectAllBlocks(state.blocks).concat(newBlockInstance),
         }
       }
       case Action.ConceptWriteData: {
@@ -939,9 +940,7 @@ export function createAppStateReducer(
            * fired.
            */
           selectedBlockIds: [],
-          blocks: state.blocks.map(b =>
-            updateBlockInstance(b, { selected: false })
-          ),
+          blocks: deselectAllBlocks(state.blocks),
         }
       }
       case Action.SelectionBoxSetEnd: {

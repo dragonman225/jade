@@ -140,3 +140,7 @@ export function blockToBox(block: BlockInstance): Box {
     h: rect.height,
   }
 }
+
+export function deselectAllBlocks(blocks: BlockInstance[]): BlockInstance[] {
+  return blocks.map(b => updateBlockInstance(b, { selected: false }))
+}
