@@ -122,7 +122,7 @@ export const styles = stylesheet({
   TabButton: {
     ...buttonTransparent,
     color: theme.colors.uiGrey,
-    width: 80,
+    width: 100,
     fontSize: '.8rem',
     padding: '.2rem .6rem',
     margin: '0 .15rem',

@@ -333,7 +333,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 tab === 'canvas' && styles.Selected
               )}
               onClick={() => setTab('canvas')}>
-              Canvas
+              Canvas ({result.canvasConcepts.length})
             </button>
             <button
               className={classes(
@@ -341,7 +341,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 tab === 'block' && styles.Selected
               )}
               onClick={() => setTab('block')}>
-              Block
+              Block ({result.blockConcepts.length})
             </button>
           </div>
           <div className={styles.ScrollList}>
