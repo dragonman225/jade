@@ -15,6 +15,8 @@ import {
 import { schema } from './schema'
 import { HighlightColor } from './marks/highlight'
 
+// TODO: Define stable interface.
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function useTextActionMenu(editorView: EditorView<typeof schema>) {
   const textActionMenuRef = useRef<HTMLDivElement>(null)
   const [showTextActionMenu, setShowTextActionMenu] = useState(false)

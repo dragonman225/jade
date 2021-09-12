@@ -29,6 +29,7 @@ export const BlockDriver = React.memo(function BlockDriver(
     db.getConcept(block.conceptId)
   )
 
+  /** Reactivity. */
   useEffect(() => {
     function handleUpdate() {
       setConcept(db.getConcept(concept.id))
