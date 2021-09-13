@@ -60,7 +60,7 @@ export const input = {
   borderRadius: theme.borders.smallRadius,
   padding: '.3rem .5rem',
   background: theme.colors.bgGrey,
-  lineHeight: 1.25,
+  lineHeight: 'normal',
 }
 
 export const inputTransparent = {
