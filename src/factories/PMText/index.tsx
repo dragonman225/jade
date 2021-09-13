@@ -13,8 +13,6 @@ import { styles } from './index.styles'
 import { TextActionMenu } from './TextActionMenu'
 import { schema } from './schema'
 import {
-  getActiveHighlightColor,
-  getActiveMarks,
   getProseMirrorDoc,
   inputRulesPlugin,
   isProseMirrorDocEmpty,
@@ -78,7 +76,6 @@ const PMText: React.FunctionComponent<Props> = props => {
     setShowTextActionMenu,
     textActionMenuPos,
     setTextActionMenuPos,
-    setMarkActiveMap,
     boldActive,
     italicActive,
     strikeActive,
@@ -90,8 +87,10 @@ const PMText: React.FunctionComponent<Props> = props => {
     toggleUnderline,
     toggleCode,
     activeHighlightColor,
-    setActiveHighlightColor,
     setHighlight,
+    updateMenuState,
+    activeLink,
+    setLink,
   } = useTextActionMenu(editorView.current)
 
   /** Slash Menu. */
@@ -221,8 +220,7 @@ const PMText: React.FunctionComponent<Props> = props => {
         view.updateState(newState)
 
         setShowPlaceholder(isProseMirrorDocEmpty(newState.doc))
-        setMarkActiveMap(getActiveMarks(view.state.selection))
-        setActiveHighlightColor(getActiveHighlightColor(view.state.selection))
+        updateMenuState(view.state.selection)
 
         /**
          * Submit changes only when the transaction modifies the doc and
@@ -423,6 +421,7 @@ const PMText: React.FunctionComponent<Props> = props => {
                   underlineActive={underlineActive}
                   codeActive={codeActive}
                   activeHighlightColor={activeHighlightColor}
+                  activeLink={activeLink}
                   toggleBold={toggleBold}
                   toggleItalic={toggleItalic}
                   toggleStrike={toggleStrike}
@@ -437,6 +436,7 @@ const PMText: React.FunctionComponent<Props> = props => {
                     setShowTextActionMenu(false)
                   }}
                   setHighlight={setHighlight}
+                  setLink={setLink}
                 />
               </div>
             )}

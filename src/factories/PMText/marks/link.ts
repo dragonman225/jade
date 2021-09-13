@@ -4,7 +4,7 @@ import { MarkSpec, Mark, ParseRule } from 'prosemirror-model'
 import theme from '../../../theme'
 
 /** Better types. */
-interface LinkMark extends Mark {
+export interface LinkMark extends Mark {
   attrs: {
     href: string
     title: string
@@ -49,6 +49,7 @@ export const styles = stylesheet({
 })
 
 /** MarkSpec for link. */
+export const linkMarkName = 'link'
 export const linkMarkSpec = {
   attrs: {
     href: { default: '#' },

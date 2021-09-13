@@ -1,8 +1,8 @@
 import { Schema } from 'prosemirror-model'
 
 import { styles } from './index.styles'
-import { highlightMarkSpec, highlightMarkName } from './marks/highlight'
-import { linkMarkSpec } from './marks/link'
+import { highlightMarkName, highlightMarkSpec } from './marks/highlight'
+import { linkMarkName, linkMarkSpec } from './marks/link'
 
 export const schema = new Schema({
   nodes: {
@@ -68,7 +68,11 @@ export const schema = new Schema({
       },
       parseDOM: [{ tag: 'code' }],
     },
+    /**
+     * Order matters! Highlight must be at the bottom so gradient text
+     * doesn't become transparent.
+     */
+    [linkMarkName]: linkMarkSpec,
     [highlightMarkName]: highlightMarkSpec,
-    link: linkMarkSpec,
   },
 })

@@ -1,8 +1,12 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { MarkType } from 'prosemirror-model'
 import { EditorView } from 'prosemirror-view'
+import { Selection } from 'prosemirror-state'
 
 import {
+  getActiveHighlightColor,
+  getActiveLink,
+  getActiveMarks,
   isBoldActive,
   isCodeActive,
   isItalicActive,
@@ -10,6 +14,7 @@ import {
   isUnderlineActive,
   MarkActiveMap,
   setHighlightColor,
+  setLinkHref,
   toggleMarkOnSelection,
 } from './utils'
 import { schema } from './schema'
@@ -44,6 +49,7 @@ export function useTextActionMenu(editorView: EditorView<typeof schema>) {
   const toggleStrike = createToggleMark(schema.marks.strike)
   const toggleUnderline = createToggleMark(schema.marks.underline)
   const toggleCode = createToggleMark(schema.marks.code)
+
   const [activeHighlightColor, setActiveHighlightColor] = useState<
     HighlightColor | undefined
   >(undefined)
@@ -52,13 +58,24 @@ export function useTextActionMenu(editorView: EditorView<typeof schema>) {
     setHighlightColor(editorView, editorView.state.selection, color)
   }
 
+  const [activeLink, setActiveLink] = useState('')
+  const setLink = (link: string) => {
+    editorView.focus()
+    setLinkHref(editorView, editorView.state.selection, link)
+  }
+
+  const updateMenuState = useCallback((selection: Selection) => {
+    setMarkActiveMap(getActiveMarks(selection))
+    setActiveHighlightColor(getActiveHighlightColor(selection))
+    setActiveLink(getActiveLink(selection))
+  }, [])
+
   return {
     textActionMenuRef,
     showTextActionMenu,
     setShowTextActionMenu,
     textActionMenuPos,
     setTextActionMenuPos,
-    setMarkActiveMap,
     boldActive,
     italicActive,
     strikeActive,
@@ -70,7 +87,9 @@ export function useTextActionMenu(editorView: EditorView<typeof schema>) {
     toggleUnderline,
     toggleCode,
     activeHighlightColor,
-    setActiveHighlightColor,
     setHighlight,
+    updateMenuState,
+    activeLink,
+    setLink,
   }
 }

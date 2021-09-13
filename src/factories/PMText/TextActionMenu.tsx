@@ -46,7 +46,17 @@ interface ButtonProps {
 function Button(props: ButtonProps): JSX.Element {
   return (
     <button
-      className={classes(styles.Button, props.glow && styles.ButtonSelected)}
+      className={classes(styles.Button, props.glow && styles.Glow)}
+      onClick={props.onClick}>
+      {props.children}
+    </button>
+  )
+}
+
+function TextButton(props: ButtonProps): JSX.Element {
+  return (
+    <button
+      className={classes(styles.TextButton, props.glow && styles.Glow)}
       onClick={props.onClick}>
       {props.children}
     </button>
@@ -106,6 +116,32 @@ function HighlightPicker(props: HighlightPickerProps): JSX.Element {
   )
 }
 
+interface LinkDialogProps {
+  activeLink: string
+  setLink: (link: string) => void
+}
+
+function LinkDialog(props: LinkDialogProps): JSX.Element {
+  const [inputVal, setInputVal] = useState(props.activeLink)
+
+  return (
+    <div className={styles.LinkDialog}>
+      <input
+        value={inputVal}
+        onChange={e => setInputVal(e.target.value)}
+        placeholder="Paste an URL..."
+      />
+      <button onClick={() => props.setLink(inputVal)}>Set</button>
+    </div>
+  )
+}
+
+enum MenuFocus {
+  Main = 'main',
+  HighlighPicker = 'highlightPicker',
+  LinkDialog = 'linkDialog',
+}
+
 interface TextActionMenuProps {
   boldActive: boolean
   italicActive: boolean
@@ -113,6 +149,7 @@ interface TextActionMenuProps {
   underlineActive: boolean
   codeActive: boolean
   activeHighlightColor: HighlightColor | undefined
+  activeLink: string
   toggleBold: () => void
   toggleItalic: () => void
   toggleStrike: () => void
@@ -120,6 +157,7 @@ interface TextActionMenuProps {
   toggleCode: () => void
   turnIntoMath: () => void
   setHighlight: (color: HighlightColor | undefined) => void
+  setLink: (link: string) => void
 }
 
 /** An UI to trigger commands that operate on a selection. */
@@ -127,23 +165,44 @@ export const TextActionMenu = React.forwardRef<
   HTMLDivElement,
   TextActionMenuProps
 >(function TextActionMenu(props, ref) {
-  const { setHighlight } = props
+  const { setHighlight, setLink } = props
+  const [menuFocus, setMenuFocus] = useState<MenuFocus>(MenuFocus.Main)
 
-  const [showHighlightPicker, setShowHighlightPicker] = useState(false)
+  const toggleHighlightPicker = useCallback(() => {
+    setMenuFocus(focus =>
+      focus === MenuFocus.HighlighPicker
+        ? MenuFocus.Main
+        : MenuFocus.HighlighPicker
+    )
+  }, [])
 
-  /** Close highlight picker when TextActionMenu unmounts. */
+  const toggleLinkDialog = useCallback(() => {
+    setMenuFocus(focus =>
+      focus === MenuFocus.LinkDialog ? MenuFocus.Main : MenuFocus.LinkDialog
+    )
+  }, [])
+
+  /** Close all sub-menus when TextActionMenu unmounts. */
   useEffect(() => {
     return () => {
-      setShowHighlightPicker(false)
+      setMenuFocus(MenuFocus.Main)
     }
   }, [])
 
   const handleSetHighlight = useCallback(
     (color: HighlightColor) => {
+      setMenuFocus(MenuFocus.Main)
       setHighlight(color)
-      setShowHighlightPicker(false)
     },
     [setHighlight]
+  )
+
+  const handleSetLink = useCallback(
+    (link: string) => {
+      setMenuFocus(MenuFocus.Main)
+      setLink(link)
+    },
+    [setLink]
   )
 
   return (
@@ -163,16 +222,22 @@ export const TextActionMenu = React.forwardRef<
       <Button glow={props.codeActive} onClick={props.toggleCode}>
         {code}
       </Button>
-      <Button onClick={() => setShowHighlightPicker(true)}>
+      <Button onClick={toggleHighlightPicker}>
         <mark
           className={highlightStyles.Highlight}
           data-color={props.activeHighlightColor || null}>
           {highlight}
         </mark>
       </Button>
+      <TextButton glow={!!props.activeLink} onClick={toggleLinkDialog}>
+        Link
+      </TextButton>
       <Button onClick={props.turnIntoMath}>{math}</Button>
-      {showHighlightPicker && (
+      {menuFocus === MenuFocus.HighlighPicker && (
         <HighlightPicker setHighlight={handleSetHighlight} />
+      )}
+      {menuFocus === MenuFocus.LinkDialog && (
+        <LinkDialog activeLink={props.activeLink} setLink={handleSetLink} />
       )}
     </div>
   )

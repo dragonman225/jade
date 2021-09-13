@@ -1,6 +1,13 @@
 import { EditorState, Selection, Transaction } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
-import { MarkType, Node, Schema, Fragment, Slice } from 'prosemirror-model'
+import {
+  MarkType,
+  Node,
+  Schema,
+  Fragment,
+  Slice,
+  Mark,
+} from 'prosemirror-model'
 import { Command, toggleMark } from 'prosemirror-commands'
 import { keymap } from 'prosemirror-keymap'
 import { InputRule, inputRules } from 'prosemirror-inputrules'
@@ -17,6 +24,7 @@ import {
   highlightMarkName,
   HighlightMark,
 } from './marks/highlight'
+import { LinkMark, linkMarkName } from './marks/link'
 
 export function isProseMirrorDocEmpty(doc: Node): boolean {
   return doc && doc.content.size === 0
@@ -188,31 +196,58 @@ export function turnIntoMath(view: EditorView, selection: Selection): void {
   view.dispatch(view.state.tr.replaceRange(selection.from, selection.to, slice))
 }
 
+/** Determine if two attributes are equal. */
+type MarkAttrsComparator<T> = (
+  anchorAttrs: T | undefined,
+  currentAttrs: T | undefined
+) => boolean
+export function getActiveMark(
+  markName: string,
+  selection: Selection,
+  isAttrsEqual: MarkAttrsComparator<Mark['attrs']>
+): Mark | undefined {
+  const textNodes = collectTextNodes(selection)
+
+  /** The first text node determines the anchor attrs. */
+  if (!textNodes[0]) return undefined
+  const anchorMark = textNodes[0].marks.find(m => m.type.name === markName)
+  if (!anchorMark) return undefined
+
+  /** Ensure all text nodes has the same mark and the attrs are equal. */
+  for (let i = 1; i < textNodes.length; i++) {
+    const textNode = textNodes[i]
+    const currentMark = textNode.marks.find(m => m.type.name === markName)
+    if (!currentMark) return undefined
+    if (!isAttrsEqual(anchorMark.attrs, currentMark.attrs)) return undefined
+  }
+
+  return anchorMark
+}
+
 export function getActiveHighlightColor(
   selection: Selection
 ): HighlightColor | undefined {
-  const textNodes = collectTextNodes(selection)
+  const mark = getActiveMark(
+    highlightMarkName,
+    selection,
+    (
+      anchorAttrs: HighlightMark['attrs'],
+      currentAttrs: HighlightMark['attrs']
+    ) => anchorAttrs.color === currentAttrs.color
+  ) as HighlightMark
 
-  /** The first text node determines the color to look for. */
-  if (!textNodes[0]) return undefined
-  const firstHighlightColor = (() => {
-    const firstHighlightMark = textNodes[0].marks.find(
-      m => m.type.name === highlightMarkName
-    ) as HighlightMark
-    return firstHighlightMark && firstHighlightMark.attrs.color
-  })()
+  return mark && mark.attrs.color
+}
 
-  /** Ensure all text nodes has highlight mark and the colors are the same. */
-  for (let i = 1; i < textNodes.length; i++) {
-    const textNode = textNodes[i]
-    const highlightMark = textNode.marks.find(
-      m => m.type.name === highlightMarkName
-    ) as HighlightMark
-    if (!highlightMark) return undefined
-    if (highlightMark.attrs.color !== firstHighlightColor) return undefined
-  }
+export function getActiveLink(selection: Selection): string {
+  const mark = getActiveMark(
+    linkMarkName,
+    selection,
+    (anchorAttrs: LinkMark['attrs'], currentAttrs: LinkMark['attrs']) =>
+      anchorAttrs.href === currentAttrs.href
+  ) as LinkMark
 
-  return firstHighlightColor
+  return mark && mark.attrs ? mark.attrs.href : ''
 }
 
 export function setHighlightColor(
@@ -228,7 +263,25 @@ export function setHighlightColor(
       view.state.tr.removeMark(
         selection.from,
         selection.to,
-        schema.marks.highlight
+        schema.marks[highlightMarkName]
+      )
+    )
+}
+
+export function setLinkHref(
+  view: EditorView,
+  selection: Selection,
+  href: string
+): void {
+  const mark = schema.mark(linkMarkName, { href }) as LinkMark
+  if (href)
+    view.dispatch(view.state.tr.addMark(selection.from, selection.to, mark))
+  else
+    view.dispatch(
+      view.state.tr.removeMark(
+        selection.from,
+        selection.to,
+        schema.marks[linkMarkName]
       )
     )
 }
