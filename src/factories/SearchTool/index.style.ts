@@ -130,4 +130,8 @@ export const styles = stylesheet({
   Selected: {
     backgroundColor: theme.colors.bgHover,
   },
+  ContentPreview: {
+    maxHeight: 'inherit',
+    pointerEvents: 'none',
+  },
 })

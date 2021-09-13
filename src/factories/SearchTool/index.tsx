@@ -24,33 +24,33 @@ import {
 import { Action } from '../../core/store/actions'
 import { usePager } from './usePager'
 
+function noop() {
+  return
+}
+
 type SearchItemContentProps = Pick<
   ConceptDisplayProps<unknown>,
   'viewMode' | 'concept' | 'database' | 'dispatchAction' | 'blockId'
 >
-const SearchItemContent: React.FunctionComponent<SearchItemContentProps> = props => {
+const ContentPreview: React.FunctionComponent<SearchItemContentProps> = props => {
   const { viewMode, concept, database, dispatchAction, blockId } = props
-  return factoryRegistry.createConceptDisplay(concept.summary.type, {
-    viewMode,
-    blockId,
-    readOnly: true,
-    concept,
-    dispatchAction,
-    factoryRegistry,
-    database,
-    onChange: () => {
-      return
-    },
-    onReplace: () => {
-      return
-    },
-    onInteractionStart: () => {
-      return
-    },
-    onInteractionEnd: () => {
-      return
-    },
-  })
+  return (
+    <div className={styles.ContentPreview}>
+      {factoryRegistry.createConceptDisplay(concept.summary.type, {
+        viewMode,
+        blockId,
+        readOnly: true,
+        concept,
+        dispatchAction,
+        factoryRegistry,
+        database,
+        onChange: noop,
+        onReplace: noop,
+        onInteractionStart: noop,
+        onInteractionEnd: noop,
+      })}
+    </div>
+  )
 }
 
 type Props = ConceptDisplayProps<undefined>
@@ -366,7 +366,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                               onMouseLeave={() => {
                                 setS2lBlock({ valid: false })
                               }}>
-                              <SearchItemContent
+                              <ContentPreview
                                 blockId={blockId}
                                 concept={concept}
                                 viewMode="NavItem"
@@ -379,7 +379,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                         case S2LState.Linking: {
                           return (
                             <div className={styles.ScrollListItem}>
-                              <SearchItemContent
+                              <ContentPreview
                                 blockId={blockId}
                                 concept={concept}
                                 viewMode="NavItem"
@@ -435,7 +435,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 width: 300,
                 pointerEvents: 'none', // Since we use `viewMode: 'Block'` here.
               }}>
-              <SearchItemContent
+              <ContentPreview
                 blockId={blockId}
                 concept={concept}
                 database={database}
