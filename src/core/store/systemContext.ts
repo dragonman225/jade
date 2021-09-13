@@ -8,6 +8,7 @@ interface System {
   factoryRegistry: FactoryRegistry
   dispatchAction: (action: Actions) => void
   createOverlay: (children: React.ReactNode) => React.ReactPortal
+  openExternal: (link: string) => void
 }
 
 export const SystemContext = createContext<System>(undefined)

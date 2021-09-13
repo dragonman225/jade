@@ -154,10 +154,11 @@ const App = React.memo(function App() {
 interface AppRootProps {
   db: DatabaseInterface
   factoryRegistry: FactoryRegistry
+  openExternal: (link: string) => void
 }
 
 export function AppRoot(props: AppRootProps): JSX.Element {
-  const { db, factoryRegistry } = props
+  const { db, factoryRegistry, openExternal } = props
 
   const appStateReducer = useMemo(
     () => createAppStateReducer(db, factoryRegistry),
@@ -188,8 +189,9 @@ export function AppRoot(props: AppRootProps): JSX.Element {
       factoryRegistry,
       dispatchAction,
       createOverlay,
+      openExternal,
     }),
-    [db, factoryRegistry, dispatchAction, createOverlay]
+    [db, factoryRegistry, dispatchAction, createOverlay, openExternal]
   )
 
   return (

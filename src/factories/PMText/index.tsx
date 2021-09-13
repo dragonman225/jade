@@ -2,7 +2,7 @@ import '@dragonman225/prosemirror-math/style/math.css'
 import 'katex/dist/katex.min.css'
 
 import * as React from 'react'
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useContext } from 'react'
 import { classes } from 'typestyle'
 import { AllSelection, EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
@@ -33,6 +33,7 @@ import {
 } from '../../core/interfaces'
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 import { PlaceMenu } from '../../core/components/PlaceMenu'
+import { SystemContext } from '../../core/store/systemContext'
 
 interface PMTextContent {
   initialized?: boolean
@@ -55,6 +56,7 @@ const PMText: React.FunctionComponent<Props> = props => {
     onInteractionEnd,
     dispatchAction,
   } = props
+  const { openExternal } = useContext(SystemContext)
 
   /** ProseMirror. */
   const [showPlaceholder, setShowPlaceholder] = useState(false)
@@ -285,9 +287,7 @@ const PMText: React.FunctionComponent<Props> = props => {
         handleMarkClick({
           rules: [
             new MarkClickRule(linkMarkName, (attrs: LinkMark['attrs']) => {
-              const newTab = window.open()
-              newTab.opener = null
-              newTab.location.assign(attrs.href)
+              openExternal(attrs.href)
             }),
           ],
         }),

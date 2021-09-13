@@ -14,7 +14,10 @@ import env from '../env'
 import { Concept4, DatabaseInterface, PositionType } from './interfaces'
 
 /** Render the app with platform-specific resources. */
-export function startApp(database: DatabaseInterface): void {
+export function startApp(
+  database: DatabaseInterface,
+  openExternal: (link: string) => void
+): void {
   /** Set title. */
   document.title = `Jade v${env.JADE_VER}`
 
@@ -90,7 +93,11 @@ export function startApp(database: DatabaseInterface): void {
   }
 
   ReactDOM.render(
-    React.createElement(AppRoot, { db: database, factoryRegistry }),
+    React.createElement(AppRoot, {
+      db: database,
+      openExternal,
+      factoryRegistry,
+    }),
     document.getElementById('react-root')
   )
 }
