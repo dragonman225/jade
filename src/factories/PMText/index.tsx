@@ -55,7 +55,7 @@ const PMText: React.FunctionComponent<Props> = props => {
   } = props
 
   /** ProseMirror. */
-  const [showPlaceholder, setShowPlaceholder] = useState(true)
+  const [showPlaceholder, setShowPlaceholder] = useState(false)
   const [editorMounted, setEditorMounted] = useState(false)
   const editorContainerRef = useRef<HTMLDivElement>(null)
   const editorView = useRef<EditorView>(null)
