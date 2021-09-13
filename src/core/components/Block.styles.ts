@@ -4,7 +4,7 @@ import theme from '../../theme'
 
 export const styles = stylesheet({
   Block: {
-    background: theme.colors.bgSecondary,
+    background: theme.colors.bgBlock,
     borderRadius: theme.borders.smallRadius,
     overflow: 'hidden',
     /**

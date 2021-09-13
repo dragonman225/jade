@@ -14,10 +14,14 @@
     />
     <style>
       :root {
-        --loader-size: 100px;
-        --loader-ring-width: 8px;
+        --loader-size: 4.5rem;
+        --loader-ring-width: 0.4rem;
         --loader-translate-x: calc(50vw - var(--loader-size) / 2);
         --loader-translate-y: calc(50vh - var(--loader-size) / 2);
+        --bg-canvas: hsl(42deg, 70%, 96%);
+        --bg-block: hsl(42deg, 70%, 98.5%);
+        --ui-text: hsl(165deg, 80%, 21%);
+        --ui-grey-light: #e4e4e4;
       }
 
       html,
@@ -28,7 +32,7 @@
       }
 
       body {
-        background-color: rgb(245, 245, 242);
+        background-color: var(--bg-canvas);
       }
 
       @keyframes spin {
@@ -51,12 +55,12 @@
 
       #loader {
         display: block;
-        border: var(--loader-ring-width) solid #d9d9d9;
+        border: var(--loader-ring-width) solid var(--ui-grey-light);
         border-radius: 50%;
-        border-top: var(--loader-ring-width) solid blueviolet;
+        border-top: var(--loader-ring-width) solid var(--ui-text);
         width: var(--loader-size);
         height: var(--loader-size);
-        animation: spin 1.2s linear infinite;
+        animation: spin 1.25s linear infinite;
       }
     </style>
   </head>

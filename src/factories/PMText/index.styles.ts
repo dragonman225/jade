@@ -45,7 +45,7 @@ export const styles = stylesheet({
     width: 150,
     padding: '.3rem',
     color: theme.colors.contentText,
-    background: theme.colors.bgSecondary,
+    background: theme.colors.bgBlock,
     boxShadow: theme.shadows.float,
     borderRadius: theme.borders.largeRadius,
     animation: `${theme.animations.fadeIn} 200ms ${theme.easings.easeInOutCubic}`,

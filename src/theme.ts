@@ -2,13 +2,13 @@ import { keyframes } from 'typestyle'
 
 export default {
   colors: {
-    bgPrimary: 'hsl(42deg, 70%, 96%)',
-    bgSecondary: 'hsl(42deg, 70%, 98.5%)',
+    bgCanvas: 'var(--bg-canvas)',
+    bgBlock: 'var(--bg-block)',
     bgHover: 'hsla(165deg, 10%, 25%, 0.08)',
     bgActive: 'hsla(165deg, 10%, 25%, 0.16)',
     bgGrey: '#eeeeee',
     contentText: 'hsl(165deg, 10%, 25%)',
-    uiText: 'hsl(165deg, 80%, 21%)',
+    uiText: 'var(--ui-text)',
     uiPrimaryVeryLight: 'hsla(165deg, 65%, 55%, 0.2)',
     uiPrimaryLight: 'hsla(165deg, 65%, 55%, 0.8)',
     uiPrimary: 'hsl(165deg, 65%, 55%)',
@@ -18,7 +18,7 @@ export default {
     uiPrimaryAttractiveActive: 'hsl(165deg, 80%, 69%)',
     uiSecondaryDumb: 'hsl(42deg, 8%, 75%)',
     uiGrey: '#8e8e8e',
-    uiGreyLight: '#e4e4e4',
+    uiGreyLight: 'var(--ui-grey-light)',
   },
   shadows: {
     ui: `

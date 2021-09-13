@@ -33,7 +33,7 @@ export const AppStyles = stylesheet({
     overflow: 'hidden',
     height: '100%',
     color: theme.colors.contentText,
-    background: theme.colors.bgPrimary,
+    background: theme.colors.bgCanvas,
     $nest: {
       '& ::-webkit-scrollbar': {
         width: '.5rem',

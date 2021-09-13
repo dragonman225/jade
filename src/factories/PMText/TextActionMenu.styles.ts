@@ -11,7 +11,7 @@ const highlightPickerLeft =
 const menuBase = {
   padding: `${menuPaddingSize}rem`,
   zIndex: 10000,
-  background: theme.colors.bgSecondary,
+  background: theme.colors.bgBlock,
   boxShadow: theme.shadows.float,
   borderRadius: theme.borders.smallRadius,
   animation: `${theme.animations.fadeIn} 200ms ${theme.easings.easeInOutCubic}`,
@@ -23,7 +23,7 @@ const buttonBase = {
   border: 'none',
   borderRadius: theme.borders.smallRadius,
   color: theme.colors.contentText,
-  background: theme.colors.bgSecondary,
+  background: theme.colors.bgBlock,
   cursor: 'pointer',
   transition: `background 30ms ${theme.easings.easeInOutCubic}`,
   $nest: {
