@@ -6,6 +6,10 @@ import { AppStateContext } from '../../core/store/appStateContext'
 import { Action } from '../../core/store/actions'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
+function noop() {
+  return
+}
+
 type Props = ConceptDisplayProps<undefined>
 
 export const RecentTool: React.FunctionComponent<Props> = props => {
@@ -50,18 +54,10 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
             dispatchAction,
             database,
             factoryRegistry,
-            onChange: () => {
-              return
-            },
-            onReplace: () => {
-              return
-            },
-            onInteractionStart: () => {
-              return
-            },
-            onInteractionEnd: () => {
-              return
-            },
+            onChange: noop,
+            onReplace: noop,
+            onInteractionStart: noop,
+            onInteractionEnd: noop,
           }
           return (
             <button
@@ -73,10 +69,12 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
                 })
               }}
               key={conceptId}>
-              {factoryRegistry.createConceptDisplay(
-                concept.summary.type,
-                contentProps
-              )}
+              <div className={styles.ContentPreview}>
+                {factoryRegistry.createConceptDisplay(
+                  concept.summary.type,
+                  contentProps
+                )}
+              </div>
             </button>
           )
         })

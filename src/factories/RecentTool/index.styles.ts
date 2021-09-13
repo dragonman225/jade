@@ -16,9 +16,6 @@ export const styles = stylesheet({
       '& button:focus': {
         outline: 'none',
       },
-      '&::-webkit-scrollbar-thumb:hover': {
-        background: '#555',
-      },
     },
   },
   RecentBtn: {
@@ -29,6 +26,7 @@ export const styles = stylesheet({
     transition: 'background 0.2s, flex-basis 0.3s',
     padding: '0 5px',
     borderRadius: theme.borders.smallRadius,
+    cursor: 'pointer',
     $nest: {
       '&:hover': {
         background: theme.colors.bgHover,
@@ -41,10 +39,19 @@ export const styles = stylesheet({
       },
       '&::-webkit-scrollbar': {
         width: 5,
+        backgroundColor: 'transparent',
       },
       '&::-webkit-scrollbar-thumb': {
-        background: '#888',
+        background: 'rgba(0, 0, 0, 0.25)',
+        $nest: {
+          '&:active': {
+            background: 'rgba(0, 0, 0, 0.5)',
+          },
+        },
       },
     },
+  },
+  ContentPreview: {
+    pointerEvents: 'none',
   },
 })
