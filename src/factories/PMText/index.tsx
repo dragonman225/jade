@@ -22,6 +22,8 @@ import { disableFocusAndPasteWithMouseMiddleButton } from './disableFocusAndPast
 import { observeInlineSelection } from './observeInlineSelection'
 import { observeKeyword } from './observeKeyword'
 import { useTextActionMenu } from './useTextActionMenu'
+import { handleMarkClick, MarkClickRule } from './handleMarkClick'
+import { LinkMark, linkMarkName } from './marks/link'
 import { getUnifiedClientCoords, isPointInRect } from '../../core/utils'
 import {
   ConceptDisplayProps,
@@ -278,6 +280,15 @@ const PMText: React.FunctionComponent<Props> = props => {
               onKeywordChange: console.log,
               onKeywordStop: () => setShowSlashMenu(false),
             },
+          ],
+        }),
+        handleMarkClick({
+          rules: [
+            new MarkClickRule(linkMarkName, (attrs: LinkMark['attrs']) => {
+              const newTab = window.open()
+              newTab.opener = null
+              newTab.location.assign(attrs.href)
+            }),
           ],
         }),
         mathPlugin,
