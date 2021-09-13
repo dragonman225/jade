@@ -155,7 +155,7 @@ interface TextActionMenuProps {
   toggleStrike: () => void
   toggleUnderline: () => void
   toggleCode: () => void
-  turnIntoMath: () => void
+  turnIntoLatex: () => void
   setHighlight: (color: HighlightColor | undefined) => void
   setLink: (link: string) => void
 }
@@ -232,7 +232,7 @@ export const TextActionMenu = React.forwardRef<
       <TextButton glow={!!props.activeLink} onClick={toggleLinkDialog}>
         Link
       </TextButton>
-      <Button onClick={props.turnIntoMath}>{math}</Button>
+      <Button onClick={props.turnIntoLatex}>{math}</Button>
       {menuFocus === MenuFocus.HighlighPicker && (
         <HighlightPicker setHighlight={handleSetHighlight} />
       )}

@@ -16,6 +16,7 @@ import {
   setHighlightColor,
   setLinkHref,
   toggleMarkOnSelection,
+  turnIntoMath,
 } from './utils'
 import { schema } from './schema'
 import { HighlightColor } from './marks/highlight'
@@ -64,6 +65,12 @@ export function useTextActionMenu(editorView: EditorView<typeof schema>) {
     setLinkHref(editorView, editorView.state.selection, link)
   }
 
+  const turnIntoLatex = () => {
+    editorView.focus()
+    turnIntoMath(editorView, editorView.state.selection)
+    setShowTextActionMenu(false)
+  }
+
   const updateMenuState = useCallback((selection: Selection) => {
     setMarkActiveMap(getActiveMarks(selection))
     setActiveHighlightColor(getActiveHighlightColor(selection))
@@ -81,15 +88,16 @@ export function useTextActionMenu(editorView: EditorView<typeof schema>) {
     strikeActive,
     underlineActive,
     codeActive,
+    activeHighlightColor,
+    activeLink,
     toggleBold,
     toggleItalic,
     toggleStrike,
     toggleUnderline,
     toggleCode,
-    activeHighlightColor,
     setHighlight,
-    updateMenuState,
-    activeLink,
     setLink,
+    turnIntoLatex,
+    updateMenuState,
   }
 }

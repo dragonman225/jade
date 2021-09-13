@@ -17,7 +17,6 @@ import {
   inputRulesPlugin,
   isProseMirrorDocEmpty,
   keymapPlugin,
-  turnIntoMath,
 } from './utils'
 import { disableFocusAndPasteWithMouseMiddleButton } from './disableFocusAndPasteWithMouseMiddleButton'
 import { observeInlineSelection } from './observeInlineSelection'
@@ -32,14 +31,6 @@ import {
 } from '../../core/interfaces'
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 import { PlaceMenu } from '../../core/components/PlaceMenu'
-
-/**
- * Problems of ProseMirror:
- * Imperative coding style.
- * Less intuitive concepts.
- * No TypeScript support.
- * CSS is outside of React. Cannot use styled-jsx or other modern tools.
- */
 
 interface PMTextContent {
   initialized?: boolean
@@ -81,16 +72,17 @@ const PMText: React.FunctionComponent<Props> = props => {
     strikeActive,
     underlineActive,
     codeActive,
+    activeHighlightColor,
+    activeLink,
     toggleBold,
     toggleItalic,
     toggleStrike,
     toggleUnderline,
     toggleCode,
-    activeHighlightColor,
     setHighlight,
-    updateMenuState,
-    activeLink,
     setLink,
+    turnIntoLatex,
+    updateMenuState,
   } = useTextActionMenu(editorView.current)
 
   /** Slash Menu. */
@@ -427,14 +419,7 @@ const PMText: React.FunctionComponent<Props> = props => {
                   toggleStrike={toggleStrike}
                   toggleUnderline={toggleUnderline}
                   toggleCode={toggleCode}
-                  turnIntoMath={() => {
-                    turnIntoMath(
-                      editorView.current,
-                      editorView.current.state.selection
-                    )
-                    editorView.current.focus()
-                    setShowTextActionMenu(false)
-                  }}
+                  turnIntoLatex={turnIntoLatex}
                   setHighlight={setHighlight}
                   setLink={setLink}
                 />
