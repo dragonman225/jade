@@ -123,7 +123,10 @@ const PMText: React.FunctionComponent<Props> = props => {
     (_view: EditorView, event: KeyboardEvent) => boolean
   >()
   useEffect(() => {
-    onKeyDownRef.current = (_view: EditorView, event: KeyboardEvent) => {
+    onKeyDownRef.current = (view: EditorView, event: KeyboardEvent) => {
+      /** COMPAT: macOS. */
+      if (view.composing) return false
+
       if (
         showSuggestionMenu &&
         (event.key === 'ArrowUp' ||
