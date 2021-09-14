@@ -128,6 +128,7 @@ function LinkDialog(props: LinkDialogProps): JSX.Element {
     <div className={styles.LinkDialog}>
       <input
         value={inputVal}
+        autoFocus={true}
         onChange={e => setInputVal(e.target.value)}
         placeholder="Paste an URL..."
       />
