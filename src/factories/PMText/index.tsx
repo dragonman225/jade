@@ -111,8 +111,8 @@ const PMText: React.FunctionComponent<Props> = props => {
   const {
     openSuggestionMenu,
     closeSuggestionMenu,
-    setKeyword,
-    setKeywordRange,
+    updateSuggestionMenu,
+    confirmOption,
   } = suggestionMenuOperations
   const [suggestionMenuAnchorRect, setSlashMenuAnchorRect] = useState<Rect>({
     top: 0,
@@ -281,10 +281,13 @@ const PMText: React.FunctionComponent<Props> = props => {
               onTrigger: e => {
                 openSuggestionMenu(SuggestFor.SlashCommands)
                 setSlashMenuAnchorRect(e.keywordCoords.from)
+                updateSuggestionMenu(e.keyword, {
+                  from: e.keywordRange.from - e.triggerString.length,
+                  to: e.keywordRange.to,
+                })
               },
               onKeywordChange: e => {
-                setKeyword(e.keyword)
-                setKeywordRange({
+                updateSuggestionMenu(e.keyword, {
                   from: e.keywordRange.from - e.triggerString.length,
                   to: e.keywordRange.to,
                 })
@@ -296,10 +299,13 @@ const PMText: React.FunctionComponent<Props> = props => {
               onTrigger: e => {
                 openSuggestionMenu(SuggestFor.Mention)
                 setSlashMenuAnchorRect(e.keywordCoords.from)
+                updateSuggestionMenu(e.keyword, {
+                  from: e.keywordRange.from - e.triggerString.length,
+                  to: e.keywordRange.to,
+                })
               },
               onKeywordChange: e => {
-                setKeyword(e.keyword)
-                setKeywordRange({
+                updateSuggestionMenu(e.keyword, {
                   from: e.keywordRange.from - e.triggerString.length,
                   to: e.keywordRange.to,
                 })
@@ -416,9 +422,10 @@ const PMText: React.FunctionComponent<Props> = props => {
               <PlaceMenu near={suggestionMenuAnchorRect}>
                 <SuggestionMenu
                   ref={suggestionMenuRef}
-                  width={suggestFor === SuggestFor.SlashCommands ? 150 : 350}
                   optionGroups={optionGroups}
-                  closeMenu={closeSuggestionMenu}
+                  width={suggestFor === SuggestFor.SlashCommands ? 150 : 350}
+                  onConfirmOption={confirmOption}
+                  onCloseMenu={closeSuggestionMenu}
                 />
               </PlaceMenu>
             )

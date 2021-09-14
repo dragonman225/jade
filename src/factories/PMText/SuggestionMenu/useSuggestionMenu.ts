@@ -2,6 +2,12 @@ import { useCallback, useState, useMemo, useEffect } from 'react'
 import { EditorView } from 'prosemirror-view'
 import { Fragment, Slice } from 'prosemirror-model'
 
+import {
+  includeKeyword,
+  lastEditedTimeDescending,
+  mapConceptToOption,
+  pmtextOnly,
+} from './utils'
 import { resetKeywordObserver } from './observeKeyword'
 import { schema } from '../ProseMirrorSchema/schema'
 import { LinkMark, linkMarkName } from '../ProseMirrorSchema/link'
@@ -9,11 +15,12 @@ import { getUrlForConcept } from '../../../core/utils/url'
 import { DatabaseInterface, FactoryRegistry } from '../../../core/interfaces'
 
 export interface Option {
+  id: string
   title: string
-  perform: () => void
 }
 
 export interface OptionGroup {
+  id: string
   title: string
   items: Option[]
 }
@@ -34,19 +41,16 @@ export function useSuggestionMenu(
 ) {
   const [showSuggestionMenu, setShowSuggestionMenu] = useState(false)
   const [keyword, setKeyword] = useState('')
-  const [keywordRange, setKeywordRangeInner] = useState({ from: 0, to: 0 })
+  const [keywordRange, setKeywordRange] = useState({ from: 0, to: 0 })
   const [suggestFor, setSuggestFor] = useState(SuggestFor.SlashCommands)
 
   const slashCommands = useMemo(
     () =>
       factoryRegistry.getContentFactories().map(f => ({
+        id: f.id,
         title: f.name,
-        perform: () => {
-          onInteractionEnd()
-          onReplace(f.id)
-        },
       })),
-    [factoryRegistry, onInteractionEnd, onReplace]
+    [factoryRegistry]
   )
 
   /** Re-fetch on keyword change. */
@@ -61,16 +65,17 @@ export function useSuggestionMenu(
   const closeSuggestionMenu = useCallback(() => {
     setShowSuggestionMenu(false)
     setKeyword('')
-    setKeywordRangeInner({ from: 0, to: 0 })
+    setKeywordRange({ from: 0, to: 0 })
   }, [])
 
-  const optionGroupsThatDontCloseMenu = useMemo(() => {
+  const optionGroups: OptionGroup[] = useMemo(() => {
     if (suggestFor === SuggestFor.SlashCommands) {
       const filteredSlashCommands = slashCommands.filter(c =>
         c.title.toLocaleLowerCase().includes(keyword.toLocaleLowerCase())
       )
       return [
         {
+          id: 'turn_into',
           title: 'Turn into',
           items: keyword ? filteredSlashCommands : slashCommands,
         },
@@ -78,71 +83,70 @@ export function useSuggestionMenu(
     } else {
       return [
         {
+          id: 'blocks',
           title: 'Blocks',
           items: concepts
             // HACK: Support text only
-            .filter(c => c.summary.type === 'pmtext')
+            .filter(pmtextOnly)
             /** Search with keyword. */
-            .filter(c =>
-              factoryRegistry
-                .getConceptString(c)
-                .toLocaleLowerCase()
-                .includes(keyword.toLocaleLowerCase())
-            )
-            .map(c => ({
-              title: factoryRegistry.getConceptString(c),
-              perform: () => {
-                const { from, to } = keywordRange
-                const text = factoryRegistry.getConceptString(c)
-                const node = schema.text(text, [
-                  schema.mark(schema.marks[linkMarkName], {
-                    href: getUrlForConcept(c),
-                  } as LinkMark['attrs']),
-                ])
-                const fragment = Fragment.from(node)
-                const slice = new Slice(fragment, 0, 0)
-                editorView.dispatch(
-                  editorView.state.tr.replaceRange(from, to, slice)
-                )
-              },
-            }))
+            .filter(includeKeyword(keyword, factoryRegistry))
+            .sort(lastEditedTimeDescending)
+            .map(mapConceptToOption(factoryRegistry))
             .filter(o => !!o.title)
             .slice(0, 6),
         },
       ]
     }
-  }, [
-    keyword,
-    keywordRange,
-    suggestFor,
-    slashCommands,
-    concepts,
-    factoryRegistry,
-    editorView,
-  ])
+  }, [keyword, suggestFor, slashCommands, concepts, factoryRegistry])
 
-  /**
-   * Let the user pass this to the UI component so that menu is
-   * automatically closed on perform action.
-   */
-  const optionGroups = useMemo(
-    () =>
-      optionGroupsThatDontCloseMenu.map(group => ({
-        ...group,
-        items: group.items.map(item => ({
-          ...item,
-          perform: () => {
-            closeSuggestionMenu()
-            item.perform()
-          },
-        })),
-      })),
-    [closeSuggestionMenu, optionGroupsThatDontCloseMenu]
+  const updateSuggestionMenu = useCallback(
+    (keyword: string, range: { from: number; to: number }) => {
+      setKeyword(keyword)
+      setKeywordRange(range)
+    },
+    []
   )
 
-  const setKeywordRange = useCallback((range: { from: number; to: number }) => {
-    setKeywordRangeInner(range)
-  }, [])
+  const confirmOption = useCallback(
+    ([optionGroupIdx, optionIdx]: [number, number]) => {
+      const optionGroup = optionGroups[optionGroupIdx]
+      const option = optionGroup && optionGroup.items[optionIdx]
+
+      closeSuggestionMenu()
+
+      if (!option) {
+        return
+      }
+
+      if (suggestFor === SuggestFor.SlashCommands) {
+        onInteractionEnd()
+        onReplace(option.id)
+      } else {
+        const { from, to } = keywordRange
+        const concept = database.getConcept(option.id)
+        const text = factoryRegistry.getConceptString(concept)
+        const node = schema.text(text, [
+          schema.mark(schema.marks[linkMarkName], {
+            href: getUrlForConcept(concept),
+          } as LinkMark['attrs']),
+        ])
+        const fragment = Fragment.from(node)
+        const slice = new Slice(fragment, 0, 0)
+        editorView.dispatch(editorView.state.tr.replaceRange(from, to, slice))
+      }
+    },
+    [
+      closeSuggestionMenu,
+      database,
+      editorView,
+      factoryRegistry,
+      onInteractionEnd,
+      onReplace,
+      keywordRange,
+      optionGroups,
+      suggestFor,
+    ]
+  )
 
   useEffect(() => {
     if (!showSuggestionMenu && editorView)
@@ -158,8 +162,8 @@ export function useSuggestionMenu(
     operations: {
       openSuggestionMenu,
       closeSuggestionMenu,
-      setKeyword,
-      setKeywordRange,
+      updateSuggestionMenu,
+      confirmOption,
     },
   }
 }

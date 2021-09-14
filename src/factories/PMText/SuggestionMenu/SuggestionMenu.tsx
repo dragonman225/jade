@@ -6,20 +6,23 @@ import { styles } from './SuggestionMenu.styles'
 import { Option, OptionGroup } from './useSuggestionMenu'
 
 interface Props {
-  width?: number
   optionGroups: OptionGroup[]
-  closeMenu: () => void
+  width?: number
+  onCloseMenu?: () => void
+  onConfirmOption?: (option: [number, number]) => void
 }
 
-type WithAbsoluteIndex<T> = {
-  key: [number, number]
+type OptionKey = [number, number]
+
+type WithOptionKey<T> = {
+  key: OptionKey
   item: T
 }
 
 function flattenOptionGroups(
   optionGroups: OptionGroup[]
-): WithAbsoluteIndex<Option>[] {
-  return optionGroups.reduce<WithAbsoluteIndex<Option>[]>(
+): WithOptionKey<Option>[] {
+  return optionGroups.reduce<WithOptionKey<Option>[]>(
     (flattened, group, groupIdx) => {
       return flattened.concat(
         group.items.map((item, itemIdx) => ({
@@ -57,17 +60,20 @@ function findNextOption(
   else return flattenedOptions[0].key
 }
 
+function getResetOption(optionGroups: OptionGroup[]): OptionKey {
+  if (optionGroups[0] && optionGroups[0].items[0]) return [0, 0]
+  else return [-1, -1]
+}
+
 export const SuggestionMenu = React.forwardRef<HTMLDivElement, Props>(
   function SuggestionMenu(
-    { width, optionGroups, closeMenu },
+    { optionGroups, width, onCloseMenu, onConfirmOption },
     ref
   ): JSX.Element {
-    const [selectedOption, setSelectedOption] = useState<[number, number]>(
-      () => {
-        if (optionGroups[0] && optionGroups[0].items[0]) return [0, 0]
-        else return [-1, -1]
-      }
+    const [selectedOption, setSelectedOption] = useState<[number, number]>(() =>
+      getResetOption(optionGroups)
     )
+
     const handleKeyDown = useCallback(
       (e: KeyboardEvent) => {
         switch (e.key) {
@@ -80,16 +86,16 @@ export const SuggestionMenu = React.forwardRef<HTMLDivElement, Props>(
             break
           }
           case 'Enter': {
-            optionGroups[selectedOption[0]]?.items[selectedOption[1]]?.perform()
+            onConfirmOption(selectedOption)
             break
           }
           case 'Escape': {
-            closeMenu()
+            onCloseMenu()
             break
           }
         }
       },
-      [optionGroups, selectedOption, closeMenu]
+      [optionGroups, selectedOption, onCloseMenu, onConfirmOption]
     )
 
     useEffect(() => {
@@ -98,8 +104,11 @@ export const SuggestionMenu = React.forwardRef<HTMLDivElement, Props>(
     }, [handleKeyDown])
 
     useEffect(() => {
-      if (!optionGroups[selectedOption[0]]?.items[selectedOption[1]]) {
-        setSelectedOption([0, 0])
+      if (
+        selectedOption[0] !== -1 &&
+        !optionGroups[selectedOption[0]]?.items[selectedOption[1]]
+      ) {
+        setSelectedOption(getResetOption(optionGroups))
       }
     }, [optionGroups, selectedOption])
 
@@ -128,10 +137,13 @@ export const SuggestionMenu = React.forwardRef<HTMLDivElement, Props>(
                 onMouseEnter={() =>
                   setSelectedOption([optionGroupIdx, optionIdx])
                 }
-                onClick={option.perform}>
+                onClick={() => onConfirmOption([optionGroupIdx, optionIdx])}>
                 {option.title}
               </div>
             ))}
+            {!optionGroup.items.length && (
+              <div className={styles.Option}>No result</div>
+            )}
           </div>
         ))}
       </div>
