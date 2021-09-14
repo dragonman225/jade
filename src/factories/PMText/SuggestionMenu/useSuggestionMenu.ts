@@ -12,7 +12,11 @@ import { resetKeywordObserver } from './observeKeyword'
 import { schema } from '../ProseMirrorSchema/schema'
 import { LinkMark, linkMarkName } from '../ProseMirrorSchema/link'
 import { getUrlForConcept } from '../../../core/utils/url'
-import { DatabaseInterface, FactoryRegistry } from '../../../core/interfaces'
+import {
+  DatabaseInterface,
+  FactoryRegistry,
+  TypedConcept,
+} from '../../../core/interfaces'
 
 export interface Option {
   id: string
@@ -53,9 +57,7 @@ export function useSuggestionMenu(
     [factoryRegistry]
   )
 
-  /** Re-fetch on keyword change. */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const concepts = useMemo(() => database.getAllConcepts(), [database, keyword])
+  const [concepts, setConcepts] = useState<TypedConcept<unknown>[]>([])
 
   const openSuggestionMenu = useCallback((f: SuggestFor) => {
     setShowSuggestionMenu(true)
@@ -98,6 +100,11 @@ export function useSuggestionMenu(
       ]
     }
   }, [keyword, suggestFor, slashCommands, concepts, factoryRegistry])
+
+  useEffect(() => {
+    if (suggestFor === SuggestFor.SlashCommands) return
+    setConcepts(database.getAllConcepts())
+  }, [keyword, suggestFor, database])
 
   const updateSuggestionMenu = useCallback(
     (keyword: string, range: { from: number; to: number }) => {
