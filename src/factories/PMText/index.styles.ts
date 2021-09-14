@@ -41,29 +41,6 @@ export const styles = stylesheet({
     margin: 'auto',
     width: '100%',
   },
-  SlashMenu: {
-    width: 150,
-    padding: '.3rem',
-    color: theme.colors.contentText,
-    background: theme.colors.bgBlock,
-    boxShadow: theme.shadows.float,
-    borderRadius: theme.borders.largeRadius,
-    animation: `${theme.animations.fadeIn} 200ms ${theme.easings.easeInOutCubic}`,
-    $nest: {
-      '&>p': {
-        margin: '.2rem .5rem .5rem',
-        fontSize: '.7rem',
-        opacity: 0.7,
-      },
-    },
-  },
-  SlashMenuItem: {
-    padding: '.3rem .5rem',
-    borderRadius: theme.borders.smallRadius,
-  },
-  'SlashMenuItem--Chosen': {
-    background: theme.colors.bgHover,
-  },
   Placeholder: {
     position: 'absolute',
     top: 0,

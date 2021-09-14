@@ -2,8 +2,7 @@ import '@dragonman225/prosemirror-math/style/math.css'
 import 'katex/dist/katex.min.css'
 
 import * as React from 'react'
-import { useState, useEffect, useRef, useMemo, useContext } from 'react'
-import { classes } from 'typestyle'
+import { useState, useEffect, useRef, useContext, useCallback } from 'react'
 import { AllSelection, EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { history } from 'prosemirror-history'
@@ -11,6 +10,8 @@ import { mathPlugin } from '@dragonman225/prosemirror-math'
 
 import { styles } from './index.styles'
 import { TextActionMenu } from './TextActionMenu'
+import { useTextActionMenu } from './useTextActionMenu'
+import { SuggestionMenu } from './SuggestionMenu'
 import { schema } from './schema'
 import {
   getProseMirrorDoc,
@@ -21,7 +22,6 @@ import {
 import { disableFocusAndPasteWithMouseMiddleButton } from './disableFocusAndPasteWithMouseMiddleButton'
 import { observeInlineSelection } from './observeInlineSelection'
 import { observeKeyword } from './observeKeyword'
-import { useTextActionMenu } from './useTextActionMenu'
 import { handleMarkClick, MarkClickRule } from './handleMarkClick'
 import { LinkMark, linkMarkName } from './marks/link'
 import { getUnifiedClientCoords, isPointInRect } from '../../core/utils'
@@ -34,6 +34,7 @@ import {
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 import { PlaceMenu } from '../../core/components/PlaceMenu'
 import { SystemContext } from '../../core/store/systemContext'
+import { useSuggestionMenu, SuggestFor } from './useSuggestionMenu'
 
 interface PMTextContent {
   initialized?: boolean
@@ -46,6 +47,7 @@ type Props = ConceptDisplayProps<PMTextContent>
 
 const PMText: React.FunctionComponent<Props> = props => {
   const {
+    database,
     factoryRegistry,
     concept,
     blockId,
@@ -89,73 +91,55 @@ const PMText: React.FunctionComponent<Props> = props => {
     updateMenuState,
   } = useTextActionMenu(editorView.current)
 
-  /** Slash Menu. */
-  const [showSlashMenu, setShowSlashMenu] = useState(false)
-  const [slashMenuAnchorRect, setSlashMenuAnchorRect] = useState<Rect>({
+  /** Suggestion Menu. */
+  const suggestionMenuRef = useRef<HTMLDivElement>(null)
+  const {
+    models: suggestionMenuModels,
+    operations: suggestionMenuOperations,
+  } = useSuggestionMenu(database, factoryRegistry, onInteractionEnd, onReplace)
+  const {
+    showSuggestionMenu,
+    decoratedOptionGroups,
+    suggestFor,
+  } = suggestionMenuModels
+  const {
+    openSuggestionMenu,
+    closeSuggestionMenu,
+    setKeyword,
+    setSuggestFor,
+  } = suggestionMenuOperations
+  const [suggestionMenuAnchorRect, setSlashMenuAnchorRect] = useState<Rect>({
     top: 0,
     right: 0,
     bottom: 0,
     left: 0,
   })
-  const [slashMenuChosenItemIndex, setSlashMenuChosenItemIndex] = useState(0)
-  const slashMenuItems = useMemo(
-    () =>
-      factoryRegistry
-        .getContentFactories()
-        .map(f => ({ name: f.name, type: f.id })),
-    [factoryRegistry]
-  )
-
-  const onKeyDown = React.useCallback(
+  const onKeyDown = useCallback(
     (_view: EditorView, event: KeyboardEvent) => {
-      if (event.key === 'ArrowUp') {
-        /**
-         * Use keydown here so that we can preventDefault(), on keyup, default
-         * actions would already happen.
-         */
-        if (showSlashMenu) {
-          event.preventDefault()
-          setSlashMenuChosenItemIndex(index => (index > 0 ? index - 1 : index))
-        }
-      } else if (event.key === 'ArrowDown') {
-        if (showSlashMenu) {
-          event.preventDefault()
-          setSlashMenuChosenItemIndex(index =>
-            index < slashMenuItems.length - 1 ? index + 1 : index
-          )
-        }
-      } else if (event.key === 'Enter' && !event.shiftKey) {
-        if (showSlashMenu) {
-          setShowSlashMenu(false)
-          /** The "blur" event will not fire after replace, so we need to 
-            signal interaction end here. */
-          onInteractionEnd()
-          onReplace(slashMenuItems[slashMenuChosenItemIndex].type)
-        } else {
-          dispatchAction({
-            type: Action.ConceptCreate,
-            data: {
-              posType: PositionType.Normal,
-              intent: ConceptCreatePositionIntent.Below,
-              blockId,
-            },
-          })
-          onInteractionEnd()
-        }
-      } else {
-        setShowSlashMenu(false)
+      if (
+        showSuggestionMenu &&
+        (event.key === 'ArrowUp' ||
+          event.key === 'ArrowDown' ||
+          event.key === 'Enter')
+      ) {
+        event.preventDefault()
       }
+
+      if (!showSuggestionMenu && event.key === 'Enter' && !event.shiftKey) {
+        dispatchAction({
+          type: Action.ConceptCreate,
+          data: {
+            posType: PositionType.Normal,
+            intent: ConceptCreatePositionIntent.Below,
+            blockId,
+          },
+        })
+        onInteractionEnd()
+      }
+
       return false
     },
-    [
-      onInteractionEnd,
-      onReplace,
-      dispatchAction,
-      blockId,
-      showSlashMenu,
-      slashMenuChosenItemIndex,
-      slashMenuItems,
-    ]
+    [blockId, dispatchAction, onInteractionEnd, showSuggestionMenu]
   )
 
   /**
@@ -168,11 +152,16 @@ const PMText: React.FunctionComponent<Props> = props => {
       const textActionMenuRect =
         textActionMenuRef.current &&
         textActionMenuRef.current.getBoundingClientRect()
+      const suggestionMenuRect =
+        suggestionMenuRef.current &&
+        suggestionMenuRef.current.getBoundingClientRect()
       const mousedownCoords = getUnifiedClientCoords(e)
       const isInEditorView =
         editorViewRect && isPointInRect(mousedownCoords, editorViewRect)
       const isInTextActionMenu =
         textActionMenuRect && isPointInRect(mousedownCoords, textActionMenuRect)
+      const isInSuggestionMenu =
+        suggestionMenuRect && isPointInRect(mousedownCoords, suggestionMenuRect)
 
       if (
         /**
@@ -181,11 +170,12 @@ const PMText: React.FunctionComponent<Props> = props => {
          */
         editorView.current.dom.contains(document.activeElement) &&
         !isInEditorView &&
-        !isInTextActionMenu
+        !isInTextActionMenu &&
+        !isInSuggestionMenu
       ) {
         console.log('PMText: interaction end via mousedown')
         setShowTextActionMenu(false)
-        setShowSlashMenu(false)
+        closeSuggestionMenu()
         window.getSelection().removeAllRanges()
         /**
          * Below is not working. The old selection persists in the view
@@ -271,16 +261,27 @@ const PMText: React.FunctionComponent<Props> = props => {
           },
         }),
         observeKeyword({
-          debug: true,
+          debug: false,
           rules: [
             {
               trigger: /\/$/,
               onTrigger: e => {
-                setShowSlashMenu(true)
+                openSuggestionMenu()
+                setSuggestFor(SuggestFor.SlashCommands)
                 setSlashMenuAnchorRect(e.keywordCoords.from)
               },
-              onKeywordChange: console.log,
-              onKeywordStop: () => setShowSlashMenu(false),
+              onKeywordChange: e => setKeyword(e.keyword),
+              onKeywordStop: closeSuggestionMenu,
+            },
+            {
+              trigger: /(\[\[|@)$/,
+              onTrigger: e => {
+                openSuggestionMenu()
+                setSuggestFor(SuggestFor.Mention)
+                setSlashMenuAnchorRect(e.keywordCoords.from)
+              },
+              onKeywordChange: e => setKeyword(e.keyword),
+              onKeywordStop: closeSuggestionMenu,
             },
           ],
         }),
@@ -390,24 +391,15 @@ const PMText: React.FunctionComponent<Props> = props => {
       return (
         <div className={styles.PMTextBlock}>
           {editorContainer}
-          {showSlashMenu ? (
+          {showSuggestionMenu ? (
             props.createOverlay(
-              <PlaceMenu near={slashMenuAnchorRect}>
-                <div className={styles.SlashMenu}>
-                  <p>BLOCKS</p>
-                  {slashMenuItems.map((item, index) => (
-                    <div
-                      className={classes(
-                        styles.SlashMenuItem,
-                        index === slashMenuChosenItemIndex
-                          ? styles['SlashMenuItem--Chosen']
-                          : undefined
-                      )}
-                      key={item.name}>
-                      {item.name}
-                    </div>
-                  ))}
-                </div>
+              <PlaceMenu near={suggestionMenuAnchorRect}>
+                <SuggestionMenu
+                  ref={suggestionMenuRef}
+                  width={suggestFor === SuggestFor.SlashCommands ? 150 : 350}
+                  optionGroups={decoratedOptionGroups}
+                  closeMenu={closeSuggestionMenu}
+                />
               </PlaceMenu>
             )
           ) : (
