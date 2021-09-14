@@ -116,7 +116,15 @@ const App = React.memo(function App() {
                 </ViewObject>
               )
             })}
-          <Blocks blocks={normalBlocks} onRender={notifyBlocksRendered} />
+          <Blocks
+            /**
+             * Use key to force unmount and re-mount on canvas switch, to
+             * make sure `onRender` get called.
+             */
+            key={state.viewingConcept.id}
+            blocks={normalBlocks}
+            onRender={notifyBlocksRendered}
+          />
           {state.blocksRendered &&
             state.drawingRelation &&
             (() => {

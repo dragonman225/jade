@@ -11,9 +11,11 @@ interface Props {
 }
 
 export function Blocks({ blocks, onRender }: Props): JSX.Element {
+  /** Run on mount. */
   useEffect(() => {
     onRender && onRender()
-  })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <>
