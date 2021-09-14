@@ -2,7 +2,7 @@ import '@dragonman225/prosemirror-math/style/math.css'
 import 'katex/dist/katex.min.css'
 
 import * as React from 'react'
-import { useState, useEffect, useRef, useContext, useCallback } from 'react'
+import { useState, useEffect, useRef, useContext } from 'react'
 import { AllSelection, EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { Node as ProseNode } from 'prosemirror-model'
@@ -147,6 +147,7 @@ const PMText: React.FunctionComponent<Props> = props => {
 
       return false
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blockId, dispatchAction, showSuggestionMenu, onInteractionEnd])
 
   /**
@@ -234,6 +235,7 @@ const PMText: React.FunctionComponent<Props> = props => {
           onInteractionStart()
           return false
         },
+        // Must call our ref function so that the getter works.
         keydown: (view, event) => onKeyDownRef.current(view, event),
       },
       editable: () => !readOnly,
