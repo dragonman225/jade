@@ -123,7 +123,7 @@ export const StatusFactory: Factory = {
   id: 'status',
   name: 'Status',
   component: Status,
-  toString: () => {
+  toText: () => {
     return 'status'
   },
 }

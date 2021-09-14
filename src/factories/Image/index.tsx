@@ -148,7 +148,7 @@ export const ImageFactory: Factory = {
   id: 'image',
   name: 'Image',
   component: Image,
-  toString: (concept: TypedConcept<ImageContent>) => {
+  toText: (concept: TypedConcept<ImageContent>) => {
     const imgSrc = concept.summary.data.imgSrc
     return `image ${imgSrc || ''}`
   },

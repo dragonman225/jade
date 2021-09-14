@@ -121,7 +121,7 @@ export const EmbedFactory: Factory = {
   id: 'embed',
   name: 'Embed',
   component: Embed,
-  toString: (concept: TypedConcept<EmbedContent>) => {
+  toText: (concept: TypedConcept<EmbedContent>) => {
     const url = concept.summary.data.url
     return `embed ${url || ''}`
   },

@@ -89,7 +89,7 @@ export const SlateTextFactory: Factory = {
   id: 'text',
   name: 'SlateText',
   component: SlateText,
-  toString: (concept: TypedConcept<TextContent>) => {
+  toText: (concept: TypedConcept<TextContent>) => {
     return 'slatetext ' + JSON.stringify(concept.summary.data)
   },
 }

@@ -43,7 +43,7 @@ class AlexFactoryRegistry implements FactoryRegistry {
   getConceptString = (concept: TypedConcept<unknown>) => {
     const type = concept.summary.type
     const factory = this.getFactory(type)
-    return factory && factory.toString ? factory.toString(concept) : ''
+    return factory && factory.toText ? factory.toText(concept) : ''
   }
 
   createConceptDisplay = (

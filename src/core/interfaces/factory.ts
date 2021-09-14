@@ -16,7 +16,7 @@ export interface Factory {
   component:
     | React.ComponentClass<ConceptDisplayProps<unknown>>
     | React.FunctionComponent<ConceptDisplayProps<unknown>>
-  toString?: (concept: TypedConcept<unknown>) => string
+  toText?: (concept: TypedConcept<unknown>) => string
 }
 
 export interface FactoryRegistry {
