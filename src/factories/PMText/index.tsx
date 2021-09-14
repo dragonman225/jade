@@ -262,7 +262,7 @@ const PMText: React.FunctionComponent<Props> = props => {
           onSelectionCreate: e => {
             setTextActionMenuPos({
               top: e.selectionBoundingRect.top - 50,
-              left: e.selectionBoundingRect.left - 20,
+              left: e.selectionBoundingRect.left - 40,
             })
             setShowTextActionMenu(true)
           },
