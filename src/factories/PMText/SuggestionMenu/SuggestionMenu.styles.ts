@@ -1,6 +1,6 @@
 import { stylesheet } from 'typestyle'
 
-import theme from '../../theme'
+import theme from '../../../theme'
 
 export const styles = stylesheet({
   SuggestionMenu: {

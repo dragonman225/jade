@@ -18,8 +18,8 @@ import {
   toggleMarkOnSelection,
   turnIntoMath,
 } from './utils'
-import { schema } from './schema'
-import { HighlightColor } from './marks/highlight'
+import { schema } from '../ProseMirrorSchema/schema'
+import { HighlightColor } from '../ProseMirrorSchema/highlight'
 
 // TODO: Define stable interface.
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types

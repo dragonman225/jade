@@ -1,8 +1,8 @@
 import { Schema } from 'prosemirror-model'
 
-import { styles } from './index.styles'
-import { highlightMarkName, highlightMarkSpec } from './marks/highlight'
-import { linkMarkName, linkMarkSpec } from './marks/link'
+import { styles } from '../index.styles'
+import { highlightMarkName, highlightMarkSpec } from './highlight'
+import { linkMarkName, linkMarkSpec } from './link'
 
 export const schema = new Schema({
   nodes: {

@@ -2,11 +2,11 @@ import { useCallback, useState, useMemo, useEffect } from 'react'
 import { EditorView } from 'prosemirror-view'
 import { Fragment, Slice } from 'prosemirror-model'
 
-import { DatabaseInterface, FactoryRegistry } from '../../core/interfaces'
-import { schema } from './schema'
-import { LinkMark, linkMarkName } from './marks/link'
-import { getUrlForConcept } from '../../core/utils/url'
 import { resetKeywordObserver } from './observeKeyword'
+import { schema } from '../ProseMirrorSchema/schema'
+import { LinkMark, linkMarkName } from '../ProseMirrorSchema/link'
+import { getUrlForConcept } from '../../../core/utils/url'
+import { DatabaseInterface, FactoryRegistry } from '../../../core/interfaces'
 
 export interface Option {
   title: string
@@ -53,15 +53,18 @@ export function useSuggestionMenu(
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const concepts = useMemo(() => database.getAllConcepts(), [database, keyword])
 
-  const openSuggestionMenu = useCallback(() => {
+  const openSuggestionMenu = useCallback((f: SuggestFor) => {
     setShowSuggestionMenu(true)
+    setSuggestFor(f)
   }, [])
 
   const closeSuggestionMenu = useCallback(() => {
     setShowSuggestionMenu(false)
+    setKeyword('')
+    setKeywordRangeInner({ from: 0, to: 0 })
   }, [])
 
-  const optionGroups = useMemo(() => {
+  const optionGroupsThatDontCloseMenu = useMemo(() => {
     if (suggestFor === SuggestFor.SlashCommands) {
       const filteredSlashCommands = slashCommands.filter(c =>
         c.title.toLocaleLowerCase().includes(keyword.toLocaleLowerCase())
@@ -122,9 +125,9 @@ export function useSuggestionMenu(
    * Let the user pass this to the UI component so that menu is
    * automatically closed on perform action.
    */
-  const decoratedOptionGroups = useMemo(
+  const optionGroups = useMemo(
     () =>
-      optionGroups.map(group => ({
+      optionGroupsThatDontCloseMenu.map(group => ({
         ...group,
         items: group.items.map(item => ({
           ...item,
@@ -134,7 +137,7 @@ export function useSuggestionMenu(
           },
         })),
       })),
-    [closeSuggestionMenu, optionGroups]
+    [closeSuggestionMenu, optionGroupsThatDontCloseMenu]
   )
 
   const setKeywordRange = useCallback((range: { from: number; to: number }) => {
@@ -149,7 +152,7 @@ export function useSuggestionMenu(
   return {
     models: {
       showSuggestionMenu,
-      decoratedOptionGroups,
+      optionGroups,
       suggestFor,
     },
     operations: {
@@ -157,7 +160,6 @@ export function useSuggestionMenu(
       closeSuggestionMenu,
       setKeyword,
       setKeywordRange,
-      setSuggestFor,
     },
   }
 }

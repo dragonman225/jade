@@ -1,7 +1,7 @@
 import { stylesheet } from 'typestyle'
 
-import theme from '../../theme'
-import { buttonPrimary, input } from '../../lightComponents'
+import theme from '../../../theme'
+import { buttonPrimary, input } from '../../../lightComponents'
 
 const buttonSize = 1.7
 const menuPaddingSize = 0.3

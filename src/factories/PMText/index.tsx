@@ -10,10 +10,15 @@ import { history } from 'prosemirror-history'
 import { mathPlugin } from '@dragonman225/prosemirror-math'
 
 import { styles } from './index.styles'
-import { TextActionMenu } from './TextActionMenu'
-import { useTextActionMenu } from './useTextActionMenu'
-import { SuggestionMenu } from './SuggestionMenu'
-import { schema } from './schema'
+import { TextActionMenu } from './TextActionMenu/TextActionMenu'
+import { useTextActionMenu } from './TextActionMenu/useTextActionMenu'
+import { SuggestionMenu } from './SuggestionMenu/SuggestionMenu'
+import {
+  useSuggestionMenu,
+  SuggestFor,
+} from './SuggestionMenu/useSuggestionMenu'
+import { observeKeyword } from './SuggestionMenu/observeKeyword'
+import { schema } from './ProseMirrorSchema/schema'
 import {
   getProseMirrorDoc,
   inputRulesPlugin,
@@ -21,11 +26,13 @@ import {
   keymapPlugin,
 } from './utils'
 import { PMTextContent } from './types'
-import { disableFocusAndPasteWithMouseMiddleButton } from './disableFocusAndPasteWithMouseMiddleButton'
-import { observeInlineSelection } from './observeInlineSelection'
-import { observeKeyword } from './observeKeyword'
-import { handleMarkClick, MarkClickRule } from './handleMarkClick'
-import { LinkMark, linkMarkName } from './marks/link'
+import { disableFocusAndPasteWithMouseMiddleButton } from './ProseMirrorPlugins/disableFocusAndPasteWithMouseMiddleButton'
+import { observeInlineSelection } from './TextActionMenu/observeInlineSelection'
+import {
+  handleMarkClick,
+  MarkClickRule,
+} from './ProseMirrorPlugins/handleMarkClick'
+import { LinkMark, linkMarkName } from './ProseMirrorSchema/link'
 import { getUnifiedClientCoords, isPointInRect } from '../../core/utils'
 import {
   ConceptDisplayProps,
@@ -37,7 +44,6 @@ import {
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 import { PlaceMenu } from '../../core/components/PlaceMenu'
 import { SystemContext } from '../../core/store/systemContext'
-import { useSuggestionMenu, SuggestFor } from './useSuggestionMenu'
 import { getConceptIdFromUrl, isInternalUrl } from '../../core/utils/url'
 import { useFunctionRef } from './useFunctionRef'
 
@@ -101,17 +107,12 @@ const PMText: React.FunctionComponent<Props> = props => {
     onReplace,
     editorView.current
   )
-  const {
-    showSuggestionMenu,
-    decoratedOptionGroups,
-    suggestFor,
-  } = suggestionMenuModels
+  const { showSuggestionMenu, optionGroups, suggestFor } = suggestionMenuModels
   const {
     openSuggestionMenu,
     closeSuggestionMenu,
     setKeyword,
     setKeywordRange,
-    setSuggestFor,
   } = suggestionMenuOperations
   const [suggestionMenuAnchorRect, setSlashMenuAnchorRect] = useState<Rect>({
     top: 0,
@@ -278,8 +279,7 @@ const PMText: React.FunctionComponent<Props> = props => {
             {
               trigger: /\/$/,
               onTrigger: e => {
-                openSuggestionMenu()
-                setSuggestFor(SuggestFor.SlashCommands)
+                openSuggestionMenu(SuggestFor.SlashCommands)
                 setSlashMenuAnchorRect(e.keywordCoords.from)
               },
               onKeywordChange: e => {
@@ -294,8 +294,7 @@ const PMText: React.FunctionComponent<Props> = props => {
             {
               trigger: /(\[\[|@)$/,
               onTrigger: e => {
-                openSuggestionMenu()
-                setSuggestFor(SuggestFor.Mention)
+                openSuggestionMenu(SuggestFor.Mention)
                 setSlashMenuAnchorRect(e.keywordCoords.from)
               },
               onKeywordChange: e => {
@@ -418,7 +417,7 @@ const PMText: React.FunctionComponent<Props> = props => {
                 <SuggestionMenu
                   ref={suggestionMenuRef}
                   width={suggestFor === SuggestFor.SlashCommands ? 150 : 350}
-                  optionGroups={decoratedOptionGroups}
+                  optionGroups={optionGroups}
                   closeMenu={closeSuggestionMenu}
                 />
               </PlaceMenu>

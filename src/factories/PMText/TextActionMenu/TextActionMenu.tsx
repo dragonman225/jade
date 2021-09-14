@@ -8,7 +8,7 @@ import {
   isBackgroundHighlight,
   isColorHighlight,
   styles as highlightStyles,
-} from './marks/highlight'
+} from '../ProseMirrorSchema/highlight'
 
 const bold = <span style={{ fontWeight: 600 }}>B</span>
 const italic = <span style={{ fontStyle: 'italic' }}>I</span>
