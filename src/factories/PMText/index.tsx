@@ -20,6 +20,7 @@ import {
   isProseMirrorDocEmpty,
   keymapPlugin,
 } from './utils'
+import { PMTextContent } from './types'
 import { disableFocusAndPasteWithMouseMiddleButton } from './disableFocusAndPasteWithMouseMiddleButton'
 import { observeInlineSelection } from './observeInlineSelection'
 import { observeKeyword } from './observeKeyword'
@@ -37,13 +38,8 @@ import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 import { PlaceMenu } from '../../core/components/PlaceMenu'
 import { SystemContext } from '../../core/store/systemContext'
 import { useSuggestionMenu, SuggestFor } from './useSuggestionMenu'
-
-interface PMTextContent {
-  initialized?: boolean
-  data?: {
-    [key: string]: any
-  }
-}
+import { getConceptIdFromUrl, isInternalUrl } from '../../core/utils/url'
+import { useFunctionRef } from './useFunctionRef'
 
 type Props = ConceptDisplayProps<PMTextContent>
 
@@ -98,7 +94,13 @@ const PMText: React.FunctionComponent<Props> = props => {
   const {
     models: suggestionMenuModels,
     operations: suggestionMenuOperations,
-  } = useSuggestionMenu(database, factoryRegistry, onInteractionEnd, onReplace)
+  } = useSuggestionMenu(
+    database,
+    factoryRegistry,
+    onInteractionEnd,
+    onReplace,
+    editorView.current
+  )
   const {
     showSuggestionMenu,
     decoratedOptionGroups,
@@ -108,6 +110,7 @@ const PMText: React.FunctionComponent<Props> = props => {
     openSuggestionMenu,
     closeSuggestionMenu,
     setKeyword,
+    setKeywordRange,
     setSuggestFor,
   } = suggestionMenuOperations
   const [suggestionMenuAnchorRect, setSlashMenuAnchorRect] = useState<Rect>({
@@ -116,8 +119,11 @@ const PMText: React.FunctionComponent<Props> = props => {
     bottom: 0,
     left: 0,
   })
-  const onKeyDown = useCallback(
-    (_view: EditorView, event: KeyboardEvent) => {
+  const onKeyDownRef = useFunctionRef<
+    (_view: EditorView, event: KeyboardEvent) => boolean
+  >()
+  useEffect(() => {
+    onKeyDownRef.current = (_view: EditorView, event: KeyboardEvent) => {
       if (
         showSuggestionMenu &&
         (event.key === 'ArrowUp' ||
@@ -140,9 +146,8 @@ const PMText: React.FunctionComponent<Props> = props => {
       }
 
       return false
-    },
-    [blockId, dispatchAction, onInteractionEnd, showSuggestionMenu]
-  )
+    }
+  }, [blockId, dispatchAction, showSuggestionMenu, onInteractionEnd])
 
   /**
    * HACK: At this time, this is the best solution to handle all kinds of
@@ -229,7 +234,7 @@ const PMText: React.FunctionComponent<Props> = props => {
           onInteractionStart()
           return false
         },
-        keydown: onKeyDown,
+        keydown: (view, event) => onKeyDownRef.current(view, event),
       },
       editable: () => !readOnly,
       /** Disable scroll-to-selection by lying that we do it in a custom way. */
@@ -272,7 +277,13 @@ const PMText: React.FunctionComponent<Props> = props => {
                 setSuggestFor(SuggestFor.SlashCommands)
                 setSlashMenuAnchorRect(e.keywordCoords.from)
               },
-              onKeywordChange: e => setKeyword(e.keyword),
+              onKeywordChange: e => {
+                setKeyword(e.keyword)
+                setKeywordRange({
+                  from: e.keywordRange.from - e.triggerString.length,
+                  to: e.keywordRange.to,
+                })
+              },
               onKeywordStop: closeSuggestionMenu,
             },
             {
@@ -282,7 +293,13 @@ const PMText: React.FunctionComponent<Props> = props => {
                 setSuggestFor(SuggestFor.Mention)
                 setSlashMenuAnchorRect(e.keywordCoords.from)
               },
-              onKeywordChange: e => setKeyword(e.keyword),
+              onKeywordChange: e => {
+                setKeyword(e.keyword)
+                setKeywordRange({
+                  from: e.keywordRange.from - e.triggerString.length,
+                  to: e.keywordRange.to,
+                })
+              },
               onKeywordStop: closeSuggestionMenu,
             },
           ],
@@ -290,7 +307,15 @@ const PMText: React.FunctionComponent<Props> = props => {
         handleMarkClick({
           rules: [
             new MarkClickRule(linkMarkName, (attrs: LinkMark['attrs']) => {
-              openExternal(attrs.href)
+              if (isInternalUrl(attrs.href)) {
+                const conceptId = getConceptIdFromUrl(attrs.href)
+                dispatchAction({
+                  type: Action.BlockOpenAsCanvas,
+                  data: { id: conceptId },
+                })
+              } else {
+                openExternal(attrs.href)
+              }
             }),
           ],
         }),
@@ -315,17 +340,6 @@ const PMText: React.FunctionComponent<Props> = props => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  /**
-   * Since ProseMirror's view is not managed by React, when it uses
-   * variables that are React state, we need to update it on state change. */
-  useEffect(() => {
-    if (!editorMounted) return
-
-    // console.log('PMText: update handleDOMEvents')
-
-    editorView.current.props.handleDOMEvents.keydown = onKeyDown
-  }, [onKeyDown, editorMounted])
 
   /**
    * Update content of the editor when props change.
@@ -449,7 +463,7 @@ export const PMTextFactory: Factory = {
   id: 'pmtext',
   name: 'PMText',
   component: PMText,
-  toString: (concept: TypedConcept<PMTextContent>) => {
+  toText: (concept: TypedConcept<PMTextContent>) => {
     const data = concept.summary.data?.data
     if (!data) return ''
     const doc = ProseNode.fromJSON(schema, data)

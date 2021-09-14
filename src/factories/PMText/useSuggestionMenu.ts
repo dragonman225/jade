@@ -1,6 +1,12 @@
-import { useCallback, useState, useMemo } from 'react'
+import { useCallback, useState, useMemo, useEffect } from 'react'
+import { EditorView } from 'prosemirror-view'
+import { Fragment, Slice } from 'prosemirror-model'
 
 import { DatabaseInterface, FactoryRegistry } from '../../core/interfaces'
+import { schema } from './schema'
+import { LinkMark, linkMarkName } from './marks/link'
+import { getUrlForConcept } from '../../core/utils/url'
+import { resetKeywordObserver } from './observeKeyword'
 
 export interface Option {
   title: string
@@ -23,10 +29,12 @@ export function useSuggestionMenu(
   database: DatabaseInterface,
   factoryRegistry: FactoryRegistry,
   onInteractionEnd: () => void,
-  onReplace: (type: string) => void
+  onReplace: (type: string) => void,
+  editorView: EditorView
 ) {
   const [showSuggestionMenu, setShowSuggestionMenu] = useState(false)
   const [keyword, setKeyword] = useState('')
+  const [keywordRange, setKeywordRangeInner] = useState({ from: 0, to: 0 })
   const [suggestFor, setSuggestFor] = useState(SuggestFor.SlashCommands)
 
   const slashCommands = useMemo(
@@ -42,6 +50,7 @@ export function useSuggestionMenu(
   )
 
   /** Re-fetch on keyword change. */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const concepts = useMemo(() => database.getAllConcepts(), [database, keyword])
 
   const openSuggestionMenu = useCallback(() => {
@@ -68,12 +77,46 @@ export function useSuggestionMenu(
         {
           title: 'Blocks',
           items: concepts
-            .slice(0, 6)
-            .map(c => ({ title: c.id, perform: () => console.log(c) })),
+            // HACK: Support text only
+            .filter(c => c.summary.type === 'pmtext')
+            /** Search with keyword. */
+            .filter(c =>
+              factoryRegistry
+                .getConceptString(c)
+                .toLocaleLowerCase()
+                .includes(keyword.toLocaleLowerCase())
+            )
+            .map(c => ({
+              title: factoryRegistry.getConceptString(c),
+              perform: () => {
+                const { from, to } = keywordRange
+                const text = factoryRegistry.getConceptString(c)
+                const node = schema.text(text, [
+                  schema.mark(schema.marks[linkMarkName], {
+                    href: getUrlForConcept(c),
+                  } as LinkMark['attrs']),
+                ])
+                const fragment = Fragment.from(node)
+                const slice = new Slice(fragment, 0, 0)
+                editorView.dispatch(
+                  editorView.state.tr.replaceRange(from, to, slice)
+                )
+              },
+            }))
+            .filter(o => !!o.title)
+            .slice(0, 6),
         },
       ]
     }
-  }, [keyword, suggestFor, slashCommands, concepts])
+  }, [
+    keyword,
+    keywordRange,
+    suggestFor,
+    slashCommands,
+    concepts,
+    factoryRegistry,
+    editorView,
+  ])
 
   /**
    * Let the user pass this to the UI component so that menu is
@@ -94,6 +137,15 @@ export function useSuggestionMenu(
     [closeSuggestionMenu, optionGroups]
   )
 
+  const setKeywordRange = useCallback((range: { from: number; to: number }) => {
+    setKeywordRangeInner(range)
+  }, [])
+
+  useEffect(() => {
+    if (!showSuggestionMenu && editorView)
+      resetKeywordObserver(editorView.state, editorView.dispatch.bind(null))
+  }, [showSuggestionMenu, editorView])
+
   return {
     models: {
       showSuggestionMenu,
@@ -104,6 +156,7 @@ export function useSuggestionMenu(
       openSuggestionMenu,
       closeSuggestionMenu,
       setKeyword,
+      setKeywordRange,
       setSuggestFor,
     },
   }
