@@ -4,7 +4,11 @@ import * as Slate from 'slate'
 
 import { SlateTextEditor } from './SlateTextEditor'
 import { styles } from './index.styles'
-import { ConceptDisplayProps, Factory } from '../../core/interfaces'
+import {
+  ConceptDisplayProps,
+  Factory,
+  TypedConcept,
+} from '../../core/interfaces'
 
 /**
  * Slate CJK bugs
@@ -85,4 +89,7 @@ export const SlateTextFactory: Factory = {
   id: 'text',
   name: 'SlateText',
   component: SlateText,
+  toString: (concept: TypedConcept<TextContent>) => {
+    return 'slatetext ' + JSON.stringify(concept.summary.data)
+  },
 }

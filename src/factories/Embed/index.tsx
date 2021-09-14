@@ -3,7 +3,11 @@ import { useRef, useState, useCallback } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './index.styles'
-import { ConceptDisplayProps, Factory } from '../../core/interfaces'
+import {
+  ConceptDisplayProps,
+  Factory,
+  TypedConcept,
+} from '../../core/interfaces'
 
 interface EmbedContent {
   initialized?: boolean
@@ -117,4 +121,8 @@ export const EmbedFactory: Factory = {
   id: 'embed',
   name: 'Embed',
   component: Embed,
+  toString: (concept: TypedConcept<EmbedContent>) => {
+    const url = concept.summary.data.url
+    return `embed ${url || ''}`
+  },
 }

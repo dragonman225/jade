@@ -18,6 +18,7 @@ import {
   Concept,
   ConceptDisplayProps,
   Factory,
+  FactoryRegistry,
   TypedConcept,
   Vec2,
 } from '../../core/interfaces'
@@ -72,14 +73,25 @@ const S2LState = {
   Linking: Symbol('linking'),
 }
 
-function getSearchResult(keyword: string, concepts: TypedConcept<unknown>[]) {
+function getSearchResult(
+  keyword: string,
+  concepts: TypedConcept<unknown>[],
+  factoryRegistry: FactoryRegistry
+) {
   const conceptsWithChildren = []
   const conceptsWithoutChildren = []
 
   for (let i = 0; i < concepts.length; ++i) {
     const c = concepts[i]
 
-    if (keyword && !Concept.includesText(c, keyword)) continue
+    if (
+      keyword &&
+      !factoryRegistry
+        .getConceptString(c)
+        .toLocaleLowerCase()
+        .includes(keyword.toLocaleLowerCase())
+    )
+      continue
 
     if (Concept.isHighOrder(c)) conceptsWithChildren.push(c)
     else conceptsWithoutChildren.push(c)
@@ -108,7 +120,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const [minimized, setMinimized] = useState(true)
   const [tab, setTab] = useState<'canvas' | 'block'>('canvas')
   const result = useMemo(() => {
-    return getSearchResult(text, database.getAllConcepts())
+    return getSearchResult(text, database.getAllConcepts(), factoryRegistry)
     /** Should re-run on minimized change. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, database, minimized])

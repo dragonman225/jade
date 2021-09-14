@@ -4,6 +4,7 @@ import {
   ConceptDisplayProps,
   FactoryId,
   FactoryRegistry,
+  TypedConcept,
 } from '../core/interfaces'
 import { ErrorBoundary } from '../core/components/ErrorBoundary'
 import { PMTextFactory } from './PMText'
@@ -38,6 +39,12 @@ class AlexFactoryRegistry implements FactoryRegistry {
 
   getFactory = (factoryId: FactoryId) =>
     this.factories.find(f => f.id === factoryId)
+
+  getConceptString = (concept: TypedConcept<unknown>) => {
+    const type = concept.summary.type
+    const factory = this.getFactory(type)
+    return factory && factory.toString ? factory.toString(concept) : ''
+  }
 
   createConceptDisplay = (
     factoryId: FactoryId,

@@ -2,7 +2,11 @@ import * as React from 'react'
 import { useRef, useEffect, useState } from 'react'
 
 import { styles } from './index.styles'
-import { ConceptDisplayProps, Factory } from '../../core/interfaces'
+import {
+  ConceptDisplayProps,
+  Factory,
+  TypedConcept,
+} from '../../core/interfaces'
 
 function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -144,4 +148,8 @@ export const ImageFactory: Factory = {
   id: 'image',
   name: 'Image',
   component: Image,
+  toString: (concept: TypedConcept<ImageContent>) => {
+    const imgSrc = concept.summary.data.imgSrc
+    return `image ${imgSrc || ''}`
+  },
 }

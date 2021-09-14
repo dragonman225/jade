@@ -5,6 +5,7 @@ import * as React from 'react'
 import { useState, useEffect, useRef, useContext, useCallback } from 'react'
 import { AllSelection, EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
+import { Node as ProseNode } from 'prosemirror-model'
 import { history } from 'prosemirror-history'
 import { mathPlugin } from '@dragonman225/prosemirror-math'
 
@@ -30,6 +31,7 @@ import {
   Factory,
   PositionType,
   Rect,
+  TypedConcept,
 } from '../../core/interfaces'
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 import { PlaceMenu } from '../../core/components/PlaceMenu'
@@ -447,4 +449,10 @@ export const PMTextFactory: Factory = {
   id: 'pmtext',
   name: 'PMText',
   component: PMText,
+  toString: (concept: TypedConcept<PMTextContent>) => {
+    const data = concept.summary.data?.data
+    if (!data) return ''
+    const doc = ProseNode.fromJSON(schema, data)
+    return doc.textContent
+  },
 }
