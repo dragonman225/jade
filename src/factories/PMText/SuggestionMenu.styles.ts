@@ -21,6 +21,9 @@ export const styles = stylesheet({
     fontSize: '.875rem',
     borderRadius: theme.borders.smallRadius,
     cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     $nest: {
       '&:active': {
         background: theme.colors.bgActive,
