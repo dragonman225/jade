@@ -48,14 +48,4 @@ export const Concept = {
   isHighOrder(concept: TypedConcept<unknown>): boolean {
     return concept.references.length > 0
   },
-
-  includesText(concept: TypedConcept<unknown>, text: string): boolean {
-    /**
-     * HACK: Each content type should be able to decide
-     * how to search its content!
-     */
-    return JSON.stringify(concept.summary.data)
-      .toLocaleLowerCase()
-      .includes(text.toLocaleLowerCase())
-  },
 }
