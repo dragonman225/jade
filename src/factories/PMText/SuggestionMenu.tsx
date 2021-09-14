@@ -98,7 +98,7 @@ export const SuggestionMenu = React.forwardRef<HTMLDivElement, Props>(
     }, [handleKeyDown])
 
     useEffect(() => {
-      if (!optionGroups[selectedOption[0]].items[selectedOption[1]]) {
+      if (!optionGroups[selectedOption[0]]?.items[selectedOption[1]]) {
         setSelectedOption([0, 0])
       }
     }, [optionGroups, selectedOption])
