@@ -26,7 +26,7 @@ import {
   keymapPlugin,
 } from './utils'
 import { PMTextContent } from './types'
-import { disableFocusAndPasteWithMouseMiddleButton } from './ProseMirrorPlugins/disableFocusAndPasteWithMouseMiddleButton'
+import { disablePasteWithMouseMiddleButton } from './ProseMirrorPlugins/disableFocusAndPasteWithMouseMiddleButton'
 import { observeInlineSelection } from './TextActionMenu/observeInlineSelection'
 import {
   handleMarkClick,
@@ -260,7 +260,7 @@ const PMText: React.FunctionComponent<Props> = props => {
         keymapPlugin,
         inputRulesPlugin,
         history(),
-        disableFocusAndPasteWithMouseMiddleButton(),
+        disablePasteWithMouseMiddleButton(),
         observeInlineSelection({
           onSelectionCreate: e => {
             setTextActionMenuPos({

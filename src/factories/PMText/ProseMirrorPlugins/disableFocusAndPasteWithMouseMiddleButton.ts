@@ -1,13 +1,11 @@
 import { Plugin } from 'prosemirror-state'
 
-export function disableFocusAndPasteWithMouseMiddleButton(): Plugin {
+export function disablePasteWithMouseMiddleButton(): Plugin {
   let setupComplete = false
   let preventNextPaste = false
 
   function handleMouseDown(event: MouseEvent) {
     if (event.button === 1) {
-      /** Preventing mousedown also prevents focus. */
-      event.preventDefault()
       preventNextPaste = true
     } else {
       preventNextPaste = false
