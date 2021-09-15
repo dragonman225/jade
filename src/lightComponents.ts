@@ -1,3 +1,5 @@
+import { NestedCSSProperties } from 'typestyle/lib/types'
+
 import theme from './theme'
 
 export const buttonBase = {
@@ -7,7 +9,7 @@ export const buttonBase = {
   padding: '.3rem .5rem',
   fontSize: '.875rem',
   lineHeight: '1.25rem',
-  transition: 'background 0.1s ease-in-out',
+  transition: 'background 30ms ease-in-out',
   cursor: 'pointer',
 }
 
@@ -68,7 +70,39 @@ export const inputTransparent = {
   background: 'transparent',
 }
 
+export const textOverflowEllipsis = {
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+}
+
 export const navBasic = {
   padding: theme.paddings.navComfort,
   fontSize: '.8rem',
+}
+
+export const menuPanel = {
+  padding: '.3rem',
+  color: theme.colors.contentText,
+  background: theme.colors.bgBlock,
+  boxShadow: theme.shadows.float,
+  borderRadius: theme.borders.smallRadius,
+  animation: `${theme.animations.fadeIn} 200ms ${theme.easings.easeInOutCubic}`,
+}
+
+export const menuTitle = {
+  padding: '.3rem .5rem',
+  fontSize: '.7rem',
+  color: theme.colors.uiGrey,
+}
+
+export const menuListButton: NestedCSSProperties = {
+  ...buttonTransparent,
+  color: theme.colors.contentText,
+  width: '100%',
+  padding: '.3rem .5rem',
+  fontSize: '.875rem',
+  textAlign: 'left',
+  borderRadius: theme.borders.smallRadius,
+  cursor: 'pointer',
 }

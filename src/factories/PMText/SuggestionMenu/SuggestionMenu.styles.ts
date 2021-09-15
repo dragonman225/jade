@@ -1,20 +1,14 @@
 import { stylesheet } from 'typestyle'
 
 import theme from '../../../theme'
+import { menuPanel, menuTitle } from '../../../lightComponents'
 
 export const styles = stylesheet({
   SuggestionMenu: {
-    padding: '.3rem',
-    color: theme.colors.contentText,
-    background: theme.colors.bgBlock,
-    boxShadow: theme.shadows.float,
-    borderRadius: theme.borders.largeRadius,
-    animation: `${theme.animations.fadeIn} 200ms ${theme.easings.easeInOutCubic}`,
+    ...menuPanel,
   },
   OptionGroupTitle: {
-    margin: '.2rem .5rem .5rem',
-    fontSize: '.7rem',
-    opacity: 0.8,
+    ...menuTitle,
   },
   Option: {
     padding: '.3rem .5rem',

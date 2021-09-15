@@ -22,6 +22,18 @@ export enum InteractionMode {
   Focusing,
 }
 
+export enum BlockColor {
+  BackgroundRed = 'background-red',
+  BackgroundOrange = 'background-orange',
+  BackgroundYellow = 'background-yellow',
+  BackgroundGreen = 'background-green',
+  BackgroundBlue = 'background-blue',
+  BackgroundPurple = 'background-purple',
+  BackgroundPink = 'background-pink',
+  BackgroundBrown = 'background-brown',
+  BackgroundGrey = 'background-grey',
+}
+
 /** An UUID identifying a *Block*. */
 export type BlockId = string
 

@@ -26,6 +26,8 @@ export enum Action {
   /** Now only for undo `BlockOpenAsCanvas`, but will evolve to real undo. */
   Undo = 'undo',
   BlocksRendered = 'blocksRendered',
+  ContextMenuOpen = 'contextMenu::open',
+  ContextMenuClose = 'contextMenu::close',
 }
 
 export enum ConceptCreatePositionIntent {
@@ -195,8 +197,19 @@ interface UndoAction {
   type: Action.Undo
 }
 
-interface BlocksRendered {
+interface BlocksRenderedAction {
   type: Action.BlocksRendered
+}
+
+interface ContextMenuOpenAction {
+  type: Action.ContextMenuOpen
+  data: {
+    pointerInViewportCoords: Vec2
+  }
+}
+
+interface ContextMenuCloseAction {
+  type: Action.ContextMenuClose
 }
 
 export type Actions =
@@ -223,4 +236,6 @@ export type Actions =
   | RelationDrawEndAction
   | DebuggingToggleAction
   | UndoAction
-  | BlocksRendered
+  | BlocksRenderedAction
+  | ContextMenuOpenAction
+  | ContextMenuCloseAction

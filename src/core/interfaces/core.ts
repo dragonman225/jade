@@ -25,6 +25,8 @@ export interface AppState {
   drawingRelation: boolean
   drawingRelationFromBlockId: BlockId
   drawingRelationToPoint: Vec2 // in environment coords
+  shouldShowContextMenu: boolean
+  contextMenuPos: Vec2 // in viewport coords
 }
 
 export interface Settings {

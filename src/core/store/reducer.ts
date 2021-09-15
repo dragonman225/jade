@@ -101,6 +101,8 @@ export function loadAppState(db: DatabaseInterface): AppState {
     drawingRelation: false,
     drawingRelationFromBlockId: '',
     drawingRelationToPoint: { x: 0, y: 0 },
+    shouldShowContextMenu: false,
+    contextMenuPos: { x: 0, y: 0 },
   }
 }
 
@@ -1212,6 +1214,22 @@ export function createAppStateReducer(
         return {
           ...state,
           blocksRendered: true,
+        }
+      }
+      case Action.ContextMenuOpen: {
+        const { pointerInViewportCoords } = action.data
+
+        return {
+          ...state,
+          shouldShowContextMenu: true,
+          contextMenuPos: pointerInViewportCoords,
+        }
+      }
+      case Action.ContextMenuClose: {
+        return {
+          ...state,
+          shouldShowContextMenu: false,
+          contextMenuPos: { x: 0, y: 0 },
         }
       }
     }

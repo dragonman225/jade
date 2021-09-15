@@ -130,13 +130,29 @@ export function Block(props: Props): JSX.Element {
 
       return {
         handlePointerDown: (e: MouseEvent | TouchEvent) => {
-          if (e instanceof MouseEvent) {
-            /** Reject non-primary button. */
-            if (e.button !== 0) return
-          }
-
           const clientCoords = getUnifiedClientCoords(e)
           lastClientCoords = clientCoords
+
+          if (e instanceof MouseEvent) {
+            /** Reject non-primary button. */
+            if (e.button !== 0) {
+              /** Prevent focus if InteractionMode is not Focusing. */
+              if (modeRef.current !== InteractionMode.Focusing)
+                e.preventDefault()
+              if (
+                e.button === 2 &&
+                modeRef.current !== InteractionMode.Focusing
+              ) {
+                dispatchAction({
+                  type: Action.ContextMenuOpen,
+                  data: {
+                    pointerInViewportCoords: clientCoords,
+                  },
+                })
+              }
+              return
+            }
+          }
 
           const resizerRect = resizerRef.current.getBoundingClientRect()
           const arrowTriggerRect = arrowTriggerRef.current.getBoundingClientRect()
@@ -164,10 +180,15 @@ export function Block(props: Props): JSX.Element {
       }
     })()
 
+    function preventContextMenu(e: MouseEvent) {
+      if (modeRef.current !== InteractionMode.Focusing) e.preventDefault()
+    }
     const blockEl = blockRef.current
 
     blockEl.addEventListener('mousedown', gestureDetector.handlePointerDown)
     blockEl.addEventListener('touchstart', gestureDetector.handlePointerDown)
+    /** Disable system since we're showing our own. */
+    blockEl.addEventListener('contextmenu', preventContextMenu)
 
     return () => {
       blockEl.removeEventListener(
@@ -178,6 +199,7 @@ export function Block(props: Props): JSX.Element {
         'touchstart',
         gestureDetector.handlePointerDown
       )
+      blockEl.removeEventListener('contextmenu', preventContextMenu)
     }
   }, [id, dispatchAction])
 

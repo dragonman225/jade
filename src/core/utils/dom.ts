@@ -114,3 +114,19 @@ export function getCaretCoordinates(r: Range): CaretCoordinates {
     height: 0,
   }
 }
+
+/** From Notablog. */
+export function getDateString<T extends string | number | undefined>(
+  dateRaw: T
+): string {
+  if (dateRaw) {
+    const options: Parameters<Date['toLocaleDateString']>['1'] = {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }
+    const dateString = new Date(dateRaw).toLocaleDateString('en-US', options)
+    return dateString
+  } else return ''
+}

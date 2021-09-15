@@ -3,7 +3,7 @@ import { createContext } from 'react'
 import { Actions } from './actions'
 import { DatabaseInterface, FactoryRegistry } from '../interfaces'
 
-interface System {
+export interface System {
   db: DatabaseInterface
   factoryRegistry: FactoryRegistry
   dispatchAction: (action: Actions) => void

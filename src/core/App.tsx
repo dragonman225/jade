@@ -4,16 +4,19 @@ import * as ReactDOM from 'react-dom'
 import { useMemo, useCallback, useRef, useState, useContext } from 'react'
 import { classes } from 'typestyle'
 
+import { AppStyles } from './App.styles'
+import { useAnimationFrame } from './useAnimationFrame'
 import { Arrow } from './components/Arrow'
 import { Blocks } from './components/Blocks'
 import { CanvasInteractionDetector } from './components/CanvasInteractionDetector'
 import { PinnedPositioned } from './components/PinnedPositioned'
 import { NormalPositioned } from './components/NormalPositioned'
 import { ViewObject } from './components/ViewObject'
-import { AppStyles } from './App.styles'
+import { Overlay } from './components/Overlay'
+import { PlaceMenu } from './components/PlaceMenu'
+import { ContextMenu } from './components/ContextMenu'
 import { AppStateContext } from './store/appStateContext'
 import theme from '../theme'
-import { useAnimationFrame } from './useAnimationFrame'
 import { createAppStateReducer, loadAppState } from './store/reducer'
 import {
   AppState,
@@ -21,6 +24,7 @@ import {
   FactoryRegistry,
   InteractionMode,
   PositionType,
+  Rect,
 } from './interfaces'
 import { Action, Actions } from './store/actions'
 import {
@@ -31,13 +35,12 @@ import {
 import { blockRectManager } from './utils/element-pool'
 import { blockToBox, findBlock } from './utils/block'
 import { SystemContext } from './store/systemContext'
-import { Overlay } from './components/Overlay'
 
 const zeroSize = { w: 0, h: 0 }
 
 const App = React.memo(function App() {
   const state = useContext(AppStateContext)
-  const { dispatchAction } = useContext(SystemContext)
+  const { dispatchAction, createOverlay } = useContext(SystemContext)
   const notifyBlocksRendered = useCallback(() => {
     dispatchAction({ type: Action.BlocksRendered })
   }, [dispatchAction])
@@ -78,6 +81,16 @@ const App = React.memo(function App() {
   }, [state.blocks, state.camera])
 
   const pinnedBlocks = state.blocks.filter(b => b.posType > PositionType.Normal)
+
+  const contextMenuDesiredRect: Rect = useMemo(
+    () => ({
+      top: state.contextMenuPos.y,
+      left: state.contextMenuPos.x,
+      bottom: state.contextMenuPos.y,
+      right: state.contextMenuPos.x,
+    }),
+    [state.contextMenuPos]
+  )
 
   return (
     <div
@@ -155,6 +168,12 @@ const App = React.memo(function App() {
       <PinnedPositioned>
         <Blocks blocks={pinnedBlocks} />
       </PinnedPositioned>
+      {state.shouldShowContextMenu &&
+        createOverlay(
+          <PlaceMenu near={contextMenuDesiredRect}>
+            <ContextMenu />
+          </PlaceMenu>
+        )}
     </div>
   )
 })

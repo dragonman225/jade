@@ -48,14 +48,12 @@ const gradientBase = {
 
 export const styles = stylesheet({
   Highlight: {
+    color: theme.colors.contentText,
     background: 'transparent',
     borderRadius: theme.borders.smallRadius,
     $nest: {
       [`&[data-color="${HighlightColor.BackgroundRed}"]`]: {
         background: 'rgb(255, 214, 214)',
-      },
-      [`&[data-color="${HighlightColor.BackgroundPink}"]`]: {
-        background: 'rgb(255, 213, 249)',
       },
       [`&[data-color="${HighlightColor.BackgroundOrange}"]`]: {
         background: 'rgb(255, 235, 214)',
@@ -71,6 +69,9 @@ export const styles = stylesheet({
       },
       [`&[data-color="${HighlightColor.BackgroundPurple}"]`]: {
         background: 'rgb(231, 215, 255)',
+      },
+      [`&[data-color="${HighlightColor.BackgroundPink}"]`]: {
+        background: 'rgb(255, 213, 249)',
       },
       /**
        * Gradient colors from Craft

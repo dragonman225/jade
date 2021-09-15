@@ -1,13 +1,19 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import { isBoxBoxIntersectingObjVer } from './math'
+import {
+  centerPointOf,
+  isBoxBoxIntersectingObjVer,
+  isPointInRect,
+} from './math'
 import {
   Block,
   BlockId,
   BlockInstance,
   Box,
+  Camera,
   InteractionMode,
   PositionType,
+  Vec2,
 } from '../interfaces'
 import { blockRectManager } from './element-pool'
 
@@ -143,4 +149,44 @@ export function blockToBox(block: BlockInstance): Box {
 
 export function deselectAllBlocks(blocks: BlockInstance[]): BlockInstance[] {
   return blocks.map(b => updateBlockInstance(b, { selected: false }))
+}
+
+export function getOverBlock(
+  pointerInEnvCoords: Vec2,
+  blocks: BlockInstance[],
+  excludeBlockIds: BlockId[] = []
+): BlockInstance | undefined {
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    const block = blocks[i]
+    const blockRect = blockRectManager.getRect(block.id)
+    if (
+      blockRect &&
+      !excludeBlockIds.includes(block.id) &&
+      isPointInRect(pointerInEnvCoords, blockRect)
+    )
+      return block
+  }
+  return undefined
+}
+
+export function getFocusForBlockCentered(
+  blockId: BlockId,
+  scale: Camera['scale']
+): Vec2 | undefined {
+  const blockRect = blockRectManager.getRect(blockId)
+  const center =
+    blockRect &&
+    centerPointOf({
+      ...blockRect,
+      w: blockRect.width,
+      h: blockRect.height,
+    })
+  const winW = window.innerWidth
+  const winH = window.innerHeight
+  return (
+    center && {
+      x: center.x - winW / 2 / scale,
+      y: center.y - winH / 2 / scale,
+    }
+  )
 }
