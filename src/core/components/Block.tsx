@@ -202,7 +202,7 @@ export function Block(props: Props): JSX.Element {
             top: iconSize + 2,
             right: 0,
             bottom: 0,
-            width: 20,
+            width: 14,
             cursor: 'ew-resize',
           }}
         />
