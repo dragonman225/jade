@@ -7,7 +7,6 @@ export const styles = stylesheet({
     position: 'relative',
     $nest: {
       '& .ProseMirror': {
-        padding: theme.paddings.blockComfort,
         whiteSpace: 'pre-wrap',
         /**
          * COMPAT (2021/08/20):
@@ -26,20 +25,13 @@ export const styles = stylesheet({
       '& .ProseMirror:focus': {
         outline: 'none',
       },
-    },
-  },
-  PMTextNavItem: {
-    fontSize: '.8rem',
-    padding: theme.paddings.navComfort,
-    maxHeight: '100%',
-  },
-  PMTextCardTitle: {
-    /** auto vertical center when it is smaller than HeaderTool's content
-        min-height. */
-    margin: 'auto',
-    width: '100%',
-    $nest: {
-      '& .ProseMirror': {
+      '&[data-view-mode="Block"] .ProseMirror': {
+        padding: theme.paddings.blockComfort,
+      },
+      '&[data-view-mode="NavItem"] .ProseMirror': {
+        padding: theme.paddings.navComfort,
+      },
+      '&[data-view-mode="CardTitle"] .ProseMirror': {
         padding: 0,
       },
     },
@@ -50,6 +42,25 @@ export const styles = stylesheet({
     left: 0,
     opacity: 0.7,
     pointerEvents: 'none',
+    '&[data-view-mode="Block"]': {
+      padding: theme.paddings.blockComfort,
+    },
+    '&[data-view-mode="NavItem"]': {
+      padding: theme.paddings.navComfort,
+    },
+    '&[data-view-mode="CardTitle"]': {
+      padding: 0,
+    },
+  },
+  PMTextNavItem: {
+    fontSize: '.8rem',
+    maxHeight: '100%',
+  },
+  PMTextCardTitle: {
+    /** auto vertical center when it is smaller than HeaderTool's content
+        min-height. */
+    margin: 'auto',
+    width: '100%',
   },
   Code: {
     borderRadius: 5,

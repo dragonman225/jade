@@ -402,9 +402,14 @@ const PMText: React.FunctionComponent<Props> = props => {
   }, [readOnly, editorMounted])
 
   const editorContainer = (
-    <div ref={editorContainerRef} className={styles.EditorContainer}>
+    <div
+      ref={editorContainerRef}
+      className={styles.EditorContainer}
+      data-view-mode={props.viewMode}>
       {showPlaceholder && (
-        <div className={styles.Placeholder}>Type &#39;/&#39; for commands</div>
+        <div className={styles.Placeholder} data-view-mode={props.viewMode}>
+          Type &#39;/&#39; for commands
+        </div>
       )}
     </div>
   )
