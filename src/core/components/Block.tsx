@@ -9,11 +9,12 @@ import { styles } from './Block.styles'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
 import { blockRectManager } from '../utils/element-pool'
 import { Action, Actions } from '../store/actions'
-import { BlockId, ConceptId, InteractionMode } from '../interfaces'
+import { BlockColor, BlockId, ConceptId, InteractionMode } from '../interfaces'
 
 interface Props {
   id: BlockId
   conceptId: ConceptId
+  color: BlockColor | undefined
   mode: InteractionMode
   selected: boolean
   highlighted: boolean
@@ -29,6 +30,7 @@ export function Block(props: Props): JSX.Element {
   const {
     id,
     conceptId,
+    color,
     mode,
     selected,
     highlighted,
@@ -215,7 +217,7 @@ export function Block(props: Props): JSX.Element {
 
   return (
     <>
-      <div ref={blockRef} className={blockClassName}>
+      <div ref={blockRef} className={blockClassName} data-color={color}>
         {children}
         <div
           ref={resizerRef}

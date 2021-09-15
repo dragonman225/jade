@@ -1,4 +1,5 @@
 import {
+  BlockColor,
   BlockId,
   BlockInstance,
   Camera,
@@ -16,6 +17,7 @@ export enum Action {
   BlockMoveEnd = 'block::moveEnd',
   BlockResize = 'block::resize',
   BlockSetMode = 'block::setMode',
+  BlockSetColor = 'block::setColor',
   BlockSelect = 'block::select',
   BlockDeselect = 'block::deselect',
   BlockDeselectAll = 'block::deselectAll',
@@ -121,6 +123,14 @@ interface BlockSetModeAction {
   data: {
     id: BlockId
     mode: BlockInstance['mode']
+  }
+}
+
+interface BlockSetColorAction {
+  type: Action.BlockSetColor
+  data: {
+    id: BlockId
+    color: BlockColor | undefined
   }
 }
 
@@ -234,6 +244,7 @@ export type Actions =
   | BlockMoveEndAction
   | BlockResizeAction
   | BlockSetModeAction
+  | BlockSetColorAction
   | BlockSelectAction
   | BlockDeselectAction
   | BlockDeselectAllAction

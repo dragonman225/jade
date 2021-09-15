@@ -1,12 +1,15 @@
 import { v4 as uuidv4 } from 'uuid'
+import { NestedCSSProperties } from 'typestyle/lib/types'
 
 import {
   centerPointOf,
   isBoxBoxIntersectingObjVer,
   isPointInRect,
 } from './math'
+import { blockRectManager } from './element-pool'
 import {
   Block,
+  BlockColor,
   BlockId,
   BlockInstance,
   Box,
@@ -15,7 +18,6 @@ import {
   PositionType,
   Vec2,
 } from '../interfaces'
-import { blockRectManager } from './element-pool'
 
 export function createBlock(
   properties: Pick<Block, 'pos' | 'posType' | 'size' | 'to'>
@@ -30,7 +32,9 @@ export function createBlock(
 
 export function updateBlock(
   block: Block,
-  newProperties: Partial<Pick<Block, 'pos' | 'posType' | 'size' | 'to'>>
+  newProperties: Partial<
+    Pick<Block, 'pos' | 'posType' | 'size' | 'to' | 'color'>
+  >
 ): Block {
   return {
     ...block,
@@ -45,6 +49,7 @@ export function createBlockInstance(block: Block): BlockInstance {
     posType: block.posType,
     pos: block.pos,
     size: block.size,
+    color: block.color,
     createdTime: block.createdTime,
     lastEditedTime: block.lastEditedTime,
     mode: InteractionMode.Idle,
@@ -59,7 +64,7 @@ export function updateBlockInstance(
   newProperties: Partial<
     Pick<
       BlockInstance,
-      'mode' | 'pos' | 'posType' | 'selected' | 'size' | 'highlighted'
+      'mode' | 'pos' | 'posType' | 'selected' | 'size' | 'highlighted' | 'color'
     >
   >
 ): BlockInstance {
@@ -86,6 +91,7 @@ export function blockInstanceToBlock(blockInstance: BlockInstance): Block {
     posType: blockInstance.posType,
     pos: blockInstance.pos,
     size: blockInstance.size,
+    color: blockInstance.color,
     createdTime: blockInstance.createdTime,
     lastEditedTime: blockInstance.lastEditedTime,
   }
@@ -189,4 +195,36 @@ export function getFocusWhenBlockCentered(
       y: center.y - winH / 2 / scale,
     }
   )
+}
+
+export const blockColorMixin: NestedCSSProperties = {
+  $nest: {
+    [`&[data-color="${BlockColor.BackgroundRed}"]`]: {
+      background: 'var(--bg-red)',
+    },
+    [`&[data-color="${BlockColor.BackgroundOrange}"]`]: {
+      background: 'var(--bg-orange)',
+    },
+    [`&[data-color="${BlockColor.BackgroundYellow}"]`]: {
+      background: 'var(--bg-yellow)',
+    },
+    [`&[data-color="${BlockColor.BackgroundGreen}"]`]: {
+      background: 'var(--bg-green)',
+    },
+    [`&[data-color="${BlockColor.BackgroundBlue}"]`]: {
+      background: 'var(--bg-blue)',
+    },
+    [`&[data-color="${BlockColor.BackgroundPurple}"]`]: {
+      background: 'var(--bg-purple)',
+    },
+    [`&[data-color="${BlockColor.BackgroundPink}"]`]: {
+      background: 'var(--bg-pink)',
+    },
+    [`&[data-color="${BlockColor.BackgroundBrown}"]`]: {
+      background: 'var(--bg-brown)',
+    },
+    [`&[data-color="${BlockColor.BackgroundGrey}"]`]: {
+      background: 'var(--bg-grey)',
+    },
+  },
 }

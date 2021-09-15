@@ -106,6 +106,7 @@ export const BlockDriver = React.memo(function BlockDriver(
     <Block
       id={block.id}
       conceptId={concept.id}
+      color={block.color}
       mode={block.mode}
       selected={block.selected}
       highlighted={block.highlighted}

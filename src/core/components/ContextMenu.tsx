@@ -89,6 +89,19 @@ export function ContextMenu(): JSX.Element {
     })
   }, [block.id, dispatchAction])
 
+  const setColor = useCallback(
+    (color: BlockColor | undefined) => {
+      dispatchAction({
+        type: Action.BlockSetColor,
+        data: {
+          id: block.id,
+          color,
+        },
+      })
+    },
+    [block.id, dispatchAction]
+  )
+
   const actions = useMemo<ListOption[]>(
     () => [
       {
@@ -145,11 +158,17 @@ export function ContextMenu(): JSX.Element {
       <div>
         <div className={styles.Title}>BACKGROUND</div>
         <div className={styles.TileButtonGroup}>
-          <button key={'default'} className={styles.TileButton}>
+          <button
+            key={'default'}
+            className={styles.TileButton}
+            onClick={() => setColor(undefined)}>
             <div className={styles.ColorTile} data-color={'default'} />
           </button>
           {Object.values(BlockColor).map(color => (
-            <button key={color} className={styles.TileButton}>
+            <button
+              key={color}
+              className={styles.TileButton}
+              onClick={() => setColor(color)}>
               <div className={styles.ColorTile} data-color={color} />
             </button>
           ))}

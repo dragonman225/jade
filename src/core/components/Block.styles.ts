@@ -1,5 +1,6 @@
 import { stylesheet } from 'typestyle'
 
+import { blockColorMixin } from '../utils/block'
 import theme from '../../theme'
 
 export const styles = stylesheet({
@@ -15,6 +16,7 @@ export const styles = stylesheet({
     // animation: `${theme.animations.fadeIn} 0.2s ${theme.easings.easeInOutCubic}`,
     transition: `opacity 0.2s ${theme.easings.easeInOutCubic}`,
     $nest: {
+      ...blockColorMixin.$nest,
       '&:hover': {
         cursor: 'pointer',
       },

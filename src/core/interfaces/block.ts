@@ -45,6 +45,7 @@ export interface Block {
   posType: PositionType
   pos: Vec2
   size: Size
+  color?: BlockColor
   createdTime: Timestamp
   lastEditedTime: Timestamp
 }
@@ -55,6 +56,7 @@ export interface BlockInstance {
   posType: PositionType
   pos: Vec2
   size: Size
+  color?: BlockColor
   mode: InteractionMode
   selected: boolean
   highlighted: boolean

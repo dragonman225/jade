@@ -2,7 +2,7 @@ import { stylesheet } from 'typestyle'
 
 import theme from '../../theme'
 import { menuListButton, menuPanel, menuTitle } from '../../lightComponents'
-import { BlockColor } from '../interfaces'
+import { blockColorMixin } from '../utils/block'
 
 const buttonSize = 1.7
 const buttonBase = {
@@ -53,33 +53,7 @@ export const styles = stylesheet({
       [`&[data-color="default"]`]: {
         border: `1px solid ${theme.colors.uiGreyLight}`,
       },
-      [`&[data-color="${BlockColor.BackgroundRed}"]`]: {
-        background: 'var(--bg-red)',
-      },
-      [`&[data-color="${BlockColor.BackgroundOrange}"]`]: {
-        background: 'var(--bg-orange)',
-      },
-      [`&[data-color="${BlockColor.BackgroundYellow}"]`]: {
-        background: 'var(--bg-yellow)',
-      },
-      [`&[data-color="${BlockColor.BackgroundGreen}"]`]: {
-        background: 'var(--bg-green)',
-      },
-      [`&[data-color="${BlockColor.BackgroundBlue}"]`]: {
-        background: 'var(--bg-blue)',
-      },
-      [`&[data-color="${BlockColor.BackgroundPurple}"]`]: {
-        background: 'var(--bg-purple)',
-      },
-      [`&[data-color="${BlockColor.BackgroundPink}"]`]: {
-        background: 'var(--bg-pink)',
-      },
-      [`&[data-color="${BlockColor.BackgroundBrown}"]`]: {
-        background: 'var(--bg-brown)',
-      },
-      [`&[data-color="${BlockColor.BackgroundGrey}"]`]: {
-        background: 'var(--bg-grey)',
-      },
+      ...blockColorMixin.$nest,
     },
   },
   Danger: {

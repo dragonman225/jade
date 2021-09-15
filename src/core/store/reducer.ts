@@ -56,6 +56,7 @@ export function synthesizeView(
       existingBlockInstance.posType = block.posType
       existingBlockInstance.pos = block.pos
       existingBlockInstance.size = block.size
+      existingBlockInstance.color = block.color
       existingBlockInstance.lastEditedTime = block.lastEditedTime
       return existingBlockInstance
     } else {
@@ -865,6 +866,56 @@ export function createAppStateReducer(
           blocks: state.blocks
             .filter(b => b.id !== newBlock.id)
             .concat(newBlock),
+        }
+      }
+      case Action.BlockSetColor: {
+        const { id, color } = action.data
+        const { blocks, selectedBlockIds } = state
+
+        const cursorBlock = blocks.find(b => b.id === id)
+        /** Prevent adding garbage blocks. */
+        if (!cursorBlock) return state
+
+        const shouldSetColor = (blockId: BlockId): boolean => {
+          return cursorBlock.selected
+            ? selectedBlockIds.includes(blockId)
+            : blockId === cursorBlock.id
+        }
+
+        const newViewingConcept = updateConcept(state.viewingConcept, {
+          references: state.viewingConcept.references.map(ref => {
+            if (shouldSetColor(ref.id)) {
+              return {
+                ...ref,
+                color,
+              }
+            } else {
+              return ref
+            }
+          }),
+        })
+
+        db.updateConcept(newViewingConcept)
+
+        const cursorBlockIndex = blocks.findIndex(b => b.id === id)
+
+        return {
+          ...state,
+          viewingConcept: newViewingConcept,
+          blocks: blocks
+            /** Bring to cursor block to the top. */
+            .slice(0, cursorBlockIndex)
+            .concat(blocks.slice(cursorBlockIndex + 1))
+            .concat(blocks[cursorBlockIndex])
+            .map(b => {
+              if (shouldSetColor(b.id)) {
+                return updateBlockInstance(b, {
+                  color,
+                })
+              } else {
+                return b
+              }
+            }),
         }
       }
       case Action.BlockSelect: {
