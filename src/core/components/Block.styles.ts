@@ -22,24 +22,23 @@ export const styles = stylesheet({
       },
       '& > .ActionBtn': {
         opacity: 0,
-        transition: '0.1s opacity ease-in-out, 0.1s fill ease-in-out',
-        fill: 'silver',
+        transition: `100ms opacity ease-in-out, 30ms fill ${theme.easings.easeInOutCubic}`,
+        fill: 'rgba(0, 0, 0, 0.4)',
         cursor: 'pointer',
         borderRadius: theme.borders.smallRadius,
         $nest: {
           '&:hover': {
+            fill: 'rgba(0, 0, 0, 0.7)',
             background: theme.colors.bgHover,
+          },
+          '&:active': {
+            fill: 'rgba(0, 0, 0, 0.9)',
+            background: theme.colors.bgActive,
           },
         },
       },
       '&:hover > .ActionBtn': {
         opacity: 1,
-      },
-      '& > .ActionBtn--Red:hover': {
-        fill: 'lightcoral',
-      },
-      '& > .ActionBtn--Green:hover': {
-        fill: 'mediumaquamarine',
       },
       '& > .Blink': {
         position: 'absolute',
@@ -51,7 +50,7 @@ export const styles = stylesheet({
         borderRadius: '100%',
         background: theme.colors.uiPrimary,
         opacity: 1,
-        transition: '0.1s opacity ease-in-out',
+        transition: `0.1s opacity ${theme.easings.easeInOutCubic}`,
       },
       '&:hover > .Blink': {
         opacity: 0,

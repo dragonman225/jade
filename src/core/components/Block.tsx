@@ -3,7 +3,6 @@ import { useRef, useEffect, useMemo } from 'react'
 import { classes } from 'typestyle'
 
 import { ArrowNorthEast } from './Icons/ArrowNorthEast'
-import { Cross } from './Icons/Cross'
 import { OpenInFull } from './Icons/OpenInFull'
 import { styles } from './Block.styles'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
@@ -232,31 +231,13 @@ export function Block(props: Props): JSX.Element {
         />
         {blink && <div className="Blink" />}
         <div
-          className="ActionBtn ActionBtn--Red"
+          className="ActionBtn"
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
             width: iconSize,
             height: iconSize,
-            padding: 1,
-          }}
-          onClick={() => {
-            dispatchAction({
-              type: Action.BlockRemove,
-              data: { id },
-            })
-          }}>
-          <Cross />
-        </div>
-        <div
-          className="ActionBtn ActionBtn--Green"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: iconSize + 2,
-            width: iconSize - 2,
-            height: iconSize - 2,
             padding: 2,
           }}
           onClick={() => {
