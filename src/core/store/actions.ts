@@ -1,4 +1,10 @@
-import { BlockId, BlockInstance, PositionType, Vec2 } from '../interfaces'
+import {
+  BlockId,
+  BlockInstance,
+  Camera,
+  PositionType,
+  Vec2,
+} from '../interfaces'
 
 export enum Action {
   ConceptCreate = 'concept::create',
@@ -16,6 +22,7 @@ export enum Action {
   BlockOpenAsCanvas = 'block::openAsCanvas',
   CameraMoveDelta = 'camera::moveDelta',
   CameraScaleDelta = 'camera::scaleDelta',
+  CameraSetValue = 'camera::setValue',
   SelectionBoxSetStart = 'selectionBox::setStart',
   SelectionBoxSetEnd = 'selectionBox::setEnd',
   SelectionBoxClear = 'selectionBox::clear',
@@ -151,6 +158,11 @@ interface CameraScaleDeltaAction {
   }
 }
 
+interface CameraSetValueAction {
+  type: Action.CameraSetValue
+  data: Partial<Camera>
+}
+
 interface SelectionBoxSetStartAction {
   type: Action.SelectionBoxSetStart
   data: Vec2
@@ -228,6 +240,7 @@ export type Actions =
   | BlockOpenAsCanvasAction
   | CameraMoveDeltaAction
   | CameraScaleDeltaAction
+  | CameraSetValueAction
   | SelectionBoxSetStartAction
   | SelectionBoxSetEndAction
   | SelectionBoxClearAction

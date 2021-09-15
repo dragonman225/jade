@@ -48,24 +48,27 @@ function getContext(appState: AppState, system: System): Context | undefined {
 export function ContextMenu(): JSX.Element {
   const appState = useContext(AppStateContext)
   const system = useContext(SystemContext)
-  const { camera } = appState
   const { dispatchAction } = system
   const contextMenuRef = useRef<HTMLDivElement>(null)
   const context = getContext(appState, system)
   const { block, concept } = context
 
   const focusBlock = useCallback(() => {
-    dispatchAction({
-      type: Action.CameraMoveDelta,
-      data: vecSub(
-        camera.focus,
-        getFocusForBlockCentered(block.id, camera.scale)
-      ),
-    })
+    const targetScale = 1
+    const newFocus = getFocusForBlockCentered(block.id, targetScale)
+    if (newFocus) {
+      dispatchAction({
+        type: Action.CameraSetValue,
+        data: {
+          focus: newFocus,
+          scale: targetScale,
+        },
+      })
+    }
     dispatchAction({
       type: Action.ContextMenuClose,
     })
-  }, [block.id, camera, dispatchAction])
+  }, [block.id, dispatchAction])
 
   const copyLink = useCallback(() => {
     console.log(block, concept)

@@ -1075,6 +1075,21 @@ export function createAppStateReducer(
           camera: newCamera,
         }
       }
+      case Action.CameraSetValue: {
+        const { viewingConcept, camera } = state
+        const newCamera = { ...camera, ...action.data }
+        const newConcept = updateConcept(viewingConcept, {
+          camera: newCamera,
+        })
+
+        db.updateConcept(newConcept)
+
+        return {
+          ...state,
+          viewingConcept: newConcept,
+          camera: newCamera,
+        }
+      }
       case Action.RelationDrawStart: {
         const { id, pointerInViewportCoords } = action.data
         const { camera } = state
