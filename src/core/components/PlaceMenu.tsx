@@ -19,9 +19,7 @@ export function PlaceMenu(props: Props): JSX.Element {
     right?: number
   }>({
     top: 0,
-    bottom: 0,
     left: 0,
-    right: 0,
   })
 
   useEffect(() => {
