@@ -7,6 +7,7 @@ export const styles = stylesheet({
     position: 'relative',
     $nest: {
       '& .ProseMirror': {
+        padding: theme.paddings.blockComfort,
         whiteSpace: 'pre-wrap',
         /**
          * COMPAT (2021/08/20):
@@ -31,9 +32,6 @@ export const styles = stylesheet({
     fontSize: '.8rem',
     padding: theme.paddings.navComfort,
     maxHeight: '100%',
-  },
-  PMTextBlock: {
-    padding: theme.paddings.blockComfort,
   },
   PMTextCardTitle: {
     /** auto vertical center when it is smaller than HeaderTool's content

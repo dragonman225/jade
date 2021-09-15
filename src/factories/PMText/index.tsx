@@ -415,7 +415,7 @@ const PMText: React.FunctionComponent<Props> = props => {
     }
     case 'Block': {
       return (
-        <div className={styles.PMTextBlock}>
+        <>
           {editorContainer}
           {showSuggestionMenu ? (
             props.createOverlay(
@@ -455,7 +455,7 @@ const PMText: React.FunctionComponent<Props> = props => {
                 />
               </div>
             )}
-        </div>
+        </>
       )
     }
     case 'CardTitle': {
