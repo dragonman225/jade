@@ -38,6 +38,11 @@ export const styles = stylesheet({
         min-height. */
     margin: 'auto',
     width: '100%',
+    $nest: {
+      '& .ProseMirror': {
+        padding: 0,
+      },
+    },
   },
   Placeholder: {
     position: 'absolute',
