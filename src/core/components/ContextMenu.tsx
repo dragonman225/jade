@@ -105,16 +105,16 @@ export function ContextMenu(): JSX.Element {
   const actions = useMemo<ListOption[]>(
     () => [
       {
+        title: 'Delete block',
+        perform: deleteBlock,
+      },
+      {
         title: 'Focus block',
         perform: focusBlock,
       },
       {
         title: 'Copy link',
         perform: copyLink,
-      },
-      {
-        title: 'Delete block',
-        perform: deleteBlock,
       },
     ],
     [focusBlock, copyLink, deleteBlock]
