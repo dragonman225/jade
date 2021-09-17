@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, session } from 'electron'
 
 import { IpcRendererEvent } from './ipc'
 
@@ -16,7 +16,33 @@ and the entry script is "${__filename}".`)
     autoHideMenuBar: true,
   })
 
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    const { url, requestHeaders } = details
+    if (!requestHeaders['referer']) {
+      const urlObj = new URL(url)
+      const origin = urlObj.origin
+      requestHeaders['referer'] = origin
+    }
+    callback({ cancel: false, requestHeaders })
+  })
+
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const { responseHeaders } = details
+    if (responseHeaders) {
+      Object.keys(responseHeaders).forEach(key => {
+        const normalizedKey = key.toLocaleLowerCase()
+        if (
+          normalizedKey === 'x-frame-options' ||
+          normalizedKey === 'content-security-policy'
+        )
+          delete responseHeaders[key]
+      })
+    }
+    callback({ cancel: false, responseHeaders })
+  })
+
   void win.loadFile('index.html')
+  // win.webContents.openDevTools()
 
   win.webContents.on('will-navigate', (event, url) => {
     event.preventDefault()
