@@ -14,7 +14,7 @@ import {
   TypedConcept,
 } from '../interfaces'
 import { getDateString, viewportCoordsToEnvCoords } from '../utils'
-import { getFocusWhenBlockCentered, getOverBlock } from '../utils/block'
+import { getFocusForBlock, getOverBlock } from '../utils/block'
 
 type ListOption = {
   title: string
@@ -55,7 +55,7 @@ export function ContextMenu(): JSX.Element {
 
   const focusBlock = useCallback(() => {
     const targetScale = 1
-    const newFocus = getFocusWhenBlockCentered(block.id, targetScale)
+    const newFocus = getFocusForBlock(block.id, targetScale)
     if (newFocus) {
       dispatchAction({
         type: Action.CameraSetValue,

@@ -175,7 +175,7 @@ export function getOverBlock(
   return undefined
 }
 
-export function getFocusWhenBlockCentered(
+export function getFocusForBlock(
   blockId: BlockId,
   scale: Camera['scale']
 ): Vec2 | undefined {
