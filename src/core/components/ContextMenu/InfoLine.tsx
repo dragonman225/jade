@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
 
-import theme from '../../theme'
+import theme from '../../../theme'
 
 interface InfoLineProps {
   label: string

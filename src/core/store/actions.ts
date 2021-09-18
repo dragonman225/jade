@@ -3,7 +3,9 @@ import {
   BlockId,
   BlockInstance,
   Camera,
+  ContextMenuActionData,
   PositionType,
+  RelationId,
   Vec2,
 } from '../interfaces'
 
@@ -31,6 +33,7 @@ export enum Action {
   RelationDrawStart = 'relation::drawStart',
   RelationDrawMove = 'relation::drawMove',
   RelationDrawEnd = 'relation::drawEnd',
+  RelationRemove = 'relation::remove',
   DebuggingToggle = 'debugging::toggle',
   /** Now only for undo `BlockOpenAsCanvas`, but will evolve to real undo. */
   Undo = 'undo',
@@ -211,6 +214,13 @@ interface RelationDrawEndAction {
   }
 }
 
+interface RelationRemoveAction {
+  type: Action.RelationRemove
+  data: {
+    id: RelationId
+  }
+}
+
 interface DebuggingToggleAction {
   type: Action.DebuggingToggle
 }
@@ -225,9 +235,7 @@ interface BlocksRenderedAction {
 
 interface ContextMenuOpenAction {
   type: Action.ContextMenuOpen
-  data: {
-    pointerInViewportCoords: Vec2
-  }
+  data: ContextMenuActionData
 }
 
 interface ContextMenuCloseAction {
@@ -258,6 +266,7 @@ export type Actions =
   | RelationDrawStartAction
   | RelationDrawMoveAction
   | RelationDrawEndAction
+  | RelationRemoveAction
   | DebuggingToggleAction
   | UndoAction
   | BlocksRenderedAction

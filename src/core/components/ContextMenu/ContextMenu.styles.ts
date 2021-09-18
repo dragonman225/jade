@@ -1,8 +1,8 @@
 import { stylesheet } from 'typestyle'
 
-import theme from '../../theme'
-import { menuListButton, menuPanel, menuTitle } from '../../lightComponents'
-import { blockColorMixin } from '../utils/block'
+import { blockColorMixin } from '../../utils/block'
+import theme from '../../../theme'
+import { menuListButton, menuPanel, menuTitle } from '../../../lightComponents'
 
 const buttonSize = 1.7
 const buttonBase = {

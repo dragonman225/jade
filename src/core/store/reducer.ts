@@ -38,6 +38,7 @@ import {
   Entity,
   Vec2,
   Size,
+  ContextType,
 } from '../interfaces'
 
 export function synthesizeView(
@@ -102,8 +103,14 @@ export function loadAppState(db: DatabaseInterface): AppState {
     drawingRelation: false,
     drawingRelationFromBlockId: '',
     drawingRelationToPoint: { x: 0, y: 0 },
-    shouldShowContextMenu: false,
-    contextMenuPos: { x: 0, y: 0 },
+    contextMenuState: {
+      shouldShow: false,
+      pos: { x: 0, y: 0 },
+      data: {
+        contextType: ContextType.InferFromPointer,
+        pointerInViewportCoords: { x: 0, y: 0 },
+      },
+    },
   }
 }
 
@@ -1242,6 +1249,22 @@ export function createAppStateReducer(
           drawingRelationToPoint: { x: 0, y: 0 },
         }
       }
+      case Action.RelationRemove: {
+        const { id } = action.data
+        const { viewingConcept, relations } = state
+
+        const newViewingConcept = updateConcept(viewingConcept, {
+          relations: relations.filter(r => r.id !== id),
+        })
+
+        db.updateConcept(newViewingConcept)
+
+        return {
+          ...state,
+          viewingConcept: newViewingConcept,
+          relations: newViewingConcept.relations,
+        }
+      }
       case Action.DebuggingToggle: {
         db.saveSettings({
           debugging: !state.debugging,
@@ -1287,15 +1310,24 @@ export function createAppStateReducer(
 
         return {
           ...state,
-          shouldShowContextMenu: true,
-          contextMenuPos: pointerInViewportCoords,
+          contextMenuState: {
+            shouldShow: true,
+            pos: pointerInViewportCoords,
+            data: action.data,
+          },
         }
       }
       case Action.ContextMenuClose: {
         return {
           ...state,
-          shouldShowContextMenu: false,
-          contextMenuPos: { x: 0, y: 0 },
+          contextMenuState: {
+            shouldShow: false,
+            pos: { x: 0, y: 0 },
+            data: {
+              contextType: ContextType.InferFromPointer,
+              pointerInViewportCoords: { x: 0, y: 0 },
+            },
+          },
         }
       }
     }

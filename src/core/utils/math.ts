@@ -281,3 +281,13 @@ export function growBox(box: Box, size: number): Box {
     h: box.h + 2 * size,
   }
 }
+
+export function getFocusForBox(box: Box, scale: Camera['scale']): Vec2 {
+  const center = centerPointOf(box)
+  const winW = window.innerWidth
+  const winH = window.innerHeight
+  return {
+    x: center.x - winW / 2 / scale,
+    y: center.y - winH / 2 / scale,
+  }
+}

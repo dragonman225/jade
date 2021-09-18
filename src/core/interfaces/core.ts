@@ -1,5 +1,6 @@
 import { BlockId, BlockInstance } from './block'
 import { ConceptId, TypedConcept } from './concept'
+import { ContextMenuState } from './contextMenu'
 import { Relation } from './relation'
 import { Box, Camera, Vec2 } from './util'
 
@@ -25,8 +26,7 @@ export interface AppState {
   drawingRelation: boolean
   drawingRelationFromBlockId: BlockId
   drawingRelationToPoint: Vec2 // in environment coords
-  shouldShowContextMenu: boolean
-  contextMenuPos: Vec2 // in viewport coords
+  contextMenuState: ContextMenuState
 }
 
 export interface Settings {

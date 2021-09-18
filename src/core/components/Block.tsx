@@ -8,7 +8,13 @@ import { styles } from './Block.styles'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
 import { blockRectManager } from '../utils/element-pool'
 import { Action, Actions } from '../store/actions'
-import { BlockColor, BlockId, ConceptId, InteractionMode } from '../interfaces'
+import {
+  BlockColor,
+  BlockId,
+  ConceptId,
+  ContextType,
+  InteractionMode,
+} from '../interfaces'
 
 interface Props {
   id: BlockId
@@ -147,6 +153,7 @@ export function Block(props: Props): JSX.Element {
                 dispatchAction({
                   type: Action.ContextMenuOpen,
                   data: {
+                    contextType: ContextType.InferFromPointer,
                     pointerInViewportCoords: clientCoords,
                   },
                 })

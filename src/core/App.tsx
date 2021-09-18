@@ -14,12 +14,13 @@ import { NormalPositioned } from './components/NormalPositioned'
 import { ViewObject } from './components/ViewObject'
 import { Overlay } from './components/Overlay'
 import { PlaceMenu } from './components/PlaceMenu'
-import { ContextMenu } from './components/ContextMenu'
+import { ContextMenu } from './components/ContextMenu/ContextMenu'
 import { AppStateContext } from './store/appStateContext'
 import theme from '../theme'
 import { createAppStateReducer, loadAppState } from './store/reducer'
 import {
   AppState,
+  ContextType,
   DatabaseInterface,
   FactoryRegistry,
   InteractionMode,
@@ -84,12 +85,12 @@ const App = React.memo(function App() {
 
   const contextMenuDesiredRect: Rect = useMemo(
     () => ({
-      top: state.contextMenuPos.y,
-      left: state.contextMenuPos.x,
-      bottom: state.contextMenuPos.y,
-      right: state.contextMenuPos.x,
+      top: state.contextMenuState.pos.y,
+      left: state.contextMenuState.pos.x,
+      bottom: state.contextMenuState.pos.y,
+      right: state.contextMenuState.pos.x,
     }),
-    [state.contextMenuPos]
+    [state.contextMenuState.pos]
   )
 
   return (
@@ -125,6 +126,19 @@ const App = React.memo(function App() {
                     viewBox={viewBox}
                     color={theme.colors.uiPrimaryHarder}
                     size={theme.arrowSize}
+                    onMouseDown={e => {
+                      /** We only want right-click to open ContextMenu. */
+                      if (e.button !== 2) return
+                      const clientCoords = { x: e.clientX, y: e.clientY }
+                      dispatchAction({
+                        type: Action.ContextMenuOpen,
+                        data: {
+                          contextType: ContextType.Relation,
+                          pointerInViewportCoords: clientCoords,
+                          relationId: relation.id,
+                        },
+                      })
+                    }}
                   />
                 </ViewObject>
               )
@@ -168,7 +182,7 @@ const App = React.memo(function App() {
       <PinnedPositioned>
         <Blocks blocks={pinnedBlocks} />
       </PinnedPositioned>
-      {state.shouldShowContextMenu &&
+      {state.contextMenuState.shouldShow &&
         createOverlay(
           <PlaceMenu near={contextMenuDesiredRect}>
             <ContextMenu />
