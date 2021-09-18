@@ -60,7 +60,7 @@ export function isPointInRect(point: Vec2, domRect: Rect): boolean {
 }
 
 /** Calculate the distance of two points. */
-export function distance(p1: Vec2, p2: Vec2): number {
+export function distanceOf(p1: Vec2, p2: Vec2): number {
   return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2))
 }
 

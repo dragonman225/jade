@@ -7,7 +7,7 @@ import { Search } from '../../core/components/Icons/Search'
 import { SlashHint } from '../../core/components/Icons/Slash'
 import { AppStateContext } from '../../core/store/appStateContext'
 import {
-  distance,
+  distanceOf,
   getUnifiedClientCoords,
   vecSub,
   viewportCoordsToEnvCoords,
@@ -175,7 +175,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
 
         if (
           state === 'ready' &&
-          distance(clientCoords, lastClientCoords) > 3 &&
+          distanceOf(clientCoords, lastClientCoords) > 3 &&
           s2lBlockRef.current.valid
         ) {
           setMinimized(true)
