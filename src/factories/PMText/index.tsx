@@ -33,7 +33,6 @@ import {
   MarkClickRule,
 } from './ProseMirrorPlugins/handleMarkClick'
 import { LinkMark, linkMarkName } from './ProseMirrorSchema/link'
-import { getUnifiedClientCoords, isPointInRect } from '../../core/utils'
 import {
   ConceptDisplayProps,
   Factory,
@@ -55,6 +54,7 @@ const PMText: React.FunctionComponent<Props> = props => {
     factoryRegistry,
     concept,
     blockId,
+    viewMode,
     readOnly,
     onChange,
     onReplace,
@@ -67,10 +67,11 @@ const PMText: React.FunctionComponent<Props> = props => {
   /** ProseMirror. */
   const [showPlaceholder, setShowPlaceholder] = useState(false)
   const [editorMounted, setEditorMounted] = useState(false)
+  const [isFocusing, setIsFocusing] = useState(false)
   const editorContainerRef = useRef<HTMLDivElement>(null)
   const editorView = useRef<EditorView>(null)
 
-  /** Text Action Menu. */
+  /** TextActionMenu. */
   const {
     textActionMenuRef,
     showTextActionMenu,
@@ -95,7 +96,7 @@ const PMText: React.FunctionComponent<Props> = props => {
     updateMenuState,
   } = useTextActionMenu(editorView.current)
 
-  /** Suggestion Menu. */
+  /** SuggestionMenu. */
   const suggestionMenuRef = useRef<HTMLDivElement>(null)
   const {
     models: suggestionMenuModels,
@@ -137,7 +138,12 @@ const PMText: React.FunctionComponent<Props> = props => {
         event.preventDefault()
       }
 
-      if (!showSuggestionMenu && event.key === 'Enter' && !event.shiftKey) {
+      if (
+        viewMode === 'Block' && // To avoid running in HeaderTool.
+        !showSuggestionMenu && // Enter is for confirming an option.
+        !event.shiftKey && // Shift + Enter is for hard break.
+        event.key === 'Enter'
+      ) {
         dispatchAction({
           type: Action.ConceptCreate,
           data: {
@@ -147,44 +153,38 @@ const PMText: React.FunctionComponent<Props> = props => {
           },
         })
         onInteractionEnd()
+        setIsFocusing(false)
       }
 
       return false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [blockId, dispatchAction, showSuggestionMenu, onInteractionEnd])
+  }, [blockId, dispatchAction, showSuggestionMenu, onInteractionEnd, viewMode])
 
   /**
-   * HACK: At this time, this is the best solution to handle all kinds of
-   * blur.
+   * Detect "blur". It's complex since we need to consider the interaction
+   * between the EditorView, the TextActionMenu, and the SuggestionMenu.
    */
-  useEffect(() => {
-    function handleMousedown(e: MouseEvent) {
-      const editorViewRect = editorView.current.dom.getBoundingClientRect()
-      const textActionMenuRect =
-        textActionMenuRef.current &&
-        textActionMenuRef.current.getBoundingClientRect()
-      const suggestionMenuRect =
-        suggestionMenuRef.current &&
-        suggestionMenuRef.current.getBoundingClientRect()
-      const mousedownCoords = getUnifiedClientCoords(e)
-      const isInEditorView =
-        editorViewRect && isPointInRect(mousedownCoords, editorViewRect)
-      const isInTextActionMenu =
-        textActionMenuRect && isPointInRect(mousedownCoords, textActionMenuRect)
-      const isInSuggestionMenu =
-        suggestionMenuRect && isPointInRect(mousedownCoords, suggestionMenuRect)
+  useEffect((): (() => void) | void => {
+    const editorViewEl = !!editorView.current && editorView.current.dom
 
-      if (
-        /**
-         * Only check when there's focus inside `EditorView` (including
-         * nested `EditorView`s), to prevent unnecessary setState.
-         */
-        editorView.current.dom.contains(document.activeElement) &&
-        !isInEditorView &&
-        !isInTextActionMenu &&
-        !isInSuggestionMenu
-      ) {
+    function handleMousedown(e: MouseEvent) {
+      const textActionMenuEl = textActionMenuRef.current
+      const suggestionMenuEl = suggestionMenuRef.current
+      const isInEditorView =
+        !!editorViewEl && editorViewEl.contains(e.target as Element)
+      const isInTextActionMenu =
+        !!textActionMenuEl && textActionMenuEl.contains(e.target as Element)
+      const isInSuggestionMenu =
+        !!suggestionMenuEl && suggestionMenuEl.contains(e.target as Element)
+      console.log(
+        isInEditorView,
+        isInTextActionMenu,
+        isInSuggestionMenu,
+        editorView.current.dom.contains(document.activeElement)
+      )
+
+      if (!isInEditorView && !isInTextActionMenu && !isInSuggestionMenu) {
         console.log('PMText: interaction end via mousedown')
         setShowTextActionMenu(false)
         closeSuggestionMenu()
@@ -198,14 +198,33 @@ const PMText: React.FunctionComponent<Props> = props => {
         // const state = view.state
         // view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, 0)))
         onInteractionEnd()
+        setIsFocusing(false)
       }
     }
 
-    window.addEventListener('mousedown', handleMousedown)
+    if (
+      /**
+       * Only check when focus is inside `EditorView` (including nested
+       * ones), or when either menu is shown, to prevent unnecessary
+       * `setState()`.
+       */
+      // (editorViewEl && editorViewEl.contains(document.activeElement)) ||
+      // showTextActionMenu ||
+      // showSuggestionMenu
+      isFocusing
+    ) {
+      console.log('register')
+      window.addEventListener('mousedown', handleMousedown)
 
-    return () => window.removeEventListener('mousedown', handleMousedown)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+      return () => window.removeEventListener('mousedown', handleMousedown)
+    }
+  }, [
+    closeSuggestionMenu,
+    onInteractionEnd,
+    setShowTextActionMenu,
+    isFocusing,
+    textActionMenuRef,
+  ])
 
   function createEditorView(
     containerEl: HTMLElement,
@@ -237,6 +256,7 @@ const PMText: React.FunctionComponent<Props> = props => {
         focusin: () => {
           console.log('PMText: interaction start via focusin')
           onInteractionStart()
+          setIsFocusing(true)
           return false
         },
         // Must call our ref function so that the getter works.
