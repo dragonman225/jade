@@ -25,13 +25,13 @@ export const styles = stylesheet({
       '& .ProseMirror:focus': {
         outline: 'none',
       },
-      '&[data-view-mode="Block"] .ProseMirror': {
+      '&[data-view-mode="Block"] > .ProseMirror': {
         padding: theme.paddings.blockComfort,
       },
-      '&[data-view-mode="NavItem"] .ProseMirror': {
+      '&[data-view-mode="NavItem"] > .ProseMirror': {
         padding: theme.paddings.navComfort,
       },
-      '&[data-view-mode="CardTitle"] .ProseMirror': {
+      '&[data-view-mode="CardTitle"] > .ProseMirror': {
         padding: 0,
       },
     },
