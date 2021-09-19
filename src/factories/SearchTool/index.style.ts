@@ -117,15 +117,21 @@ export const styles = stylesheet({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: '.3rem',
+    padding: '0 .75rem .5rem',
   },
   TabButton: {
     ...buttonTransparent,
+    flex: '1 1 0',
     color: theme.colors.uiGrey,
-    width: 100,
     fontSize: '.8rem',
     padding: '.2rem .6rem',
-    margin: '0 .15rem',
+    marginRight: '.3rem',
+    $nest: {
+      '&:last-of-type': {
+        marginRight: 0,
+      },
+      ...buttonTransparent.$nest,
+    },
   },
   Selected: {
     backgroundColor: theme.colors.bgHover,
