@@ -428,7 +428,7 @@ const PMText: React.FunctionComponent<Props> = props => {
       data-view-mode={props.viewMode}>
       {showPlaceholder && (
         <div className={styles.Placeholder} data-view-mode={props.viewMode}>
-          Type &#39;/&#39; for commands
+          {isFocusing ? `Type '/' for commands` : 'Wanna capture something'}
         </div>
       )}
     </div>

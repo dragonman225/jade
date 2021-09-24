@@ -39,9 +39,14 @@ export const styles = stylesheet({
   Placeholder: {
     position: 'absolute',
     top: 0,
+    right: 0,
+    bottom: 0,
     left: 0,
     opacity: 0.7,
     pointerEvents: 'none',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     '&[data-view-mode="Block"]': {
       padding: theme.paddings.blockComfort,
     },
