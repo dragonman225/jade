@@ -1,8 +1,8 @@
 import { Node, Schema } from 'prosemirror-model'
 import { EditorState, Transaction } from 'prosemirror-state'
-import { Command, toggleMark } from 'prosemirror-commands'
+import { chainCommands, Command, toggleMark } from 'prosemirror-commands'
 import { keymap } from 'prosemirror-keymap'
-import { InputRule, inputRules } from 'prosemirror-inputrules'
+import { InputRule, inputRules, undoInputRule } from 'prosemirror-inputrules'
 import { redo, undo } from 'prosemirror-history'
 import {
   REGEX_INLINE_MATH_DOLLARS,
@@ -46,7 +46,7 @@ export const keymapPlugin = keymap({
   'Mod-Shift-s': toggleMark(schema.marks.strike),
   'Mod-e': toggleMark(schema.marks.code),
   'Shift-Enter': insertHardBreak,
-  'Mod-z': whenHasFocus(undo),
+  'Mod-z': whenHasFocus(chainCommands(undoInputRule, undo)),
   'Shift-Mod-z': whenHasFocus(redo),
 })
 
