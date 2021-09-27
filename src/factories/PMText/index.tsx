@@ -185,12 +185,6 @@ const PMText: React.FunctionComponent<Props> = props => {
         !!textActionMenuEl && textActionMenuEl.contains(e.target as Element)
       const isInSuggestionMenu =
         !!suggestionMenuEl && suggestionMenuEl.contains(e.target as Element)
-      console.log(
-        isInEditorView,
-        isInTextActionMenu,
-        isInSuggestionMenu,
-        editorView.current.dom.contains(document.activeElement)
-      )
 
       if (!isInEditorView && !isInTextActionMenu && !isInSuggestionMenu) {
         console.log('PMText: interaction end via mousedown')
@@ -221,7 +215,6 @@ const PMText: React.FunctionComponent<Props> = props => {
       // showSuggestionMenu
       isFocusing
     ) {
-      console.log('register')
       window.addEventListener('mousedown', handleMousedown)
 
       return () => window.removeEventListener('mousedown', handleMousedown)
