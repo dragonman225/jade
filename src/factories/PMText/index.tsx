@@ -108,12 +108,20 @@ const PMText: React.FunctionComponent<Props> = props => {
     onReplace,
     editorView.current
   )
-  const { showSuggestionMenu, optionGroups, suggestFor } = suggestionMenuModels
+  const {
+    showSuggestionMenu,
+    optionGroups,
+    suggestFor,
+    selectedOptionIndex,
+  } = suggestionMenuModels
   const {
     openSuggestionMenu,
     closeSuggestionMenu,
-    updateSuggestionMenu,
+    updateKeyword,
     confirmOption,
+    selectOption,
+    selectPrevOption,
+    selectNextOption,
   } = suggestionMenuOperations
   const [suggestionMenuAnchorRect, setSlashMenuAnchorRect] = useState<Rect>({
     top: 0,
@@ -301,13 +309,13 @@ const PMText: React.FunctionComponent<Props> = props => {
               onTrigger: e => {
                 openSuggestionMenu(SuggestFor.SlashCommands)
                 setSlashMenuAnchorRect(e.keywordCoords.from)
-                updateSuggestionMenu(e.keyword, {
+                updateKeyword(e.keyword, {
                   from: e.keywordRange.from - e.triggerString.length,
                   to: e.keywordRange.to,
                 })
               },
               onKeywordChange: e => {
-                updateSuggestionMenu(e.keyword, {
+                updateKeyword(e.keyword, {
                   from: e.keywordRange.from - e.triggerString.length,
                   to: e.keywordRange.to,
                 })
@@ -319,13 +327,13 @@ const PMText: React.FunctionComponent<Props> = props => {
               onTrigger: e => {
                 openSuggestionMenu(SuggestFor.Mention)
                 setSlashMenuAnchorRect(e.keywordCoords.from)
-                updateSuggestionMenu(e.keyword, {
+                updateKeyword(e.keyword, {
                   from: e.keywordRange.from - e.triggerString.length,
                   to: e.keywordRange.to,
                 })
               },
               onKeywordChange: e => {
-                updateSuggestionMenu(e.keyword, {
+                updateKeyword(e.keyword, {
                   from: e.keywordRange.from - e.triggerString.length,
                   to: e.keywordRange.to,
                 })
@@ -448,9 +456,13 @@ const PMText: React.FunctionComponent<Props> = props => {
                 <SuggestionMenu
                   ref={suggestionMenuRef}
                   optionGroups={optionGroups}
+                  selectedOptionIndex={selectedOptionIndex}
                   width={suggestFor === SuggestFor.SlashCommands ? 150 : 350}
                   onConfirmOption={confirmOption}
                   onCloseMenu={closeSuggestionMenu}
+                  onSelectOption={selectOption}
+                  onSelectPrevOption={selectPrevOption}
+                  onSelectNextOption={selectNextOption}
                 />
               </PlaceMenu>
             )

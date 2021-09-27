@@ -1,116 +1,81 @@
 import * as React from 'react'
-import { useState, useCallback, useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './SuggestionMenu.styles'
-import { Option, OptionGroup } from './useSuggestionMenu'
+import {
+  flattenOptionGroups,
+  OptionKey,
+  OptionGroup,
+} from './useSuggestionMenu'
 
 interface Props {
   optionGroups: OptionGroup[]
+  selectedOptionIndex: number
   width?: number
   onCloseMenu?: () => void
-  onConfirmOption?: (option: [number, number]) => void
+  onConfirmOption?: () => void
+  onSelectOption?: (optionGroupIdx: number, optionIdx: number) => void
+  onSelectPrevOption?: () => void
+  onSelectNextOption?: () => void
 }
 
-type OptionKey = [number, number]
-
-type WithOptionKey<T> = {
-  key: OptionKey
-  item: T
-}
-
-function flattenOptionGroups(
+function isSelectedOption(
+  selectedOptionIndex: number,
+  optionKey: OptionKey,
   optionGroups: OptionGroup[]
-): WithOptionKey<Option>[] {
-  return optionGroups.reduce<WithOptionKey<Option>[]>(
-    (flattened, group, groupIdx) => {
-      return flattened.concat(
-        group.items.map((item, itemIdx) => ({
-          key: [groupIdx, itemIdx],
-          item,
-        }))
-      )
-    },
-    []
+): boolean {
+  const options = flattenOptionGroups(optionGroups)
+  const selectedOption = options[selectedOptionIndex]
+  return (
+    !!selectedOption &&
+    selectedOption.key[0] == optionKey[0] &&
+    selectedOption.key[1] === optionKey[1]
   )
-}
-
-function findPrevOption(
-  currentOption: [number, number],
-  optionGroups: OptionGroup[]
-): [number, number] {
-  const flattenedOptions = flattenOptionGroups(optionGroups)
-  const currentIdx = flattenedOptions.findIndex(
-    o => o.key[0] === currentOption[0] && o.key[1] === currentOption[1]
-  )
-  if (currentIdx > 0) return flattenedOptions[currentIdx - 1].key
-  else return flattenedOptions[flattenedOptions.length - 1].key
-}
-
-function findNextOption(
-  currentOption: [number, number],
-  optionGroups: OptionGroup[]
-) {
-  const flattenedOptions = flattenOptionGroups(optionGroups)
-  const currentIdx = flattenedOptions.findIndex(
-    o => o.key[0] === currentOption[0] && o.key[1] === currentOption[1]
-  )
-  if (currentIdx < flattenedOptions.length - 1)
-    return flattenedOptions[currentIdx + 1].key
-  else return flattenedOptions[0].key
-}
-
-function getResetOption(optionGroups: OptionGroup[]): OptionKey {
-  if (optionGroups[0] && optionGroups[0].items[0]) return [0, 0]
-  else return [-1, -1]
 }
 
 export const SuggestionMenu = React.forwardRef<HTMLDivElement, Props>(
   function SuggestionMenu(
-    { optionGroups, width, onCloseMenu, onConfirmOption },
+    {
+      optionGroups,
+      selectedOptionIndex,
+      width,
+      onCloseMenu,
+      onConfirmOption,
+      onSelectOption,
+      onSelectPrevOption,
+      onSelectNextOption,
+    },
     ref
   ): JSX.Element {
-    const [selectedOption, setSelectedOption] = useState<[number, number]>(() =>
-      getResetOption(optionGroups)
-    )
-
     const handleKeyDown = useCallback(
       (e: KeyboardEvent) => {
         switch (e.key) {
           case 'ArrowUp': {
-            setSelectedOption(o => findPrevOption(o, optionGroups))
+            onSelectPrevOption && onSelectPrevOption()
             break
           }
           case 'ArrowDown': {
-            setSelectedOption(o => findNextOption(o, optionGroups))
+            onSelectNextOption && onSelectNextOption()
             break
           }
           case 'Enter': {
-            onConfirmOption(selectedOption)
+            onConfirmOption && onConfirmOption()
             break
           }
           case 'Escape': {
-            onCloseMenu()
+            onCloseMenu && onCloseMenu()
             break
           }
         }
       },
-      [optionGroups, selectedOption, onCloseMenu, onConfirmOption]
+      [onCloseMenu, onConfirmOption, onSelectPrevOption, onSelectNextOption]
     )
 
     useEffect(() => {
       window.addEventListener('keydown', handleKeyDown)
       return () => window.removeEventListener('keydown', handleKeyDown)
     }, [handleKeyDown])
-
-    useEffect(() => {
-      if (
-        selectedOption[0] !== -1 &&
-        !optionGroups[selectedOption[0]]?.items[selectedOption[1]]
-      ) {
-        setSelectedOption(getResetOption(optionGroups))
-      }
-    }, [optionGroups, selectedOption])
 
     return (
       <div
@@ -125,9 +90,11 @@ export const SuggestionMenu = React.forwardRef<HTMLDivElement, Props>(
                 key={option.title}
                 className={classes(
                   styles.Option,
-                  optionGroupIdx === selectedOption[0] &&
-                    optionIdx === selectedOption[1] &&
-                    styles.Selected
+                  isSelectedOption(
+                    selectedOptionIndex,
+                    [optionGroupIdx, optionIdx],
+                    optionGroups
+                  ) && styles.Selected
                 )}
                 /**
                  * Can't use pure CSS since there's a case where the user
@@ -135,9 +102,9 @@ export const SuggestionMenu = React.forwardRef<HTMLDivElement, Props>(
                  * it.
                  */
                 onMouseEnter={() =>
-                  setSelectedOption([optionGroupIdx, optionIdx])
+                  onSelectOption && onSelectOption(optionGroupIdx, optionIdx)
                 }
-                onClick={() => onConfirmOption([optionGroupIdx, optionIdx])}>
+                onClick={() => onConfirmOption && onConfirmOption()}>
                 {option.title}
               </div>
             ))}

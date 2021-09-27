@@ -41,6 +41,48 @@ enum OptionGroupType {
   CreateAndLinkTo = 'createAndLinkTo',
 }
 
+export type OptionKey = [number, number]
+
+type WithOptionKey<T> = {
+  key: OptionKey
+  item: T
+}
+
+export function flattenOptionGroups(
+  optionGroups: OptionGroup[]
+): WithOptionKey<Option>[] {
+  return optionGroups.reduce<WithOptionKey<Option>[]>(
+    (flattened, group, groupIdx) => {
+      return flattened.concat(
+        group.items.map((item, itemIdx) => ({
+          key: [groupIdx, itemIdx],
+          item,
+        }))
+      )
+    },
+    []
+  )
+}
+
+function findPrevOption(
+  currentOptionIndex: number,
+  optionGroups: OptionGroup[]
+): number {
+  const flattenedOptions = flattenOptionGroups(optionGroups)
+  if (currentOptionIndex > 0) return currentOptionIndex - 1
+  else return flattenedOptions.length - 1
+}
+
+function findNextOption(
+  currentOptionIndex: number,
+  optionGroups: OptionGroup[]
+): number {
+  const flattenedOptions = flattenOptionGroups(optionGroups)
+  if (currentOptionIndex < flattenedOptions.length - 1)
+    return currentOptionIndex + 1
+  else return 0
+}
+
 // TODO: Write stable interface
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function useSuggestionMenu(
@@ -54,6 +96,7 @@ export function useSuggestionMenu(
   const [keyword, setKeyword] = useState('')
   const [keywordRange, setKeywordRange] = useState({ from: 0, to: 0 })
   const [suggestFor, setSuggestFor] = useState(SuggestFor.SlashCommands)
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(0)
 
   const slashCommands = useMemo(
     () =>
@@ -90,31 +133,32 @@ export function useSuggestionMenu(
         },
       ]
     } else {
-      return [
-        {
-          id: OptionGroupType.LinkTo,
-          title: 'Link to',
-          items: concepts
-            // HACK: Support text only
-            .filter(pmtextOnly)
-            /** Search with keyword. */
-            .filter(includeKeyword(keyword, factoryRegistry))
-            .sort(lastEditedTimeDescending)
-            .map(mapConceptToOption(factoryRegistry))
-            .filter(o => !!o.title)
-            .slice(0, 6),
-        },
-        {
-          id: OptionGroupType.CreateAndLinkTo,
-          title: 'Create and link to',
-          items: [
-            {
-              id: 'create_and_link_to',
-              title: `Create "${keyword}"`,
-            },
-          ],
-        },
-      ]
+      const linkToOptionGroup: OptionGroup = {
+        id: OptionGroupType.LinkTo,
+        title: 'Link to',
+        items: concepts
+          // HACK: Support text only
+          .filter(pmtextOnly)
+          /** Search with keyword. */
+          .filter(includeKeyword(keyword, factoryRegistry))
+          .sort(lastEditedTimeDescending)
+          .map(mapConceptToOption(factoryRegistry))
+          .filter(o => !!o.title)
+          .slice(0, 6),
+      }
+      const createOptionGroup: OptionGroup = {
+        id: OptionGroupType.CreateAndLinkTo,
+        title: 'Create and link to',
+        items: [
+          {
+            id: 'create_and_link_to',
+            title: `Create "${keyword}"`,
+          },
+        ],
+      }
+      return keyword
+        ? [linkToOptionGroup, createOptionGroup]
+        : [linkToOptionGroup]
     }
   }, [keyword, suggestFor, slashCommands, concepts, factoryRegistry])
 
@@ -123,7 +167,7 @@ export function useSuggestionMenu(
     setConcepts(database.getAllConcepts())
   }, [keyword, suggestFor, database])
 
-  const updateSuggestionMenu = useCallback(
+  const updateKeyword = useCallback(
     (keyword: string, range: { from: number; to: number }) => {
       setKeyword(keyword)
       setKeywordRange(range)
@@ -147,70 +191,105 @@ export function useSuggestionMenu(
     [editorView, factoryRegistry, keywordRange]
   )
 
-  const confirmOption = useCallback(
-    ([optionGroupIdx, optionIdx]: [number, number]) => {
-      const optionGroup = optionGroups[optionGroupIdx]
-      const option = optionGroup && optionGroup.items[optionIdx]
+  const confirmOption = useCallback(() => {
+    const options = flattenOptionGroups(optionGroups)
+    const [optionGroupIdx, optionIdx] =
+      options[selectedOptionIndex] && options[selectedOptionIndex].key
+    const optionGroup = optionGroups[optionGroupIdx]
+    const option = optionGroup && optionGroup.items[optionIdx]
 
-      closeSuggestionMenu()
+    closeSuggestionMenu()
 
-      if (!option) {
-        return
-      }
+    if (!option) {
+      return
+    }
 
-      if (suggestFor === SuggestFor.SlashCommands) {
-        onInteractionEnd()
-        onReplace(option.id)
-      } else {
-        if (optionGroup.id === OptionGroupType.LinkTo) {
-          const concept = database.getConcept(option.id)
-          insertLinkToConcept(concept)
-        } else if (optionGroup.id === OptionGroupType.CreateAndLinkTo) {
-          const concept = createConcept('pmtext', {
-            summary: {
-              type: 'pmtext',
+    if (suggestFor === SuggestFor.SlashCommands) {
+      onInteractionEnd()
+      onReplace(option.id)
+    } else {
+      if (optionGroup.id === OptionGroupType.LinkTo) {
+        const concept = database.getConcept(option.id)
+        insertLinkToConcept(concept)
+      } else if (optionGroup.id === OptionGroupType.CreateAndLinkTo) {
+        const concept = createConcept('pmtext', {
+          summary: {
+            type: 'pmtext',
+            data: {
+              initialized: true,
               data: {
-                initialized: true,
-                data: {
-                  type: 'doc',
-                  content: [{ type: 'text', text: keyword }],
-                },
+                type: 'doc',
+                content: [{ type: 'text', text: keyword }],
               },
             },
-          })
-          insertLinkToConcept(concept)
-          database.createConcept(concept)
-        }
+          },
+        })
+        insertLinkToConcept(concept)
+        database.createConcept(concept)
       }
+    }
+  }, [
+    database,
+    closeSuggestionMenu,
+    onInteractionEnd,
+    onReplace,
+    insertLinkToConcept,
+    keyword,
+    optionGroups,
+    suggestFor,
+    selectedOptionIndex,
+  ])
+
+  const selectOption = useCallback(
+    (optionGroupIdx: number, optionIdx: number) => {
+      const options = flattenOptionGroups(optionGroups)
+      const selectedOptionIdx = options.findIndex(
+        o => o.key[0] === optionGroupIdx && o.key[1] === optionIdx
+      )
+      if (selectedOptionIdx !== -1) setSelectedOptionIndex(selectedOptionIdx)
     },
-    [
-      database,
-      closeSuggestionMenu,
-      onInteractionEnd,
-      onReplace,
-      insertLinkToConcept,
-      keyword,
-      optionGroups,
-      suggestFor,
-    ]
+    [optionGroups]
   )
+
+  const selectPrevOption = useCallback(() => {
+    setSelectedOptionIndex(currentOptionIndex =>
+      findPrevOption(currentOptionIndex, optionGroups)
+    )
+  }, [optionGroups])
+
+  const selectNextOption = useCallback(() => {
+    setSelectedOptionIndex(currentOptionIndex =>
+      findNextOption(currentOptionIndex, optionGroups)
+    )
+  }, [optionGroups])
 
   useEffect(() => {
     if (!showSuggestionMenu && editorView)
       resetKeywordObserver(editorView.state, editorView.dispatch.bind(null))
   }, [showSuggestionMenu, editorView])
 
+  useEffect(() => {
+    /** If selected option is out of range, reset it. */
+    const options = flattenOptionGroups(optionGroups)
+    const selectedOption = options[selectedOptionIndex]
+    if (!selectedOption) setSelectedOptionIndex(0)
+  }, [optionGroups, selectedOptionIndex])
+
   return {
     models: {
       showSuggestionMenu,
       optionGroups,
       suggestFor,
+      selectedOptionIndex,
     },
     operations: {
       openSuggestionMenu,
       closeSuggestionMenu,
-      updateSuggestionMenu,
+      updateKeyword,
       confirmOption,
+      selectOption,
+      selectPrevOption,
+      selectNextOption,
     },
   }
 }
