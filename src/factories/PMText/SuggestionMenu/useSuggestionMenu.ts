@@ -12,6 +12,7 @@ import { resetKeywordObserver } from './observeKeyword'
 import { schema } from '../ProseMirrorSchema/schema'
 import { LinkMark, linkMarkName } from '../ProseMirrorSchema/link'
 import { getUrlForConcept } from '../../../core/utils/url'
+import { createConcept } from '../../../core/utils/concept'
 import {
   DatabaseInterface,
   FactoryRegistry,
@@ -32,6 +33,12 @@ export interface OptionGroup {
 export enum SuggestFor {
   SlashCommands = 'slashCommands',
   Mention = 'mention',
+}
+
+enum OptionGroupType {
+  TurnInto = 'turnInto',
+  LinkTo = 'linkTo',
+  CreateAndLinkTo = 'createAndLinkTo',
 }
 
 // TODO: Write stable interface
@@ -77,7 +84,7 @@ export function useSuggestionMenu(
       )
       return [
         {
-          id: 'turn_into',
+          id: OptionGroupType.TurnInto,
           title: 'Turn into',
           items: keyword ? filteredSlashCommands : slashCommands,
         },
@@ -85,8 +92,8 @@ export function useSuggestionMenu(
     } else {
       return [
         {
-          id: 'blocks',
-          title: 'Blocks',
+          id: OptionGroupType.LinkTo,
+          title: 'Link to',
           items: concepts
             // HACK: Support text only
             .filter(pmtextOnly)
@@ -96,6 +103,16 @@ export function useSuggestionMenu(
             .map(mapConceptToOption(factoryRegistry))
             .filter(o => !!o.title)
             .slice(0, 6),
+        },
+        {
+          id: OptionGroupType.CreateAndLinkTo,
+          title: 'Create and link to',
+          items: [
+            {
+              id: 'create_and_link_to',
+              title: `Create "${keyword}"`,
+            },
+          ],
         },
       ]
     }
@@ -114,6 +131,22 @@ export function useSuggestionMenu(
     []
   )
 
+  const insertLinkToConcept = useCallback(
+    (concept: TypedConcept<unknown>) => {
+      const text = factoryRegistry.getConceptString(concept)
+      const node = schema.text(text, [
+        schema.mark(schema.marks[linkMarkName], {
+          href: getUrlForConcept(concept),
+        } as LinkMark['attrs']),
+      ])
+      const fragment = Fragment.from(node)
+      const slice = new Slice(fragment, 0, 0)
+      const { from, to } = keywordRange
+      editorView.dispatch(editorView.state.tr.replaceRange(from, to, slice))
+    },
+    [editorView, factoryRegistry, keywordRange]
+  )
+
   const confirmOption = useCallback(
     ([optionGroupIdx, optionIdx]: [number, number]) => {
       const optionGroup = optionGroups[optionGroupIdx]
@@ -129,27 +162,34 @@ export function useSuggestionMenu(
         onInteractionEnd()
         onReplace(option.id)
       } else {
-        const { from, to } = keywordRange
-        const concept = database.getConcept(option.id)
-        const text = factoryRegistry.getConceptString(concept)
-        const node = schema.text(text, [
-          schema.mark(schema.marks[linkMarkName], {
-            href: getUrlForConcept(concept),
-          } as LinkMark['attrs']),
-        ])
-        const fragment = Fragment.from(node)
-        const slice = new Slice(fragment, 0, 0)
-        editorView.dispatch(editorView.state.tr.replaceRange(from, to, slice))
+        if (optionGroup.id === OptionGroupType.LinkTo) {
+          const concept = database.getConcept(option.id)
+          insertLinkToConcept(concept)
+        } else if (optionGroup.id === OptionGroupType.CreateAndLinkTo) {
+          const concept = createConcept('pmtext', {
+            summary: {
+              type: 'pmtext',
+              data: {
+                initialized: true,
+                data: {
+                  type: 'doc',
+                  content: [{ type: 'text', text: keyword }],
+                },
+              },
+            },
+          })
+          insertLinkToConcept(concept)
+          database.createConcept(concept)
+        }
       }
     },
     [
-      closeSuggestionMenu,
       database,
-      editorView,
-      factoryRegistry,
+      closeSuggestionMenu,
       onInteractionEnd,
       onReplace,
-      keywordRange,
+      insertLinkToConcept,
+      keyword,
       optionGroups,
       suggestFor,
     ]
