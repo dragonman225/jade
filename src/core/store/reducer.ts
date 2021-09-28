@@ -119,7 +119,7 @@ export function createAppStateReducer(
   factoryRegistry: FactoryRegistry
 ): (state: AppState, action: Actions) => AppState {
   const defaultSize: { w: number; h: 'auto' } = { w: 300, h: 'auto' }
-  const defaultGap = 10
+  const defaultGap = 5
 
   /**
    * "Cursor Block" is a block that fires actions when multiple blocks are
