@@ -42,7 +42,7 @@ export const styles = stylesheet({
     right: 0,
     bottom: 0,
     left: 0,
-    opacity: 0.7,
+    opacity: 0.6,
     pointerEvents: 'none',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
