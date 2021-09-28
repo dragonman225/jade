@@ -20,7 +20,8 @@ import {
 } from '../interfaces'
 
 export function createBlock(
-  properties: Pick<Block, 'pos' | 'posType' | 'size' | 'to'>
+  properties: Pick<Block, 'pos' | 'posType' | 'size' | 'to'> &
+    Partial<Pick<Block, 'color'>>
 ): Block {
   return {
     id: uuidv4(),
