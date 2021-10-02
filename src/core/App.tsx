@@ -98,7 +98,9 @@ const App = React.memo(function App() {
       className={classes(
         AppStyles.App,
         state.blocks.find(b => b.mode === InteractionMode.Moving) &&
-          AppStyles['App--BlockMoving']
+          AppStyles['App--BlockMoving'],
+        state.blocks.find(b => b.mode === InteractionMode.Resizing) &&
+          AppStyles['App--BlockResizing']
       )}>
       <CanvasInteractionDetector dispatchAction={dispatchAction}>
         <NormalPositioned

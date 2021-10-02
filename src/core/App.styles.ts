@@ -27,4 +27,7 @@ export const AppStyles = stylesheet({
   'App--BlockMoving': {
     cursor: 'grabbing',
   },
+  'App--BlockResizing': {
+    cursor: 'ew-resize',
+  },
 })
