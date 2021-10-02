@@ -14,7 +14,7 @@ export const styles = stylesheet({
      */
     position: 'relative',
     // animation: `${theme.animations.fadeIn} 0.2s ${theme.easings.easeInOutCubic}`,
-    transition: `opacity 0.2s ${theme.easings.easeInOutCubic}`,
+    transition: `opacity 0.1s ${theme.easings.easeInOutCubic}`,
     $nest: {
       ...blockColorMixin.$nest,
       '&:hover': {
