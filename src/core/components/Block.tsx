@@ -214,10 +214,10 @@ export function Block(props: Props): JSX.Element {
   const blockClassName = useMemo(() => {
     return classes(
       className,
-      styles.Block,
-      selected ? styles['Block--Selected'] : undefined,
-      mode === InteractionMode.Focusing ? styles['Block--Focusing'] : undefined,
-      mode === InteractionMode.Moving ? styles['Block--Moving'] : undefined
+      styles.block,
+      selected && styles.selected,
+      mode === InteractionMode.Focusing && styles.focusing,
+      mode === InteractionMode.Moving && styles.moving
     )
   }, [mode, selected, className])
 
@@ -236,9 +236,9 @@ export function Block(props: Props): JSX.Element {
             cursor: 'ew-resize',
           }}
         />
-        {blink && <div className="Blink" />}
+        {blink && <div className={styles.blink} />}
         <div
-          className="ActionBtn"
+          className={styles.actionButton}
           style={{
             position: 'absolute',
             top: 0,
@@ -257,7 +257,7 @@ export function Block(props: Props): JSX.Element {
         </div>
         <div
           ref={arrowTriggerRef}
-          className="ActionBtn"
+          className={styles.actionButton}
           style={{
             position: 'absolute',
             top: 0,
@@ -268,7 +268,7 @@ export function Block(props: Props): JSX.Element {
           }}>
           <ArrowNorthEast />
         </div>
-        {highlighted && <div className={styles.HighlightOverlay} />}
+        {highlighted && <div className={styles.highlightOverlay} />}
       </div>
     </>
   )

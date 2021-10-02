@@ -396,7 +396,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
 
           return props.createOverlay(
             <div
-              className={blockStyles.Block}
+              className={blockStyles.block}
               style={{
                 transformOrigin: 'top left',
                 transform: `translate3d(${pos.x}px, ${pos.y}px, 0px) scale(${scale})`,
