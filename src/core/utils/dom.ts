@@ -121,10 +121,11 @@ export function getDateString<T extends string | number | undefined>(
 ): string {
   if (dateRaw) {
     const options: Parameters<Date['toLocaleDateString']>['1'] = {
-      weekday: 'short',
       year: 'numeric',
-      month: 'short',
+      month: 'numeric',
       day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
     }
     const dateString = new Date(dateRaw).toLocaleDateString('en-US', options)
     return dateString

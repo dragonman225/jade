@@ -4,7 +4,7 @@ import { blockColorMixin } from '../../utils/block'
 import theme from '../../../theme'
 import { menuListButton, menuPanel, menuTitle } from '../../../lightComponents'
 
-const buttonSize = 1.7
+const buttonSize = 1.75
 const buttonBase = {
   height: `${buttonSize}rem`,
   fontSize: '0.9rem',
@@ -28,7 +28,7 @@ const buttonBase = {
 export const styles = stylesheet({
   ContextMenu: {
     ...menuPanel,
-    width: 'calc(1.7rem * 6 + 1.1rem)',
+    width: `calc(${buttonSize}rem * 6 + 1.1rem)`,
   },
   Title: {
     ...menuTitle,
