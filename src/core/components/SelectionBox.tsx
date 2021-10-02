@@ -11,6 +11,7 @@ interface Props {
 const styles = stylesheet({
   SelectionBox: {
     border: `2px solid ${theme.colors.uiPrimaryLight}`,
+    borderRadius: theme.borders.smallRadius,
     background: theme.colors.uiPrimaryVeryLight,
   },
 })
