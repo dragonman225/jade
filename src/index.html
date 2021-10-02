@@ -14,6 +14,11 @@
     />
     <style>
       :root {
+        font-size: 18px;
+        font-family: 'Noto Sans', 'Noto Sans CJK TC', -apple-system,
+          BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+          'Open Sans', 'Helvetica Neue', sans-serif;
+        line-height: 1.6;
         --loader-size: 4.5rem;
         --loader-ring-width: 0.4rem;
         --loader-translate-x: calc(50vw - var(--loader-size) / 2);
@@ -36,11 +41,23 @@
         --bg-grey: rgb(227, 230, 232);
       }
 
+      * {
+        box-sizing: border-box;
+        user-select: none;
+      }
+
+      *::selection {
+        background: hsla(165deg, 70%, 46%, 0.27);
+      }
+
       html,
-      body {
+      body,
+      #react-root {
+        margin: 0;
         width: 100%;
         height: 100%;
         touch-action: none;
+        overflow: hidden;
       }
 
       body {
