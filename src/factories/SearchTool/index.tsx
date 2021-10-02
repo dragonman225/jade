@@ -3,6 +3,8 @@ import { useState, useContext, useRef, useEffect, useMemo } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './index.style'
+import { usePager } from './usePager'
+import { getSearchResult } from './search'
 import { Search } from '../../core/components/Icons/Search'
 import { SlashHint } from '../../core/components/Icons/Slash'
 import { AppStateContext } from '../../core/store/appStateContext'
@@ -14,16 +16,8 @@ import {
 } from '../../core/utils'
 import { factoryRegistry } from '..'
 import { styles as blockStyles } from '../../core/components/Block.styles'
-import {
-  Concept,
-  ConceptDisplayProps,
-  Factory,
-  FactoryRegistry,
-  TypedConcept,
-  Vec2,
-} from '../../core/interfaces'
+import { ConceptDisplayProps, Factory, Vec2 } from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
-import { usePager } from './usePager'
 
 function noop() {
   return
@@ -71,44 +65,6 @@ type S2LBlock = S2LBlockValid | S2LBlockInvalid
 const S2LState = {
   Idle: Symbol('idle'),
   Linking: Symbol('linking'),
-}
-
-function getSearchResult(
-  keyword: string,
-  concepts: TypedConcept<unknown>[],
-  factoryRegistry: FactoryRegistry
-) {
-  const conceptsWithChildren = []
-  const conceptsWithoutChildren = []
-
-  for (let i = 0; i < concepts.length; ++i) {
-    const c = concepts[i]
-
-    if (
-      keyword &&
-      !factoryRegistry
-        .getConceptString(c)
-        .toLocaleLowerCase()
-        .includes(keyword.toLocaleLowerCase())
-    )
-      continue
-
-    if (Concept.isHighOrder(c)) conceptsWithChildren.push(c)
-    else conceptsWithoutChildren.push(c)
-  }
-
-  const comparator = (c1: TypedConcept<unknown>, c2: TypedConcept<unknown>) => {
-    const mtimeC1 = c1.lastEditedTime || 0
-    const mtimeC2 = c2.lastEditedTime || 0
-    return mtimeC2 - mtimeC1
-  }
-  const sortedConceptsWithChildren = conceptsWithChildren.sort(comparator)
-  const sortedConceptsWithoutChildren = conceptsWithoutChildren.sort(comparator)
-
-  return {
-    canvasConcepts: sortedConceptsWithChildren,
-    blockConcepts: sortedConceptsWithoutChildren,
-  }
 }
 
 const SearchToolBlock: React.FunctionComponent<Props> = props => {
