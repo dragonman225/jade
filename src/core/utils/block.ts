@@ -6,7 +6,7 @@ import {
   isBoxBoxIntersectingObjVer,
   isPointInRect,
 } from './math'
-import { blockRectManager } from './element-pool'
+import { blockRectManager } from './blockRectManager'
 import {
   Block,
   BlockColor,

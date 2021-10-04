@@ -6,7 +6,7 @@ import { ArrowNorthEast } from './Icons/ArrowNorthEast'
 import { OpenInFull } from './Icons/OpenInFull'
 import { styles } from './Block.styles'
 import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
-import { blockRectManager } from '../utils/element-pool'
+import { blockRectManager } from '../utils/blockRectManager'
 import { Action, Actions } from '../store/actions'
 import {
   BlockColor,

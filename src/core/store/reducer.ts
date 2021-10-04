@@ -22,7 +22,7 @@ import {
   removeInvalidRelations,
 } from '../utils/relation'
 import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
-import { blockRectManager } from '../utils/element-pool'
+import { blockRectManager } from '../utils/blockRectManager'
 import { Action, Actions, ConceptCreatePositionIntent } from './actions'
 import {
   ConceptId,

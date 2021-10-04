@@ -32,7 +32,7 @@ import {
   growBox,
   isBoxBoxIntersectingObjVer,
 } from './utils'
-import { blockRectManager } from './utils/element-pool'
+import { blockRectManager } from './utils/blockRectManager'
 import { blockToBox, findBlock } from './utils/block'
 import { SystemContext } from './store/systemContext'
 import { Arrows } from './components/Arrows'
