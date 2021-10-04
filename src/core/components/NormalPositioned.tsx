@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useSpring, animated } from '@react-spring/web'
 
 import { SelectionBox } from './SelectionBox'
 import { Box, Vec2 } from '../interfaces'
@@ -8,24 +9,37 @@ interface Props {
   scale: number
   selecting: boolean
   selectionBox: Box
+  shouldAnimate?: boolean
   children?: React.ReactNode
 }
 
 export function NormalPositioned(props: Props): JSX.Element {
-  const { focus, scale, selecting, selectionBox, children } = props
+  const {
+    focus,
+    scale,
+    selecting,
+    selectionBox,
+    shouldAnimate,
+    children,
+  } = props
+  const transform = `\
+translate3d(${-focus.x * scale}px, ${-focus.y * scale}px, 0px) scale(${scale})`
+  const animatedStyles = useSpring({
+    transform,
+    config: {
+      frequency: 0.3,
+      damping: 1,
+    },
+  })
 
   return (
-    <div
+    <animated.div
       /** Act as the origin of the layer. */
       style={{
         width: 0,
         height: 0,
         transformOrigin: 'top left',
-        transform: `translate3d(${-focus.x * scale}px, ${
-          -focus.y * scale
-        }px, 0px) scale(${scale})`,
-        // TODO: Use `use-spring` to make proper animations.
-        // transition: 'transform 50ms ease-in-out 0s',
+        transform: shouldAnimate ? animatedStyles.transform : transform,
       }}>
       {children}
       {selecting && (
@@ -40,6 +54,6 @@ export function NormalPositioned(props: Props): JSX.Element {
           }}
         />
       )}
-    </div>
+    </animated.div>
   )
 }

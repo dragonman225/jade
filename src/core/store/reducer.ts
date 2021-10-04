@@ -88,6 +88,7 @@ export function loadAppState(db: DatabaseInterface): AppState {
       | undefined
     )[],
     camera: viewingConcept.camera,
+    shouldAnimateCamera: false,
     selecting: false,
     selectionBoxStart: { x: 0, y: 0 },
     selectionBoxEnd: { x: 0, y: 0 },
@@ -1079,6 +1080,7 @@ export function createAppStateReducer(
             ...state,
             viewingConcept: newViewingConcept,
             camera: newCamera,
+            shouldAnimateCamera: false,
             selectionBoxEnd,
             selectionBox,
             selectedBlockIds,
@@ -1090,6 +1092,7 @@ export function createAppStateReducer(
           ...state,
           viewingConcept: newViewingConcept,
           camera: newCamera,
+          shouldAnimateCamera: false,
         }
       }
       case Action.CameraScaleDelta: {
@@ -1131,6 +1134,7 @@ export function createAppStateReducer(
           ...state,
           viewingConcept: newViewingConcept,
           camera: newCamera,
+          shouldAnimateCamera: true,
         }
       }
       case Action.CameraSetValue: {
@@ -1146,6 +1150,7 @@ export function createAppStateReducer(
           ...state,
           viewingConcept: newConcept,
           camera: newCamera,
+          shouldAnimateCamera: true,
         }
       }
       case Action.RelationDrawStart: {

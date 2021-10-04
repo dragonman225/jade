@@ -14,6 +14,8 @@ export interface AppState {
   viewingConcept: TypedConcept<unknown>
   expandHistory: (ConceptId | undefined)[]
   camera: Camera
+  /** Whether to animate camera if there's a camera change. */
+  shouldAnimateCamera: boolean
   selecting: boolean
   selectionBoxStart: Vec2
   selectionBoxEnd: Vec2

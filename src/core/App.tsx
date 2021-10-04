@@ -107,7 +107,8 @@ const App = React.memo(function App() {
           focus={state.camera.focus}
           scale={state.camera.scale}
           selecting={state.selecting}
-          selectionBox={state.selectionBox}>
+          selectionBox={state.selectionBox}
+          shouldAnimate={state.shouldAnimateCamera}>
           {state.blocksRendered &&
             state.relations.map(relation => {
               const fromBox = blockToBox(
