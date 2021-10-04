@@ -65,7 +65,7 @@ export function Arrow({
         }, ${end.x - viewBoxFloored.x} ${end.y - viewBoxFloored.y}`}
         stroke={isHovering ? theme.colors.uiPrimary : color}
         strokeWidth={size / 2}
-        fill="transparent"
+        fill="none"
       />
       <polygon
         points={`0,${-size} ${size * 2},0, 0,${size}`}
@@ -82,8 +82,8 @@ export function Arrow({
         }, ${end.x - viewBoxFloored.x} ${end.y - viewBoxFloored.y}`}
         stroke="transparent"
         strokeWidth={size * 2}
-        fill="transparent"
-        pointerEvents="visiblePainted"
+        fill="none"
+        pointerEvents="visibleStroke"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       />
