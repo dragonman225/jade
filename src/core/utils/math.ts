@@ -123,7 +123,10 @@ export function viewportRectToEnvRect(
     height: viewportRect.height / camera.scale,
   }
   return {
-    ...base,
+    x: base.x,
+    y: base.y,
+    width: base.width,
+    height: base.height,
     top: base.y,
     right: base.x + base.width,
     bottom: base.y + base.height,
