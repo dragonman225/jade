@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useRef, useEffect, useMemo } from 'react'
+import { useRef, useEffect, useMemo, useState } from 'react'
 import { classes } from 'typestyle'
 
 import { ArrowNorthEast } from './Icons/ArrowNorthEast'
@@ -29,8 +29,6 @@ interface Props {
   children?: React.ReactNode
 }
 
-const iconSize = 18
-
 export function Block({
   id,
   conceptId,
@@ -47,6 +45,7 @@ export function Block({
   const resizerRef = useRef<HTMLDivElement>(null)
   const arrowTriggerRef = useRef<HTMLDivElement>(null)
   const modeRef = useRef<InteractionMode>(mode)
+  const [isHovering, setIsHovering] = useState(false)
 
   useEffect(() => {
     blockRectManager.setElement(id, blockRef.current)
@@ -221,51 +220,34 @@ export function Block({
 
   return (
     <>
-      <div ref={blockRef} className={blockClassName} data-color={color}>
+      <div
+        ref={blockRef}
+        className={blockClassName}
+        data-color={color}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}>
         {children}
-        <div
-          ref={resizerRef}
-          style={{
-            position: 'absolute',
-            top: iconSize + 2,
-            right: 0,
-            bottom: 0,
-            width: 14,
-            cursor: 'ew-resize',
-          }}
-        />
-        {blink && <div className={styles.blink} />}
-        <div
-          className={styles.actionButton}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: iconSize,
-            height: iconSize,
-            padding: 2,
-          }}
-          onClick={() => {
-            dispatchAction({
-              type: Action.BlockOpenAsCanvas,
-              data: { id: conceptId },
-            })
-          }}>
-          <OpenInFull />
-        </div>
-        <div
-          ref={arrowTriggerRef}
-          className={styles.actionButton}
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: iconSize,
-            height: iconSize,
-            padding: 1,
-          }}>
-          <ArrowNorthEast />
-        </div>
+        <div ref={resizerRef} className={styles.resizer} />
+        {!isHovering && blink && <div className={styles.blink} />}
+        {isHovering && (
+          <>
+            <div
+              className={classes(styles.actionButton, styles.open)}
+              onClick={() => {
+                dispatchAction({
+                  type: Action.BlockOpenAsCanvas,
+                  data: { id: conceptId },
+                })
+              }}>
+              <OpenInFull />
+            </div>
+            <div
+              ref={arrowTriggerRef}
+              className={classes(styles.actionButton, styles.arrow)}>
+              <ArrowNorthEast />
+            </div>
+          </>
+        )}
         {highlighted && <div className={styles.highlightOverlay} />}
       </div>
     </>

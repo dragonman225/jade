@@ -3,9 +3,10 @@ import { stylesheet } from 'typestyle'
 import { blockColorMixin } from '../utils/block'
 import theme from '../../theme'
 
+const iconSize = 18
+
 const atoms = stylesheet({
   actionButton: {
-    opacity: 0,
     transition: `0.1s opacity ${theme.easings.easeInOutCubic}, 30ms fill ${theme.easings.easeInOutCubic}`,
     fill: 'rgba(0, 0, 0, 0.4)',
     cursor: 'pointer',
@@ -30,7 +31,6 @@ const atoms = stylesheet({
     margin: 8,
     borderRadius: '100%',
     background: theme.colors.uiPrimary,
-    opacity: 1,
     transition: `0.1s opacity ${theme.easings.easeInOutCubic}`,
   },
 })
@@ -53,12 +53,6 @@ export const styles = {
         '&:hover': {
           cursor: 'pointer',
         },
-        [`&:hover > .${atoms.actionButton}`]: {
-          opacity: 1,
-        },
-        [`&:hover > .${atoms.blink}`]: {
-          opacity: 0,
-        },
       },
     },
     selected: {
@@ -79,6 +73,30 @@ export const styles = {
           cursor: 'grabbing',
         },
       },
+    },
+    resizer: {
+      position: 'absolute',
+      top: iconSize + 2,
+      right: 0,
+      bottom: 0,
+      width: 14,
+      cursor: 'ew-resize',
+    },
+    open: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: iconSize,
+      height: iconSize,
+      padding: 2,
+    },
+    arrow: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      width: iconSize,
+      height: iconSize,
+      padding: 1,
     },
     highlightOverlay: {
       position: 'absolute',
