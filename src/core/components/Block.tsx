@@ -31,20 +31,18 @@ interface Props {
 
 const iconSize = 18
 
-export function Block(props: Props): JSX.Element {
-  const {
-    id,
-    conceptId,
-    color,
-    mode,
-    selected,
-    highlighted,
-    blink,
-    dispatchAction,
-    className,
-    children,
-  } = props
-
+export function Block({
+  id,
+  conceptId,
+  color,
+  mode,
+  selected,
+  highlighted,
+  blink,
+  dispatchAction,
+  className,
+  children,
+}: Props): JSX.Element {
   const blockRef = useRef<HTMLDivElement>(null)
   const resizerRef = useRef<HTMLDivElement>(null)
   const arrowTriggerRef = useRef<HTMLDivElement>(null)
