@@ -53,5 +53,6 @@ export const styles = stylesheet({
   },
   ContentPreview: {
     pointerEvents: 'none',
+    height: '100%',
   },
 })
