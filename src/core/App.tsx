@@ -49,8 +49,8 @@ const App = React.memo(function App() {
   const normalBlocks = useMemo(() => {
     const windowWidth = window.innerWidth
     const windowHeight = window.innerHeight
-    const overscanX = windowWidth * 0.125
-    const overscanY = windowHeight * 0.125
+    const overscanX = windowWidth * 0.25
+    const overscanY = windowHeight * 0.25
     const visibleArea = {
       x: state.camera.focus.x - overscanX,
       y: state.camera.focus.y - overscanY,
