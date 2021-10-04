@@ -18,10 +18,15 @@ export class BlockRectManager {
   setElement = (blockId: BlockId, el: HTMLDivElement): void => {
     this.blockInfoMap.set(blockId, {
       alive: true,
-      cachedEnvRect: viewportRectToEnvRect(
-        el.getBoundingClientRect(),
-        this.camera
-      ),
+      /**
+       * Calling getBoundingClientRect here forces reflow, which is bad for
+       * performance.
+       * viewportRectToEnvRect(
+       *  el.getBoundingClientRect(),
+       *  this.camera
+       * )
+       */
+      cachedEnvRect: undefined,
       el,
     })
   }
