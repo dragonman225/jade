@@ -20,7 +20,6 @@ import theme from '../theme'
 import { createAppStateReducer, loadAppState } from './store/reducer'
 import {
   AppState,
-  ContextType,
   DatabaseInterface,
   FactoryRegistry,
   InteractionMode,
@@ -36,6 +35,7 @@ import {
 import { blockRectManager } from './utils/element-pool'
 import { blockToBox, findBlock } from './utils/block'
 import { SystemContext } from './store/systemContext'
+import { Arrows } from './components/Arrows'
 
 const zeroSize = { w: 0, h: 0 }
 
@@ -45,6 +45,8 @@ const App = React.memo(function App() {
   const notifyBlocksRendered = useCallback(() => {
     dispatchAction({ type: Action.BlocksRendered })
   }, [dispatchAction])
+
+  blockRectManager.updateCamera(state.camera)
 
   const normalBlocks = useMemo(() => {
     const windowWidth = window.innerWidth
@@ -109,43 +111,7 @@ const App = React.memo(function App() {
           selecting={state.selecting}
           selectionBox={state.selectionBox}
           shouldAnimate={state.shouldAnimateCamera}>
-          {state.blocksRendered &&
-            state.relations.map(relation => {
-              const fromBox = blockToBox(
-                findBlock(state.blocks, relation.fromId)
-              )
-              const toBox = blockToBox(findBlock(state.blocks, relation.toId))
-              const viewBox = growBox(boundingBoxOfBoxes([fromBox, toBox]), 10)
-
-              return (
-                <ViewObject
-                  key={`vo-r-${relation.id}`}
-                  posType={PositionType.Normal}
-                  pos={viewBox}
-                  size={zeroSize}>
-                  <Arrow
-                    fromBox={fromBox}
-                    toBox={toBox}
-                    viewBox={viewBox}
-                    color={theme.colors.uiPrimaryHarder}
-                    size={theme.arrowSize}
-                    onMouseDown={e => {
-                      /** We only want right-click to open ContextMenu. */
-                      if (e.button !== 2) return
-                      const clientCoords = { x: e.clientX, y: e.clientY }
-                      dispatchAction({
-                        type: Action.ContextMenuOpen,
-                        data: {
-                          contextType: ContextType.Relation,
-                          pointerInViewportCoords: clientCoords,
-                          relationId: relation.id,
-                        },
-                      })
-                    }}
-                  />
-                </ViewObject>
-              )
-            })}
+          {state.blocksRendered && <Arrows />}
           <Blocks
             /**
              * Use key to force unmount and re-mount on canvas switch, to

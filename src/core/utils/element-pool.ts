@@ -1,40 +1,63 @@
 import { BlockId, Camera } from '../interfaces'
 import { viewportRectToEnvRect } from './math'
 
+interface BlockInfo {
+  el: HTMLDivElement
+  cachedEnvRect: Omit<DOMRect, 'toJSON'>
+  alive: boolean
+}
+
 export class BlockRectManager {
   private camera: Camera
-  private blockElementMap: Map<BlockId, HTMLDivElement>
-  private blockRectCacheMap: Map<BlockId, Omit<DOMRect, 'toJSON'>>
+  private blockInfoMap: Map<BlockId, BlockInfo>
 
   constructor() {
-    this.blockElementMap = new Map<BlockId, HTMLDivElement>()
-    this.blockRectCacheMap = new Map<BlockId, Omit<DOMRect, 'toJSON'>>()
+    this.blockInfoMap = new Map<BlockId, BlockInfo>()
   }
 
   setElement = (blockId: BlockId, el: HTMLDivElement): void => {
-    this.blockElementMap.set(blockId, el)
-    this.blockRectCacheMap.delete(blockId)
+    this.blockInfoMap.set(blockId, {
+      alive: true,
+      cachedEnvRect: viewportRectToEnvRect(
+        el.getBoundingClientRect(),
+        this.camera
+      ),
+      el,
+    })
   }
 
+  /**
+   * React removes an element from DOM before calling effect cleanup
+   * function, so calling `getBoundingClientRect()` here is useless since
+   * it only gets zeros. To get valid rect to cache we need to do it in
+   * `setElement()` and `getRect()`.
+   */
   detachElement = (blockId: BlockId): void => {
-    const el = this.blockElementMap.get(blockId)
-    if (el) {
-      this.blockRectCacheMap.set(
-        blockId,
-        viewportRectToEnvRect(el.getBoundingClientRect(), this.camera)
-      )
-      this.blockElementMap.delete(blockId)
+    const info = this.blockInfoMap.get(blockId)
+    if (info) {
+      this.blockInfoMap.set(blockId, {
+        alive: false,
+        cachedEnvRect: info.cachedEnvRect,
+        el: undefined,
+      })
     }
   }
 
   getRect = (blockId: BlockId): Omit<DOMRect, 'toJSON'> | undefined => {
-    const el = this.blockElementMap.get(blockId)
-    if (el) {
-      return viewportRectToEnvRect(el.getBoundingClientRect(), this.camera)
+    const info = this.blockInfoMap.get(blockId)
+    if (!info) return undefined
+    if (info.el) {
+      const viewportRect = info.el.getBoundingClientRect()
+      const envRect = viewportRectToEnvRect(viewportRect, this.camera)
+      this.blockInfoMap.set(blockId, {
+        alive: true,
+        cachedEnvRect: envRect,
+        el: info.el,
+      })
+      return envRect
+    } else {
+      return info.cachedEnvRect
     }
-    const rect = this.blockRectCacheMap.get(blockId)
-    if (rect) return rect
-    return undefined
   }
 
   updateCamera = (camera: Camera): void => {
@@ -42,14 +65,12 @@ export class BlockRectManager {
   }
 
   clear = (): void => {
-    this.blockElementMap.clear()
-    this.blockRectCacheMap.clear()
+    this.blockInfoMap.clear()
   }
 
   deleteBlocks = (blockIds: BlockId[]): void => {
     blockIds.forEach(id => {
-      this.blockElementMap.delete(id)
-      this.blockRectCacheMap.delete(id)
+      this.blockInfoMap.delete(id)
     })
   }
 }

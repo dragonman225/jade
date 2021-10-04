@@ -133,7 +133,6 @@ export function createAppStateReducer(
 
   return function appStateReducer(state: AppState, action: Actions): AppState {
     // console.log(`core/store/reducer: "${action.type}"`, action)
-    blockRectManager.updateCamera(state.camera)
 
     /** Press `Ctrl` + `K` > `4` to fold all actions. */
     switch (action.type) {
