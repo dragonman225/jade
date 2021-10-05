@@ -3,6 +3,7 @@ import { useRef, useState, useCallback } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './index.styles'
+import { getEmbedUrl } from './utils'
 import {
   ConceptDisplayProps,
   Factory,
@@ -49,7 +50,7 @@ export const Embed: React.FunctionComponent<Props> = props => {
                 )}
                 width="100%"
                 height="100%"
-                src={url}
+                src={getEmbedUrl(url)}
                 frameBorder="0"
                 allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
                 allowFullScreen
@@ -102,7 +103,7 @@ export const Embed: React.FunctionComponent<Props> = props => {
                 className={classes(styles.Frame, styles.NoInteraction)}
                 width="100%"
                 height="100%"
-                src={url}
+                src={getEmbedUrl(url)}
                 frameBorder="0"
                 allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
                 allowFullScreen
