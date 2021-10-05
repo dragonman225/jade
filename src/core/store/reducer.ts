@@ -946,6 +946,7 @@ export function createAppStateReducer(
               blocks: bringBlockToTop(block.id, blocks).map(b =>
                 updateBlockInstance(b, { selected: b.id === focusBlockId })
               ),
+              selectedBlockIds: [focusBlockId],
             }
           } else {
             return state
@@ -979,6 +980,9 @@ export function createAppStateReducer(
                 updateBlockInstance(b, { selected: b.id === focusBlockId })
               )
             : synthesizeView(concept, db),
+          selectedBlockIds: focusBlock
+            ? [focusBlockId]
+            : state.selectedBlockIds,
           blocksRendered: false,
           relations: concept.relations,
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
