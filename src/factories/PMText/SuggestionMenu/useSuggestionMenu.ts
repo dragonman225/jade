@@ -4,7 +4,7 @@ import { Fragment, Slice } from 'prosemirror-model'
 
 import {
   includeKeyword,
-  lastEditedTimeDescending,
+  lastEditedTimeDescendingAndCanvasFirst,
   mapConceptToOption,
   pmtextOnly,
 } from './utils'
@@ -141,7 +141,7 @@ export function useSuggestionMenu(
           .filter(pmtextOnly)
           /** Search with keyword. */
           .filter(includeKeyword(keyword, factoryRegistry))
-          .sort(lastEditedTimeDescending)
+          .sort(lastEditedTimeDescendingAndCanvasFirst)
           .map(mapConceptToOption(factoryRegistry))
           .filter(o => !!o.title)
           .slice(0, 6),

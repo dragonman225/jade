@@ -1,4 +1,8 @@
-import { FactoryRegistry, TypedConcept } from '../../../core/interfaces'
+import {
+  Concept,
+  FactoryRegistry,
+  TypedConcept,
+} from '../../../core/interfaces'
 import { Option } from './useSuggestionMenu'
 
 export function pmtextOnly(c: TypedConcept<unknown>): boolean {
@@ -23,9 +27,12 @@ export function mapConceptToOption(factoryRegistry: FactoryRegistry) {
   })
 }
 
-export function lastEditedTimeDescending(
+export function lastEditedTimeDescendingAndCanvasFirst(
   ca: TypedConcept<unknown>,
   cb: TypedConcept<unknown>
 ): number {
-  return cb.lastEditedTime - ca.lastEditedTime
+  if (Concept.isHighOrder(ca) === Concept.isHighOrder(cb))
+    return cb.lastEditedTime - ca.lastEditedTime
+  else if (Concept.isHighOrder(ca)) return -1
+  else return 1
 }
