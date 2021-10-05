@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useEffect } from 'react'
+import { useTransition } from '@react-spring/web'
 
 import { BlockDriver } from './BlockDriver'
 import { ViewObject } from './ViewObject'
@@ -11,6 +12,13 @@ interface Props {
 }
 
 export function Blocks({ blocks, onRender }: Props): JSX.Element {
+  const transitions = useTransition(blocks, {
+    from: { opacity: 0 },
+    enter: { opacity: 1 },
+    leave: { opacity: 0 },
+    keys: blocks.map(b => `vo-b-${b.id}`),
+  })
+
   /** Run on mount. */
   useEffect(() => {
     onRender && onRender()
@@ -19,12 +27,13 @@ export function Blocks({ blocks, onRender }: Props): JSX.Element {
 
   return (
     <>
-      {blocks.map(b => (
+      {transitions(({ opacity }, b) => (
         <ViewObject
           key={`vo-b-${b.id}`}
           posType={b.posType}
           pos={b.pos}
-          size={b.size}>
+          size={b.size}
+          animatedOpacity={opacity}>
           <BlockDriver block={b} />
         </ViewObject>
       ))}

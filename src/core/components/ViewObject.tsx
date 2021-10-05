@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { animated, SpringValue } from '@react-spring/web'
 
 import { PositionType, Size, Vec2 } from '../interfaces'
 
@@ -6,11 +7,12 @@ interface Props {
   posType: PositionType
   pos: Vec2
   size: Size
+  animatedOpacity?: SpringValue<number>
   children?: React.ReactNode
 }
 
 export function ViewObject(props: Props): JSX.Element {
-  const { posType, pos, size, children } = props
+  const { posType, pos, size, animatedOpacity, children } = props
 
   switch (posType) {
     /**
@@ -73,7 +75,7 @@ export function ViewObject(props: Props): JSX.Element {
     }
     default: {
       return (
-        <div
+        <animated.div
           style={{
             width: size.w,
             height: size.h,
@@ -82,9 +84,10 @@ export function ViewObject(props: Props): JSX.Element {
             left: 0,
             transformOrigin: 'top left',
             transform: `translate3d(${pos.x}px, ${pos.y}px, 0px)`,
+            opacity: animatedOpacity || 1,
           }}>
           {children}
-        </div>
+        </animated.div>
       )
     }
   }
