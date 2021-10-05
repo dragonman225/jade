@@ -14,6 +14,7 @@ import {
   blockToBox,
   deselectAllBlocks,
   getFocusForBlock,
+  bringBlockToTop,
 } from '../utils/block'
 import { createConcept, updateConcept } from '../utils/concept'
 import {
@@ -241,11 +242,12 @@ export function createAppStateReducer(
 
         db.updateConcept(newConcept)
 
-        return {
-          ...state,
-          viewingConcept: db.getConcept(state.viewingConcept.id),
-          blocks: synthesizeView(state.viewingConcept, db, state.blocks),
-        }
+        if (action.data.id === state.viewingConcept.id)
+          return {
+            ...state,
+            viewingConcept: newConcept,
+          }
+        else return state
       }
       case Action.BlockCreate: {
         const newBlock = createBlock({
@@ -527,8 +529,6 @@ export function createAppStateReducer(
           }),
         })
 
-        const cursorBlockIndex = blocks.findIndex(b => b.id === id)
-
         pointerOverBlock = (() => {
           for (let i = blocks.length - 1; i >= 0; i--) {
             const block = blocks[i]
@@ -556,18 +556,13 @@ export function createAppStateReducer(
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: blocks
-            /** Bring to cursor block to the top. */
-            .slice(0, cursorBlockIndex)
-            .concat(blocks.slice(cursorBlockIndex + 1))
-            .concat(blocks[cursorBlockIndex])
-            .map(b => ({
-              ...b,
-              highlighted: shouldHighlight(b.id) ? true : false,
-              pos: shouldMove(b.id)
-                ? vecAdd(b.pos, cursorBlockFinalMovement)
-                : b.pos,
-            })),
+          blocks: bringBlockToTop(id, blocks).map(b => ({
+            ...b,
+            highlighted: shouldHighlight(b.id) ? true : false,
+            pos: shouldMove(b.id)
+              ? vecAdd(b.pos, cursorBlockFinalMovement)
+              : b.pos,
+          })),
         }
       }
       case Action.BlockMoveEnd: {
@@ -832,48 +827,38 @@ export function createAppStateReducer(
 
         db.updateConcept(newViewingConcept)
 
-        const cursorBlockIndex = blocks.findIndex(b => b.id === id)
-
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: blocks
-            /** Bring to cursor block to the top. */
-            .slice(0, cursorBlockIndex)
-            .concat(blocks.slice(cursorBlockIndex + 1))
-            .concat(blocks[cursorBlockIndex])
-            .map(b => {
-              if (shouldResize(b.id)) {
-                return updateBlockInstance(b, {
-                  size: {
-                    w:
-                      typeof b.size.w === 'number'
-                        ? b.size.w + sizeChange.w
-                        : b.size.w,
-                    h:
-                      typeof b.size.h === 'number'
-                        ? b.size.h + sizeChange.h
-                        : b.size.h,
-                  },
-                })
-              } else {
-                return b
-              }
-            }),
+          blocks: bringBlockToTop(id, blocks).map(b => {
+            if (shouldResize(b.id)) {
+              return updateBlockInstance(b, {
+                size: {
+                  w:
+                    typeof b.size.w === 'number'
+                      ? b.size.w + sizeChange.w
+                      : b.size.w,
+                  h:
+                    typeof b.size.h === 'number'
+                      ? b.size.h + sizeChange.h
+                      : b.size.h,
+                },
+              })
+            } else {
+              return b
+            }
+          }),
         }
       }
       case Action.BlockSetMode: {
         const { id, mode } = action.data
-        const oldBlock = state.blocks.find(b => b.id === id)
-        /** Prevent adding garbage blocks. */
-        if (!oldBlock) return state
-        const newBlock = { ...oldBlock, mode }
+        const { blocks } = state
 
         return {
           ...state,
-          blocks: state.blocks
-            .filter(b => b.id !== newBlock.id)
-            .concat(newBlock),
+          blocks: bringBlockToTop(id, blocks, block =>
+            updateBlockInstance(block, { mode })
+          ),
         }
       }
       case Action.BlockSetColor: {
@@ -905,25 +890,18 @@ export function createAppStateReducer(
 
         db.updateConcept(newViewingConcept)
 
-        const cursorBlockIndex = blocks.findIndex(b => b.id === id)
-
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: blocks
-            /** Bring to cursor block to the top. */
-            .slice(0, cursorBlockIndex)
-            .concat(blocks.slice(cursorBlockIndex + 1))
-            .concat(blocks[cursorBlockIndex])
-            .map(b => {
-              if (shouldSetColor(b.id)) {
-                return updateBlockInstance(b, {
-                  color,
-                })
-              } else {
-                return b
-              }
-            }),
+          blocks: bringBlockToTop(id, blocks).map(b => {
+            if (shouldSetColor(b.id)) {
+              return updateBlockInstance(b, {
+                color,
+              })
+            } else {
+              return b
+            }
+          }),
         }
       }
       case Action.BlockSelect: {
@@ -965,9 +943,12 @@ export function createAppStateReducer(
               ...state,
               camera: { focus, scale },
               shouldAnimateCamera: true,
+              blocks: bringBlockToTop(block.id, blocks).map(b =>
+                updateBlockInstance(b, { selected: b.id === focusBlockId })
+              ),
             }
           } else {
-            return { ...state }
+            return state
           }
         }
 
@@ -979,9 +960,9 @@ export function createAppStateReducer(
 
         /** Not in the target Canvas. Open it and set camera directly. */
         const concept = db.getConcept(toConceptId)
-        const block = concept.references.find(r => r.id === focusBlockId)
-        const newCamera = block && {
-          focus: getFocusForBlock(block, 1),
+        const focusBlock = concept.references.find(r => r.id === focusBlockId)
+        const newCamera = focusBlock && {
+          focus: getFocusForBlock(focusBlock, 1),
           scale: 1,
         }
 
@@ -990,7 +971,14 @@ export function createAppStateReducer(
           viewingConcept: concept,
           camera: newCamera || concept.camera,
           shouldAnimateCamera: false,
-          blocks: synthesizeView(concept, db),
+          blocks: focusBlock
+            ? bringBlockToTop(
+                focusBlockId,
+                synthesizeView(concept, db)
+              ).map(b =>
+                updateBlockInstance(b, { selected: b.id === focusBlockId })
+              )
+            : synthesizeView(concept, db),
           blocksRendered: false,
           relations: concept.relations,
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),

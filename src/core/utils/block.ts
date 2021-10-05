@@ -185,7 +185,7 @@ export function getFocusForBlock(
     y: block.pos.y,
     w: block.size.w === 'auto' ? 300 : block.size.w,
     h: block.size.h === 'auto' ? 150 : block.size.h,
-    })
+  })
   const winW = window.innerWidth
   const winH = window.innerHeight
   return (
@@ -226,4 +226,18 @@ export const blockColorMixin: NestedCSSProperties = {
       background: 'var(--bg-grey)',
     },
   },
+}
+
+export function bringBlockToTop(
+  blockId: BlockId,
+  blocks: BlockInstance[],
+  operation?: (movedBlock: BlockInstance) => BlockInstance
+): BlockInstance[] {
+  const index = blocks.findIndex(b => b.id === blockId)
+  return index !== -1
+    ? blocks
+        .slice(0, index)
+        .concat(blocks.slice(index + 1))
+        .concat(operation ? operation(blocks[index]) : blocks[index])
+    : blocks
 }
