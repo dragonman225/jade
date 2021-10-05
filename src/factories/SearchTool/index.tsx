@@ -4,7 +4,7 @@ import { classes } from 'typestyle'
 
 import { styles } from './index.style'
 import { usePager } from './usePager'
-import { getSearchResult } from './search'
+import { BlockItem, CanvasItem, getSearchResult } from './search'
 import { Search } from '../../core/components/Icons/Search'
 import { SlashHint } from '../../core/components/Icons/Slash'
 import { AppStateContext } from '../../core/store/appStateContext'
@@ -52,7 +52,7 @@ type Props = ConceptDisplayProps<undefined>
 
 interface S2LBlockValid {
   valid: true
-  id: string
+  item: CanvasItem | BlockItem
   rect: DOMRect
 }
 
@@ -80,8 +80,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
     /** Should re-run on minimized change. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, database, minimized])
-  const resultConcepts =
-    tab === 'canvas' ? result.canvasConcepts : result.blockConcepts
+  const resultConcepts = tab === 'canvas' ? result.canvases : result.blocks
 
   /** Search-to-Link */
   const [s2lState, setS2lState] = useState(S2LState.Idle)
@@ -159,7 +158,13 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
           if (s2lBlock.valid) {
             dispatchAction({
               type: Action.BlockOpenAsCanvas,
-              data: { id: s2lBlock.id },
+              data:
+                s2lBlock.item.type === 'canvas'
+                  ? { id: s2lBlock.item.canvasId }
+                  : {
+                      id: s2lBlock.item.canvasId,
+                      focusBlockId: s2lBlock.item.blockId,
+                    },
             })
           }
         } else if (state === 'linking') {
@@ -173,7 +178,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
             dispatchAction({
               type: Action.BlockCreate,
               data: {
-                id: s2lBlock.id,
+                id: s2lBlock.item.concept.id,
                 position: viewportCoordsToEnvCoords(
                   {
                     x:
@@ -259,8 +264,8 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   }, [dispatchAction])
 
   const itemsPerPage = 20
-  const canvasPager = usePager(result.canvasConcepts, itemsPerPage)
-  const blocksPager = usePager(result.blockConcepts, itemsPerPage)
+  const canvasPager = usePager(result.canvases, itemsPerPage)
+  const blocksPager = usePager(result.blocks, itemsPerPage)
   const { page, start, nextStart, goPrevPage, goNextPage, resetPage } =
     tab === 'canvas' ? canvasPager : blocksPager
 
@@ -301,7 +306,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 tab === 'canvas' && styles.Selected
               )}
               onClick={() => setTab('canvas')}>
-              Canvas ({result.canvasConcepts.length})
+              Canvas ({result.canvases.length})
             </button>
             <button
               className={classes(
@@ -309,63 +314,68 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 tab === 'block' && styles.Selected
               )}
               onClick={() => setTab('block')}>
-              Block ({result.blockConcepts.length})
+              Block ({result.blocks.length})
             </button>
           </div>
           <div className={styles.ScrollList}>
             <div key={page}>
-              {resultConcepts.slice(start, nextStart).map(concept => {
-                return (
-                  <React.Fragment key={concept.id}>
-                    {(function () {
-                      switch (s2lState) {
-                        case S2LState.Idle: {
-                          /** The following doesn't support touch. */
-                          return (
-                            <div
-                              className={`${styles.ScrollListItem} ScrollListItem`}
-                              onMouseEnter={e => {
-                                setS2lBlock({
-                                  valid: true,
-                                  id: concept.id,
-                                  rect: e.currentTarget.getBoundingClientRect(),
-                                })
-                              }}
-                              onMouseLeave={() => {
-                                setS2lBlock({ valid: false })
-                              }}>
-                              <ContentPreview
-                                blockId={blockId}
-                                concept={concept}
-                                viewMode="NavItem"
-                                dispatchAction={dispatchAction}
-                                database={database}
-                              />
-                            </div>
-                          )
+              {resultConcepts
+                .slice(start, nextStart)
+                .map((item: CanvasItem | BlockItem) => {
+                  return (
+                    <React.Fragment
+                      key={
+                        item.type === 'canvas' ? item.canvasId : item.blockId
+                      }>
+                      {(function () {
+                        switch (s2lState) {
+                          case S2LState.Idle: {
+                            /** The following doesn't support touch. */
+                            return (
+                              <div
+                                className={`${styles.ScrollListItem} ScrollListItem`}
+                                onMouseEnter={e => {
+                                  setS2lBlock({
+                                    valid: true,
+                                    item,
+                                    rect: e.currentTarget.getBoundingClientRect(),
+                                  })
+                                }}
+                                onMouseLeave={() => {
+                                  setS2lBlock({ valid: false })
+                                }}>
+                                <ContentPreview
+                                  blockId={blockId}
+                                  concept={item.concept}
+                                  viewMode="NavItem"
+                                  dispatchAction={dispatchAction}
+                                  database={database}
+                                />
+                              </div>
+                            )
+                          }
+                          case S2LState.Linking: {
+                            return (
+                              <div className={styles.ScrollListItem}>
+                                <ContentPreview
+                                  blockId={blockId}
+                                  concept={item.concept}
+                                  viewMode="NavItem"
+                                  dispatchAction={dispatchAction}
+                                  database={database}
+                                />
+                              </div>
+                            )
+                          }
+                          default: {
+                            return `Unknown s2lState "${s2lState.description}"`
+                          }
                         }
-                        case S2LState.Linking: {
-                          return (
-                            <div className={styles.ScrollListItem}>
-                              <ContentPreview
-                                blockId={blockId}
-                                concept={concept}
-                                viewMode="NavItem"
-                                dispatchAction={dispatchAction}
-                                database={database}
-                              />
-                            </div>
-                          )
-                        }
-                        default: {
-                          return `Unknown s2lState "${s2lState.description}"`
-                        }
-                      }
-                    })()}
-                    <hr className={styles.Divider} />
-                  </React.Fragment>
-                )
-              })}
+                      })()}
+                      <hr className={styles.Divider} />
+                    </React.Fragment>
+                  )
+                })}
             </div>
           </div>
           <div className={styles.PageBar}>
@@ -387,7 +397,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
       )}
       {s2lState === S2LState.Linking && s2lBlock.valid ? (
         (function () {
-          const concept = database.getConcept(s2lBlock.id)
+          const concept = database.getConcept(s2lBlock.item.concept.id)
           const scale = state.camera.scale
           const pos = {
             x: s2lBlock.rect.left + s2lDelta.x - s2lStartOffset.x * scale,
