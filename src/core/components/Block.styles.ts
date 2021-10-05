@@ -38,6 +38,7 @@ const atoms = stylesheet({
 export const styles = {
   ...stylesheet({
     block: {
+      color: theme.colors.contentText,
       background: theme.colors.bgBlock,
       borderRadius: theme.borders.smallRadius,
       overflow: 'hidden',
