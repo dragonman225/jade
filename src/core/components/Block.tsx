@@ -160,10 +160,15 @@ export function Block({
           }
 
           const resizerRect = resizerRef.current.getBoundingClientRect()
-          const arrowTriggerRect = arrowTriggerRef.current.getBoundingClientRect()
+          const arrowTriggerRect =
+            arrowTriggerRef.current &&
+            arrowTriggerRef.current.getBoundingClientRect()
 
           if (isPointInRect(clientCoords, resizerRect)) intent = 'resize'
-          else if (isPointInRect(clientCoords, arrowTriggerRect)) {
+          else if (
+            arrowTriggerRect &&
+            isPointInRect(clientCoords, arrowTriggerRect)
+          ) {
             intent = 'arrow'
             dispatchAction({
               type: Action.RelationDrawStart,
