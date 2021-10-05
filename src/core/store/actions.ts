@@ -155,6 +155,7 @@ interface BlockOpenAsCanvasAction {
   type: Action.BlockOpenAsCanvas
   data: {
     id: string
+    focusBlockId?: BlockId
   }
 }
 

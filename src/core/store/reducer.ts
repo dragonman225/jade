@@ -13,6 +13,7 @@ import {
   updateBlockInstance,
   blockToBox,
   deselectAllBlocks,
+  getFocusForBlock,
 } from '../utils/block'
 import { createConcept, updateConcept } from '../utils/concept'
 import {
@@ -951,10 +952,23 @@ export function createAppStateReducer(
         }
       }
       case Action.BlockOpenAsCanvas: {
-        const toConceptId = action.data.id
+        const { id: toConceptId, focusBlockId } = action.data
+        const { blocks } = state
 
+        /** Already in the target Canvas. Animate camera to the Block. */
         if (toConceptId === state.viewingConcept.id) {
-          return { ...state }
+          const block = blocks.find(b => b.id === focusBlockId)
+          if (block) {
+            const scale = 1
+            const focus = getFocusForBlock(block, scale)
+            return {
+              ...state,
+              camera: { focus, scale },
+              shouldAnimateCamera: true,
+            }
+          } else {
+            return { ...state }
+          }
         }
 
         db.saveSettings({
@@ -962,12 +976,19 @@ export function createAppStateReducer(
           homeConceptId: state.homeConceptId,
           viewingConceptId: toConceptId,
         })
+
+        /** Not in the target Canvas. Open it and set camera directly. */
         const concept = db.getConcept(toConceptId)
+        const block = concept.references.find(r => r.id === focusBlockId)
+        const newCamera = block && {
+          focus: getFocusForBlock(block, 1),
+          scale: 1,
+        }
 
         return {
           ...state,
           viewingConcept: concept,
-          camera: concept.camera,
+          camera: newCamera || concept.camera,
           shouldAnimateCamera: false,
           blocks: synthesizeView(concept, db),
           blocksRendered: false,

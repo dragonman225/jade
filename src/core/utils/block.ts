@@ -177,16 +177,14 @@ export function getOverBlock(
 }
 
 export function getFocusForBlock(
-  blockId: BlockId,
+  block: Block | BlockInstance,
   scale: Camera['scale']
 ): Vec2 | undefined {
-  const blockRect = blockRectManager.getRect(blockId)
-  const center =
-    blockRect &&
-    centerPointOf({
-      ...blockRect,
-      w: blockRect.width,
-      h: blockRect.height,
+  const center = centerPointOf({
+    x: block.pos.x,
+    y: block.pos.y,
+    w: block.size.w === 'auto' ? 300 : block.size.w,
+    h: block.size.h === 'auto' ? 150 : block.size.h,
     })
   const winW = window.innerWidth
   const winH = window.innerHeight

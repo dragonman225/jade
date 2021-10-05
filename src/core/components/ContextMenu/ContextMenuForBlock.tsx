@@ -47,7 +47,7 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
 
     const focusBlock = useCallback(() => {
       const targetScale = 1
-      const newFocus = getFocusForBlock(block.id, targetScale)
+      const newFocus = getFocusForBlock(block, targetScale)
       if (newFocus) {
         dispatchAction({
           type: Action.CameraSetValue,
@@ -60,7 +60,7 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
       dispatchAction({
         type: Action.ContextMenuClose,
       })
-    }, [block.id, dispatchAction])
+    }, [block, dispatchAction])
 
     const copyLink = useCallback(() => {
       console.log(block, concept)
