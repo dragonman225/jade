@@ -83,11 +83,11 @@ export const SuggestionMenu = React.forwardRef<HTMLDivElement, Props>(
         className={styles.SuggestionMenu}
         style={{ width: width || 150 }}>
         {optionGroups.map((optionGroup, optionGroupIdx) => (
-          <div key={optionGroupIdx}>
+          <div key={optionGroup.id}>
             <div className={styles.OptionGroupTitle}>{optionGroup.title}</div>
             {optionGroup.items.map((option, optionIdx) => (
               <div
-                key={option.title}
+                key={option.id}
                 className={classes(
                   styles.Option,
                   isSelectedOption(
