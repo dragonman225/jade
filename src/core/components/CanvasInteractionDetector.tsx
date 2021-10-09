@@ -4,11 +4,22 @@ import { useRef, useEffect } from 'react'
 import { getUnifiedClientCoords, vecSub } from '../utils'
 import { Action, Actions, ConceptCreatePositionIntent } from '../store/actions'
 import { PositionType, Vec2 } from '../interfaces'
+import { stylesheet } from 'typestyle'
 
 interface Props {
   dispatchAction: (action: Actions) => void
   children?: React.ReactNode
 }
+
+const styles = stylesheet({
+  canvasInteractionDetector: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
+})
 
 export function CanvasInteractionDetector(props: Props): JSX.Element {
   const { dispatchAction, children } = props
@@ -179,13 +190,7 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
     <div
       /** Fill the viewport to listen for events. */
       ref={cameraElRef}
-      style={{
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-      }}>
+      className={styles.canvasInteractionDetector}>
       {children}
     </div>
   )
