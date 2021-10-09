@@ -24,20 +24,17 @@ export function handleMarkClick({
   return new Plugin({
     props: {
       handleDOMEvents: {
-        mousedown(view, pointerDownEvent) {
+        mousedown(view, downEvent) {
           /** Non primary buttons should not produce a click. */
-          if (pointerDownEvent.button !== 0) return false
+          if (downEvent.button !== 0) return false
 
-          function interpretClick(clickEvent: MouseEvent) {
-            window.removeEventListener('click', interpretClick)
-            const downPoint = getUnifiedClientCoords(pointerDownEvent)
-            const upPoint = getUnifiedClientCoords(clickEvent)
-            const moveThreshold = 3
-            /** If the pointer moved beyond the threshold, it's not a click. */
-            if (distanceOf(downPoint, upPoint) > moveThreshold) {
-              clickEvent.preventDefault()
-              return
-            }
+          function handleUp(upEvent: MouseEvent) {
+            window.removeEventListener('mouseup', handleUp)
+            const downPoint = getUnifiedClientCoords(downEvent)
+            const upPoint = getUnifiedClientCoords(upEvent)
+            const maxMovement = 3
+            /** If the pointer moves too much, it's not a click. */
+            if (distanceOf(downPoint, upPoint) > maxMovement) return
 
             /** If it's a click, we call the handlers. */
             const posInfo = view.posAtCoords({
@@ -51,11 +48,21 @@ export function handleMarkClick({
               const matchRule = rules.find(
                 rule => rule.markName === mark.type.name
               )
-              if (matchRule) matchRule.handler(mark.attrs, clickEvent)
+              if (matchRule) matchRule.handler(mark.attrs, upEvent)
             })
           }
 
-          window.addEventListener('click', interpretClick)
+          window.addEventListener('mouseup', handleUp)
+          return false
+        },
+        /** Prevent default link navigation when not editable. */
+        click(_view, event) {
+          event.preventDefault()
+          return false
+        },
+        /** Prevent dragging link when not editable. */
+        dragstart(_view, event) {
+          event.preventDefault()
           return false
         },
       },
