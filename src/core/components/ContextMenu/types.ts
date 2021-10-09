@@ -14,7 +14,8 @@ export enum ContextMenuType {
 export interface ContextForBlock {
   type: ContextMenuType.Block
   block: BlockInstance
-  concept: TypedConcept<unknown>
+  parentConcept: TypedConcept<unknown>
+  linkedConcept: TypedConcept<unknown>
 }
 
 export interface ContextForRelation {

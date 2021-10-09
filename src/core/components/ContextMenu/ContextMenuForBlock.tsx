@@ -10,6 +10,8 @@ import { Action } from '../../store/actions'
 import { SystemContext } from '../../store/systemContext'
 import { getDateString } from '../../utils'
 import { getFocusForBlock } from '../../utils/block'
+import { saveTextToClipboard } from '../../utils/clipboard'
+import { getUrlForBlock } from '../../utils/url'
 
 interface Props {
   context: ContextForBlock
@@ -17,7 +19,7 @@ interface Props {
 
 export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
   function ContextMenuForBlock({ context }, ref) {
-    const { block, concept } = context
+    const { block, parentConcept, linkedConcept } = context
     const { dispatchAction } = useContext(SystemContext)
 
     const setColor = useCallback(
@@ -63,11 +65,12 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
     }, [block, dispatchAction])
 
     const copyLink = useCallback(() => {
-      console.log(block, concept)
+      const link = getUrlForBlock(parentConcept, block)
+      saveTextToClipboard(link)
       dispatchAction({
         type: Action.ContextMenuClose,
       })
-    }, [block, concept, dispatchAction])
+    }, [block, parentConcept, dispatchAction])
 
     const actions = useMemo<ListOption[]>(
       () => [
@@ -127,11 +130,11 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
           <div className={styles.InfoLines}>
             <InfoLine
               label="Created"
-              value={getDateString(concept.createdTime)}
+              value={getDateString(linkedConcept.createdTime)}
             />
             <InfoLine
               label="Updated"
-              value={getDateString(concept.lastEditedTime)}
+              value={getDateString(linkedConcept.lastEditedTime)}
             />
           </div>
         </div>

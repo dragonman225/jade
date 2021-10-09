@@ -16,7 +16,7 @@ function getContextOfPointer(
   appState: AppState,
   system: System
 ): Context | undefined {
-  const { contextMenuState, camera, blocks } = appState
+  const { contextMenuState, camera, blocks, viewingConcept } = appState
   const pointerInEnvCoords = viewportCoordsToEnvCoords(
     contextMenuState.pos,
     camera
@@ -26,7 +26,8 @@ function getContextOfPointer(
     overBlock && {
       type: ContextMenuType.Block,
       block: overBlock,
-      concept: system.db.getConcept(overBlock.conceptId),
+      parentConcept: viewingConcept,
+      linkedConcept: system.db.getConcept(overBlock.conceptId),
     }
   )
 }

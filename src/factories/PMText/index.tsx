@@ -43,7 +43,7 @@ import {
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 import { PlaceMenu } from '../../core/components/PlaceMenu'
 import { SystemContext } from '../../core/store/systemContext'
-import { getConceptIdFromUrl, isInternalUrl } from '../../core/utils/url'
+import { resolveInternalUrl, isInternalUrl } from '../../core/utils/url'
 import { useFunctionRef } from './useFunctionRef'
 
 type Props = ConceptDisplayProps<PMTextContent>
@@ -339,10 +339,13 @@ const PMText: React.FunctionComponent<Props> = props => {
           rules: [
             new MarkClickRule(linkMarkName, (attrs: LinkMark['attrs']) => {
               if (isInternalUrl(attrs.href)) {
-                const conceptId = getConceptIdFromUrl(attrs.href)
+                const internalUrl = resolveInternalUrl(attrs.href)
                 dispatchAction({
                   type: Action.BlockOpenAsCanvas,
-                  data: { id: conceptId },
+                  data: {
+                    id: internalUrl.conceptId,
+                    focusBlockId: internalUrl.blockId,
+                  },
                 })
               } else {
                 openExternal(attrs.href)

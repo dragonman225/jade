@@ -933,6 +933,8 @@ export function createAppStateReducer(
         const { id: toConceptId, focusBlockId } = action.data
         const { blocks } = state
 
+        if (!toConceptId) return state
+
         /** Already in the target Canvas. Animate camera to the Block. */
         if (toConceptId === state.viewingConcept.id) {
           const block = blocks.find(b => b.id === focusBlockId)
