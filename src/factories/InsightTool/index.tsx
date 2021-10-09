@@ -2,34 +2,25 @@ import * as React from 'react'
 import { useState, useEffect, useContext } from 'react'
 
 import { styles } from './index.styles'
+import { Backlink, getBacklinksOf } from './backlink'
 import { AppStateContext } from '../../core/store/appStateContext'
 import { ExpandUp } from '../../core/components/Icons/ExpandUp'
 import { ExpandDown } from '../../core/components/Icons/ExpandDown'
-import {
-  ConceptDisplayProps,
-  ConceptId,
-  Factory,
-  TypedConcept,
-} from '../../core/interfaces'
+import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
-
-const noop = function () {
-  return
-}
+import { ConceptPreview } from '../ConceptPreview'
 
 type Props = ConceptDisplayProps<undefined>
 
-function getBacklinksOf(
-  conceptId: ConceptId,
-  concepts: TypedConcept<unknown>[]
-) {
-  return concepts.filter(c => !!c.references.find(r => r.to === conceptId))
-}
-
 export const InsightTool: React.FunctionComponent<Props> = props => {
-  const { viewMode, blockId, dispatchAction, database, factoryRegistry } = props
+  const {
+    viewMode,
+    blockId: insightToolBlockId,
+    dispatchAction,
+    database,
+  } = props
   const state = useContext(AppStateContext)
-  const [backlinks, setBacklinks] = useState<TypedConcept<unknown>[]>([])
+  const [backlinks, setBacklinks] = useState<Backlink[]>([])
   const [collapsed, setCollapsed] = useState(true)
 
   useEffect(() => {
@@ -59,42 +50,33 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
         <>
           <div className={styles.Header}>
             <div className={styles.HeaderText}>
-              Appears in{' '}
+              Embedded at{' '}
               {collapsed &&
-                `${backlinks.length} concept${backlinks.length > 1 ? 's' : ''}`}
+                `${backlinks.length} place${backlinks.length > 1 ? 's' : ''}`}
             </div>
             <button onClick={() => setCollapsed(!collapsed)}>
               {collapsed ? <ExpandUp /> : <ExpandDown />}
             </button>
           </div>
           {!collapsed &&
-            backlinks.map(concept => {
+            backlinks.map(({ concept, blockId }) => {
               return (
-                <React.Fragment key={concept.id}>
+                <React.Fragment key={`${concept.id}/${blockId}`}>
                   <div
                     className={styles.InsightItem}
                     onClick={() =>
                       dispatchAction({
                         type: Action.BlockOpenAsCanvas,
-                        data: { id: concept.id },
+                        data: { id: concept.id, focusBlockId: blockId },
                       })
                     }>
-                    {factoryRegistry.createConceptDisplay(
-                      concept.summary.type,
-                      {
-                        viewMode: 'NavItem',
-                        readOnly: true,
-                        concept,
-                        blockId,
-                        dispatchAction,
-                        factoryRegistry,
-                        database,
-                        onChange: noop,
-                        onReplace: noop,
-                        onInteractionStart: noop,
-                        onInteractionEnd: noop,
-                      }
-                    )}
+                    <ConceptPreview
+                      blockId={insightToolBlockId}
+                      concept={concept}
+                      database={database}
+                      dispatchAction={dispatchAction}
+                      viewMode={'NavItem'}
+                    />
                   </div>
                   <hr className={styles.Divider} />
                 </React.Fragment>
@@ -102,7 +84,7 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
             })}
         </>
       ) : (
-        <div className={styles.HeaderText}>Not appearing in any concept</div>
+        <div className={styles.HeaderText}>Not embedded anywhere</div>
       )}
     </div>
   )
