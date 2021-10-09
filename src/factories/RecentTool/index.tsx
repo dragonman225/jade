@@ -2,18 +2,20 @@ import * as React from 'react'
 import { useRef, useContext } from 'react'
 
 import { styles } from './index.styles'
+import { ConceptPreview } from '../ConceptPreview'
 import { AppStateContext } from '../../core/store/appStateContext'
 import { Action } from '../../core/store/actions'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
-function noop() {
-  return
-}
-
 type Props = ConceptDisplayProps<undefined>
 
 export const RecentTool: React.FunctionComponent<Props> = props => {
-  const { viewMode, blockId, dispatchAction, database, factoryRegistry } = props
+  const {
+    viewMode,
+    blockId: recentToolBlockId,
+    dispatchAction,
+    database,
+  } = props
   const state = useContext(AppStateContext)
 
   const recentRef = useRef<HTMLDivElement>(null)
@@ -46,19 +48,6 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
 
         return historyToShow.map(conceptId => {
           const concept = database.getConcept(conceptId)
-          const contentProps: ConceptDisplayProps<unknown> = {
-            viewMode: 'NavItem',
-            readOnly: true,
-            concept,
-            blockId,
-            dispatchAction,
-            database,
-            factoryRegistry,
-            onChange: noop,
-            onReplace: noop,
-            onInteractionStart: noop,
-            onInteractionEnd: noop,
-          }
           return (
             <button
               className={styles.RecentBtn}
@@ -69,12 +58,13 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
                 })
               }}
               key={conceptId}>
-              <div className={styles.ContentPreview}>
-                {factoryRegistry.createConceptDisplay(
-                  concept.summary.type,
-                  contentProps
-                )}
-              </div>
+              <ConceptPreview
+                blockId={recentToolBlockId}
+                concept={concept}
+                database={database}
+                dispatchAction={dispatchAction}
+                viewMode="NavItem"
+              />
             </button>
           )
         })
