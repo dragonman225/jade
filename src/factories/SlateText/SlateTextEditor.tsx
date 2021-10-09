@@ -16,6 +16,8 @@ import {
 } from 'slate-react'
 import { withHistory } from 'slate-history'
 
+import { JadeRenderElementProps, JadeRenderLeafProps } from './types'
+
 const isMarkActive = (editor: Editor, format: string) => {
   const marks = Editor.marks(editor)
   return marks ? marks[format] === true : false
@@ -43,7 +45,7 @@ const CodeElement = (props: RenderElementProps) => {
   )
 }
 
-const Leaf = (props: RenderLeafProps) => {
+const Leaf = (props: JadeRenderLeafProps) => {
   const { attributes, leaf } = props
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   let { children } = props
@@ -90,12 +92,15 @@ export interface Props {
 }
 
 export const SlateTextEditor = (props: Props): JSX.Element => {
-  const editor = useMemo(() => withReact(withHistory(createEditor())), [])
+  const editor = useMemo(
+    () => withReact((withHistory(createEditor()) as unknown) as ReactEditor),
+    []
+  )
   const [value, setValue] = useState(props.content)
 
   // Define a rendering function based on the element passed to `props`. We use
   // `useCallback` here to memoize the function for subsequent renders.
-  const renderElement = useCallback((props: RenderElementProps) => {
+  const renderElement = useCallback((props: JadeRenderElementProps) => {
     switch (props.element.type) {
       case 'code':
         return <CodeElement {...props} />
@@ -118,9 +123,8 @@ export const SlateTextEditor = (props: Props): JSX.Element => {
   }, [props.content])
 
   /**
-   * Require content to be loaded and DOM created first
-   * so that we can focus.
-   * So, we use useEffect() here.
+   * Require content to be loaded and DOM created first so that we can
+   * focus. So, we use useEffect() here.
    */
   useEffect(() => {
     if (props.forceFocus) {
@@ -137,7 +141,7 @@ export const SlateTextEditor = (props: Props): JSX.Element => {
       }
       ReactEditor.focus(editor)
     }
-  }, [])
+  }, [editor, props.forceFocus])
 
   const onChange = (newValue: Element[]) => {
     setValue(newValue)

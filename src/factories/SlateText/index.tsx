@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { useState, useCallback } from 'react'
-import * as Slate from 'slate'
 
-import { SlateTextEditor } from './SlateTextEditor'
 import { styles } from './index.styles'
+import { SlateTextEditor } from './SlateTextEditor'
+import { TypedElement } from './types'
 import {
   ConceptDisplayProps,
   Factory,
@@ -20,10 +20,6 @@ import {
 interface TextContent {
   initialized?: boolean
   data: TypedElement[]
-}
-
-interface TypedElement extends Slate.Element {
-  type: string
 }
 
 interface State {
