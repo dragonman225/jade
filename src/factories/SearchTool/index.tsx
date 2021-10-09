@@ -7,7 +7,6 @@ import { usePager } from './usePager'
 import { BlockItem, CanvasItem, getSearchResult } from './search'
 import { ConceptPreview } from '../ConceptPreview'
 import { Search } from '../../core/components/Icons/Search'
-import { SlashHint } from '../../core/components/Icons/Slash'
 import { AppStateContext } from '../../core/store/appStateContext'
 import {
   distanceOf,
@@ -198,9 +197,13 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
         },
         handleKeyDown: (e: KeyboardEvent) => {
           if (state !== 'idle') return
-          /** Only when there is no other focus. */
-          if (e.key === '/' && document.activeElement === document.body) {
-            inputRef.current && inputRef.current.focus()
+          /** "Ctrl/Cmd + p" focus search input and clear it. */
+          if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+            if (inputRef.current) {
+              inputRef.current.value = ''
+              inputRef.current.focus()
+              setText('')
+            }
             e.preventDefault() /** Prevent "/" being typed. */
           } else if (
             e.key === 'Escape' &&
@@ -264,9 +267,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
           }}
         />
         {minimized && (
-          <div className={styles.SearchShortcutHint}>
-            <SlashHint />
-          </div>
+          <div className={styles.SearchShortcutHint}>Ctrl/Cmd+P</div>
         )}
       </div>
       {!minimized ? (

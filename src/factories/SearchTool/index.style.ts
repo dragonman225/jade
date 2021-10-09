@@ -34,17 +34,14 @@ export const styles = stylesheet({
     },
   },
   SearchShortcutHint: {
-    flex: '0 0 1.5rem',
-    width: '1.5rem',
+    flex: '0 0 4rem',
     height: '1.5rem',
-    padding: '.2rem',
     marginLeft: '.3rem',
-    $nest: {
-      '& > svg': {
-        fill: 'none',
-        stroke: theme.colors.uiGrey,
-      },
-    },
+    fontSize: '.6rem',
+    color: theme.colors.uiGrey,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   ScrollList: {
     height: '100%',
