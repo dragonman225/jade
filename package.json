@@ -85,9 +85,9 @@
     "react-dom": "^17.0.2",
     "sirv": "^1.0.10",
     "sirv-cli": "^1.0.10",
-    "slate": "^0.59.0",
-    "slate-history": "^0.59.0",
-    "slate-react": "^0.59.0",
+    "slate": "^0.66.5",
+    "slate-history": "^0.66.0",
+    "slate-react": "^0.66.6",
     "typestyle": "^2.1.0",
     "uuid": "^8.3.2"
   }

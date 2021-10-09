@@ -19,15 +19,19 @@ import {
 
 interface TextContent {
   initialized?: boolean
-  data: Slate.Element[]
+  data: TypedElement[]
+}
+
+interface TypedElement extends Slate.Element {
+  type: string
 }
 
 interface State {
-  slateData: Slate.Element[]
+  slateData: TypedElement[]
   isNewText: boolean
 }
 
-function getSlateData(data: TextContent): Slate.Element[] {
+function getSlateData(data: TextContent): TypedElement[] {
   if (data.initialized) return data.data
   else return [{ type: 'paragraph', children: [{ text: '' }] }]
 }
@@ -50,7 +54,7 @@ export function SlateText(
   })
 
   const handleChange = useCallback(
-    (slateData: Slate.Element[]): void => {
+    (slateData: TypedElement[]): void => {
       setState({ slateData, isNewText: false })
       onChange({ initialized: true, data: slateData })
     },
