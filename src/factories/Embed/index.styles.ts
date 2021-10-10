@@ -13,10 +13,19 @@ const atoms = stylesheet({
   },
   ControlButton: {
     ...buttonTranslucent,
+    borderRadius: 0,
     $nest: {
       ...buttonTranslucent.$nest,
       '&:not(:last-child)': {
-        marginRight: '.3rem',
+        borderRight: `1px solid rgba(255, 255, 255, 0.2)`,
+      },
+      '&:first-child': {
+        borderTopLeftRadius: theme.borders.smallRadius,
+        borderBottomLeftRadius: theme.borders.smallRadius,
+      },
+      '&:last-child': {
+        borderTopRightRadius: theme.borders.smallRadius,
+        borderBottomRightRadius: theme.borders.smallRadius,
       },
     },
   },
@@ -45,6 +54,8 @@ const molecules = stylesheet({
     right: 20,
     opacity: 0,
     transition: `opacity 0.15s ${theme.easings.easeInOutCubic}`,
+    boxShadow: theme.shadows.backlitTiny,
+    borderRadius: theme.borders.smallRadius,
   },
 })
 

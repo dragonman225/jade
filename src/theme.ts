@@ -35,6 +35,7 @@ export default {
     float2: `
       hsla(42deg, 15%, 70%, 0.05) 0px 16px 36px 8px,
       hsla(42deg, 30%, 20%, 0.1) 0px 32px 72px 8px`,
+    backlitTiny: 'var(--bg-block) 0px 0px 2px',
   },
   borders: {
     largeRadius: '.6rem',

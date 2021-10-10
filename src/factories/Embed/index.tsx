@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useContext } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './index.styles'
@@ -9,6 +9,7 @@ import {
   Factory,
   TypedConcept,
 } from '../../core/interfaces'
+import { SystemContext } from '../../core/store/systemContext'
 
 interface EmbedContent {
   initialized?: boolean
@@ -19,6 +20,7 @@ type Props = ConceptDisplayProps<EmbedContent>
 
 export const Embed: React.FunctionComponent<Props> = props => {
   const { viewMode, onChange, onInteractionStart, onInteractionEnd } = props
+  const { openExternal } = useContext(SystemContext)
   const data = props.concept.summary.data
   const url = data && data.url ? data.url : ''
   const inputRef = useRef<HTMLInputElement>()
@@ -68,6 +70,11 @@ export const Embed: React.FunctionComponent<Props> = props => {
                 className={styles.ControlButton}
                 onClick={() => onChange({ initialized: true, url: undefined })}>
                 Replace
+              </button>
+              <button
+                className={styles.ControlButton}
+                onClick={() => openExternal(url)}>
+                Original
               </button>
             </div>
           </div>
