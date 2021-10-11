@@ -2,6 +2,8 @@ import * as React from 'react'
 import { useContext } from 'react'
 import { stylesheet } from 'typestyle'
 
+import { BlockCounter } from './BlockCount'
+import { Header } from './Header'
 import theme from '../../theme'
 import { AppStateContext } from '../../core/store/appStateContext'
 import {
@@ -46,6 +48,9 @@ const styles = stylesheet({
   Highlight: {
     background: 'aquamarine',
   },
+  blockCounter: {
+    padding: '0.3rem 0.3rem 0',
+  },
 })
 
 type Props = ConceptDisplayProps<undefined>
@@ -55,20 +60,22 @@ export const Status: React.FunctionComponent<Props> = props => {
   const state = useContext(AppStateContext)
 
   switch (props.viewMode) {
+    case 'NavItem':
     case 'Block':
       return (
         <div className={styles.StatBlock}>
+          <Header />
+          <div className={styles.blockCounter}>
+            <BlockCounter value={state.blocks.length} />
+          </div>
           <ul>
-            <li>
-              <code>{state.blocks.length}</code> blocks on the canvas
-            </li>
             <li>
               Focusing at{' '}
               <code>
-                ({state.camera.focus.x.toFixed(2)},{' '}
-                {state.camera.focus.y.toFixed(2)})
+                ({state.camera.focus.x.toFixed(1)},{' '}
+                {state.camera.focus.y.toFixed(1)})
               </code>
-              , scale <code>{(state.camera.scale * 100).toFixed(2)}%</code>
+              , scale <code>{(state.camera.scale * 100).toFixed(1)}%</code>
             </li>
             <li>
               Debugging is{' '}
@@ -115,7 +122,9 @@ export const Status: React.FunctionComponent<Props> = props => {
         </div>
       )
     default:
-      return <div className={styles.StatNavItem}>Status</div>
+      return (
+        <div className={styles.StatNavItem}>About Jade &amp; nerd info</div>
+      )
   }
 }
 
