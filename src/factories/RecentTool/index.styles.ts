@@ -27,6 +27,7 @@ export const styles = stylesheet({
     padding: '0 5px',
     borderRadius: theme.borders.smallRadius,
     cursor: 'pointer',
+    color: theme.colors.contentText,
     $nest: {
       '&:hover': {
         background: theme.colors.bgHover,
