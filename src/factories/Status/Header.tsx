@@ -13,8 +13,8 @@ const styles = stylesheet({
         margin: 0,
       },
       '& > h3': {
-        marginLeft: '0.5rem',
-        marginBottom: '0.4rem',
+        paddingLeft: '0.5rem',
+        paddingBottom: '0.4rem',
         opacity: 0.6,
       },
     },
