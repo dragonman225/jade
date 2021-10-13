@@ -17,7 +17,7 @@ export enum Action {
   BlockMoveStart = 'block::moveStart',
   BlockMove = 'block::move',
   BlockMoveEnd = 'block::moveEnd',
-  BlockResize = 'block::resize',
+  BlockResizeDelta = 'block::resizeDelta',
   BlockSetMode = 'block::setMode',
   BlockSetColor = 'block::setColor',
   BlockSelect = 'block::select',
@@ -113,8 +113,8 @@ interface BlockMoveEndAction {
   type: Action.BlockMoveEnd
 }
 
-interface BlockResizeAction {
-  type: Action.BlockResize
+interface BlockResizeDeltaAction {
+  type: Action.BlockResizeDelta
   data: {
     id: string
     movementInViewportCoords: Vec2
@@ -251,7 +251,7 @@ export type Actions =
   | BlockMoveStartAction
   | BlockMoveAction
   | BlockMoveEndAction
-  | BlockResizeAction
+  | BlockResizeDeltaAction
   | BlockSetModeAction
   | BlockSetColorAction
   | BlockSelectAction

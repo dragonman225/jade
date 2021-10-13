@@ -81,7 +81,7 @@ export function Block({
 
         if (intent.startsWith('resize')) {
           dispatchAction({
-            type: Action.BlockResize,
+            type: Action.BlockResizeDelta,
             data: {
               id,
               /**

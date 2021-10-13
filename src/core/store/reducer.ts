@@ -683,7 +683,7 @@ export function createAppStateReducer(
           ),
         }
       }
-      case Action.BlockResize: {
+      case Action.BlockResizeDelta: {
         const { id, movementInViewportCoords } = action.data
         const { camera, blocks, selectedBlockIds } = state
 
