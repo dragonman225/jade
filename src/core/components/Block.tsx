@@ -24,6 +24,8 @@ interface Props {
   selected: boolean
   highlighted: boolean
   blink: boolean
+  allowResizeWidth?: boolean
+  allowResizeHeight?: boolean
   dispatchAction: (action: Actions) => void
   className?: string
   children?: React.ReactNode
@@ -37,19 +39,23 @@ export function Block({
   selected,
   highlighted,
   blink,
+  allowResizeWidth = true,
+  allowResizeHeight = false,
   dispatchAction,
   className,
   children,
 }: Props): JSX.Element {
-  const blockRef = useRef<HTMLDivElement>(null)
-  const resizerRef = useRef<HTMLDivElement>(null)
-  const arrowTriggerRef = useRef<HTMLDivElement>(null)
+  const blockElRef = useRef<HTMLDivElement>(null)
+  const widthResizerElRef = useRef<HTMLDivElement>(null)
+  const heightResizerElRef = useRef<HTMLDivElement>(null)
+  const widthHeightResizerElRef = useRef<HTMLDivElement>(null)
+  const arrowTriggerElRef = useRef<HTMLDivElement>(null)
   const modeRef = useRef<InteractionMode>(mode)
   const [isHovering, setIsHovering] = useState(false)
 
+  /** Register the block element so other places can query its rect. */
   useEffect(() => {
-    blockRectManager.setElement(id, blockRef.current)
-
+    blockRectManager.setElement(id, blockElRef.current)
     return () => blockRectManager.detachElement(id)
   }, [id])
 
@@ -59,7 +65,13 @@ export function Block({
 
   useEffect(() => {
     const gestureDetector = (() => {
-      let intent: '' | 'move' | 'resize' | 'arrow' = ''
+      let intent:
+        | ''
+        | 'move'
+        | 'resizeWH'
+        | 'resizeW'
+        | 'resizeH'
+        | 'drawArrow' = ''
       let lastClientCoords = { x: 0, y: 0 }
 
       const handlePointerMove = (e: MouseEvent | TouchEvent) => {
@@ -67,10 +79,26 @@ export function Block({
         const movement = vecSub(clientCoords, lastClientCoords)
         lastClientCoords = clientCoords
 
-        if (intent === 'resize') {
+        if (intent.startsWith('resize')) {
           dispatchAction({
             type: Action.BlockResize,
-            data: { id, movementInViewportCoords: movement },
+            data: {
+              id,
+              /**
+               * So that we can resize only one direction for blocks that
+               * allow both.
+               */
+              movementInViewportCoords: {
+                x:
+                  intent === 'resizeW' || intent === 'resizeWH'
+                    ? movement.x
+                    : 0,
+                y:
+                  intent === 'resizeH' || intent === 'resizeWH'
+                    ? movement.y
+                    : 0,
+              },
+            },
           })
           dispatchAction({
             type: Action.BlockSetMode,
@@ -88,7 +116,7 @@ export function Block({
             type: Action.BlockSetMode,
             data: { id, mode: InteractionMode.Moving },
           })
-        } else if (intent === 'arrow') {
+        } else if (intent === 'drawArrow') {
           dispatchAction({
             type: Action.RelationDrawMove,
             data: { id, pointerInViewportCoords: clientCoords },
@@ -102,7 +130,7 @@ export function Block({
         window.removeEventListener('mouseup', handlePointerUp)
         window.removeEventListener('touchend', handlePointerUp)
 
-        if (intent === 'arrow') {
+        if (intent === 'drawArrow') {
           dispatchAction({
             type: Action.RelationDrawEnd,
             data: {
@@ -159,13 +187,28 @@ export function Block({
             }
           }
 
-          if (resizerRef && resizerRef.current.contains(e.target as Node))
-            intent = 'resize'
+          const widthResizerEl = widthResizerElRef.current
+          const heightResizerEl = heightResizerElRef.current
+          const widthHeightResizerEl = widthHeightResizerElRef.current
+          const arrowTriggerEl = arrowTriggerElRef.current
+
+          if (widthResizerEl && widthResizerEl.contains(e.target as Node))
+            intent = 'resizeW'
           else if (
-            arrowTriggerRef &&
-            arrowTriggerRef.current.contains(e.target as Node)
+            heightResizerEl &&
+            heightResizerEl.contains(e.target as Node)
+          )
+            intent = 'resizeH'
+          else if (
+            widthHeightResizerEl &&
+            widthHeightResizerEl.contains(e.target as Node)
+          )
+            intent = 'resizeWH'
+          else if (
+            arrowTriggerEl &&
+            arrowTriggerEl.contains(e.target as Node)
           ) {
-            intent = 'arrow'
+            intent = 'drawArrow'
             dispatchAction({
               type: Action.RelationDrawStart,
               data: { id, pointerInViewportCoords: clientCoords },
@@ -189,7 +232,7 @@ export function Block({
     function preventContextMenu(e: MouseEvent) {
       if (modeRef.current !== InteractionMode.Focusing) e.preventDefault()
     }
-    const blockEl = blockRef.current
+    const blockEl = blockElRef.current
 
     blockEl.addEventListener('mousedown', gestureDetector.handlePointerDown)
     blockEl.addEventListener('touchstart', gestureDetector.handlePointerDown)
@@ -220,37 +263,46 @@ export function Block({
   }, [mode, selected, className])
 
   return (
-    <>
-      <div
-        ref={blockRef}
-        className={blockClassName}
-        data-color={color}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}>
-        {children}
-        <div ref={resizerRef} className={styles.resizer} />
-        {!isHovering && blink && <div className={styles.blink} />}
-        {isHovering && (
-          <>
-            <div
-              className={classes(styles.actionButton, styles.open)}
-              onClick={() => {
-                dispatchAction({
-                  type: Action.BlockOpenAsCanvas,
-                  data: { id: conceptId },
-                })
-              }}>
-              <OpenInFull />
-            </div>
-            <div
-              ref={arrowTriggerRef}
-              className={classes(styles.actionButton, styles.arrow)}>
-              <ArrowNorthEast />
-            </div>
-          </>
-        )}
-        {highlighted && <div className={styles.highlightOverlay} />}
-      </div>
-    </>
+    <div
+      ref={blockElRef}
+      className={blockClassName}
+      data-color={color}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}>
+      {children}
+      {allowResizeWidth && (
+        <div ref={widthResizerElRef} className={styles.widthResizer} />
+      )}
+      {allowResizeHeight && (
+        <div ref={heightResizerElRef} className={styles.heightResizer} />
+      )}
+      {allowResizeWidth && allowResizeHeight && (
+        <div
+          ref={widthHeightResizerElRef}
+          className={styles.widthHeightResizer}
+        />
+      )}
+      {!isHovering && blink && <div className={styles.blink} />}
+      {isHovering && (
+        <>
+          <div
+            className={classes(styles.actionButton, styles.open)}
+            onClick={() => {
+              dispatchAction({
+                type: Action.BlockOpenAsCanvas,
+                data: { id: conceptId },
+              })
+            }}>
+            <OpenInFull />
+          </div>
+          <div
+            ref={arrowTriggerElRef}
+            className={classes(styles.actionButton, styles.arrow)}>
+            <ArrowNorthEast />
+          </div>
+        </>
+      )}
+      {highlighted && <div className={styles.highlightOverlay} />}
+    </div>
   )
 }

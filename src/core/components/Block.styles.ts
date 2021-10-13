@@ -75,13 +75,29 @@ export const styles = {
         },
       },
     },
-    resizer: {
+    widthResizer: {
       position: 'absolute',
       top: iconSize + 2,
-      right: 0,
       bottom: 0,
+      right: 0,
       width: 14,
       cursor: 'ew-resize',
+    },
+    heightResizer: {
+      position: 'absolute',
+      left: iconSize + 2,
+      right: iconSize + 2,
+      bottom: 0,
+      height: 14,
+      cursor: 'ns-resize',
+    },
+    widthHeightResizer: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      width: iconSize,
+      height: iconSize,
+      cursor: 'nwse-resize',
     },
     open: {
       position: 'absolute',
