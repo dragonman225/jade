@@ -1,5 +1,6 @@
 import { stylesheet } from 'typestyle'
 
+import { emptyNavItem } from '../commonStyles'
 import theme from '../../theme'
 import { buttonPrimary, buttonTranslucent, input } from '../../lightComponents'
 
@@ -85,6 +86,9 @@ const organisms = stylesheet({
         width: 200,
       },
     },
+  },
+  emptyNavItem: {
+    ...emptyNavItem,
   },
 })
 

@@ -119,7 +119,7 @@ export const Embed: React.FunctionComponent<Props> = props => {
           </div>
         )
       } else {
-        return <div>An empty embed</div>
+        return <div className={styles.emptyNavItem}>An empty embed</div>
       }
     }
   }

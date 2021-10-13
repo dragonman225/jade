@@ -1,5 +1,6 @@
 import { stylesheet } from 'typestyle'
 
+import { emptyNavItem } from '../commonStyles'
 import theme from '../../theme'
 import { buttonPrimary, buttonTranslucent, input } from '../../lightComponents'
 
@@ -18,10 +19,7 @@ export const styles = stylesheet({
     },
   },
   ImageErrorMsg: {
-    fontSize: '.8rem',
-    padding: '.5rem',
-    maxHeight: '100%',
-    color: theme.colors.uiGrey,
+    ...emptyNavItem,
   },
   ImageBlockViewer: {
     display: 'flex' /* Remove extra space below img. */,
