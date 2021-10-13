@@ -8,7 +8,7 @@ import { IconStyle } from './Icon.styles'
  * The use is governed by the "Apache License, Version 2.0".
  */
 
-export const Home: React.FunctionComponent = () => {
+export const Home = React.memo(function Home() {
   return (
     <svg
       className={IconStyle}
@@ -21,4 +21,4 @@ export const Home: React.FunctionComponent = () => {
       </g>
     </svg>
   )
-}
+})
