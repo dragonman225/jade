@@ -56,6 +56,9 @@ export const styles = {
         },
       },
     },
+    fillParentHeight: {
+      height: '100%',
+    },
     selected: {
       boxShadow: `0px 0px 1px 2px ${theme.colors.uiPrimary}`,
     },

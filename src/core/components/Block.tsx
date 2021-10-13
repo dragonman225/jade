@@ -256,11 +256,12 @@ export function Block({
     return classes(
       className,
       styles.block,
+      allowResizeHeight && styles.fillParentHeight,
       selected && styles.selected,
       mode === InteractionMode.Focusing && styles.focusing,
       mode === InteractionMode.Moving && styles.moving
     )
-  }, [mode, selected, className])
+  }, [mode, selected, allowResizeHeight, className])
 
   return (
     <div
