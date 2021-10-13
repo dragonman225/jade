@@ -30,11 +30,14 @@ const atoms = stylesheet({
       },
     },
   },
-  FrameWrapper: {
+  FrameWrapperAutoHeight: {
     position: 'relative',
     paddingBottom: '56.25%' /* 16:9 -> 9/16*100% */,
     paddingTop: 25 /* This creates black bars at the top and the bottom of the video. */,
     height: 0,
+  },
+  FrameWrapperFixedHeight: {
+    height: '100%',
   },
   Frame: {
     position: 'absolute',
@@ -45,6 +48,9 @@ const atoms = stylesheet({
   },
   NoInteraction: {
     pointerEvents: 'none',
+  },
+  fillParentHeight: {
+    height: '100%',
   },
 })
 

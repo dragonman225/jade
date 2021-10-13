@@ -7,9 +7,13 @@ import { getEmbedUrl } from './utils'
 import {
   ConceptDisplayProps,
   Factory,
+  InteractionMode,
   TypedConcept,
 } from '../../core/interfaces'
+import { Action } from '../../core/store/actions'
 import { SystemContext } from '../../core/store/systemContext'
+import { AppStateContext } from '../../core/store/appStateContext'
+import { findBlock } from '../../core/utils/block'
 
 interface EmbedContent {
   initialized?: boolean
@@ -19,21 +23,31 @@ interface EmbedContent {
 type Props = ConceptDisplayProps<EmbedContent>
 
 export const Embed: React.FunctionComponent<Props> = props => {
-  const { viewMode, onChange, onInteractionStart, onInteractionEnd } = props
-  const { openExternal } = useContext(SystemContext)
+  const {
+    viewMode,
+    blockId,
+    onChange,
+    onInteractionStart,
+    onInteractionEnd,
+  } = props
+  /** Depending on blocks degrades perf. */
+  const { blocks } = useContext(AppStateContext)
+  const block = findBlock(blocks, blockId)
+  const isResizing = block && block.mode === InteractionMode.Resizing
+  const { openExternal, dispatchAction } = useContext(SystemContext)
   const data = props.concept.summary.data
   const url = data && data.url ? data.url : ''
   const inputRef = useRef<HTMLInputElement>()
-  const [blockFrameInteraction, setBlockFrameInteraction] = useState(false)
+  const [allowFrameInteraction, setAllowFrameInteraction] = useState(true)
 
   const endMoving = useCallback(() => {
     window.removeEventListener('mouseup', endMoving)
     window.removeEventListener('touchend', endMoving)
-    setBlockFrameInteraction(false)
+    setAllowFrameInteraction(true)
   }, [])
 
   const startMoving = useCallback(() => {
-    setBlockFrameInteraction(true)
+    setAllowFrameInteraction(false)
     window.addEventListener('mouseup', endMoving)
     window.addEventListener('touchend', endMoving)
   }, [endMoving])
@@ -43,12 +57,21 @@ export const Embed: React.FunctionComponent<Props> = props => {
     case 'CardTitle': {
       if (url) {
         return (
-          <div className={styles.EmbedBlockDisplay}>
-            <div className={styles.FrameWrapper}>
+          <div
+            className={classes(
+              styles.EmbedBlockDisplay,
+              block.size.h !== 'auto' && styles.fillParentHeight
+            )}>
+            <div
+              className={
+                block.size.h === 'auto'
+                  ? styles.FrameWrapperAutoHeight
+                  : styles.FrameWrapperFixedHeight
+              }>
               <iframe
                 className={classes(
                   styles.Frame,
-                  blockFrameInteraction && styles.NoInteraction
+                  (!allowFrameInteraction || isResizing) && styles.NoInteraction
                 )}
                 width="100%"
                 height="100%"
@@ -68,7 +91,19 @@ export const Embed: React.FunctionComponent<Props> = props => {
               </button>
               <button
                 className={styles.ControlButton}
-                onClick={() => onChange({ initialized: true, url: undefined })}>
+                onClick={() => {
+                  onChange({ initialized: true, url: undefined })
+                  dispatchAction({
+                    type: Action.BlockSetSize,
+                    data: {
+                      id: blockId,
+                      size: {
+                        w: 300,
+                        h: 'auto',
+                      },
+                    },
+                  })
+                }}>
                 Replace
               </button>
               <button
@@ -94,6 +129,16 @@ export const Embed: React.FunctionComponent<Props> = props => {
               className={styles.LinkConfirmButton}
               onClick={() => {
                 onChange({ initialized: true, url: inputRef.current.value })
+                dispatchAction({
+                  type: Action.BlockSetSize,
+                  data: {
+                    id: blockId,
+                    size: {
+                      w: 400,
+                      h: 225,
+                    },
+                  },
+                })
               }}>
               Embed link
             </button>
@@ -104,8 +149,17 @@ export const Embed: React.FunctionComponent<Props> = props => {
     case 'NavItem': {
       if (url) {
         return (
-          <div className={styles.EmbedBlockDisplay}>
-            <div className={styles.FrameWrapper}>
+          <div
+            className={classes(
+              styles.EmbedBlockDisplay,
+              block.size.h !== 'auto' && styles.fillParentHeight
+            )}>
+            <div
+              className={
+                block.size.h === 'auto'
+                  ? styles.FrameWrapperAutoHeight
+                  : styles.FrameWrapperFixedHeight
+              }>
               <iframe
                 className={classes(styles.Frame, styles.NoInteraction)}
                 width="100%"
