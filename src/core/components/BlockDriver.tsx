@@ -111,6 +111,8 @@ export const BlockDriver = React.memo(function BlockDriver(
       selected={block.selected}
       highlighted={block.highlighted}
       blink={Concept.isHighOrder(concept)}
+      allowResizeWidth={block.size.w !== 'auto'}
+      allowResizeHeight={block.size.h !== 'auto'}
       dispatchAction={dispatchAction}
       className={blockClassName}>
       {factoryRegistry.createConceptDisplay(concept.summary.type, {
