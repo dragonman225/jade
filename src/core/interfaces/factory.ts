@@ -7,15 +7,19 @@ import { Actions } from '../store/actions'
 export type FactoryId = string
 
 export interface Factory {
+  /** Used as the concept's type. */
   id: FactoryId
+  /** Displayed name in slash commands. */
   name: string
   /** `true` to treat the products of this factory tools, otherwise content. */
   isTool?: boolean
   /** Ignore to position the products absolutely. */
   origin?: Origin
+  /** UI. */
   component:
     | React.ComponentClass<ConceptDisplayProps<unknown>>
     | React.FunctionComponent<ConceptDisplayProps<unknown>>
+  /** For full text search. */
   toText?: (concept: TypedConcept<unknown>) => string
 }
 
