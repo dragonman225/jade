@@ -5,7 +5,7 @@ import { classes } from 'typestyle'
 import { ArrowNorthEast } from './Icons/ArrowNorthEast'
 import { OpenInFull } from './Icons/OpenInFull'
 import { styles } from './Block.styles'
-import { getUnifiedClientCoords, isPointInRect, vecSub } from '../utils'
+import { getUnifiedClientCoords, vecSub } from '../utils'
 import { blockRectManager } from '../utils/blockRectManager'
 import { Action, Actions } from '../store/actions'
 import {
@@ -159,15 +159,11 @@ export function Block({
             }
           }
 
-          const resizerRect = resizerRef.current.getBoundingClientRect()
-          const arrowTriggerRect =
-            arrowTriggerRef.current &&
-            arrowTriggerRef.current.getBoundingClientRect()
-
-          if (isPointInRect(clientCoords, resizerRect)) intent = 'resize'
+          if (resizerRef && resizerRef.current.contains(e.target as Node))
+            intent = 'resize'
           else if (
-            arrowTriggerRect &&
-            isPointInRect(clientCoords, arrowTriggerRect)
+            arrowTriggerRef &&
+            arrowTriggerRef.current.contains(e.target as Node)
           ) {
             intent = 'arrow'
             dispatchAction({
