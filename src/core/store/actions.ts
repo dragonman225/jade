@@ -6,6 +6,7 @@ import {
   ContextMenuActionData,
   PositionType,
   RelationId,
+  Size,
   Vec2,
 } from '../interfaces'
 
@@ -20,6 +21,7 @@ export enum Action {
   BlockResizeDelta = 'block::resizeDelta',
   BlockSetMode = 'block::setMode',
   BlockSetColor = 'block::setColor',
+  BlockSetSize = 'block::setSize',
   BlockSelect = 'block::select',
   BlockDeselect = 'block::deselect',
   BlockDeselectAll = 'block::deselectAll',
@@ -134,6 +136,14 @@ interface BlockSetColorAction {
   data: {
     id: BlockId
     color: BlockColor | undefined
+  }
+}
+
+interface BlockSetSizeAction {
+  type: Action.BlockSetSize
+  data: {
+    id: BlockId
+    size: Size
   }
 }
 
@@ -254,6 +264,7 @@ export type Actions =
   | BlockResizeDeltaAction
   | BlockSetModeAction
   | BlockSetColorAction
+  | BlockSetSizeAction
   | BlockSelectAction
   | BlockDeselectAction
   | BlockDeselectAllAction

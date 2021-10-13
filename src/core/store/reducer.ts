@@ -15,6 +15,8 @@ import {
   deselectAllBlocks,
   getFocusForBlock,
   bringBlockToTop,
+  findBlock,
+  blockInstanceToBlock,
 } from '../utils/block'
 import { createConcept, updateConcept } from '../utils/concept'
 import {
@@ -687,7 +689,7 @@ export function createAppStateReducer(
         const { id, movementInViewportCoords } = action.data
         const { camera, blocks, selectedBlockIds } = state
 
-        const cursorBlock = state.blocks.find(b => b.id === id)
+        const cursorBlock = blocks.find(b => b.id === id)
         const cursorBlockRectInEnvCoords = blockRectManager.getRect(id)
         const cursorBlockOldSize = cursorBlock.size
 
@@ -902,6 +904,30 @@ export function createAppStateReducer(
               return b
             }
           }),
+        }
+      }
+      case Action.BlockSetSize: {
+        const { id, size } = action.data
+        const { blocks, viewingConcept } = state
+        const blockInstance = findBlock(blocks, id)
+        if (!blockInstance) return state
+        const newBlockInstance = updateBlockInstance(blockInstance, { size })
+
+        const newViewingConcept = updateConcept(viewingConcept, {
+          references: viewingConcept.references.map(r =>
+            r.id === id ? blockInstanceToBlock(newBlockInstance) : r
+          ),
+        })
+        db.updateConcept(newViewingConcept)
+
+        // HACK: If prevCursorBlock is X, and we set size for X, then we
+        // resize it, size would be wrong.
+        prevCursorBlockId = ''
+
+        return {
+          ...state,
+          viewingConcept: newViewingConcept,
+          blocks: blocks.map(b => (b.id === id ? newBlockInstance : b)),
         }
       }
       case Action.BlockSelect: {
