@@ -39,16 +39,6 @@ const atoms = stylesheet({
   FrameWrapperFixedHeight: {
     height: '100%',
   },
-  Frame: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-  },
-  NoInteraction: {
-    pointerEvents: 'none',
-  },
   fillParentHeight: {
     height: '100%',
   },
