@@ -25,7 +25,7 @@ const atoms = stylesheet({
   blink: {
     position: 'absolute',
     top: 0,
-    right: 0,
+    left: 0,
     width: 4,
     height: 4,
     margin: 8,
