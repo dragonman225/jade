@@ -3,13 +3,14 @@ import { keyframes } from 'typestyle'
 export default {
   colors: {
     bgCanvas: 'var(--bg-canvas)',
+    bgCanvasSemiTransparent: 'var(--bg-canvas-semi-transparent)',
     bgBlock: 'var(--bg-block)',
     bgHover: 'hsla(165deg, 10%, 25%, 0.08)',
     bgActive: 'hsla(165deg, 10%, 25%, 0.16)',
     bgGrey: '#eeeeee',
     bgDangerHover: 'var(--bg-danger-hover)',
     bgDangerActive: 'var(--bg-danger-active)',
-    contentText: 'hsl(165deg, 10%, 25%)',
+    contentText: 'var(--content-text)',
     uiText: 'var(--ui-text)',
     uiDanger: 'var(--ui-danger)',
     uiPrimaryVeryLight: 'hsla(165deg, 65%, 55%, 0.2)',
@@ -27,10 +28,7 @@ export default {
     ui: `
       rgba(15, 15, 15, 0.15) 0px 0px 2px, 
       rgba(15, 15, 15, 0.1) 0px 0px 7px`,
-    ui2: `
-      hsla(42deg, 15%, 10%, 0.1) 0px 0px 2px,
-      hsla(42deg, 15%, 30%, 0.1) 0px 0px 7px,
-      hsla(42deg, 15%, 50%, 0.1) 0px 0px 16px`,
+    ui2: 'var(--shadow-ui2)',
     float: `rgba(17, 12, 46, 0.15) 0px 38px 100px`,
     float2: `
       hsla(42deg, 15%, 70%, 0.05) 0px 16px 36px 8px,
@@ -60,4 +58,7 @@ export default {
     navComfort: '.5rem',
   },
   arrowSize: 6,
+  fonts: {
+    monospace: 'var(--font-monospace)',
+  },
 }

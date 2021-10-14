@@ -96,7 +96,7 @@ export const BlockDriver = React.memo(function BlockDriver(
       ? style({
           boxShadow: theme.shadows.ui2,
           borderRadius: theme.borders.largeRadius,
-          background: 'hsl(42deg, 70%, 96%, 0.7)',
+          background: theme.colors.bgCanvasSemiTransparent,
           backdropFilter: 'saturate(180%) blur(30px)',
         })
       : undefined

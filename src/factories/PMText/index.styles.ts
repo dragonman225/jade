@@ -1,4 +1,5 @@
 import { stylesheet } from 'typestyle'
+
 import theme from '../../theme'
 
 export const styles = stylesheet({
@@ -73,7 +74,7 @@ export const styles = stylesheet({
     fontSize: '0.9em',
     padding: '0.2em 0.4em',
     wordBreak: 'break-word',
-    fontFamily: `'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace, Courier`,
+    fontFamily: theme.fonts.monospace,
   },
   Underline: {
     borderBottom: '0.05em solid',
