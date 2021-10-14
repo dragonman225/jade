@@ -32,6 +32,7 @@ export const Embed: React.FunctionComponent<Props> = props => {
   } = props
   /** Depending on blocks degrades perf. */
   const { blocks } = useContext(AppStateContext)
+  /** `blockId` is useless when embedded in other blocks. */
   const block = findBlock(blocks, blockId)
   const isResizing = block && block.mode === InteractionMode.Resizing
   const { openExternal, dispatchAction } = useContext(SystemContext)
@@ -77,6 +78,7 @@ export const Embed: React.FunctionComponent<Props> = props => {
                 height="100%"
                 src={getEmbedUrl(url)}
                 frameBorder="0"
+                loading="lazy"
                 allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
                 allowFullScreen
               />
@@ -166,6 +168,7 @@ export const Embed: React.FunctionComponent<Props> = props => {
                 height="100%"
                 src={getEmbedUrl(url)}
                 frameBorder="0"
+                loading="lazy"
                 allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
                 allowFullScreen
               />
