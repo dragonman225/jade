@@ -16,6 +16,7 @@ import { SearchToolFactory } from './SearchTool'
 import { HeaderToolFactory } from './HeaderTool'
 import { RecentToolFactory } from './RecentTool'
 import { InsightToolFactory } from './InsightTool'
+import { CSSFactory } from './CSS'
 
 class AlexFactoryRegistry implements FactoryRegistry {
   private factories = [
@@ -28,6 +29,7 @@ class AlexFactoryRegistry implements FactoryRegistry {
     HeaderToolFactory,
     RecentToolFactory,
     InsightToolFactory,
+    CSSFactory,
   ]
   private default = PMTextFactory
 
