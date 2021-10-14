@@ -26,6 +26,7 @@ export const styles = stylesheet({
     padding: '.1rem',
     fontSize: '.8rem',
     width: '100%',
+    color: theme.colors.contentText,
     $nest: {
       '&::placeholder': {
         color: theme.colors.uiGrey,
