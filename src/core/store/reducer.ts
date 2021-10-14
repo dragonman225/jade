@@ -560,7 +560,7 @@ export function createAppStateReducer(
           viewingConcept: newViewingConcept,
           blocks: bringBlockToTop(id, blocks).map(b => ({
             ...b,
-            highlighted: shouldHighlight(b.id) ? true : false,
+            highlighted: shouldHighlight(b.id),
             pos: shouldMove(b.id)
               ? vecAdd(b.pos, cursorBlockFinalMovement)
               : b.pos,
