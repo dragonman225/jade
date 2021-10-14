@@ -47,8 +47,10 @@ export const styles = {
        * obey `overflow: hidden` set above.
        */
       position: 'relative',
-      // animation: `${theme.animations.fadeIn} 0.2s ${theme.easings.easeInOutCubic}`,
-      transition: `opacity 0.1s ${theme.easings.easeInOutCubic}, box-shadow 0.1s ${theme.easings.easeInOutCubic}`,
+      transition: `\
+opacity 0.1s ${theme.easings.easeInOutCubic},
+box-shadow 0.1s ${theme.easings.easeInOutCubic},
+background 0.1s ${theme.easings.easeInOutCubic}`,
       $nest: {
         ...blockColorMixin.$nest,
         '&:hover': {
