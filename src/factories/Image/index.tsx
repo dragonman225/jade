@@ -127,6 +127,10 @@ function Image(props: Props): JSX.Element {
                 Embed image
               </button>
               <div className={styles.Title}>From your computer</div>
+              <div className={styles.sizeWarning}>
+                Don&apos;t upload large images, currently the database
+                (window.localStorage) only have 5MB quota for everything.
+              </div>
               <label className={styles.ChooseImgBtn}>
                 <input
                   type="file"

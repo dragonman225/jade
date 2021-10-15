@@ -75,4 +75,9 @@ export const styles = stylesheet({
       '& > input': { display: 'none' },
     },
   },
+  sizeWarning: {
+    color: theme.colors.uiGrey,
+    fontSize: '0.7rem',
+    marginBottom: '0.5rem',
+  },
 })
