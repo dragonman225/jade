@@ -86,7 +86,8 @@ export function startApp(
       {
         debugging: false,
         homeConceptId: 'home',
-        viewingConceptId: 'home',
+        /** Set viewing concept to the tutorial. */
+        viewingConceptId: 'b1f78b9d-eebd-4d94-b3e3-ba80b54769ff',
       },
       initialConcepts
     )
