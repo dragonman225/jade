@@ -184,7 +184,7 @@ export function getFocusForBlock(
     x: block.pos.x,
     y: block.pos.y,
     w: block.size.w === 'auto' ? 300 : block.size.w,
-    h: block.size.h === 'auto' ? 150 : block.size.h,
+    h: block.size.h === 'auto' ? 350 : block.size.h,
   })
   const winW = window.innerWidth
   const winH = window.innerHeight
