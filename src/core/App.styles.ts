@@ -31,4 +31,7 @@ export const AppStyles = stylesheet({
   'App--BlockResizing': {
     cursor: 'ew-resize',
   },
+  'App--DrawingRelation': {
+    cursor: 'crosshair',
+  },
 })
