@@ -68,7 +68,7 @@ export const styles = stylesheet({
     },
   },
   InfoLines: {
-    fontSize: '.7rem',
+    fontSize: '0.68rem',
     padding: '.3rem .5rem',
   },
 })
