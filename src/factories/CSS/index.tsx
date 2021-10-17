@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { stylesheet } from 'typestyle'
+import { classes, stylesheet } from 'typestyle'
 
 import { emptyNavItem } from '../commonStyles'
 import {
@@ -40,15 +40,21 @@ const styles = stylesheet({
     padding: '0.5rem',
     border: 'none',
     resize: 'none',
+    cursor: 'inherit',
     $nest: {
       '&:focus-visible': {
         outline: 'none',
       },
     },
   },
+  noScrollAndPadding: {
+    padding: 0,
+    overflow: 'hidden',
+  },
 })
 
 function CSSEditable({
+  readOnly,
   concept,
   onChange,
   onInteractionStart,
@@ -88,6 +94,15 @@ function CSSEditable({
     return () => textareaEl.removeEventListener('wheel', handleWheel)
   }, [])
 
+  /** Prevent selection and focus when moving. */
+  useEffect(() => {
+    const textareaEl = textareaElRef.current
+    if (readOnly && textareaEl) {
+      textareaEl.blur()
+      window.getSelection().removeAllRanges()
+    }
+  }, [readOnly])
+
   return (
     <div className={styles.cssBlock}>
       <textarea
@@ -100,6 +115,7 @@ function CSSEditable({
           setCssText(e.target.value)
           onChange({ globalCss: e.target.value })
         }}
+        readOnly={readOnly}
       />
     </div>
   )
@@ -107,7 +123,15 @@ function CSSEditable({
 
 function CSSReadOnly({ concept }: Props) {
   const { globalCss } = concept.summary.data
-  return <div className={styles.cssNavItem}>{globalCss}</div>
+  return (
+    <div className={styles.cssNavItem}>
+      <textarea
+        value={globalCss}
+        className={classes(styles.textarea, styles.noScrollAndPadding)}
+        readOnly
+      />
+    </div>
+  )
 }
 
 function CSS(props: Props) {
