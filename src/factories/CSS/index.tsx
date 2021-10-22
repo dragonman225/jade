@@ -148,6 +148,6 @@ export const CSSFactory: Factory = {
   name: 'CSS',
   component: React.memo(CSS),
   toText: (concept: TypedConcept<CSSContent>) => {
-    return concept.summary.data.globalCss
+    return concept.summary.data.globalCss || ''
   },
 }
