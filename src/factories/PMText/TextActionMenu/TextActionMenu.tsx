@@ -130,6 +130,12 @@ function LinkDialog(props: LinkDialogProps): JSX.Element {
         value={inputVal}
         autoFocus={true}
         onChange={e => setInputVal(e.target.value)}
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            props.setLink(inputVal)
+          }
+        }}
         placeholder="Paste an URL..."
       />
       <button onClick={() => props.setLink(inputVal)}>Set</button>
