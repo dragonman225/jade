@@ -43,6 +43,7 @@ import {
   Vec2,
   Size,
   ContextType,
+  InteractionMode,
 } from '../interfaces'
 
 export function synthesizeView(
@@ -980,7 +981,10 @@ export function createAppStateReducer(
               camera: { focus, scale },
               shouldAnimateCamera: true,
               blocks: bringBlockToTop(block.id, blocks).map(b =>
-                updateBlockInstance(b, { selected: b.id === focusBlockId })
+                updateBlockInstance(b, {
+                  selected: b.id === focusBlockId,
+                  mode: InteractionMode.Idle, // Clear focus
+                })
               ),
               selectedBlockIds: [focusBlockId],
             }
