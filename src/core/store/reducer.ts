@@ -535,6 +535,8 @@ export function createAppStateReducer(
         pointerOverBlock = (() => {
           for (let i = blocks.length - 1; i >= 0; i--) {
             const block = blocks[i]
+            /** Below logic only works for normal positioned blocks. */
+            if (block.posType !== PositionType.Normal) return undefined
             /** Position may be wrong! */
             const blockRectRaw = blockRectManager.getRect(block.id)
             const blockRect = {
