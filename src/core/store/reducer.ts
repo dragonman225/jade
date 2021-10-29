@@ -534,15 +534,23 @@ export function createAppStateReducer(
         pointerOverBlock = (() => {
           for (let i = blocks.length - 1; i >= 0; i--) {
             const block = blocks[i]
-            const blockRect = blockRectManager.getRect(block.id)
+            /** Position may be wrong! */
+            const blockRectRaw = blockRectManager.getRect(block.id)
+            const blockRect = {
+              top: block.pos.y,
+              left: block.pos.x,
+              bottom: block.pos.y + blockRectRaw.height,
+              right: block.pos.x + blockRectRaw.width,
+            }
+            const pointerInEnvCoords = viewportCoordsToEnvCoords(
+              pointerInViewportCoords,
+              camera
+            )
             if (
               /** It makes no sense to over itself. */
               block.id !== id &&
               blockRect &&
-              isPointInRect(
-                viewportCoordsToEnvCoords(pointerInViewportCoords, camera),
-                blockRect
-              )
+              isPointInRect(pointerInEnvCoords, blockRect)
             )
               return block
           }
