@@ -4,6 +4,7 @@ import { classes } from 'typestyle'
 
 import { styles } from './ContextMenu.styles'
 import { InfoLine } from './InfoLine'
+import { Section } from './Section'
 import { ContextForRelation, ListOption } from './types'
 import { Action } from '../../store/actions'
 import { SystemContext } from '../../store/systemContext'
@@ -90,7 +91,7 @@ export const ContextMenuForRelation = React.forwardRef<HTMLDivElement, Props>(
 
     return (
       <div ref={ref} className={styles.ContextMenu}>
-        <div>
+        <Section>
           <div className={styles.Title}>ACTION</div>
           {actions.map(action => (
             <button
@@ -103,14 +104,14 @@ export const ContextMenuForRelation = React.forwardRef<HTMLDivElement, Props>(
               {action.title}
             </button>
           ))}
-        </div>
-        <div>
+        </Section>
+        <Section>
           <div className={styles.Title}>INFO</div>
           <div className={styles.InfoLines}>
-            <InfoLine label="id" value={relation.id} />
-            <InfoLine label="type" value={relation.type} />
+            <InfoLine label="ID" value={relation.id} />
+            <InfoLine label="Type" value={relation.type} />
           </div>
-        </div>
+        </Section>
       </div>
     )
   }

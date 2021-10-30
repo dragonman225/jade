@@ -4,6 +4,7 @@ import { classes } from 'typestyle'
 
 import { styles } from './ContextMenu.styles'
 import { InfoLine } from './InfoLine'
+import { Section } from './Section'
 import { ContextForBlock, ListOption } from './types'
 import { BlockColor } from '../../interfaces'
 import { Action } from '../../store/actions'
@@ -92,14 +93,14 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
 
     return (
       <div ref={ref} className={styles.ContextMenu}>
-        <div>
+        <Section>
           <div className={styles.Title}>BACKGROUND</div>
           <div className={styles.TileButtonGroup}>
             <button
               key={'default'}
               className={styles.TileButton}
               onClick={() => setColor(undefined)}>
-              <div className={styles.ColorTile} data-color={'default'} />
+              <div className={styles.ColorTile} data-color="default" />
             </button>
             {Object.values(BlockColor).map(color => (
               <button
@@ -110,8 +111,8 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
               </button>
             ))}
           </div>
-        </div>
-        <div>
+        </Section>
+        <Section>
           <div className={styles.Title}>ACTION</div>
           {actions.map(action => (
             <button
@@ -124,8 +125,8 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
               {action.title}
             </button>
           ))}
-        </div>
-        <div>
+        </Section>
+        <Section>
           <div className={styles.Title}>INFO</div>
           <div className={styles.InfoLines}>
             <InfoLine
@@ -137,7 +138,7 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
               value={getDateString(linkedConcept.lastEditedTime)}
             />
           </div>
-        </div>
+        </Section>
       </div>
     )
   }
