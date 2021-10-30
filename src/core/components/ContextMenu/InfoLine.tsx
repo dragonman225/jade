@@ -9,6 +9,13 @@ interface InfoLineProps {
 }
 
 const styles = stylesheet({
+  InfoLine: {
+    $nest: {
+      '&, & > *': {
+        userSelect: 'text',
+      },
+    },
+  },
   Label: {
     color: theme.colors.uiGrey,
   },
@@ -19,7 +26,7 @@ const styles = stylesheet({
 
 export function InfoLine({ label, value }: InfoLineProps): JSX.Element {
   return (
-    <div>
+    <div className={styles.InfoLine}>
       <span className={styles.Label}>{label}</span>&nbsp;
       <span className={styles.Value}>{value}</span>
     </div>
