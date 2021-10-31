@@ -925,10 +925,10 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.2.tgz#8f03a22a04de437254e8ce8cc84ba39689288752"
   integrity sha512-HyYEUDeIj5rRQU2Hk5HTB2uHsbRQpF70nvMhVzi+VJR0X+xNEhjPui4/kBf3VeH/wqD28PT4sVOm8qqLjBrSZg==
 
-"@dragonman225/prosemirror-math@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@dragonman225/prosemirror-math/-/prosemirror-math-0.2.3.tgz#6b441099f7b49a9ee5a9b49dea4144d21c82d3cf"
-  integrity sha512-A4eYV+zJn+h/GIRQsCzQsN6QlwItyYRsKYAMVZMnS00Mbh9e+9UQuwFiocmyHc9uCoBLnDLiPzNVECeUza+7Gw==
+"@dragonman225/prosemirror-math@^0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@dragonman225/prosemirror-math/-/prosemirror-math-0.2.4.tgz#f2c3fbac2cdf485244b2a4e0603f1f17e29a9862"
+  integrity sha512-nBYC9UsqS0whdGZanLkDK5Fie3zGVBE6K8BeHU8M8lLuQkfSw5+iuf8/nu7iOnomI9VKY7ZJLM9ExXIBIez0fg==
 
 "@electron/get@^1.0.1":
   version "1.12.2"

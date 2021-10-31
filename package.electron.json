@@ -14,7 +14,7 @@
     "electron-builder": "^22.9.1"
   },
   "dependencies": {
-    "@dragonman225/prosemirror-math": "^0.2.3",
+    "@dragonman225/prosemirror-math": "^0.2.4",
     "@react-spring/web": "^9.2.5",
     "better-sqlite3": "^7.1.2",
     "katex": "^0.13.13",
