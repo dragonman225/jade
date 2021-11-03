@@ -134,7 +134,7 @@ function Image(props: Props): JSX.Element {
               <label className={styles.ChooseImgBtn}>
                 <input
                   type="file"
-                  accept=".jpg, .jpeg, .png"
+                  accept=".apng, .avif, .gif,image/jpeg, .png, .svg, .webp, .bmp"
                   onChange={handleFileSelect}
                 />
                 <span>Choose an image</span>
