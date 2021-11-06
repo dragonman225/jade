@@ -166,110 +166,203 @@ export function centerPointOf(box: Box): Vec2 {
 }
 
 /**
- * Get theta of two points in degree.
- * @param origin The point acts as the origin.
- * @param target The point acts as the target.
- * @return Theta in degree.
+ * Convert a vector to polar coordinates.
+ * Can be used to get theta.
+ * @returns radius and theta (in degree)
  */
-export function getThetaOfPoints(origin: Vec2, target: Vec2): number {
-  const r = Math.sqrt(
-    Math.pow(Math.abs(origin.x - target.x), 2) +
-      Math.pow(Math.abs(origin.y - target.y), 2)
-  )
-  const x = target.x - origin.x
-  return target.y > origin.y
-    ? 360 - (Math.acos(x / r) / Math.PI) * 180
-    : (Math.acos(x / r) / Math.PI) * 180
+export function cartesianCoordsToPolarCoords(
+  x: number,
+  y: number
+): [r: number, theta: number] {
+  const r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
+  const theta =
+    y < 0
+      ? 360 - (Math.acos(x / r) / Math.PI) * 180
+      : (Math.acos(x / r) / Math.PI) * 180
+  return [r, theta]
 }
 
+/** Information of an arrow. */
+type ArrowDescriptor = [
+  sx: number,
+  sy: number,
+  c1x: number,
+  c1y: number,
+  c2x: number,
+  c2y: number,
+  ex: number,
+  ey: number,
+  ae: number,
+  as: number
+]
+
 /**
- * Get an arrow for two boxes.
- * @param fromBox The box where the arrow starts.
- * @param toBox The box where the arrow ends.
- * @param size A number used to infer balanced line thickness and arrow head size.
+ * Get the information of a perfect arrow for two boxes.
+ * Has the same interface as https://github.com/steveruizok/perfect-arrows
+ * @see https://github.com/steveruizok/perfect-arrows#arguments-1 for the
+ * meaning of the parameters.
  */
-export function getArrow(
+export function getBoxToBoxArrow(
+  x0: number,
+  y0: number,
+  w0: number,
+  h0: number,
+  x1: number,
+  y1: number,
+  w1: number,
+  h1: number,
+  arrowSize: number
+): ArrowDescriptor {
+  /** Points of from box. */
+  const centerOfFromBox = centerPointOf({ x: x0, y: y0, w: w0, h: h0 })
+  const midOfTopSideOfFromBox = { x: x0 + w0 / 2, y: y0 }
+  const midOfBottomSideOfFromBox = { x: x0 + w0 / 2, y: y0 + h0 }
+  const midOfLeftSideOfFromBox = { x: x0, y: y0 + h0 / 2 }
+  const midOfRightSideOfFromBox = { x: x0 + w0, y: y0 + h0 / 2 }
+
+  /** Points of to box. */
+  const centerOfToBox = centerPointOf({ x: x1, y: y1, w: w1, h: h1 })
+  const midOfTopSideOfToBox = { x: x1 + w1 / 2, y: y1 - 2 * arrowSize }
+  const midOfBottomSideOfToBox = { x: x1 + w1 / 2, y: y1 + h1 + 2 * arrowSize }
+  const midOfLeftSideOfToBox = { x: x1 - 2 * arrowSize, y: y1 + h1 / 2 }
+  const midOfRightSideOfToBox = { x: x1 + w1 + 2 * arrowSize, y: y1 + h1 / 2 }
+
+  /** Cartesian and polar coords. */
+  const vec = vecSub(centerOfToBox, centerOfFromBox)
+  const [_r, theta] = cartesianCoordsToPolarCoords(vec.x, vec.y)
+  const [__r, partitionDegree] = cartesianCoordsToPolarCoords(w0, h0)
+
+  /**
+   * Calculate how balance a rectangle is.
+   * Meaning of return value: (balanced) 1 <--> 0 (not balanced)
+   */
+  const wellBalanceScoreOfRectangle = (w: number, h: number) => {
+    return Math.min(w, h) / Math.max(w, h)
+  }
+
+  const wellBalanceScoreOfPoints = (p1: Vec2, p2: Vec2) => {
+    return wellBalanceScoreOfRectangle(
+      Math.abs(p1.x - p2.x),
+      Math.abs(p1.y - p2.y)
+    )
+  }
+
+  /**
+   * Calculate control point.
+   */
+  const controlPointOf = (
+    target: Vec2,
+    another: Vec2,
+    enteringAngleToTarget: 0 | 90 | 180 | 270
+  ) => {
+    switch (enteringAngleToTarget) {
+      case 0:
+      case 180: {
+        return {
+          x: target.x - (target.x - another.x) / 2,
+          y: target.y,
+        }
+      }
+      case 90:
+      case 270: {
+        return {
+          x: target.x,
+          y: target.y - (target.y - another.y) / 2,
+        }
+      }
+    }
+  }
+
+  if (
+    (theta < partitionDegree && theta >= 0) ||
+    theta > 360 - partitionDegree
+  ) {
+    const s = midOfRightSideOfFromBox
+    const eLeftScore = wellBalanceScoreOfPoints(s, midOfLeftSideOfToBox)
+    const eTopScore = wellBalanceScoreOfPoints(s, midOfTopSideOfToBox)
+    const eBottomScore = wellBalanceScoreOfPoints(s, midOfBottomSideOfToBox)
+    const [e, ae] = ((): [Vec2, 0 | 90 | 180 | 270] => {
+      if (y1 + h1 < s.y) {
+        if (eBottomScore > eLeftScore) return [midOfBottomSideOfToBox, 270]
+      } else if (y1 > s.y) {
+        if (eTopScore > eLeftScore) return [midOfTopSideOfToBox, 90]
+      }
+      return [midOfLeftSideOfToBox, 0]
+    })()
+    const as = 180
+    const c1 = controlPointOf(s, e, as)
+    const c2 = controlPointOf(e, s, ae)
+    return [s.x, s.y, c1.x, c1.y, c2.x, c2.y, e.x, e.y, ae, as]
+  } else if (theta >= partitionDegree && theta < 180 - partitionDegree) {
+    const s = midOfBottomSideOfFromBox
+    const eTopScore = wellBalanceScoreOfPoints(s, midOfTopSideOfToBox)
+    const eLeftScore = wellBalanceScoreOfPoints(s, midOfLeftSideOfToBox)
+    const eRightScore = wellBalanceScoreOfPoints(s, midOfRightSideOfToBox)
+    const [e, ae] = ((): [Vec2, 0 | 90 | 180 | 270] => {
+      if (x1 + w1 < s.x) {
+        if (eRightScore > eTopScore) return [midOfRightSideOfToBox, 180]
+      } else if (x1 > s.x) {
+        if (eLeftScore > eTopScore) return [midOfLeftSideOfToBox, 0]
+      }
+      return [midOfTopSideOfToBox, 90]
+    })()
+    const as = 270
+    const c1 = controlPointOf(s, e, as)
+    const c2 = controlPointOf(e, s, ae)
+    return [s.x, s.y, c1.x, c1.y, c2.x, c2.y, e.x, e.y, ae, as]
+  } else if (theta >= 180 - partitionDegree && theta < 180 + partitionDegree) {
+    const s = midOfLeftSideOfFromBox
+    const eRightScore = wellBalanceScoreOfPoints(s, midOfRightSideOfToBox)
+    const eTopScore = wellBalanceScoreOfPoints(s, midOfTopSideOfToBox)
+    const eBottomScore = wellBalanceScoreOfPoints(s, midOfBottomSideOfToBox)
+    const [e, ae] = ((): [Vec2, 0 | 90 | 180 | 270] => {
+      if (y1 + h1 < s.y) {
+        if (eBottomScore > eRightScore) return [midOfBottomSideOfToBox, 270]
+      } else if (y1 > s.y) {
+        if (eTopScore > eRightScore) return [midOfTopSideOfToBox, 90]
+      }
+      return [midOfRightSideOfToBox, 180]
+    })()
+    const as = 0
+    const c1 = controlPointOf(s, e, as)
+    const c2 = controlPointOf(e, s, ae)
+    return [s.x, s.y, c1.x, c1.y, c2.x, c2.y, e.x, e.y, ae, as]
+  } else {
+    const s = midOfTopSideOfFromBox
+    const eBottomScore = wellBalanceScoreOfPoints(s, midOfBottomSideOfToBox)
+    const eLeftScore = wellBalanceScoreOfPoints(s, midOfLeftSideOfToBox)
+    const eRightScore = wellBalanceScoreOfPoints(s, midOfRightSideOfToBox)
+    const [e, ae] = ((): [Vec2, 0 | 90 | 180 | 270] => {
+      if (x1 + w1 < s.x) {
+        if (eRightScore > eBottomScore) return [midOfRightSideOfToBox, 180]
+      } else if (x1 > s.x) {
+        if (eLeftScore > eBottomScore) return [midOfLeftSideOfToBox, 0]
+      }
+      return [midOfBottomSideOfToBox, 270]
+    })()
+    const as = 90
+    const c1 = controlPointOf(s, e, as)
+    const c2 = controlPointOf(e, s, ae)
+    return [s.x, s.y, c1.x, c1.y, c2.x, c2.y, e.x, e.y, ae, as]
+  }
+}
+
+export function getBoxToBoxArrowObjectVer(
   fromBox: Box,
   toBox: Box,
-  size: number
-): [start: Vec2, end: Vec2, c1: Vec2, c2: Vec2, arrowAngle: number] {
-  const centerOfFromBox = centerPointOf(fromBox)
-  const centerOfToBox = centerPointOf(toBox)
-  const theta = getThetaOfPoints(centerOfFromBox, centerOfToBox)
-
-  if ((theta < 45 && theta >= 0) || theta > 315) {
-    const s = {
-      x: fromBox.x + fromBox.w,
-      y: fromBox.y + fromBox.h / 2,
-    }
-    const e = {
-      x: toBox.x - size * 2,
-      y: toBox.y + toBox.h / 2,
-    }
-    const c1 = {
-      x: s.x + (e.x - s.x) / 2,
-      y: s.y,
-    }
-    const c2 = {
-      x: s.x + (e.x - s.x) / 2,
-      y: e.y,
-    }
-    return [s, e, c1, c2, 0]
-  } else if (theta >= 45 && theta < 135) {
-    const s = {
-      x: fromBox.x + fromBox.w / 2,
-      y: fromBox.y,
-    }
-    const e = {
-      x: toBox.x + toBox.w / 2,
-      y: toBox.y + toBox.h + size * 2,
-    }
-    const c1 = {
-      x: s.x,
-      y: s.y + (e.y - s.y) / 2,
-    }
-    const c2 = {
-      x: e.x,
-      y: s.y + (e.y - s.y) / 2,
-    }
-    return [s, e, c1, c2, -90]
-  } else if (theta >= 135 && theta < 225) {
-    const s = {
-      x: fromBox.x,
-      y: fromBox.y + fromBox.h / 2,
-    }
-    const e = {
-      x: toBox.x + toBox.w + size * 2,
-      y: toBox.y + toBox.h / 2,
-    }
-    const c1 = {
-      x: s.x + (e.x - s.x) / 2,
-      y: s.y,
-    }
-    const c2 = {
-      x: s.x + (e.x - s.x) / 2,
-      y: e.y,
-    }
-    return [s, e, c1, c2, -180]
-  } else {
-    const s = {
-      x: fromBox.x + fromBox.w / 2,
-      y: fromBox.y + fromBox.h,
-    }
-    const e = {
-      x: toBox.x + toBox.w / 2,
-      y: toBox.y - size * 2,
-    }
-    const c1 = {
-      x: s.x,
-      y: s.y + (e.y - s.y) / 2,
-    }
-    const c2 = {
-      x: e.x,
-      y: e.y - (e.y - s.y) / 2,
-    }
-    return [s, e, c1, c2, -270]
-  }
+  arrowSize: number
+): ArrowDescriptor {
+  return getBoxToBoxArrow(
+    fromBox.x,
+    fromBox.y,
+    fromBox.w,
+    fromBox.h,
+    toBox.x,
+    toBox.y,
+    toBox.w,
+    toBox.h,
+    arrowSize
+  )
 }
 
 /**
