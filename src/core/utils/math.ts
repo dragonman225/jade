@@ -197,8 +197,8 @@ type ArrowDescriptor = [
 ]
 
 /**
- * Get the information of a perfect arrow for two boxes.
- * Has the same interface as https://github.com/steveruizok/perfect-arrows
+ * Get the information to draw a perfect arrow between two boxes.
+ * This function has the same interface as https://github.com/steveruizok/perfect-arrows
  * @see https://github.com/steveruizok/perfect-arrows#arguments-1 for the
  * meaning of the parameters.
  */
