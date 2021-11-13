@@ -11,12 +11,12 @@ export function getUrlForBlock(
   return `jade://v1/concept/${concept.id}/${block.id}`
 }
 
-interface InternalUrl {
+interface ResolvedInternalUrl {
   conceptId?: string
   blockId?: string
 }
 
-export function resolveInternalUrl(url: string): InternalUrl {
+export function resolveInternalUrl(url: string): ResolvedInternalUrl {
   const splits = url.split('/')
   const anchorIndex = splits.findIndex(s => s === 'concept')
   return {
