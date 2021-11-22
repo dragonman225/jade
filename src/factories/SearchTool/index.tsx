@@ -261,7 +261,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
       case 'block':
         return 'Unit ideas, References of canvases'
       case 'orphan':
-        return 'Unused Concepts'
+        return `Concepts that you're about to forget`
     }
   })()
 
