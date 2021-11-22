@@ -48,9 +48,9 @@ export const styles = {
        */
       position: 'relative',
       transition: `\
-opacity 0.1s ${theme.easings.easeInOutCubic},
-box-shadow 0.1s ${theme.easings.easeInOutCubic},
-background 0.1s ${theme.easings.easeInOutCubic}`,
+opacity 0.2s ${theme.easings.easeInOutCubic},
+box-shadow 0.2s ${theme.easings.easeInOutCubic},
+background 0.2s ${theme.easings.easeInOutCubic}`,
       $nest: {
         ...blockColorMixin.$nest,
         '&:hover': {
