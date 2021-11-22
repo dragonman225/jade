@@ -230,6 +230,7 @@ export function createAppStateReducer(
           ...state,
           viewingConcept: newViewingConcept,
           blocks: deselectAllBlocks(state.blocks).concat(newBlockInstance),
+          selectedBlockIds: [],
         }
       }
       case Action.ConceptWriteData: {
