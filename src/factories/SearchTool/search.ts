@@ -1,4 +1,9 @@
-import { Concept, FactoryRegistry, TypedConcept } from '../../core/interfaces'
+import {
+  Concept,
+  ConceptId,
+  FactoryRegistry,
+  TypedConcept,
+} from '../../core/interfaces'
 
 function lastEditedTimeDescending(
   c1: TypedConcept<unknown>,
@@ -22,9 +27,16 @@ export interface BlockItem {
   concept: TypedConcept<unknown>
 }
 
+export interface OrphanItem {
+  type: 'orphan'
+  canvasId: string // treats as a Canvas for now
+  concept: TypedConcept<unknown>
+}
+
 interface SearchResult {
   canvases: CanvasItem[]
   blocks: BlockItem[]
+  orphans: OrphanItem[]
 }
 
 export function getSearchResult(
@@ -32,50 +44,68 @@ export function getSearchResult(
   concepts: TypedConcept<unknown>[],
   factoryRegistry: FactoryRegistry
 ): SearchResult {
-  const matches: { [key: string]: TypedConcept<unknown> } = {}
+  const conceptMap: Record<ConceptId, TypedConcept<unknown>> = {}
   const parentMap: { [key: string]: string[] } = {}
+  const matches: { [key: string]: TypedConcept<unknown> } = {}
 
+  const isMatch = (concept: TypedConcept<unknown>): boolean => {
+    /** Everything is a match if keyword is an empty string. */
+    if (!keyword) return true
+    return factoryRegistry
+      .getConceptString(concept)
+      .toLocaleLowerCase()
+      .includes(keyword.toLocaleLowerCase())
+  }
+
+  /** Build matches, parentMap, conceptMap. */
   for (let i = 0; i < concepts.length; ++i) {
     const c = concepts[i]
 
+    /** Add to conceptMap. */
+    conceptMap[c.id] = c
+
+    /** Fill in parentMap. */
     c.references.forEach(r => {
       if (parentMap[r.to]) parentMap[r.to].push(c.id)
       else parentMap[r.to] = [c.id]
     })
 
-    if (
-      keyword &&
-      !factoryRegistry
-        .getConceptString(c)
-        .toLocaleLowerCase()
-        .includes(keyword.toLocaleLowerCase())
-    )
-      continue
-
-    matches[c.id] = c
+    /** Test if it's a match. */
+    if (isMatch(c)) matches[c.id] = c
   }
 
-  const result: SearchResult = { canvases: [], blocks: [] }
+  const result: SearchResult = { canvases: [], blocks: [], orphans: [] }
 
   concepts.forEach(concept => {
-    /** Is a match, as a canvas. */
+    /** The concept is a match. */
     if (matches[concept.id]) {
+      /** The match has a Canvas representation. */
       if (Concept.isHighOrder(concept)) {
         result.canvases.push({ type: 'canvas', canvasId: concept.id, concept })
       }
-    }
 
-    /** Is a match, as a block. */
-    concept.references.forEach(reference => {
-      if (matches[reference.to]) {
-        result.blocks.push({
-          type: 'block',
-          canvasId: concept.id,
-          blockId: reference.id,
-          concept: matches[reference.to],
+      /** The match has a Block representation. */
+      const parentConceptIds = parentMap[concept.id]
+      if (parentConceptIds) {
+        parentConceptIds.forEach(parentConceptId => {
+          const block = conceptMap[parentConceptId].references.find(
+            r => r.to === concept.id
+          )
+          if (!block) return
+          result.blocks.push({
+            type: 'block',
+            canvasId: parentConceptId,
+            blockId: block.id,
+            concept,
+          })
         })
       }
-    })
+
+      /** The match is an orphan. */
+      if (!Concept.isHighOrder(concept) && !parentConceptIds) {
+        result.orphans.push({ type: 'orphan', canvasId: concept.id, concept })
+      }
+    }
   })
 
   return {
@@ -83,6 +113,9 @@ export function getSearchResult(
       lastEditedTimeDescending(a.concept, b.concept)
     ),
     blocks: result.blocks.sort((a, b) =>
+      lastEditedTimeDescending(a.concept, b.concept)
+    ),
+    orphans: result.orphans.sort((a, b) =>
       lastEditedTimeDescending(a.concept, b.concept)
     ),
   }

@@ -4,7 +4,7 @@ import { classes } from 'typestyle'
 
 import { styles } from './index.style'
 import { usePager } from './usePager'
-import { BlockItem, CanvasItem, getSearchResult } from './search'
+import { BlockItem, CanvasItem, getSearchResult, OrphanItem } from './search'
 import { ConceptPreview } from '../ConceptPreview'
 import { Search } from '../../core/components/Icons/Search'
 import { AppStateContext } from '../../core/store/appStateContext'
@@ -23,7 +23,7 @@ type Props = ConceptDisplayProps<undefined>
 
 interface S2LBlockValid {
   valid: true
-  item: CanvasItem | BlockItem
+  item: CanvasItem | BlockItem | OrphanItem
   rect: DOMRect
 }
 
@@ -45,13 +45,18 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const inputRef = useRef<HTMLInputElement>(null)
   const [text, setText] = useState('')
   const [minimized, setMinimized] = useState(true)
-  const [tab, setTab] = useState<'canvas' | 'block'>('canvas')
+  const [tab, setTab] = useState<'canvas' | 'block' | 'orphan'>('canvas')
   const result = useMemo(() => {
     return getSearchResult(text, database.getAllConcepts(), factoryRegistry)
     /** Should re-run on minimized change. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, database, minimized])
-  const resultConcepts = tab === 'canvas' ? result.canvases : result.blocks
+  const resultConcepts =
+    tab === 'canvas'
+      ? result.canvases
+      : tab === 'block'
+      ? result.blocks
+      : result.orphans
 
   /** Search-to-Link */
   const [s2lState, setS2lState] = useState(S2LState.Idle)
@@ -130,7 +135,8 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
             dispatchAction({
               type: Action.BlockOpenAsCanvas,
               data:
-                s2lBlock.item.type === 'canvas'
+                s2lBlock.item.type === 'canvas' ||
+                s2lBlock.item.type === 'orphan'
                   ? { id: s2lBlock.item.canvasId }
                   : {
                       id: s2lBlock.item.canvasId,
@@ -241,8 +247,23 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const itemsPerPage = 20
   const canvasPager = usePager(result.canvases, itemsPerPage)
   const blocksPager = usePager(result.blocks, itemsPerPage)
+  const orphansPager = usePager(result.orphans, itemsPerPage)
   const { page, start, nextStart, goPrevPage, goNextPage, resetPage } =
-    tab === 'canvas' ? canvasPager : blocksPager
+    tab === 'canvas'
+      ? canvasPager
+      : tab === 'block'
+      ? blocksPager
+      : orphansPager
+  const tabDescription = (() => {
+    switch (tab) {
+      case 'canvas':
+        return 'Topics, Boards, Playgrounds'
+      case 'block':
+        return 'Unit ideas, References of canvases'
+      case 'orphan':
+        return 'Unused Concepts'
+    }
+  })()
 
   return (
     <div
@@ -289,16 +310,27 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
               onClick={() => setTab('block')}>
               Block ({result.blocks.length})
             </button>
+            <button
+              className={classes(
+                styles.TabButton,
+                tab === 'orphan' && styles.Selected
+              )}
+              onClick={() => setTab('orphan')}>
+              Orphan ({result.orphans.length})
+            </button>
           </div>
+          <p className={styles.tabDescription}>{tabDescription}</p>
           <div className={styles.ScrollList}>
             <div key={page}>
               {resultConcepts
                 .slice(start, nextStart)
-                .map((item: CanvasItem | BlockItem) => {
+                .map((item: CanvasItem | BlockItem | OrphanItem) => {
                   return (
                     <React.Fragment
                       key={
-                        item.type === 'canvas' ? item.canvasId : item.blockId
+                        item.type === 'canvas' || item.type === 'orphan'
+                          ? item.canvasId
+                          : item.blockId
                       }>
                       {(function () {
                         switch (s2lState) {

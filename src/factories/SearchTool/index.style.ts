@@ -122,6 +122,7 @@ export const styles = stylesheet({
     flex: '1 1 0',
     color: theme.colors.uiGrey,
     fontSize: '.8rem',
+    lineHeight: 1.25,
     padding: '.2rem .6rem',
     marginRight: '.3rem',
     $nest: {
@@ -137,5 +138,12 @@ export const styles = stylesheet({
   ContentPreview: {
     maxHeight: 'inherit',
     pointerEvents: 'none',
+  },
+  tabDescription: {
+    margin: 0,
+    padding: '0 .75rem .75rem',
+    color: theme.colors.uiGrey,
+    fontSize: '.8rem',
+    textAlign: 'center',
   },
 })
