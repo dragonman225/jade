@@ -33,6 +33,7 @@ export function Blocks({ blocks, onRender }: Props): JSX.Element {
           posType={b.posType}
           pos={b.pos}
           size={b.size}
+          zIndex={b.zIndex}
           animatedOpacity={opacity}>
           <BlockDriver block={b} />
         </ViewObject>

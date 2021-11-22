@@ -51,6 +51,7 @@ translate3d(${-focus.x * scale}px, ${-focus.y * scale}px, 0px) scale(${scale})`
             position: 'absolute',
             transformOrigin: 'top left',
             transform: `translate3d(${selectionBox.x}px, ${selectionBox.y}px, 0px)`,
+            zIndex: 99999999,
           }}
         />
       )}

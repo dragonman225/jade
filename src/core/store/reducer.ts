@@ -14,9 +14,9 @@ import {
   blockToBox,
   deselectAllBlocks,
   getFocusForBlock,
-  bringBlockToTop,
   findBlock,
   blockInstanceToBlock,
+  bringBlocksToTop,
 } from '../utils/block'
 import { createConcept, updateConcept } from '../utils/concept'
 import {
@@ -51,8 +51,8 @@ export function synthesizeView(
   db: DatabaseInterface,
   existingBlockInstances?: BlockInstance[]
 ): BlockInstance[] {
-  function blockToBlockInstance(block: Block) {
-    if (!existingBlockInstances) return createBlockInstance(block)
+  function blockToBlockInstance(block: Block, index: number) {
+    if (!existingBlockInstances) return createBlockInstance(block, index)
 
     const existingBlockInstance = existingBlockInstances.find(
       b => b.id === block.id
@@ -66,7 +66,7 @@ export function synthesizeView(
       existingBlockInstance.lastEditedTime = block.lastEditedTime
       return existingBlockInstance
     } else {
-      return createBlockInstance(block)
+      return createBlockInstance(block, index)
     }
   }
 
@@ -143,7 +143,7 @@ export function createAppStateReducer(
     switch (action.type) {
       case Action.ConceptCreate: {
         const { posType } = action.data
-        const { camera } = state
+        const { camera, blocks } = state
         const defaultType = factoryRegistry.getDefaultContentFactory().id
         const newConcept = createConcept(defaultType)
         const newBlockBox: (Vec2 & Size) | undefined = (() => {
@@ -218,7 +218,7 @@ export function createAppStateReducer(
           pos: newBlockBox,
           size: newBlockBox,
         })
-        const newBlockInstance = createBlockInstance(newBlock)
+        const newBlockInstance = createBlockInstance(newBlock, blocks.length)
         const newViewingConcept = updateConcept(state.viewingConcept, {
           references: state.viewingConcept.references.concat(newBlock),
         })
@@ -334,7 +334,7 @@ export function createAppStateReducer(
 
         return {
           ...state,
-          blocks: blocks.map(b =>
+          blocks: bringBlocksToTop(selectedBlockIds, blocks).map(b =>
             updateBlockInstance(b, {
               selected: selectedBlockIds.includes(b.id),
             })
@@ -570,7 +570,7 @@ export function createAppStateReducer(
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: bringBlockToTop(id, blocks).map(b => ({
+          blocks: bringBlocksToTop([id], blocks).map(b => ({
             ...b,
             highlighted: shouldHighlight(b.id),
             pos: shouldMove(b.id)
@@ -844,7 +844,7 @@ export function createAppStateReducer(
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: bringBlockToTop(id, blocks).map(b => {
+          blocks: bringBlocksToTop([id], blocks).map(b => {
             if (shouldResize(b.id)) {
               return updateBlockInstance(b, {
                 size: {
@@ -870,9 +870,15 @@ export function createAppStateReducer(
 
         return {
           ...state,
-          blocks: bringBlockToTop(id, blocks, block =>
-            updateBlockInstance(block, { mode })
-          ),
+          blocks:
+            mode !== InteractionMode.Idle
+              ? bringBlocksToTop([id], blocks, block =>
+                  updateBlockInstance(block, { mode })
+                )
+              : blocks.map(b => {
+                  if (b.id === id) return updateBlockInstance(b, { mode })
+                  else return b
+                }),
         }
       }
       case Action.BlockSetColor: {
@@ -907,7 +913,7 @@ export function createAppStateReducer(
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: bringBlockToTop(id, blocks).map(b => {
+          blocks: bringBlocksToTop([id], blocks).map(b => {
             if (shouldSetColor(b.id)) {
               return updateBlockInstance(b, {
                 color,
@@ -983,7 +989,7 @@ export function createAppStateReducer(
               ...state,
               camera: { focus, scale },
               shouldAnimateCamera: true,
-              blocks: bringBlockToTop(block.id, blocks).map(b =>
+              blocks: bringBlocksToTop([block.id], blocks).map(b =>
                 updateBlockInstance(b, {
                   selected: b.id === focusBlockId,
                   mode: InteractionMode.Idle, // Clear focus
@@ -1016,8 +1022,8 @@ export function createAppStateReducer(
           camera: newCamera || concept.camera,
           shouldAnimateCamera: false,
           blocks: focusBlock
-            ? bringBlockToTop(
-                focusBlockId,
+            ? bringBlocksToTop(
+                [focusBlockId],
                 synthesizeView(concept, db)
               ).map(b =>
                 updateBlockInstance(b, { selected: b.id === focusBlockId })

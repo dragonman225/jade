@@ -7,12 +7,20 @@ interface Props {
   posType: PositionType
   pos: Vec2
   size: Size
+  zIndex?: number
   animatedOpacity?: SpringValue<number>
   children?: React.ReactNode
 }
 
-export function ViewObject(props: Props): JSX.Element {
-  const { posType, pos, size, animatedOpacity, children } = props
+export function ViewObject({
+  posType,
+  pos,
+  size,
+  zIndex,
+  animatedOpacity,
+  children,
+}: Props): JSX.Element {
+  const resolvedZIndex = typeof zIndex === 'undefined' ? 'auto' : zIndex
 
   switch (posType) {
     /**
@@ -34,6 +42,7 @@ export function ViewObject(props: Props): JSX.Element {
             position: 'absolute',
             top: 0,
             right: 0,
+            zIndex: resolvedZIndex,
             transformOrigin: 'top right',
             transform: `translate3d(${-pos.x}px, ${pos.y}px, 0px)`,
           }}>
@@ -50,6 +59,7 @@ export function ViewObject(props: Props): JSX.Element {
             position: 'absolute',
             bottom: 0,
             left: 0,
+            zIndex: resolvedZIndex,
             transformOrigin: 'bottom left',
             transform: `translate3d(${pos.x}px, ${-pos.y}px, 0px)`,
           }}>
@@ -66,6 +76,7 @@ export function ViewObject(props: Props): JSX.Element {
             position: 'absolute',
             bottom: 0,
             right: 0,
+            zIndex: resolvedZIndex,
             transformOrigin: 'bottom right',
             transform: `translate3d(${-pos.x}px, ${-pos.y}px, 0px)`,
           }}>
@@ -82,6 +93,7 @@ export function ViewObject(props: Props): JSX.Element {
             position: 'absolute',
             top: 0,
             left: 0,
+            zIndex: resolvedZIndex,
             transformOrigin: 'top left',
             transform: `translate3d(${pos.x}px, ${pos.y}px, 0px)`,
             opacity: animatedOpacity || 1,

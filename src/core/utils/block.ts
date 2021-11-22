@@ -44,12 +44,16 @@ export function updateBlock(
   }
 }
 
-export function createBlockInstance(block: Block): BlockInstance {
+export function createBlockInstance(
+  block: Block,
+  zIndex: number
+): BlockInstance {
   return {
     id: block.id,
     posType: block.posType,
     pos: block.pos,
     size: block.size,
+    zIndex,
     color: block.color,
     createdTime: block.createdTime,
     lastEditedTime: block.lastEditedTime,
@@ -228,16 +232,32 @@ export const blockColorMixin: NestedCSSProperties = {
   },
 }
 
-export function bringBlockToTop(
-  blockId: BlockId,
+export function bringBlocksToTop(
+  blockIds: BlockId[],
   blocks: BlockInstance[],
   operation?: (movedBlock: BlockInstance) => BlockInstance
 ): BlockInstance[] {
-  const index = blocks.findIndex(b => b.id === blockId)
-  return index !== -1
-    ? blocks
-        .slice(0, index)
-        .concat(blocks.slice(index + 1))
-        .concat(operation ? operation(blocks[index]) : blocks[index])
-    : blocks
+  const newBlockMap: Record<BlockId, BlockInstance> = {}
+
+  const topBlocksZIndexStart = blocks.length - blockIds.length
+  const topBlocksZIndexOrder = blocks
+    .filter(b => blockIds.includes(b.id))
+    .sort((b1, b2) => b1.zIndex - b2.zIndex)
+
+  for (let i = 0; i < topBlocksZIndexOrder.length; i++) {
+    const block = topBlocksZIndexOrder[i]
+    const newBlock = { ...block, zIndex: topBlocksZIndexStart + i }
+    newBlockMap[block.id] = operation ? operation(newBlock) : newBlock
+  }
+
+  const otherBlocksZIndexOrder = blocks
+    .filter(b => !blockIds.includes(b.id))
+    .sort((b1, b2) => b1.zIndex - b2.zIndex)
+
+  for (let i = 0; i < otherBlocksZIndexOrder.length; i++) {
+    const block = otherBlocksZIndexOrder[i]
+    newBlockMap[block.id] = { ...block, zIndex: i }
+  }
+
+  return blocks.map(b => newBlockMap[b.id])
 }

@@ -56,6 +56,7 @@ export interface BlockInstance {
   posType: PositionType
   pos: Vec2
   size: Size
+  zIndex?: number
   color?: BlockColor
   mode: InteractionMode
   selected: boolean
