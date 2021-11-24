@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useRef, useEffect, useMemo, useState } from 'react'
+import { useRef, useEffect, useMemo, useState, useCallback } from 'react'
 import { classes } from 'typestyle'
 
 import { ArrowNorthEast } from './Icons/ArrowNorthEast'
@@ -263,13 +263,22 @@ export function Block({
     )
   }, [mode, selected, allowResizeHeight, className])
 
+  const handleMouseEnter = useCallback(() => setIsHovering(true), [])
+  const handleMouseLeave = useCallback(() => setIsHovering(false), [])
+  const openAsCanvas = useCallback(() => {
+    dispatchAction({
+      type: Action.BlockOpenAsCanvas,
+      data: { id: conceptId },
+    })
+  }, [conceptId, dispatchAction])
+
   return (
     <div
       ref={blockElRef}
       className={blockClassName}
       data-color={color}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}>
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}>
       {children}
       {allowResizeWidth && (
         <div ref={widthResizerElRef} className={styles.widthResizer} />
@@ -288,12 +297,7 @@ export function Block({
         <>
           <div
             className={classes(styles.actionButton, styles.open)}
-            onClick={() => {
-              dispatchAction({
-                type: Action.BlockOpenAsCanvas,
-                data: { id: conceptId },
-              })
-            }}>
+            onClick={openAsCanvas}>
             <OpenInFull />
           </div>
           <div
