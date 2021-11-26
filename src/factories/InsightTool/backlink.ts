@@ -49,14 +49,14 @@ export function isConceptContainingLinkToConcept(
 
 export function getBacklinksOf(
   conceptId: ConceptId,
-  inConcepts: TypedConcept<unknown>[]
+  allConcepts: TypedConcept<unknown>[]
 ): Backlink[] {
   const conceptMap = (() => {
     const map: { [key: string]: TypedConcept<unknown> } = {}
-    inConcepts.forEach(c => (map[c.id] = c))
+    allConcepts.forEach(c => (map[c.id] = c))
     return map
   })()
-  return inConcepts.reduce(
+  return allConcepts.reduce(
     (backlinks: Backlink[], inConcept: TypedConcept<unknown>) => {
       const blocksReferencingConcept = inConcept.references.filter(
         r =>
