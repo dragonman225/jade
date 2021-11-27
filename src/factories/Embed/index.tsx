@@ -14,6 +14,7 @@ import { Action } from '../../core/store/actions'
 import { SystemContext } from '../../core/store/systemContext'
 import { AppStateContext } from '../../core/store/appStateContext'
 import { findBlock } from '../../core/utils/block'
+import { saveTextToClipboard } from '../../core/utils/clipboard'
 
 interface EmbedContent {
   initialized?: boolean
@@ -97,6 +98,11 @@ function EmbedEditable({
             className={styles.ControlButton}
             onClick={() => openExternal(url)}>
             Original
+          </button>
+          <button
+            className={styles.ControlButton}
+            onClick={() => saveTextToClipboard(url)}>
+            Copy link
           </button>
         </div>
       </div>
