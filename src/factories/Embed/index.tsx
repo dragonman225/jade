@@ -23,7 +23,7 @@ interface EmbedContent {
 
 type Props = ConceptDisplayProps<EmbedContent>
 
-function EmbedEditable({
+function EmbedInteractive({
   blockId,
   concept,
   onChange,
@@ -140,7 +140,7 @@ function EmbedEditable({
   }
 }
 
-function EmbedReadOnly({ concept, blockId }: Props) {
+function EmbedReadOnly({ concept, blockId, viewMode }: Props) {
   const { data } = concept.summary
   const url = data && data.url ? data.url : ''
 
@@ -160,7 +160,11 @@ function EmbedReadOnly({ concept, blockId }: Props) {
               ? styles.FrameWrapperAutoHeight
               : styles.FrameWrapperFixedHeight
           }>
-          <Iframe url={url} noInteraction={true} />
+          <Iframe
+            url={url}
+            noInteraction={true}
+            scale={viewMode === 'NavItem' ? 0.3 : 1}
+          />
         </div>
       </div>
     )
@@ -174,7 +178,7 @@ function Embed(props: Props) {
     case 'NavItem':
       return <EmbedReadOnly {...props} />
     default:
-      return <EmbedEditable {...props} />
+      return <EmbedInteractive {...props} />
   }
 }
 

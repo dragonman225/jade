@@ -6,6 +6,7 @@ import { getEmbedUrl } from './utils'
 interface IframeProps {
   url: string
   noInteraction: boolean
+  scale?: number
 }
 
 const styles = stylesheet({
@@ -21,17 +22,24 @@ const styles = stylesheet({
   },
 })
 
-export const Iframe = React.memo(
-  React.forwardRef<HTMLIFrameElement, IframeProps>(
-    ({ url, noInteraction }, ref) => (
+const IframeWithoutMemo = React.forwardRef<HTMLIFrameElement, IframeProps>(
+  function Iframe({ url, noInteraction, scale = 1 }, ref) {
+    const sizePercent = `${100 / scale}%`
+    return (
       <iframe
         ref={ref}
         className={classes(
           styles.iframe,
           noInteraction && styles.noInteraction
         )}
-        width="100%"
-        height="100%"
+        style={{
+          width: sizePercent,
+          height: sizePercent,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+        }}
+        width={sizePercent}
+        height={sizePercent}
         src={getEmbedUrl(url)}
         frameBorder="0"
         loading="lazy"
@@ -40,5 +48,7 @@ export const Iframe = React.memo(
         allowFullScreen
       />
     )
-  )
+  }
 )
+
+export const Iframe = React.memo(IframeWithoutMemo)
