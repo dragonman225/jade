@@ -54,6 +54,20 @@ function EmbedInteractive({
     window.addEventListener('touchend', endMoving)
   }, [endMoving])
 
+  const embedLink = useCallback(() => {
+    onChange({ initialized: true, url: inputRef.current.value })
+    dispatchAction({
+      type: Action.BlockSetSize,
+      data: {
+        id: blockId,
+        size: {
+          w: 400,
+          h: 225,
+        },
+      },
+    })
+  }, [blockId, onChange, dispatchAction])
+
   if (url) {
     return (
       <div
@@ -117,22 +131,9 @@ function EmbedInteractive({
           type="url"
           onFocus={onInteractionStart}
           onBlur={onInteractionEnd}
+          onKeyDown={e => e.key === 'Enter' && embedLink()}
         />
-        <button
-          className={styles.LinkConfirmButton}
-          onClick={() => {
-            onChange({ initialized: true, url: inputRef.current.value })
-            dispatchAction({
-              type: Action.BlockSetSize,
-              data: {
-                id: blockId,
-                size: {
-                  w: 400,
-                  h: 225,
-                },
-              },
-            })
-          }}>
+        <button className={styles.LinkConfirmButton} onClick={embedLink}>
           Embed link
         </button>
       </div>
