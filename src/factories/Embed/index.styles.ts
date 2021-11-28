@@ -71,15 +71,18 @@ const organisms = stylesheet({
     justifyContent: 'center',
     alignItems: 'center',
     padding: theme.paddings.blockComfort,
+    height: '100%',
     $nest: {
       '& > *': {
         display: 'block',
       },
       '& > input': {
         marginBottom: '.7rem',
+        maxWidth: 400,
       },
       '& > button': {
-        width: 200,
+        width: 180,
+        maxWidth: '100%',
       },
     },
   },
