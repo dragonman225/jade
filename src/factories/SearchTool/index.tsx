@@ -47,7 +47,9 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const [minimized, setMinimized] = useState(true)
   const [tab, setTab] = useState<'canvas' | 'block' | 'orphan'>('canvas')
   const result = useMemo(() => {
-    return getSearchResult(text, database.getAllConcepts(), factoryRegistry)
+    if (!minimized)
+      return getSearchResult(text, database.getAllConcepts(), factoryRegistry)
+    else return { canvases: [], blocks: [], orphans: [] } // fake it
     /** Should re-run on minimized change. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, database, minimized])
