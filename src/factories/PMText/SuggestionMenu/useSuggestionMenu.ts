@@ -3,7 +3,6 @@ import { EditorView } from 'prosemirror-view'
 import { Fragment, Slice } from 'prosemirror-model'
 
 import {
-  includeKeyword,
   lastEditedTimeDescendingAndCanvasFirst,
   mapConceptToOption,
   pmtextOnly,
@@ -11,6 +10,7 @@ import {
 import { resetKeywordObserver } from './observeKeyword'
 import { schema } from '../ProseMirrorSchema/schema'
 import { LinkMark, linkMarkName } from '../ProseMirrorSchema/link'
+import { createFuse } from '../../createFuse'
 import { getUrlForConcept } from '../../../core/utils/url'
 import { createConcept } from '../../../core/utils/concept'
 import {
@@ -136,15 +136,23 @@ export function useSuggestionMenu(
       const linkToOptionGroup: OptionGroup = {
         id: OptionGroupType.LinkTo,
         title: 'Link to',
-        items: concepts
-          // HACK: Support text only
-          .filter(pmtextOnly)
-          /** Search with keyword. */
-          .filter(includeKeyword(keyword, factoryRegistry))
-          .sort(lastEditedTimeDescendingAndCanvasFirst)
-          .map(mapConceptToOption(factoryRegistry))
-          .filter(o => !!o.title)
-          .slice(0, 6),
+        items: keyword
+          ? createFuse(
+              concepts
+                // HACK: Support text only
+                .filter(pmtextOnly),
+              factoryRegistry
+            )
+              .search(keyword, { limit: 6 })
+              .map(fuseResult =>
+                mapConceptToOption(factoryRegistry)(fuseResult.item)
+              )
+              .filter(o => !!o.title)
+          : concepts
+              .filter(pmtextOnly)
+              .sort(lastEditedTimeDescendingAndCanvasFirst)
+              .slice(0, 6)
+              .map(mapConceptToOption(factoryRegistry)),
       }
       const createOptionGroup: OptionGroup = {
         id: OptionGroupType.CreateAndLinkTo,

@@ -17,6 +17,7 @@
     "@dragonman225/prosemirror-math": "^0.2.4",
     "@react-spring/web": "^9.2.5",
     "better-sqlite3": "^7.1.2",
+    "fuse.js": "^6.4.6",
     "katex": "^0.13.13",
     "normalize.css": "^8.0.1",
     "prosemirror-commands": "^1.1.10",

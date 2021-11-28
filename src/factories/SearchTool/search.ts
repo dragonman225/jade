@@ -1,3 +1,4 @@
+import { createFuse } from '../createFuse'
 import {
   Concept,
   ConceptId,
@@ -48,16 +49,16 @@ export function getSearchResult(
   const parentMap: { [key: string]: string[] } = {}
   const matches: { [key: string]: TypedConcept<unknown> } = {}
 
-  const isMatch = (concept: TypedConcept<unknown>): boolean => {
+  /** Build matches. */
+  const fuseResults = createFuse(concepts, factoryRegistry).search(keyword)
+  if (keyword) {
+    fuseResults.forEach(r => (matches[r.item.id] = r.item))
+  } else {
     /** Everything is a match if keyword is an empty string. */
-    if (!keyword) return true
-    return factoryRegistry
-      .getConceptString(concept)
-      .toLocaleLowerCase()
-      .includes(keyword.toLocaleLowerCase())
+    concepts.forEach(c => (matches[c.id] = c))
   }
 
-  /** Build matches, parentMap, conceptMap. */
+  /** Build parentMap, conceptMap. */
   for (let i = 0; i < concepts.length; ++i) {
     const c = concepts[i]
 
@@ -69,9 +70,6 @@ export function getSearchResult(
       if (parentMap[r.to]) parentMap[r.to].push(c.id)
       else parentMap[r.to] = [c.id]
     })
-
-    /** Test if it's a match. */
-    if (isMatch(c)) matches[c.id] = c
   }
 
   const result: SearchResult = { canvases: [], blocks: [], orphans: [] }
