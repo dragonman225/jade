@@ -85,7 +85,7 @@ export const styles = stylesheet({
     overflow: 'hidden',
     zIndex: 99999,
   },
-  PageBar: {
+  pageControl: {
     display: 'flex',
     alignItems: 'center',
     padding: theme.paddings.blockComfort,
@@ -93,7 +93,7 @@ export const styles = stylesheet({
     textAlign: 'center',
     color: theme.colors.uiGrey,
   },
-  Arrow: {
+  pageButton: {
     flex: '0 0 50px',
     padding: '.2rem .6rem',
     borderRadius: theme.borders.smallRadius,
@@ -108,16 +108,16 @@ export const styles = stylesheet({
       },
     },
   },
-  Info: {
+  pageInfo: {
     flex: '1 1 0px',
   },
-  Tab: {
+  tabs: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '0 .75rem .5rem',
   },
-  TabButton: {
+  tabButton: {
     ...buttonTransparent,
     flex: '1 1 0',
     color: theme.colors.uiGrey,

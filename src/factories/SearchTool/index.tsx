@@ -51,7 +51,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
     /** Should re-run on minimized change. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, database, minimized])
-  const resultConcepts =
+  const resultItems =
     tab === 'canvas'
       ? result.canvases
       : tab === 'block'
@@ -291,12 +291,12 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
           <div className={styles.SearchShortcutHint}>Ctrl/Cmd+P</div>
         )}
       </div>
-      {!minimized ? (
+      {!minimized && (
         <>
-          <div className={styles.Tab}>
+          <div className={styles.tabs}>
             <button
               className={classes(
-                styles.TabButton,
+                styles.tabButton,
                 tab === 'canvas' && styles.Selected
               )}
               onClick={() => setTab('canvas')}>
@@ -304,7 +304,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
             </button>
             <button
               className={classes(
-                styles.TabButton,
+                styles.tabButton,
                 tab === 'block' && styles.Selected
               )}
               onClick={() => setTab('block')}>
@@ -312,7 +312,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
             </button>
             <button
               className={classes(
-                styles.TabButton,
+                styles.tabButton,
                 tab === 'orphan' && styles.Selected
               )}
               onClick={() => setTab('orphan')}>
@@ -322,7 +322,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
           <p className={styles.tabDescription}>{tabDescription}</p>
           <div className={styles.ScrollList}>
             <div key={page}>
-              {resultConcepts
+              {resultItems
                 .slice(start, nextStart)
                 .map((item: CanvasItem | BlockItem | OrphanItem) => {
                   return (
@@ -383,22 +383,19 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 })}
             </div>
           </div>
-          <div className={styles.PageBar}>
-            <div className={styles.Arrow} onClick={() => goPrevPage()}>
+          <div className={styles.pageControl}>
+            <div className={styles.pageButton} onClick={goPrevPage}>
               Prev
             </div>
-            <div className={styles.Info}>
-              {start + 1} ~{' '}
-              {Math.min(start + itemsPerPage, resultConcepts.length)} of{' '}
-              {resultConcepts.length}
+            <div className={styles.pageInfo}>
+              {start + 1} ~ {Math.min(start + itemsPerPage, resultItems.length)}{' '}
+              of {resultItems.length}
             </div>
-            <div className={styles.Arrow} onClick={() => goNextPage()}>
+            <div className={styles.pageButton} onClick={goNextPage}>
               Next
             </div>
           </div>
         </>
-      ) : (
-        <></>
       )}
       {s2lState === S2LState.Linking && s2lBlock.valid ? (
         (function () {
