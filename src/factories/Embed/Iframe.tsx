@@ -35,6 +35,7 @@ export const Iframe = React.memo(
         src={getEmbedUrl(url)}
         frameBorder="0"
         loading="lazy"
+        scrolling={noInteraction ? 'no' : 'auto'}
         allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
         allowFullScreen
       />
