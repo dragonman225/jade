@@ -4,7 +4,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 module.exports = {
   plugins: [
     new BannerPlugin(
-      'Jade v0.2.4 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'
+      'Jade v0.3.5 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'
     ),
     new MiniCssExtractPlugin(),
   ],
