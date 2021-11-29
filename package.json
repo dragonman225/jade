@@ -17,7 +17,8 @@
     "electron:build-renderer": "webpack --color --progress --mode production --config webpack.config.electron.js",
     "electron:rebuild-native": "electron-rebuild -f -w better-sqlite3",
     "electron:pack": "electron-builder --dir",
-    "electron:dist": "mkdir -p build/electron/res && cp package.electron.json build/electron/package.json && cp assets/icon.png build/electron/res/512x512.png && pushd build/electron && yarn && yarn dist && popd"
+    "electron:dist": "mkdir -p build/electron/res && cp package.electron.json build/electron/package.json && cp assets/icon.png build/electron/res/512x512.png && pushd build/electron && yarn && yarn dist && popd",
+    "electron:dist:win": "mkdir -p build/electron/res && cp package.electron.json build/electron/package.json && cp assets/icon.png build/electron/res/512x512.png && pushd build/electron && yarn && yarn dist:win && popd"
   },
   "husky": {
     "hooks": {
