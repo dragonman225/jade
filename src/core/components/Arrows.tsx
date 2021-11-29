@@ -34,7 +34,8 @@ export function Arrows(): JSX.Element {
           fromBoxes[index] /*blockToBox(findBlock(blocks, relation.fromId))*/
         const toBox =
           toBoxes[index] /*blockToBox(findBlock(blocks, relation.toId))*/
-        const viewBox = growBox(boundingBoxOfBoxes([fromBox, toBox]), 10)
+        /** Grow box by 100 so that special arrows (e.g. top-top) don't overflow. */
+        const viewBox = growBox(boundingBoxOfBoxes([fromBox, toBox]), 100)
 
         return (
           <ViewObject

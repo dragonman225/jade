@@ -20,6 +20,7 @@ interface Props {
 const styles = stylesheet({
   Arrow: {
     pointerEvents: 'none',
+    overflow: 'visible',
   },
 })
 
