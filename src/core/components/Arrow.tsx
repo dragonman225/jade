@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { stylesheet } from 'typestyle'
 
 import { Box } from '../interfaces'
-import { boxFloor, getBoxToBoxArrowObjectVer, vecFloor } from '../utils/math'
+import { boxFloor, getBoxToBoxArrowObjectVer, vecFloor } from '../utils'
 import theme from '../../theme'
 
 interface Props {
@@ -31,11 +31,17 @@ export function Arrow({
   size = 7,
   onMouseDown,
 }: Props): JSX.Element {
-  const [sx, sy, c1x, c1y, c2x, c2y, ex, ey, ae] = getBoxToBoxArrowObjectVer(
-    fromBox,
-    toBox,
-    size
-  )
+  const [
+    sx,
+    sy,
+    c1x,
+    c1y,
+    c2x,
+    c2y,
+    ex,
+    ey,
+    ae,
+  ] = getBoxToBoxArrowObjectVer(fromBox, toBox, { padEnd: size })
   const [start, end, c1, c2, arrowAngle] = [
     vecFloor({ x: sx, y: sy }, 2),
     vecFloor({ x: ex, y: ey }, 2),
