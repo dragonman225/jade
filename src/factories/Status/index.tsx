@@ -4,7 +4,12 @@ import { stylesheet } from 'typestyle'
 
 import { BlockCounter } from './BlockCount'
 import { Header } from './Header'
-import { generateDataUrl, withDateSuffix, createFakeLink } from './utils'
+import {
+  generateDataUrl,
+  withDateSuffix,
+  createFakeLink,
+  readAsObject,
+} from './utils'
 import theme from '../../theme'
 import { buttonPrimary } from '../../lightComponents'
 import { AppStateContext } from '../../core/store/appStateContext'
@@ -12,6 +17,7 @@ import {
   ConceptDisplayProps,
   Factory,
   PositionType,
+  TypedConcept,
 } from '../../core/interfaces'
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 
@@ -64,6 +70,14 @@ const styles = stylesheet({
       },
     },
   },
+  chooseFileButton: {
+    ...buttonPrimary,
+    display: 'inline-block',
+    $nest: {
+      ...buttonPrimary.$nest,
+      '& > input': { display: 'none' },
+    },
+  },
 })
 
 type Props = ConceptDisplayProps<undefined>
@@ -105,6 +119,36 @@ export const Status: React.FunctionComponent<Props> = props => {
     link.click()
   }, [database])
 
+  const importConcepts = useCallback(
+    (concepts: TypedConcept<unknown>[]) => {
+      concepts.forEach(c => database.createConcept(c))
+    },
+    [database]
+  )
+
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>): void => {
+      const files = e.target.files
+      if (!files) {
+        console.log('"e.target.files" is null.')
+        return
+      }
+      const file = files[0]
+      if (file.type && file.type.indexOf('json') === -1) {
+        console.log('File is not an json.', file.type, file)
+        return
+      }
+      readAsObject<TypedConcept<unknown>[]>(file)
+        .then(concepts => {
+          importConcepts(concepts)
+        })
+        .catch(err => {
+          console.error(err)
+        })
+    },
+    [importConcepts]
+  )
+
   switch (props.viewMode) {
     case 'NavItem':
     case 'Block':
@@ -127,6 +171,10 @@ export const Status: React.FunctionComponent<Props> = props => {
             </button>
             <button onClick={generateRandomBlocks}>Create 100 blocks</button>
             <button onClick={exportAllConcepts}>Export all concepts</button>
+            <label className={styles.chooseFileButton}>
+              <input type="file" accept=".json" onChange={handleFileSelect} />
+              <span>Import concepts</span>
+            </label>
           </div>
           <ul>
             <li>

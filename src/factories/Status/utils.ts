@@ -34,3 +34,22 @@ export function createFakeLink(): HTMLAnchorElement {
 
   return fakeElement
 }
+
+export function readAsObject<T>(file: File): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.addEventListener('load', event => {
+      const jsonString = event.target.result.toString()
+      try {
+        const obj = JSON.parse(jsonString) as T
+        resolve(obj)
+      } catch (e) {
+        reject(e)
+      }
+    })
+    reader.addEventListener('error', e => {
+      reject(e)
+    })
+    reader.readAsText(file)
+  })
+}
