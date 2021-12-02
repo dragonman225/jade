@@ -34,7 +34,7 @@ export interface OrphanItem {
   concept: TypedConcept<unknown>
 }
 
-interface SearchResult {
+export interface SearchResult {
   canvases: CanvasItem[]
   blocks: BlockItem[]
   orphans: OrphanItem[]

@@ -1,10 +1,16 @@
 import * as React from 'react'
-import { useState, useContext, useRef, useEffect, useMemo } from 'react'
+import { useState, useContext, useRef, useEffect } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './index.style'
 import { usePager } from './usePager'
-import { BlockItem, CanvasItem, getSearchResult, OrphanItem } from './search'
+import {
+  BlockItem,
+  CanvasItem,
+  getSearchResult,
+  OrphanItem,
+  SearchResult,
+} from './search'
 import { ConceptPreview } from '../ConceptPreview'
 import { Search } from '../../core/components/Icons/Search'
 import { AppStateContext } from '../../core/store/appStateContext'
@@ -46,13 +52,27 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const [text, setText] = useState('')
   const [minimized, setMinimized] = useState(true)
   const [tab, setTab] = useState<'canvas' | 'block' | 'orphan'>('canvas')
-  const result = useMemo(() => {
-    if (!minimized)
-      return getSearchResult(text, database.getAllConcepts(), factoryRegistry)
-    else return { canvases: [], blocks: [], orphans: [] } // fake it
-    /** Should re-run on minimized change. */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const [result, setResult] = useState<SearchResult>({
+    canvases: [],
+    blocks: [],
+    orphans: [],
+  })
+  const pendingSearchTimeoutId = useRef<NodeJS.Timeout>(null)
+
+  useEffect(() => {
+    if (pendingSearchTimeoutId.current) {
+      clearTimeout(pendingSearchTimeoutId.current)
+      pendingSearchTimeoutId.current = null
+    }
+    if (!minimized) {
+      pendingSearchTimeoutId.current = setTimeout(() => {
+        const concepts = database.getAllConcepts()
+        const result = getSearchResult(text, concepts, factoryRegistry)
+        setResult(result)
+      }, 50)
+    } else setResult({ canvases: [], blocks: [], orphans: [] }) // fake it
   }, [text, database, minimized])
+
   const resultItems =
     tab === 'canvas'
       ? result.canvases
