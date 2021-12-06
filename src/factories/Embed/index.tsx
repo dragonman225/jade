@@ -4,6 +4,7 @@ import { classes } from 'typestyle'
 
 import { styles } from './index.styles'
 import { Iframe } from './Iframe'
+import { useSyntheticFocus } from './useSyntheticFocus'
 import {
   ConceptDisplayProps,
   Factory,
@@ -23,6 +24,7 @@ interface EmbedContent {
 
 type Props = ConceptDisplayProps<EmbedContent>
 
+// TODO: Separate two states.
 function EmbedInteractive({
   blockId,
   concept,
@@ -35,12 +37,17 @@ function EmbedInteractive({
   /** `blockId` is useless when embedded in other blocks. */
   const block = findBlock(blocks, blockId)
   const isResizing = block && block.mode === InteractionMode.Resizing
+  const isFocusing = block && block.mode === InteractionMode.Focusing
   const { openExternal, dispatchAction } = useContext(SystemContext)
   const { data } = concept.summary
   const url = data && data.url ? data.url : ''
   const inputRef = useRef<HTMLInputElement>()
   const [allowFrameInteraction, setAllowFrameInteraction] = useState(true)
-  const noInteraction = !allowFrameInteraction || isResizing
+  const noInteraction = !allowFrameInteraction || isResizing || !isFocusing
+  const { setNodeRef } = useSyntheticFocus({
+    onFocus: onInteractionStart,
+    onBlur: onInteractionEnd,
+  })
 
   const endMoving = useCallback(() => {
     window.removeEventListener('mouseup', endMoving)
@@ -76,6 +83,7 @@ function EmbedInteractive({
           block.size.h !== 'auto' && styles.fillParentHeight
         )}>
         <div
+          ref={setNodeRef}
           className={
             block.size.h === 'auto'
               ? styles.FrameWrapperAutoHeight
@@ -83,42 +91,44 @@ function EmbedInteractive({
           }>
           <Iframe url={url} noInteraction={noInteraction} />
         </div>
-        <div className={styles.ControlButtonGroup}>
-          <button
-            className={styles.ControlButton}
-            style={{ cursor: 'move' }}
-            onMouseDown={startMoving}
-            onTouchStart={startMoving}>
-            Move
-          </button>
-          <button
-            className={styles.ControlButton}
-            onClick={() => {
-              onChange({ initialized: true, url: undefined })
-              dispatchAction({
-                type: Action.BlockSetSize,
-                data: {
-                  id: blockId,
-                  size: {
-                    w: 300,
-                    h: 'auto',
+        {!isFocusing && (
+          <div className={styles.ControlButtonGroup}>
+            <button
+              className={styles.ControlButton}
+              style={{ cursor: 'move' }}
+              onMouseDown={startMoving}
+              onTouchStart={startMoving}>
+              Move
+            </button>
+            <button
+              className={styles.ControlButton}
+              onClick={() => {
+                onChange({ initialized: true, url: undefined })
+                dispatchAction({
+                  type: Action.BlockSetSize,
+                  data: {
+                    id: blockId,
+                    size: {
+                      w: 300,
+                      h: 'auto',
+                    },
                   },
-                },
-              })
-            }}>
-            Replace
-          </button>
-          <button
-            className={styles.ControlButton}
-            onClick={() => openExternal(url)}>
-            Original
-          </button>
-          <button
-            className={styles.ControlButton}
-            onClick={() => saveTextToClipboard(url)}>
-            Copy link
-          </button>
-        </div>
+                })
+              }}>
+              Replace
+            </button>
+            <button
+              className={styles.ControlButton}
+              onClick={() => openExternal(url)}>
+              Original
+            </button>
+            <button
+              className={styles.ControlButton}
+              onClick={() => saveTextToClipboard(url)}>
+              Copy link
+            </button>
+          </div>
+        )}
       </div>
     )
   } else {
