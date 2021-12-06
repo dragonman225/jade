@@ -61,6 +61,20 @@ function EmbedInteractive({
     window.addEventListener('touchend', endMoving)
   }, [endMoving])
 
+  const replaceLink = useCallback(() => {
+    onChange({ initialized: true, url: undefined })
+    dispatchAction({
+      type: Action.BlockSetSize,
+      data: {
+        id: blockId,
+        size: {
+          w: 300,
+          h: 'auto',
+        },
+      },
+    })
+  }, [blockId, onChange, dispatchAction])
+
   const embedLink = useCallback(() => {
     onChange({ initialized: true, url: inputRef.current.value })
     dispatchAction({
@@ -100,21 +114,7 @@ function EmbedInteractive({
               onTouchStart={startMoving}>
               Move
             </button>
-            <button
-              className={styles.ControlButton}
-              onClick={() => {
-                onChange({ initialized: true, url: undefined })
-                dispatchAction({
-                  type: Action.BlockSetSize,
-                  data: {
-                    id: blockId,
-                    size: {
-                      w: 300,
-                      h: 'auto',
-                    },
-                  },
-                })
-              }}>
+            <button className={styles.ControlButton} onClick={replaceLink}>
               Replace
             </button>
             <button
