@@ -25,3 +25,13 @@ export function getEmbedUrl(url: string): string {
   }
   return url
 }
+
+export function isTweet(url: string): boolean {
+  return url.startsWith('https://twitter.com/')
+}
+
+export function getTweetId(url: string): string | undefined {
+  if (!isTweet(url)) return undefined
+  const urlObj = new URL(url)
+  return urlObj.pathname.split('/').pop()
+}

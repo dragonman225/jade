@@ -4,6 +4,7 @@ import { classes } from 'typestyle'
 
 import { styles } from './index.styles'
 import { Iframe } from './Iframe'
+import { Tweet } from './Tweet'
 import { useSyntheticFocus } from './useSyntheticFocus'
 import {
   ConceptDisplayProps,
@@ -16,6 +17,7 @@ import { SystemContext } from '../../core/store/systemContext'
 import { AppStateContext } from '../../core/store/appStateContext'
 import { findBlock } from '../../core/utils/block'
 import { saveTextToClipboard } from '../../core/utils/clipboard'
+import { getTweetId, isTweet } from './utils'
 
 interface EmbedContent {
   initialized?: boolean
@@ -103,7 +105,15 @@ function EmbedInteractive({
               ? styles.FrameWrapperAutoHeight
               : styles.FrameWrapperFixedHeight
           }>
-          <Iframe url={url} noInteraction={noInteraction} />
+          {isTweet(url) ? (
+            <Tweet
+              id={getTweetId(url)}
+              placeholder="loading"
+              noInteraction={noInteraction}
+            />
+          ) : (
+            <Iframe url={url} noInteraction={noInteraction} />
+          )}
         </div>
         {!isFocusing && (
           <div className={styles.ControlButtonGroup}>
@@ -171,11 +181,19 @@ function EmbedReadOnly({ concept, blockId, viewMode }: Props) {
               ? styles.FrameWrapperAutoHeight
               : styles.FrameWrapperFixedHeight
           }>
-          <Iframe
-            url={url}
-            noInteraction={true}
-            scale={viewMode === 'NavItem' ? 0.3 : 1}
-          />
+          {isTweet(url) ? (
+            <Tweet
+              id={getTweetId(url)}
+              placeholder="loading"
+              noInteraction={true}
+            />
+          ) : (
+            <Iframe
+              url={url}
+              noInteraction={true}
+              scale={viewMode === 'NavItem' ? 0.3 : 1}
+            />
+          )}
         </div>
       </div>
     )
