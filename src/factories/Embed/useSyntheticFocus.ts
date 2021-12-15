@@ -11,7 +11,8 @@ import { getUnifiedClientCoords, distanceOf } from '../../core/utils'
  *
  * Blur: Pointer down outside a node.
  *
- * TODO: Maintain focus state internally.
+ * TODO: Maintain focus state internally (so that onBlur won't fire if
+ * it's not focused).
  */
 export function useSyntheticFocus<T extends HTMLElement>({
   onFocus,
