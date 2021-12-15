@@ -106,11 +106,7 @@ function EmbedInteractive({
               : styles.FrameWrapperFixedHeight
           }>
           {isTweet(url) ? (
-            <Tweet
-              id={getTweetId(url)}
-              placeholder="loading"
-              noInteraction={noInteraction}
-            />
+            <Tweet id={getTweetId(url)} noInteraction={noInteraction} />
           ) : (
             <Iframe url={url} noInteraction={noInteraction} />
           )}
@@ -182,11 +178,7 @@ function EmbedReadOnly({ concept, blockId, viewMode }: Props) {
               : styles.FrameWrapperFixedHeight
           }>
           {isTweet(url) ? (
-            <Tweet
-              id={getTweetId(url)}
-              placeholder="loading"
-              noInteraction={true}
-            />
+            <Tweet id={getTweetId(url)} noInteraction={true} />
           ) : (
             <Iframe
               url={url}
