@@ -124,7 +124,15 @@ export function Block({
         }
       }
 
-      const handlePointerUp = (_e: MouseEvent | TouchEvent) => {
+      const handlePointerUp = (e: MouseEvent | TouchEvent) => {
+        /**
+         * Think about a case: Mouse down with left button, mouse up with
+         * right button -> should not trigger below actions.
+         */
+        if (e instanceof MouseEvent && e.button !== 0) {
+          return
+        }
+
         window.removeEventListener('mousemove', handlePointerMove)
         window.removeEventListener('touchmove', handlePointerMove)
         window.removeEventListener('mouseup', handlePointerUp)
@@ -171,10 +179,7 @@ export function Block({
               /** Prevent focus if InteractionMode is not Focusing. */
               if (modeRef.current !== InteractionMode.Focusing)
                 e.preventDefault()
-              if (
-                e.button === 2 &&
-                modeRef.current !== InteractionMode.Focusing
-              ) {
+              if (e.button === 2 && modeRef.current === InteractionMode.Idle) {
                 dispatchAction({
                   type: Action.ContextMenuOpen,
                   data: {
