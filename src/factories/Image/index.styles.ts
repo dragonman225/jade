@@ -76,7 +76,7 @@ export const styles = stylesheet({
     },
   },
   sizeWarning: {
-    color: theme.colors.uiGrey,
+    color: theme.colors.neutral40,
     fontSize: '0.7rem',
     marginBottom: '0.5rem',
   },

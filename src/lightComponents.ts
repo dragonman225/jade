@@ -29,15 +29,16 @@ export const buttonTransparent = {
 
 export const buttonTranslucent = {
   ...buttonBase,
-  color: theme.colors.bgBlock,
-  background: 'rgba(0, 0, 0, 0.45)',
+  color: theme.colors.neutral90,
+  /** neutral10 */
+  background: 'rgba(25, 25, 24, 0.75)',
   // backdropFilter: 'blur(5px)',
   $nest: {
     '&:hover': {
-      background: 'rgba(0, 0, 0, 0.55)',
+      background: 'rgba(25, 25, 24, 0.85)',
     },
     '&:active': {
-      background: 'rgba(0, 0, 0, 0.7)',
+      background: 'rgba(25, 25, 24, 0.95)',
     },
   },
 }
@@ -61,7 +62,7 @@ export const input = {
   border: 'none',
   borderRadius: theme.borders.smallRadius,
   padding: '.3rem .5rem',
-  background: theme.colors.bgGrey,
+  background: theme.colors.neutral95,
   lineHeight: 'normal',
 }
 
@@ -93,7 +94,7 @@ export const menuPanel = {
 export const menuTitle = {
   padding: '.3rem .5rem',
   fontSize: '.7rem',
-  color: theme.colors.uiGrey,
+  color: theme.colors.neutral50,
 }
 
 export const menuListButton: NestedCSSProperties = {

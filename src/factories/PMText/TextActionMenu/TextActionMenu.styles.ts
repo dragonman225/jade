@@ -1,9 +1,9 @@
 import { stylesheet } from 'typestyle'
 
 import theme from '../../../theme'
-import { buttonPrimary, input } from '../../../lightComponents'
+import { buttonPrimary, input, menuTitle } from '../../../lightComponents'
 
-const buttonSize = 1.7
+const buttonSize = 1.75
 const menuPaddingSize = 0.3
 const highlightPickerWidth = buttonSize * 6 + menuPaddingSize * 2
 const highlightPickerLeft =
@@ -78,9 +78,8 @@ export const styles = stylesheet({
       },
     },
   },
-  Label: {
-    fontSize: '.7rem',
-    padding: '.2rem',
-    color: theme.colors.uiGrey,
+  Title: {
+    ...menuTitle,
+    padding: '0.3rem 0.3rem 0',
   },
 })

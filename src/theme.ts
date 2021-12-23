@@ -7,7 +7,6 @@ export default {
     bgBlock: 'var(--bg-block)',
     bgHover: 'var(--bg-hover)',
     bgActive: 'var(--bg-active)',
-    bgGrey: '#eeeeee',
     bgDangerHover: 'var(--bg-danger-hover)',
     bgDangerActive: 'var(--bg-danger-active)',
     contentText: 'var(--content-text)',
@@ -21,8 +20,13 @@ export default {
     uiPrimaryAttractiveHover: 'hsl(165deg, 80%, 74%)',
     uiPrimaryAttractiveActive: 'hsl(165deg, 80%, 69%)',
     uiSecondaryDumb: 'hsl(42deg, 8%, 75%)',
-    uiGrey: '#8e8e8e',
-    uiGreyLight: 'var(--ui-grey-light)',
+    neutral95: 'var(--neutral-95)',
+    neutral90: 'var(--neutral-90)',
+    neutral70: 'var(--neutral-70)',
+    neutral60: 'var(--neutral-60)',
+    neutral50: 'var(--neutral-50)',
+    neutral40: 'var(--neutral-40)',
+    neutral10: 'var(--neutral-10)',
   },
   shadows: {
     ui: `
@@ -33,7 +37,6 @@ export default {
     float2: `
       hsla(42deg, 15%, 70%, 0.05) 0px 16px 36px 8px,
       hsla(42deg, 30%, 20%, 0.1) 0px 32px 72px 8px`,
-    backlitTiny: 'var(--bg-block) 0px 0px 2px',
   },
   borders: {
     largeRadius: '.6rem',

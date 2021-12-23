@@ -17,7 +17,7 @@ const styles = stylesheet({
     },
   },
   Label: {
-    color: theme.colors.uiGrey,
+    color: theme.colors.neutral40,
   },
   Value: {
     color: theme.colors.contentText,

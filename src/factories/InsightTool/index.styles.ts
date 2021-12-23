@@ -30,7 +30,7 @@ export const styles = stylesheet({
   },
   Divider: {
     border: 'none',
-    borderBottom: `1px solid ${theme.colors.uiGreyLight}`,
+    borderBottom: `1px solid ${theme.colors.neutral90}`,
     $nest: {
       '&:last-of-type': {
         display: 'none',
@@ -41,7 +41,7 @@ export const styles = stylesheet({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    color: theme.colors.uiGrey,
+    color: theme.colors.neutral50,
     $nest: {
       '&:not(:only-child)': {
         marginBottom: '.5rem',
@@ -59,14 +59,14 @@ export const styles = stylesheet({
         $nest: {
           ...buttonTransparent.$nest,
           '& > svg': {
-            fill: theme.colors.uiGrey,
+            fill: theme.colors.neutral50,
           },
         },
       },
     },
   },
   HeaderText: {
-    color: theme.colors.uiGrey,
+    color: theme.colors.neutral50,
     fontSize: '.8rem',
   },
 })

@@ -71,7 +71,7 @@ function HighlightPicker(props: HighlightPickerProps): JSX.Element {
   return (
     <div className={styles.HighlightPicker}>
       <div>
-        <div className={styles.Label}>COLOR</div>
+        <div className={styles.Title}>COLOR</div>
         <div>
           {Object.values(HighlightColor)
             .filter(isColorHighlight)
@@ -92,7 +92,7 @@ function HighlightPicker(props: HighlightPickerProps): JSX.Element {
         </div>
       </div>
       <div>
-        <div className={styles.Label}>BACKGROUND</div>
+        <div className={styles.Title}>BACKGROUND</div>
         <div>
           {Object.values(HighlightColor)
             .filter(isBackgroundHighlight)

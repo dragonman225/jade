@@ -51,7 +51,7 @@ export const styles = stylesheet({
     borderRadius: theme.borders.smallRadius,
     $nest: {
       [`&[data-color="default"]`]: {
-        border: `1px solid ${theme.colors.uiGreyLight}`,
+        border: `1px solid ${theme.colors.neutral90}`,
       },
       ...blockColorMixin.$nest,
     },

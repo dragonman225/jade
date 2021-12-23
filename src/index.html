@@ -32,7 +32,6 @@
         --bg-danger-active: hsla(5deg, 70%, 53%, 0.16);
         --ui-text: hsl(165deg, 80%, 21%);
         --ui-danger: hsl(5deg, 70%, 53%);
-        --ui-grey-light: #e4e4e4;
         --content-text: hsl(165deg, 10%, 25%);
         --bg-red: rgb(255, 214, 214);
         --bg-orange: rgb(255, 235, 214);
@@ -48,6 +47,13 @@
         --shadow-ui2: hsla(42deg, 15%, 10%, 0.1) 0px 0px 2px,
           hsla(42deg, 15%, 30%, 0.1) 0px 0px 7px,
           hsla(42deg, 15%, 50%, 0.1) 0px 0px 16px;
+        --neutral-95: #efece2;
+        --neutral-90: #e3dfd6;
+        --neutral-70: #b0aea7;
+        --neutral-60: #97958f;
+        --neutral-50: #7e7c77;
+        --neutral-40: #65635f;
+        --neutral-10: #191918;
       }
 
       * {
@@ -107,7 +113,7 @@
 
       #loader {
         display: block;
-        border: var(--loader-ring-width) solid var(--ui-grey-light);
+        border: var(--loader-ring-width) solid var(--neutral-90);
         border-radius: 50%;
         border-top: var(--loader-ring-width) solid var(--ui-text);
         width: var(--loader-size);

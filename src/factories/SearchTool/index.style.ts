@@ -18,7 +18,7 @@ export const styles = stylesheet({
     height: '1.5rem',
     padding: '.2rem',
     marginRight: '.3rem',
-    fill: theme.colors.uiGrey,
+    fill: theme.colors.neutral50,
   },
   SearchInput: {
     ...inputTransparent,
@@ -29,7 +29,7 @@ export const styles = stylesheet({
     color: theme.colors.contentText,
     $nest: {
       '&::placeholder': {
-        color: theme.colors.uiGrey,
+        color: theme.colors.neutral50,
         fontSize: '.8rem',
       },
     },
@@ -39,7 +39,7 @@ export const styles = stylesheet({
     height: '1.5rem',
     marginLeft: '.3rem',
     fontSize: '.6rem',
-    color: theme.colors.uiGrey,
+    color: theme.colors.neutral50,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -72,7 +72,7 @@ export const styles = stylesheet({
   },
   Divider: {
     border: 'none',
-    borderBottom: `1px solid ${theme.colors.uiGreyLight}`,
+    borderBottom: `1px solid ${theme.colors.neutral90}`,
     $nest: {
       '&:last-of-type': {
         display: 'none',
@@ -91,7 +91,7 @@ export const styles = stylesheet({
     padding: theme.paddings.blockComfort,
     fontSize: '.8rem',
     textAlign: 'center',
-    color: theme.colors.uiGrey,
+    color: theme.colors.neutral50,
   },
   pageButton: {
     flex: '0 0 50px',
@@ -120,7 +120,7 @@ export const styles = stylesheet({
   tabButton: {
     ...buttonTransparent,
     flex: '1 1 0',
-    color: theme.colors.uiGrey,
+    color: theme.colors.neutral60,
     fontSize: '.8rem',
     lineHeight: 1.25,
     padding: '.2rem .6rem',
@@ -142,7 +142,7 @@ export const styles = stylesheet({
   tabDescription: {
     margin: 0,
     padding: '0 .75rem .75rem',
-    color: theme.colors.uiGrey,
+    color: theme.colors.neutral40,
     fontSize: '.8rem',
     textAlign: 'center',
   },
