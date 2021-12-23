@@ -31,7 +31,7 @@ export const buttonTranslucent = {
   ...buttonBase,
   color: theme.colors.bgBlock,
   background: 'rgba(0, 0, 0, 0.45)',
-  backdropFilter: 'blur(5px)',
+  // backdropFilter: 'blur(5px)',
   $nest: {
     '&:hover': {
       background: 'rgba(0, 0, 0, 0.55)',
