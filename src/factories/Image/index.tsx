@@ -154,6 +154,6 @@ export const ImageFactory: Factory = {
   component: Image,
   toText: (concept: TypedConcept<ImageContent>) => {
     const imgSrc = concept.summary.data.imgSrc
-    return `image ${imgSrc || ''}`
+    return `image ${imgSrc?.slice(0, 1024) || ''}`
   },
 }

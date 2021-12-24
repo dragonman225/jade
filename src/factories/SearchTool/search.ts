@@ -1,4 +1,4 @@
-import { createFuse } from '../createFuse'
+import { createFuse } from '../fullTextSearch'
 import {
   Concept,
   ConceptId,

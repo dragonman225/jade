@@ -10,7 +10,7 @@ import {
 import { resetKeywordObserver } from './observeKeyword'
 import { schema } from '../ProseMirrorSchema/schema'
 import { LinkMark, linkMarkName } from '../ProseMirrorSchema/link'
-import { createFuse } from '../../createFuse'
+import { useFullTextSearch } from '../../fullTextSearch'
 import { getUrlForConcept } from '../../../core/utils/url'
 import { createConcept } from '../../../core/utils/concept'
 import {
@@ -107,8 +107,6 @@ export function useSuggestionMenu(
     [factoryRegistry]
   )
 
-  const [concepts, setConcepts] = useState<TypedConcept<unknown>[]>([])
-
   const openSuggestionMenu = useCallback((f: SuggestFor) => {
     setShowSuggestionMenu(true)
     setSuggestFor(f)
@@ -119,6 +117,8 @@ export function useSuggestionMenu(
     setKeyword('')
     setKeywordRange({ from: 0, to: 0 })
   }, [])
+
+  const fuse = useFullTextSearch(database, factoryRegistry)
 
   const optionGroups: OptionGroup[] = useMemo(() => {
     if (suggestFor === SuggestFor.SlashCommands) {
@@ -135,20 +135,16 @@ export function useSuggestionMenu(
     } else {
       const linkToOptionGroup: OptionGroup = {
         id: OptionGroupType.LinkTo,
-        title: 'Link to',
+        title: 'Insert link to',
         items: keyword
-          ? createFuse(
-              concepts
-                // HACK: Support text only
-                .filter(pmtextOnly),
-              factoryRegistry
-            )
+          ? fuse
               .search(keyword, { limit: 6 })
               .map(fuseResult =>
                 mapConceptToOption(factoryRegistry)(fuseResult.item)
               )
               .filter(o => !!o.title)
-          : concepts
+          : database
+              .getAllConcepts()
               .filter(pmtextOnly)
               .sort(lastEditedTimeDescendingAndCanvasFirst)
               .slice(0, 6)
@@ -168,12 +164,7 @@ export function useSuggestionMenu(
         ? [linkToOptionGroup, createOptionGroup]
         : [linkToOptionGroup]
     }
-  }, [keyword, suggestFor, slashCommands, concepts, factoryRegistry])
-
-  useEffect(() => {
-    if (suggestFor === SuggestFor.SlashCommands) return
-    setConcepts(database.getAllConcepts())
-  }, [keyword, suggestFor, database])
+  }, [keyword, suggestFor, slashCommands, database, factoryRegistry, fuse])
 
   const updateKeyword = useCallback(
     (keyword: string, range: { from: number; to: number }) => {
