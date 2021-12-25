@@ -44,7 +44,7 @@ const IframeWithoutMemo = React.forwardRef<HTMLIFrameElement, IframeProps>(
         frameBorder="0"
         loading="lazy"
         scrolling={noInteraction ? 'no' : 'auto'}
-        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+        allow="clipboard-write; encrypted-media; picture-in-picture"
         allowFullScreen
       />
     )
