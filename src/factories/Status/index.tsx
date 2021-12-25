@@ -153,9 +153,7 @@ export const Status: React.FunctionComponent<Props> = props => {
                   type: Action.DebuggingToggle,
                 })
               }>
-              {state.debugging
-                ? 'Virtualized rendering: OFF'
-                : 'Virtualized rendering: ON'}
+              Turn {state.debugging ? 'ON ' : 'OFF '} efficient rendering
             </button>
             <button onClick={generateRandomBlocks}>Create 100 blocks</button>
             <button onClick={exportAllConcepts}>Export all concepts</button>
