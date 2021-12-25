@@ -6,23 +6,27 @@ import env from '../../env'
 
 const styles = stylesheet({
   header: {
-    display: 'flex',
-    alignItems: 'flex-end',
     $nest: {
       '& > *': {
         margin: 0,
       },
-      '& > h3': {
-        paddingLeft: '0.5rem',
-        paddingBottom: '0.4rem',
-        opacity: 0.6,
+      '& > h1, & > h3': {
+        fontWeight: 500,
       },
     },
   },
   appName: {
     display: 'flex',
     alignItems: 'center',
-    $nest: { '& > img': { height: '1.3em', marginRight: '0.3rem' } },
+    $nest: {
+      '& > img': { height: '1.3em', marginRight: '0.5rem' },
+      '& > span': { transform: 'translateY(-0.2rem)' },
+    },
+  },
+  buildInfo: {
+    opacity: 0.7,
+    fontSize: '1rem',
+    paddingLeft: '0.25rem',
   },
 })
 
@@ -31,9 +35,11 @@ export function Header(): JSX.Element {
     <header className={styles.header}>
       <h1 className={styles.appName}>
         <img src={icon} />
-        Jade
+        <span>Jade</span>
       </h1>
-      <h3>v{env.JADE_VER}</h3>
+      <h3 className={styles.buildInfo}>
+        v{env.JADE_VER} ({env.JADE_LAST_UPDATED})
+      </h3>
     </header>
   )
 }

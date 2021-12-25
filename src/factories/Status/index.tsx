@@ -2,17 +2,15 @@ import * as React from 'react'
 import { useContext, useCallback } from 'react'
 import { stylesheet } from 'typestyle'
 
-import { BlockCounter } from './BlockCount'
 import { Header } from './Header'
+import { BlockCounter } from './BlockCount'
+import { CanvasMonitor } from './CanvasMonitor'
 import {
   generateDataUrl,
   withDateSuffix,
   createFakeLink,
   readAsObject,
 } from './utils'
-import theme from '../../theme'
-import { buttonPrimary } from '../../lightComponents'
-import { AppStateContext } from '../../core/store/appStateContext'
 import {
   ConceptDisplayProps,
   Factory,
@@ -20,50 +18,31 @@ import {
   TypedConcept,
 } from '../../core/interfaces'
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
+import { AppStateContext } from '../../core/store/appStateContext'
+import { buttonPrimary } from '../../lightComponents'
+import theme from '../../theme'
 
 const styles = stylesheet({
-  StatNavItem: {
-    fontSize: '.8rem',
-    padding: theme.paddings.navComfort,
-    maxHeight: '100%',
-    background: 'aquamarine',
+  statusCardTitle: {
+    width: '100%',
   },
-  StatBlock: {
+  status: {
     userSelect: 'none',
     padding: theme.paddings.blockComfort,
     $nest: {
-      '& code': {
-        fontSize: '.9rem',
-        color: 'firebrick',
-        background: 'mistyrose',
-        padding: '.1rem .3rem',
-        borderRadius: '.3rem',
-        cursor: 'pointer',
-      },
-      '& ul': {
-        paddingLeft: '1.5rem',
-        margin: '.75rem 0',
-      },
       '& button': {
         ...buttonPrimary,
       },
     },
   },
-  MouseData: {
-    $nest: {
-      '&>p': {
-        margin: 0,
-      },
-    },
-  },
-  Highlight: {
-    background: 'aquamarine',
-  },
   blockCounter: {
-    padding: '0.3rem',
+    padding: '0.5rem 0.3rem',
+  },
+  canvasMonitor: {
+    padding: '0.5rem 0.3rem',
   },
   buttons: {
-    padding: '0.7rem 0.3rem',
+    padding: '0.5rem 0.3rem',
     $nest: {
       '& > button:not(:last-child)': {
         margin: '0 0.3rem 0.3rem 0',
@@ -73,6 +52,7 @@ const styles = stylesheet({
   chooseFileButton: {
     ...buttonPrimary,
     display: 'inline-block',
+    textAlign: 'center',
     $nest: {
       ...buttonPrimary.$nest,
       '& > input': { display: 'none' },
@@ -153,10 +133,18 @@ export const Status: React.FunctionComponent<Props> = props => {
     case 'NavItem':
     case 'Block':
       return (
-        <div className={styles.StatBlock}>
+        <div className={styles.status}>
           <Header />
           <div className={styles.blockCounter}>
             <BlockCounter value={state.blocks.length} />
+          </div>
+          <div className={styles.canvasMonitor}>
+            <CanvasMonitor
+              focus={state.camera.focus}
+              scale={state.camera.scale}
+              selecting={state.selecting}
+              selectedCount={state.selectedBlockIds.length}
+            />
           </div>
           <div className={styles.buttons}>
             <button
@@ -176,24 +164,11 @@ export const Status: React.FunctionComponent<Props> = props => {
               <span>Import concepts</span>
             </label>
           </div>
-          <ul>
-            <li>
-              Focusing at{' '}
-              <code>
-                ({state.camera.focus.x.toFixed(1)},{' '}
-                {state.camera.focus.y.toFixed(1)})
-              </code>
-              , scale <code>{(state.camera.scale * 100).toFixed(1)}%</code>
-            </li>
-            <li>
-              <code>{state.selecting ? 'Selecting' : 'Not Selecting'}</code>
-            </li>
-          </ul>
         </div>
       )
     default:
       return (
-        <div className={styles.StatNavItem}>About Jade &amp; nerd info</div>
+        <div className={styles.statusCardTitle}>About Jade &amp; nerd info</div>
       )
   }
 }
@@ -203,6 +178,6 @@ export const StatusFactory: Factory = {
   name: 'Status',
   component: Status,
   toText: () => {
-    return 'status, About Jade &amp; nerd info'
+    return 'status, About Jade & nerd info'
   },
 }
