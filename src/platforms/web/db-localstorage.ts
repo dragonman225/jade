@@ -1,6 +1,6 @@
 import { PubSub } from '../../core/utils/pubsub'
 import {
-  DatabaseInterface,
+  PlatformDatabaseInterface,
   Settings,
   TypedConcept,
 } from '../../core/interfaces'
@@ -20,7 +20,7 @@ function markStorageUpdate() {
   localStorage.setItem('lastUpdatedAt', Date.now().toString())
 }
 
-export const database: DatabaseInterface = {
+export const database: PlatformDatabaseInterface = {
   isValid: () => {
     return localStorage.getItem('JADE_DB_LOADED') !== null
   },

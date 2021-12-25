@@ -1,3 +1,5 @@
+import Fuse from 'fuse.js'
+
 import { BlockId, BlockInstance } from './block'
 import { ConceptId, TypedConcept } from './concept'
 import { ContextMenuState } from './contextMenu'
@@ -51,4 +53,10 @@ export interface DatabaseInterface {
   setVersion(number: number): void
   subscribeConcept: (channel: string, callback: () => void) => void
   unsubscribeConcept: (channel: string, callback: () => void) => void
+  searchConceptByText: Fuse<TypedConcept<unknown>>['search']
 }
+
+export type PlatformDatabaseInterface = Omit<
+  DatabaseInterface,
+  'searchConceptByText'
+>

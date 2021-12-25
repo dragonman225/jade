@@ -10,7 +10,6 @@ import {
 import { resetKeywordObserver } from './observeKeyword'
 import { schema } from '../ProseMirrorSchema/schema'
 import { LinkMark, linkMarkName } from '../ProseMirrorSchema/link'
-import { useFullTextSearch } from '../../fullTextSearch'
 import { getUrlForConcept } from '../../../core/utils/url'
 import { createConcept } from '../../../core/utils/concept'
 import {
@@ -118,8 +117,6 @@ export function useSuggestionMenu(
     setKeywordRange({ from: 0, to: 0 })
   }, [])
 
-  const fuse = useFullTextSearch(database, factoryRegistry)
-
   const optionGroups: OptionGroup[] = useMemo(() => {
     if (suggestFor === SuggestFor.SlashCommands) {
       const filteredSlashCommands = slashCommands.filter(c =>
@@ -137,8 +134,8 @@ export function useSuggestionMenu(
         id: OptionGroupType.LinkTo,
         title: 'Insert link to',
         items: keyword
-          ? fuse
-              .search(keyword, { limit: 6 })
+          ? database
+              .searchConceptByText(keyword, { limit: 6 })
               .map(fuseResult =>
                 mapConceptToOption(factoryRegistry)(fuseResult.item)
               )
@@ -164,7 +161,7 @@ export function useSuggestionMenu(
         ? [linkToOptionGroup, createOptionGroup]
         : [linkToOptionGroup]
     }
-  }, [keyword, suggestFor, slashCommands, database, factoryRegistry, fuse])
+  }, [keyword, suggestFor, slashCommands, database, factoryRegistry])
 
   const updateKeyword = useCallback(
     (keyword: string, range: { from: number; to: number }) => {

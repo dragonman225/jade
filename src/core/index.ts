@@ -11,15 +11,19 @@ import {
   initialConcepts,
 } from '../initial-concepts'
 import env from '../env'
-import { Concept4, DatabaseInterface, PositionType } from './interfaces'
+import { Concept4, PlatformDatabaseInterface, PositionType } from './interfaces'
+import { withFullTextSearch } from './utils/withFullTextSearch'
 
 /** Render the app with platform-specific resources. */
 export function startApp(
-  database: DatabaseInterface,
+  platformDatabase: PlatformDatabaseInterface,
   openExternal: (link: string) => void
 ): void {
-  /** Set title. */
+  /** Set document title. */
   document.title = `Jade v${env.JADE_VER}`
+
+  /** Init full text search. */
+  const database = withFullTextSearch(platformDatabase, factoryRegistry)
 
   /** Migrate old state_v3 to the new database. */
   const state3 = legacyLoadState()

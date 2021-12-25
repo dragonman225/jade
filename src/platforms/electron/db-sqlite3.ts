@@ -1,12 +1,12 @@
-import _SQLiteDatabase from 'better-sqlite3'
+import ActualSQLiteDatabase from 'better-sqlite3'
 
-import { PubSub } from '../../core/utils/pubsub'
-import env from '../../env'
 import {
-  DatabaseInterface,
+  PlatformDatabaseInterface,
   Settings,
   TypedConcept,
 } from '../../core/interfaces'
+import { PubSub } from '../../core/utils/pubsub'
+import env from '../../env'
 
 interface SQLiteDatabase {
   prepare(sql: string): SQLiteStatement
@@ -56,13 +56,13 @@ interface WriteBufferItem {
   data: string
 }
 
-const SQLiteDatabase = _SQLiteDatabase as SQLiteDatabaseConstructor
+const SQLiteDatabase = ActualSQLiteDatabase as SQLiteDatabaseConstructor
 
 function log(...args: unknown[]) {
   console.log('electron-storage:', ...args)
 }
 
-function createDatabase(path: string): DatabaseInterface {
+function createDatabase(path: string): PlatformDatabaseInterface {
   const db = new SQLiteDatabase(path)
   const conceptsTableName = 'concepts'
   const settingsTableName = 'settings'
@@ -223,13 +223,13 @@ function createDatabase(path: string): DatabaseInterface {
   function getConcept(id: string): TypedConcept<unknown> {
     if (conceptCache.has(id)) return conceptCache.get(id)
     try {
-      const start = Date.now()
+      const start = performance.now()
       const stmt = conceptStmt.select
       const dryConcept = stmt.get<DryConcept>({ id })
-      const mid = Date.now()
+      const mid = performance.now()
       const concept = hydrateConcept(dryConcept)
       conceptCache.set(id, concept)
-      const end = Date.now()
+      const end = performance.now()
       log(`Select concept "${id}" in ${mid - start}ms, \
 parse JSON in ${end - mid}ms.`)
       return concept
@@ -240,11 +240,11 @@ parse JSON in ${end - mid}ms.`)
   }
 
   function getAllConcepts(): TypedConcept<unknown>[] {
-    const start = Date.now()
+    const start = performance.now()
     try {
       const stmt = conceptStmt.selectAll
       const dryConcepts = stmt.all<DryConcept>()
-      const end = Date.now()
+      const end = performance.now()
       log(`Select all concepts in ${end - start} ms`)
       return dryConcepts.map(c => hydrateConcept(c))
     } catch (error) {

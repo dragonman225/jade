@@ -20,7 +20,6 @@ import {
   vecSub,
   viewportCoordsToEnvCoords,
 } from '../../core/utils'
-import { factoryRegistry } from '..'
 import { styles as blockStyles } from '../../core/components/Block.styles'
 import { ConceptDisplayProps, Factory, Vec2 } from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
@@ -67,7 +66,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
     if (!minimized) {
       pendingSearchTimeoutId.current = setTimeout(() => {
         const concepts = database.getAllConcepts()
-        const result = getSearchResult(text, concepts, factoryRegistry)
+        const result = getSearchResult(text, concepts, database)
         setResult(result)
       }, 50)
     } else setResult({ canvases: [], blocks: [], orphans: [] }) // fake it

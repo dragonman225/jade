@@ -1,8 +1,7 @@
-import { createFuse } from '../fullTextSearch'
 import {
   Concept,
   ConceptId,
-  FactoryRegistry,
+  DatabaseInterface,
   TypedConcept,
 } from '../../core/interfaces'
 
@@ -43,14 +42,14 @@ export interface SearchResult {
 export function getSearchResult(
   keyword: string,
   concepts: TypedConcept<unknown>[],
-  factoryRegistry: FactoryRegistry
+  database: DatabaseInterface
 ): SearchResult {
   const conceptMap: Record<ConceptId, TypedConcept<unknown>> = {}
   const parentMap: { [key: string]: string[] } = {}
   const matches: { [key: string]: TypedConcept<unknown> } = {}
 
   /** Build matches. */
-  const fuseResults = createFuse(concepts, factoryRegistry).search(keyword)
+  const fuseResults = database.searchConceptByText(keyword)
   if (keyword) {
     fuseResults.forEach(r => (matches[r.item.id] = r.item))
   } else {
