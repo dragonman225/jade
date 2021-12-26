@@ -48,4 +48,15 @@ module.exports = {
   module: commonConfig.module,
   resolve: commonConfig.resolve,
   devtool: 'inline-source-map',
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+      },
+    },
+  },
 }
