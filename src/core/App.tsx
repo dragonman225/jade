@@ -49,6 +49,11 @@ const App = React.memo(function App() {
   blockRectManager.updateCamera(state.camera)
 
   const normalBlocks = useMemo(() => {
+    /** Virtualized rendering wastes CPU time when zooming. */
+    if (state.shouldAnimateCamera) {
+      return state.blocks.filter(b => b.posType === PositionType.Normal)
+    }
+
     const windowWidth = window.innerWidth
     const windowHeight = window.innerHeight
     const overscanX = windowWidth * 0.25
@@ -82,7 +87,7 @@ const App = React.memo(function App() {
           ))
       )
     })
-  }, [state.blocks, state.camera, state.debugging])
+  }, [state.blocks, state.camera, state.debugging, state.shouldAnimateCamera])
 
   const pinnedBlocks = state.blocks.filter(b => b.posType > PositionType.Normal)
 
