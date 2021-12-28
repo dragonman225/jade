@@ -48,14 +48,16 @@ export const styles = stylesheet({
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    '&[data-view-mode="Block"]': {
-      padding: theme.paddings.blockComfort,
-    },
-    '&[data-view-mode="NavItem"]': {
-      padding: theme.paddings.navComfort,
-    },
-    '&[data-view-mode="CardTitle"]': {
-      padding: 0,
+    $nest: {
+      '&[data-view-mode="Block"]': {
+        padding: theme.paddings.blockComfort,
+      },
+      '&[data-view-mode="NavItem"]': {
+        padding: theme.paddings.navComfort,
+      },
+      '&[data-view-mode="CardTitle"]': {
+        padding: 0,
+      },
     },
   },
   PMTextNavItem: {
