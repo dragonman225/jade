@@ -29,14 +29,9 @@ export default {
     neutral10: 'var(--neutral-10)',
   },
   shadows: {
-    ui: `
-      rgba(15, 15, 15, 0.15) 0px 0px 2px, 
-      rgba(15, 15, 15, 0.1) 0px 0px 7px`,
-    ui2: 'var(--shadow-ui2)',
-    float: `rgba(17, 12, 46, 0.15) 0px 38px 100px`,
-    float2: `
-      hsla(42deg, 15%, 70%, 0.05) 0px 16px 36px 8px,
-      hsla(42deg, 30%, 20%, 0.1) 0px 32px 72px 8px`,
+    focus: 'var(--shadow-focus)',
+    layer: 'var(--shadow-layer)',
+    float: 'var(--shadow-float)',
   },
   borders: {
     largeRadius: '.6rem',

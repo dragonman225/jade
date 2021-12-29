@@ -65,7 +65,7 @@ background 0.2s ${theme.easings.easeInOutCubic}`,
       boxShadow: `0px 0px 1px 2px ${theme.colors.uiPrimary}`,
     },
     focusing: {
-      boxShadow: `0px 0px 1px 2px ${theme.colors.contentText}`,
+      boxShadow: theme.shadows.focus,
       $nest: {
         '&:hover': {
           cursor: 'auto',

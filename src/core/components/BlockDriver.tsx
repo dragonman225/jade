@@ -94,7 +94,7 @@ export const BlockDriver = React.memo(function BlockDriver(
   const blockClassName = useMemo(() => {
     return block.posType > PositionType.Normal
       ? style({
-          boxShadow: theme.shadows.ui2,
+          boxShadow: theme.shadows.layer,
           borderRadius: theme.borders.largeRadius,
           background: theme.colors.bgCanvasSemiTransparent,
           backdropFilter: 'saturate(180%) blur(30px)',
