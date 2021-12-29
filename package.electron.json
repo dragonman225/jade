@@ -15,7 +15,7 @@
     "electron-builder": "^22.9.1"
   },
   "dependencies": {
-    "better-sqlite3": "^7.1.2"
+    "better-sqlite3": "^7.4.5"
   },
   "build": {
     "appId": "com.jade",
