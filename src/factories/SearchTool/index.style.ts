@@ -52,11 +52,24 @@ export const styles = stylesheet({
     paddingRight: '1.25rem',
   },
   ScrollListItem: {
+    position: 'relative',
     maxHeight: 150,
     overflow: 'hidden',
     marginLeft: '-.5rem',
     marginRight: '-.5rem',
     borderRadius: theme.borders.smallRadius,
+    $nest: {
+      '&:last-of-type': {
+        marginBottom: '.5rem',
+      },
+    },
+  },
+  ScrollListItemOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
     transition: `background 50ms ${theme.easings.easeInOutCubic}`,
     $nest: {
       '&:hover': {
@@ -64,9 +77,6 @@ export const styles = stylesheet({
       },
       '&:active': {
         background: theme.colors.bgActive,
-      },
-      '&:last-of-type': {
-        marginBottom: '.5rem',
       },
     },
   },

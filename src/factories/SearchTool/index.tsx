@@ -377,6 +377,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                                   dispatchAction={dispatchAction}
                                   database={database}
                                 />
+                                <div className={styles.ScrollListItemOverlay} />
                               </div>
                             )
                           }
