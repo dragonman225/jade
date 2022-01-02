@@ -58,7 +58,7 @@ export function CanvasMonitor({
         </code>{' '}
         with scale <code>{(scale * 100).toFixed(1)}%</code>
       </p>
-      <p className={selecting && styles.glowCode}>
+      <p className={selecting ? styles.glowCode : undefined}>
         <code>
           {selecting ? '✓' : '✗'} Selecting {selectedCount}
         </code>
