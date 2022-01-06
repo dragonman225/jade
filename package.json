@@ -76,6 +76,7 @@
     "better-sqlite3": "^7.4.5",
     "fuse.js": "^6.5.3",
     "katex": "^0.13.18",
+    "linkifyjs": "^3.0.5",
     "normalize.css": "^8.0.1",
     "prosemirror-commands": "^1.1.10",
     "prosemirror-history": "^1.1.3",

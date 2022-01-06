@@ -33,6 +33,7 @@ import {
   MarkClickRule,
 } from './ProseMirrorPlugins/handleMarkClick'
 import { LinkMark, linkMarkName } from './ProseMirrorSchema/link'
+import { pasteLinkToText } from './ProseMirrorPlugins/pasteLinkToText'
 import {
   ConceptDisplayProps,
   Factory,
@@ -354,6 +355,7 @@ const PMText: React.FunctionComponent<Props> = props => {
           ],
         }),
         mathPlugin,
+        pasteLinkToText(),
       ],
     })
     const view = createEditorView(editorContainerRef.current, state)
