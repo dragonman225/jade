@@ -33,7 +33,7 @@ export function pasteLinkToText(): Plugin {
         const selectionSlice = selection.content()
         let isTextSelection = true
         selectionSlice.content.forEach(node => {
-          if (!node.text) isTextSelection = false
+          if (!node.isText) isTextSelection = false
         })
         if (!isTextSelection) return false
 
