@@ -4,9 +4,9 @@ import { EditorView } from 'prosemirror-view'
 import { Selection } from 'prosemirror-state'
 
 import {
-  getActiveHighlightColor,
+  getActiveHighlightColorFromSelection,
   getActiveLink,
-  getActiveMarks,
+  getActiveMarksFromSelection,
   isBoldActive,
   isCodeActive,
   isItalicActive,
@@ -72,8 +72,8 @@ export function useTextActionMenu(editorView: EditorView<typeof schema>) {
   }
 
   const updateMenuState = useCallback((selection: Selection) => {
-    setMarkActiveMap(getActiveMarks(selection))
-    setActiveHighlightColor(getActiveHighlightColor(selection))
+    setMarkActiveMap(getActiveMarksFromSelection(selection))
+    setActiveHighlightColor(getActiveHighlightColorFromSelection(selection))
     setActiveLink(getActiveLink(selection))
   }, [])
 

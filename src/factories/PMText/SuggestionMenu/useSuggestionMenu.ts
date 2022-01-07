@@ -10,6 +10,14 @@ import {
 import { resetKeywordObserver } from './observeKeyword'
 import { schema } from '../ProseMirrorSchema/schema'
 import { LinkMark, linkMarkName } from '../ProseMirrorSchema/link'
+import {
+  HighlightMark,
+  highlightMarkName,
+} from '../ProseMirrorSchema/highlight'
+import {
+  getActiveHighlightColorFromSlice,
+  getActiveMarksFromSlice,
+} from '../TextActionMenu/utils'
 import { getUrlForConcept } from '../../../core/utils/url'
 import { createConcept } from '../../../core/utils/concept'
 import {
@@ -173,15 +181,32 @@ export function useSuggestionMenu(
 
   const insertLinkToConcept = useCallback(
     (concept: TypedConcept<unknown>) => {
+      const { from, to } = keywordRange
+      const keywordSlice = editorView.state.doc.slice(from, to)
+      const markActiveMap = getActiveMarksFromSlice(keywordSlice)
       const text = factoryRegistry.getConceptString(concept)
-      const node = schema.text(text, [
-        schema.mark(schema.marks[linkMarkName], {
-          href: getUrlForConcept(concept),
-        } as LinkMark['attrs']),
-      ])
+      const node = schema.text(
+        text,
+        Array.from(markActiveMap.keys())
+          /** Existing link mark must be thrown away. */
+          .filter(markType => markType.name !== linkMarkName)
+          /** Inherit other marks. */
+          .map(markType => {
+            if (markType.name === highlightMarkName)
+              return schema.mark(markType, {
+                color: getActiveHighlightColorFromSlice(keywordSlice),
+              } as HighlightMark['attrs'])
+            return schema.mark(markType)
+          })
+          /** The new link mark. */
+          .concat([
+            schema.mark(schema.marks[linkMarkName], {
+              href: getUrlForConcept(concept),
+            } as LinkMark['attrs']),
+          ])
+      )
       const fragment = Fragment.from(node)
       const slice = new Slice(fragment, 0, 0)
-      const { from, to } = keywordRange
       editorView.dispatch(editorView.state.tr.replaceRange(from, to, slice))
     },
     [editorView, factoryRegistry, keywordRange]

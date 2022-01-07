@@ -19,8 +19,9 @@ import { LinkMark, linkMarkName } from '../ProseMirrorSchema/link'
 
 export type MarkActiveMap = Map<MarkType, boolean>
 
-export function collectTextNodes(selection: Selection): Node[] {
-  const slice = selection.content()
+/** From Selection, Slice, Range (from, to). */
+
+export function collectTextNodesFromSlice(slice: Slice): Node[] {
   const textNodes: Node[] = []
   slice.content.descendants(node => {
     if (node.isText) textNodes.push(node)
@@ -28,9 +29,13 @@ export function collectTextNodes(selection: Selection): Node[] {
   return textNodes
 }
 
+export function collectTextNodesFromSelection(selection: Selection): Node[] {
+  const slice = selection.content()
+  return collectTextNodesFromSlice(slice)
+}
+
 /** A mark is active if all text nodes in the selection has it. */
-export function getActiveMarks(selection: Selection): MarkActiveMap {
-  const textNodes = collectTextNodes(selection)
+export function getActiveMarksFromTextNodes(textNodes: Node[]): MarkActiveMap {
   const markActiveMap = new Map<MarkType, boolean>()
   if (!textNodes) return markActiveMap
   const markCountMap = new Map<MarkType, number>()
@@ -49,18 +54,35 @@ export function getActiveMarks(selection: Selection): MarkActiveMap {
   return markActiveMap
 }
 
+export function getActiveMarksFromSlice(slice: Slice): MarkActiveMap {
+  const textNodes = collectTextNodesFromSlice(slice)
+  return getActiveMarksFromTextNodes(textNodes)
+}
+
+export function getActiveMarksFromSelection(
+  selection: Selection
+): MarkActiveMap {
+  const textNodes = collectTextNodesFromSelection(selection)
+  return getActiveMarksFromTextNodes(textNodes)
+}
+
 /** Determine if two attributes are equal. */
 type MarkAttrsComparator<T> = (
   anchorAttrs: T | undefined,
   currentAttrs: T | undefined
 ) => boolean
-export function getActiveMark(
-  markName: string,
-  selection: Selection,
-  isAttrsEqual: MarkAttrsComparator<Mark['attrs']>
-): Mark | undefined {
-  const textNodes = collectTextNodes(selection)
 
+type GetActiveMarkFn<T> = (
+  markName: string,
+  from: T,
+  isAttrsEqual: MarkAttrsComparator<Mark['attrs']>
+) => Mark | undefined
+
+export const getActiveMarkFromTextNodes: GetActiveMarkFn<Node[]> = (
+  markName,
+  textNodes,
+  isAttrsEqual
+) => {
   /** The first text node determines the anchor attrs. */
   if (!textNodes[0]) return undefined
   const anchorMark = textNodes[0].marks.find(m => m.type.name === markName)
@@ -77,23 +99,56 @@ export function getActiveMark(
   return anchorMark
 }
 
-export function getActiveHighlightColor(
+export const getActiveMarkFromSlice: GetActiveMarkFn<Slice> = (
+  markName,
+  slice,
+  isAttrsEqual
+) => {
+  const textNodes = collectTextNodesFromSlice(slice)
+  return getActiveMarkFromTextNodes(markName, textNodes, isAttrsEqual)
+}
+
+export const getActiveMarkFromSelection: GetActiveMarkFn<Selection> = (
+  markName,
+  selection,
+  isAttrsEqual
+) => {
+  const textNodes = collectTextNodesFromSelection(selection)
+  return getActiveMarkFromTextNodes(markName, textNodes, isAttrsEqual)
+}
+
+export const isHighlightMarkAttrsEqual: MarkAttrsComparator<
+  HighlightMark['attrs']
+> = (anchorAttrs, currentAttrs) => {
+  return anchorAttrs.color === currentAttrs.color
+}
+
+export function getActiveHighlightColorFromSlice(
+  slice: Slice
+): HighlightColor | undefined {
+  const mark = getActiveMarkFromSlice(
+    highlightMarkName,
+    slice,
+    isHighlightMarkAttrsEqual
+  ) as HighlightMark
+
+  return mark && mark.attrs.color
+}
+
+export function getActiveHighlightColorFromSelection(
   selection: Selection
 ): HighlightColor | undefined {
-  const mark = getActiveMark(
+  const mark = getActiveMarkFromSelection(
     highlightMarkName,
     selection,
-    (
-      anchorAttrs: HighlightMark['attrs'],
-      currentAttrs: HighlightMark['attrs']
-    ) => anchorAttrs.color === currentAttrs.color
+    isHighlightMarkAttrsEqual
   ) as HighlightMark
 
   return mark && mark.attrs.color
 }
 
 export function getActiveLink(selection: Selection): string {
-  const mark = getActiveMark(
+  const mark = getActiveMarkFromSelection(
     linkMarkName,
     selection,
     (anchorAttrs: LinkMark['attrs'], currentAttrs: LinkMark['attrs']) =>
