@@ -70,7 +70,7 @@
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^4.7.2",
     "webpack-node-externals": "^2.5.2",
-    "zora": "^5.0.0"
+    "zora": "^5.0.2"
   },
   "dependencies": {
     "@dragonman225/prosemirror-math": "^0.2.4",
