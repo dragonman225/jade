@@ -7,6 +7,7 @@ const {
   getCommonPlugins,
   getModuleConfig,
   getResolveConfig,
+  getOptimizationConfig,
 } = require('./webpack.config.utils')
 
 module.exports = {
@@ -56,4 +57,5 @@ module.exports = {
   ],
   module: getModuleConfig('production'),
   resolve: getResolveConfig(),
+  optimization: getOptimizationConfig(),
 }

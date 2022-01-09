@@ -7,6 +7,7 @@ const {
   getCommonPlugins,
   getModuleConfig,
   getResolveConfig,
+  getOptimizationConfig,
 } = require('./webpack.config.utils')
 
 module.exports = {
@@ -54,15 +55,5 @@ module.exports = {
   module: getModuleConfig('production'),
   resolve: getResolveConfig(),
   devtool: 'inline-source-map',
-  optimization: {
-    splitChunks: {
-      cacheGroups: {
-        commons: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          chunks: 'all',
-        },
-      },
-    },
-  },
+  optimization: getOptimizationConfig(),
 }

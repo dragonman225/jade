@@ -54,4 +54,24 @@ function getResolveConfig() {
   }
 }
 
-module.exports = { getCommonPlugins, getModuleConfig, getResolveConfig }
+/** @see https://webpack.js.org/configuration/optimization/ */
+function getOptimizationConfig() {
+  return {
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+      },
+    },
+  }
+}
+
+module.exports = {
+  getCommonPlugins,
+  getModuleConfig,
+  getResolveConfig,
+  getOptimizationConfig,
+}
