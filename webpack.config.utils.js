@@ -1,17 +1,18 @@
-const { BannerPlugin } = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
-module.exports = {
-  plugins: [
-    new BannerPlugin(
-      'Jade v0.3.6 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.'
-    ),
-    new MiniCssExtractPlugin(),
-  ],
-  module: {
+function getCommonPlugins() {
+  return [new MiniCssExtractPlugin()]
+}
+
+/**
+ * @see https://webpack.js.org/configuration/module/
+ * @param {'development' | 'production'} mode
+ */
+function getModuleConfig(mode) {
+  return {
     rules: [
       {
-        test: /.tsx?$/,
+        test: /\.tsx?$/,
         use: [
           {
             loader: 'babel-loader',
@@ -20,7 +21,8 @@ module.exports = {
               plugins: [
                 '@babel/proposal-class-properties',
                 '@babel/proposal-object-rest-spread',
-              ],
+                mode === 'development' && 'react-refresh/babel',
+              ].filter(Boolean),
             },
           },
         ],
@@ -42,8 +44,14 @@ module.exports = {
         },
       },
     ],
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js', '.css'],
-  },
+  }
 }
+
+/** @see https://webpack.js.org/configuration/resolve/ */
+function getResolveConfig() {
+  return {
+    extensions: ['.tsx', '.ts', '.js', '.css'],
+  }
+}
+
+module.exports = { getCommonPlugins, getModuleConfig, getResolveConfig }

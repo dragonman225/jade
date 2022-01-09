@@ -3,7 +3,11 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const nodeExternals = require('webpack-node-externals')
 
-const commonConfig = require('./webpack.config.common')
+const {
+  getCommonPlugins,
+  getModuleConfig,
+  getResolveConfig,
+} = require('./webpack.config.utils')
 
 module.exports = {
   /** (Webpack 4) Target: @see https://webpack.js.org/configuration/target/ */
@@ -13,8 +17,10 @@ module.exports = {
   externalsPresets: { node: true, electronRenderer: true },
   /** Do not bundle external deps, directly "require" from "node_modules". */
   externals: [
+    /** Do not bundle selected packages. */
     /** Must specify type @see https://webpack.js.org/configuration/externals/#externalstype */
     { 'better-sqlite3': 'node-commonjs better-sqlite3' },
+    /** Do not bundle all packages in `node_modules`. */
     // nodeExternals({
     //   /**
     //    * Allow CSS go into the bundling pipeline since it cannot be
@@ -30,10 +36,10 @@ module.exports = {
     renderer: './src/platforms/electron/renderer.ts',
   },
   output: {
-    path: path.join(process.cwd(), 'build/electron'),
+    path: path.resolve(__dirname, 'build/electron'),
     filename: '[name].js',
   },
-  plugins: commonConfig.plugins.concat([
+  plugins: getCommonPlugins().concat([
     new ForkTsCheckerWebpackPlugin({
       async: false,
       typescript: {
@@ -45,8 +51,8 @@ module.exports = {
       template: 'src/index.html',
     }),
   ]),
-  module: commonConfig.module,
-  resolve: commonConfig.resolve,
+  module: getModuleConfig('production'),
+  resolve: getResolveConfig(),
   devtool: 'inline-source-map',
   optimization: {
     splitChunks: {

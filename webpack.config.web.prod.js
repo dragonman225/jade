@@ -1,21 +1,35 @@
 const path = require('path')
+const { BannerPlugin } = require('webpack')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
-const commonConfig = require('./webpack.config.common')
+const {
+  getCommonPlugins,
+  getModuleConfig,
+  getResolveConfig,
+} = require('./webpack.config.utils')
 
 module.exports = {
-  /** Target: @see https://webpack.js.org/configuration/target/ */
-  /** target: "web" is default. */
+  /**
+   * @see https://webpack.js.org/configuration/target/
+   * Defaults to 'browserslist' or to 'web' when no browserslist
+   * configuration was found.
+   */
+  // target: 'web',
   context: process.cwd(), // to automatically find tsconfig.json
   entry: {
     app: './src/platforms/web/startup.ts',
   },
   output: {
-    path: path.join(process.cwd(), 'build/web'),
+    path: path.resolve(__dirname, 'build/web'),
     filename: '[name].js',
   },
-  plugins: commonConfig.plugins.concat([
+  plugins: [
+    ...getCommonPlugins(),
+    new BannerPlugin({
+      banner:
+        'Jade v0.3.6 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.',
+    }),
     new ForkTsCheckerWebpackPlugin({
       async: false,
       typescript: {
@@ -39,7 +53,7 @@ module.exports = {
         minifyURLs: true,
       },
     }),
-  ]),
-  module: commonConfig.module,
-  resolve: commonConfig.resolve,
+  ],
+  module: getModuleConfig('production'),
+  resolve: getResolveConfig(),
 }
