@@ -8,16 +8,16 @@ const iconSize = 18
 const atoms = stylesheet({
   actionButton: {
     transition: `0.1s opacity ${theme.easings.easeInOutCubic}, 30ms fill ${theme.easings.easeInOutCubic}`,
-    fill: 'rgba(0, 0, 0, 0.4)',
+    fill: theme.colors.neutral60,
     cursor: 'pointer',
     borderRadius: theme.borders.smallRadius,
     $nest: {
       '&:hover': {
-        fill: 'rgba(0, 0, 0, 0.7)',
+        fill: theme.colors.neutral40,
         background: theme.colors.bgHover,
       },
       '&:active': {
-        fill: 'rgba(0, 0, 0, 0.9)',
+        fill: theme.colors.neutral10,
         background: theme.colors.bgActive,
       },
     },
