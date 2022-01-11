@@ -27,7 +27,7 @@ module.exports = {
     publicPath: '/',
   },
   plugins: getCommonPlugins().concat([
-    new ReactRefreshWebpackPlugin(),
+    new ReactRefreshWebpackPlugin({ overlay: false }),
     new ForkTsCheckerWebpackPlugin({
       eslint: {
         files: './src/**/*.{ts,tsx,js,jsx}',
