@@ -298,20 +298,21 @@ export function Block({
         />
       )}
       {!isHovering && blink && <div className={styles.blink} />}
-      {isHovering && (
-        <>
-          <div
-            className={classes(styles.actionButton, styles.open)}
-            onClick={openAsCanvas}>
-            <OpenInFull />
-          </div>
-          <div
-            ref={arrowTriggerElRef}
-            className={classes(styles.actionButton, styles.arrow)}>
-            <ArrowNorthEast />
-          </div>
-        </>
-      )}
+      {(mode === InteractionMode.Idle || mode === InteractionMode.Focusing) &&
+        isHovering && (
+          <>
+            <div
+              className={classes(styles.actionButton, styles.open)}
+              onClick={openAsCanvas}>
+              <OpenInFull />
+            </div>
+            <div
+              ref={arrowTriggerElRef}
+              className={classes(styles.actionButton, styles.arrow)}>
+              <ArrowNorthEast />
+            </div>
+          </>
+        )}
       {highlighted && <div className={styles.highlightOverlay} />}
     </div>
   )
