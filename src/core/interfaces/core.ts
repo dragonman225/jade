@@ -22,7 +22,7 @@ export interface AppState {
   selectionBoxStart: Vec2
   selectionBoxEnd: Vec2
   selectionBox: Box
-  pointerOffsetInCursorBox: Vec2
+  pointerOffsetInLeaderBox: Vec2
   selectedBlockIds: BlockId[]
   blocks: BlockInstance[]
   blocksRendered: boolean

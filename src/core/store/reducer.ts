@@ -98,7 +98,7 @@ export function loadAppState(db: DatabaseInterface): AppState {
     selectionBoxStart: { x: 0, y: 0 },
     selectionBoxEnd: { x: 0, y: 0 },
     selectionBox: { x: 0, y: 0, w: 0, h: 0 },
-    pointerOffsetInCursorBox: { x: 0, y: 0 },
+    pointerOffsetInLeaderBox: { x: 0, y: 0 },
     selectedBlockIds: [],
     blocks,
     blocksRendered: false,
@@ -340,7 +340,7 @@ export function createAppStateReducer(
             })
           ),
           selectedBlockIds,
-          pointerOffsetInCursorBox: vecSub(pointerInEnvCoords, cursorBlock.pos),
+          pointerOffsetInLeaderBox: vecSub(pointerInEnvCoords, cursorBlock.pos),
         }
       }
       case Action.BlockMove: {
@@ -350,7 +350,7 @@ export function createAppStateReducer(
           selectedBlockIds,
           blocks,
           camera,
-          pointerOffsetInCursorBox,
+          pointerOffsetInLeaderBox,
         } = state
 
         if (blocks.find(b => id === b.id)?.posType !== PositionType.Normal) {
@@ -365,19 +365,19 @@ export function createAppStateReducer(
           camera
         )
 
-        const cursorBlock = blocks.find(b => id === b.id)
-        const cursorBlockBox = blockToBox(cursorBlock)
-        const cursorBlockDesiredPos = vecSub(
+        const leaderBlock = blocks.find(b => id === b.id)
+        const leaderBlockBox = blockToBox(leaderBlock)
+        const leaderBlockProposedPos = vecSub(
           pointerInEnvCoords,
-          pointerOffsetInCursorBox
+          pointerOffsetInLeaderBox
         )
 
         const shouldMove = (blockId: BlockId): boolean => {
-          return cursorBlock.selected
+          return leaderBlock.selected
             ? /** If cursorBlock is selected, we move all selected blocks. */
               selectedBlockIds.includes(blockId)
             : /** Otherwise, we just move the cursorBlock. */
-              blockId === cursorBlock.id
+              blockId === leaderBlock.id
         }
 
         const guidelineRects = blocks
@@ -398,7 +398,7 @@ export function createAppStateReducer(
           horizontalGuidelines,
           verticalGuidelines,
         } = generateGuidelinesFromRects(
-          cursorBlockBox,
+          leaderBlockBox,
           guidelineRects,
           generationTolerance
         )
@@ -407,26 +407,26 @@ export function createAppStateReducer(
 
         /**
          * Try to snap all sides to guidelines. (Since we are moving, all
-         * sides are changing.)
+         * sides can change.)
          */
         const snapResult = {
           left: snapValue(
-            cursorBlockDesiredPos.x,
+            leaderBlockProposedPos.x,
             verticalGuidelines,
             snapTolerance
           ),
           top: snapValue(
-            cursorBlockDesiredPos.y,
+            leaderBlockProposedPos.y,
             horizontalGuidelines,
             snapTolerance
           ),
           right: snapValue(
-            cursorBlockDesiredPos.x + cursorBlockBox.w,
+            leaderBlockProposedPos.x + leaderBlockBox.w,
             verticalGuidelines,
             snapTolerance
           ),
           bottom: snapValue(
-            cursorBlockDesiredPos.y + cursorBlockBox.h,
+            leaderBlockProposedPos.y + leaderBlockBox.h,
             horizontalGuidelines,
             snapTolerance
           ),
@@ -442,12 +442,12 @@ export function createAppStateReducer(
          */
         const xShouldUse = (() => {
           if (snapResult.left.guideline && snapResult.right.guideline) {
-            /** Whether desire is closer to left or right? */
+            /** Is proposed pos closer to left or right? */
             if (
-              Math.abs(cursorBlockDesiredPos.x - snapResult.left.value) <
+              Math.abs(leaderBlockProposedPos.x - snapResult.left.value) <
               Math.abs(
-                cursorBlockDesiredPos.x +
-                  cursorBlockBox.w -
+                leaderBlockProposedPos.x +
+                  leaderBlockBox.w -
                   snapResult.right.value
               )
             ) {
@@ -464,12 +464,12 @@ export function createAppStateReducer(
 
         const yShouldUse = (() => {
           if (snapResult.top.guideline && snapResult.bottom.guideline) {
-            /** Whether desire is closer to left or right? */
+            /** Is proposed pos closer to top or bottom? */
             if (
-              Math.abs(cursorBlockDesiredPos.y - snapResult.top.value) <
+              Math.abs(leaderBlockProposedPos.y - snapResult.top.value) <
               Math.abs(
-                cursorBlockDesiredPos.y +
-                  cursorBlockBox.h -
+                leaderBlockProposedPos.y +
+                  leaderBlockBox.h -
                   snapResult.bottom.value
               )
             ) {
@@ -484,29 +484,29 @@ export function createAppStateReducer(
           }
         })()
 
-        const cursorBlockNewPos = {
+        const leaderBlockActualNewPos = {
           x:
             xShouldUse === 'right'
               ? snapResult.right.guideline
                 ? snapResult.right.guideline.fromSide === RectSide.Left
-                  ? snapResult.right.value - gap - cursorBlockBox.w // another left - cursor right
-                  : snapResult.right.value - cursorBlockBox.w
-                : snapResult.right.value - cursorBlockBox.w
+                  ? snapResult.right.value - gap - leaderBlockBox.w // another left - leader right
+                  : snapResult.right.value - leaderBlockBox.w
+                : snapResult.right.value - leaderBlockBox.w
               : snapResult.left.guideline
               ? snapResult.left.guideline.fromSide === RectSide.Right
-                ? snapResult.left.value + gap // another right - cursor left
+                ? snapResult.left.value + gap // another right - leader left
                 : snapResult.left.value
               : snapResult.left.value, // Not snapping on left / right, just pass-through
           y:
             yShouldUse === 'bottom'
               ? snapResult.bottom.guideline
                 ? snapResult.bottom.guideline.fromSide === RectSide.Top
-                  ? snapResult.bottom.value - gap - cursorBlockBox.h // another top - cursor bottom
-                  : snapResult.bottom.value - cursorBlockBox.h
-                : snapResult.bottom.value - cursorBlockBox.h
+                  ? snapResult.bottom.value - gap - leaderBlockBox.h // another top - leader bottom
+                  : snapResult.bottom.value - leaderBlockBox.h
+                : snapResult.bottom.value - leaderBlockBox.h
               : snapResult.top.guideline
               ? snapResult.top.guideline.fromSide === RectSide.Bottom
-                ? snapResult.top.value + gap // another bottom - cursor top
+                ? snapResult.top.value + gap // another bottom - leader top
                 : snapResult.top.value
               : snapResult.top.value, // Not snapping on top / bottom, just pass-through
         }
@@ -515,9 +515,9 @@ export function createAppStateReducer(
          * Calculate the final movement so that we can apply it to all
          * selected blocks.
          */
-        const cursorBlockFinalMovement = {
-          x: cursorBlockNewPos.x - cursorBlock.pos.x,
-          y: cursorBlockNewPos.y - cursorBlock.pos.y,
+        const leaderBlockActualMovement = {
+          x: leaderBlockActualNewPos.x - leaderBlock.pos.x,
+          y: leaderBlockActualNewPos.y - leaderBlock.pos.y,
         }
 
         const newViewingConcept = updateConcept(state.viewingConcept, {
@@ -525,7 +525,7 @@ export function createAppStateReducer(
             if (shouldMove(ref.id)) {
               return {
                 ...ref,
-                pos: vecAdd(ref.pos, cursorBlockFinalMovement),
+                pos: vecAdd(ref.pos, leaderBlockActualMovement),
               }
             } else {
               return ref
@@ -574,7 +574,7 @@ export function createAppStateReducer(
             ...b,
             highlighted: shouldHighlight(b.id),
             pos: shouldMove(b.id)
-              ? vecAdd(b.pos, cursorBlockFinalMovement)
+              ? vecAdd(b.pos, leaderBlockActualMovement)
               : b.pos,
           })),
         }
@@ -676,7 +676,7 @@ export function createAppStateReducer(
           return {
             ...state,
             viewingConcept: newViewingConcept,
-            pointerOffsetInCursorBox: { x: 0, y: 0 },
+            pointerOffsetInLeaderBox: { x: 0, y: 0 },
             blocks: blocks
               .filter(b => !movingBlocks.includes(b))
               .map(b => ({
@@ -691,7 +691,7 @@ export function createAppStateReducer(
 
         return {
           ...state,
-          pointerOffsetInCursorBox: { x: 0, y: 0 },
+          pointerOffsetInLeaderBox: { x: 0, y: 0 },
           blocks: state.blocks.map(b =>
             updateBlockInstance(b, { highlighted: false })
           ),
