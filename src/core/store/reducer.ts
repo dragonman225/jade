@@ -117,6 +117,7 @@ export function loadAppState(db: DatabaseInterface): AppState {
         pointerInViewportCoords: { x: 0, y: 0 },
       },
     },
+    isMovingBlocks: false,
   }
 }
 
@@ -341,6 +342,7 @@ export function createAppStateReducer(
           ),
           selectedBlockIds,
           pointerOffsetInLeaderBox: vecSub(pointerInEnvCoords, cursorBlock.pos),
+          isMovingBlocks: true,
         }
       }
       case Action.BlockMove: {
@@ -686,6 +688,7 @@ export function createAppStateReducer(
             relations: newViewingConcept.relations,
             /** Blocks are moved into another concept, so reset it. */
             selectedBlockIds: [],
+            isMovingBlocks: false,
           }
         }
 
@@ -695,6 +698,7 @@ export function createAppStateReducer(
           blocks: state.blocks.map(b =>
             updateBlockInstance(b, { highlighted: false })
           ),
+          isMovingBlocks: false,
         }
       }
       case Action.BlockResizeDelta: {
@@ -1103,25 +1107,53 @@ export function createAppStateReducer(
         }
       }
       case Action.CameraMoveDelta: {
-        const delta = vecDiv(action.data, state.camera.scale)
+        const movementInEnvCoords = vecDiv(action.data, state.camera.scale)
+
+        const {
+          selectionBoxStart,
+          selecting,
+          isMovingBlocks,
+          blocks,
+          camera,
+          viewingConcept,
+        } = state
 
         const newCamera: Camera = {
-          ...state.camera,
-          focus: {
-            x: state.camera.focus.x - delta.x,
-            y: state.camera.focus.y - delta.y,
-          },
+          ...camera,
+          focus: vecSub(camera.focus, movementInEnvCoords),
         }
-        const newViewingConcept = updateConcept(state.viewingConcept, {
+
+        /** Update selected blocks if the user is moving them. */
+        const newBlocks = isMovingBlocks
+          ? blocks.map(b =>
+              b.posType === PositionType.Normal && b.selected
+                ? updateBlockInstance(b, {
+                    pos: vecSub(b.pos, movementInEnvCoords),
+                  })
+                : b
+            )
+          : blocks
+
+        const newViewingConcept = updateConcept(viewingConcept, {
           camera: newCamera,
+          references: newBlocks
+            .filter(b => b.posType === PositionType.Normal)
+            .map(b => blockInstanceToBlock(b)),
         })
 
         db.updateConcept(newViewingConcept)
 
-        /** Also update selectionBox if being selecting. */
-        const { selectionBoxStart, selecting } = state
+        /**
+         * Selecting and moving blocks may happen at the same time on
+         * future devices with more expressive interfaces.
+         */
+
+        /** Also update selectionBox if the user is selecting. */
         if (selecting) {
-          const selectionBoxEnd = vecSub(state.selectionBoxEnd, delta)
+          const selectionBoxEnd = vecSub(
+            state.selectionBoxEnd,
+            movementInEnvCoords
+          )
           const selectionBox = normalizeToBox(
             selectionBoxStart.x,
             selectionBoxStart.y,
@@ -1155,6 +1187,7 @@ export function createAppStateReducer(
           viewingConcept: newViewingConcept,
           camera: newCamera,
           shouldAnimateCamera: false,
+          blocks: newBlocks,
         }
       }
       case Action.CameraScaleDelta: {
