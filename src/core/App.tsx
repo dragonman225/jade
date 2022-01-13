@@ -177,6 +177,7 @@ interface AppRootProps {
 export function AppRoot(props: AppRootProps): JSX.Element {
   const { db, factoryRegistry, openExternal } = props
 
+  /** Render state on animation frame.  */
   const appStateReducer = useMemo(
     () => createAppStateReducer(db, factoryRegistry),
     [db, factoryRegistry]
@@ -184,15 +185,21 @@ export function AppRoot(props: AppRootProps): JSX.Element {
   const initialState = useMemo(() => loadAppState(db), [db])
   const [stateSnapshot, setStateSnapshot] = useState<AppState>(initialState)
   const stateRef = useRef<AppState>(initialState)
+  const stateChangedRef = useRef(true)
   const dispatchAction = useCallback<(action: Actions) => void>(
     action => {
       stateRef.current = appStateReducer(stateRef.current, action)
+      stateChangedRef.current = true
     },
     [appStateReducer]
   )
   useAnimationFrame(() => {
-    setStateSnapshot(stateRef.current)
+    if (stateChangedRef.current) {
+      setStateSnapshot(stateRef.current)
+      stateChangedRef.current = false
+    }
   })
+
   const overlayRef = useRef<HTMLDivElement>(null)
   const createOverlay = useCallback(
     (children: React.ReactNode): React.ReactPortal => {
