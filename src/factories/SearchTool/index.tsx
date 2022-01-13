@@ -345,13 +345,16 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
             <div key={page}>
               {resultItems
                 .slice(start, nextStart)
-                .map((item: CanvasItem | BlockItem | OrphanItem) => {
-                  return (
+                .map(
+                  (
+                    item: CanvasItem | BlockItem | OrphanItem,
+                    index: number
+                  ) => (
                     <React.Fragment
                       key={
                         item.type === 'canvas' || item.type === 'orphan'
                           ? item.canvasId
-                          : item.blockId
+                          : `${item.canvasId}-${item.blockId}-${index}`
                       }>
                       {(function () {
                         switch (s2lState) {
@@ -402,7 +405,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                       <hr className={styles.Divider} />
                     </React.Fragment>
                   )
-                })}
+                )}
             </div>
           </div>
           <div className={styles.pageControl}>
