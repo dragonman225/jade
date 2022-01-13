@@ -5,7 +5,7 @@ import { classes } from 'typestyle'
 import { ArrowNorthEast } from './Icons/ArrowNorthEast'
 import { OpenInFull } from './Icons/OpenInFull'
 import { styles } from './Block.styles'
-import { getUnifiedClientCoords, vecSub } from '../utils'
+import { distanceOf, getUnifiedClientCoords, vecSub } from '../utils'
 import { blockRectManager } from '../utils/blockRectManager'
 import { Action, Actions } from '../store/actions'
 import {
@@ -63,82 +63,40 @@ export function Block({
     modeRef.current = mode
   }, [mode])
 
+  /** Advanced gesture detection. */
+  const gestureModeRef = useRef<
+    | 'idle'
+    | 'ready_to_move'
+    | 'move'
+    | 'resizeWH'
+    | 'resizeW'
+    | 'resizeH'
+    | 'drawArrow'
+  >('idle')
+  const lastClientCoordsRef = useRef({ x: 0, y: 0 })
+  const pointerDownCoordsRef = useRef({ x: 0, y: 0 })
   useEffect(() => {
-    const gestureDetector = (() => {
-      let intent:
-        | ''
-        | 'move'
-        | 'resizeWH'
-        | 'resizeW'
-        | 'resizeH'
-        | 'drawArrow' = ''
-      let lastClientCoords = { x: 0, y: 0 }
+    const blockEl = blockElRef.current
 
-      const handlePointerMove = (e: MouseEvent | TouchEvent) => {
-        const clientCoords = getUnifiedClientCoords(e)
-        const movement = vecSub(clientCoords, lastClientCoords)
-        lastClientCoords = clientCoords
-
-        if (intent.startsWith('resize')) {
-          dispatchAction({
-            type: Action.BlockResizeDelta,
-            data: {
-              id,
-              /**
-               * So that we can resize only one direction for blocks that
-               * allow both.
-               */
-              movementInViewportCoords: {
-                x:
-                  intent === 'resizeW' || intent === 'resizeWH'
-                    ? movement.x
-                    : 0,
-                y:
-                  intent === 'resizeH' || intent === 'resizeWH'
-                    ? movement.y
-                    : 0,
-              },
-            },
-          })
-          dispatchAction({
-            type: Action.BlockSetMode,
-            data: { id, mode: InteractionMode.Resizing },
-          })
-        } else if (intent === 'move') {
-          dispatchAction({
-            type: Action.BlockMove,
-            data: {
-              id,
-              pointerInViewportCoords: clientCoords,
-            },
-          })
-          dispatchAction({
-            type: Action.BlockSetMode,
-            data: { id, mode: InteractionMode.Moving },
-          })
-        } else if (intent === 'drawArrow') {
-          dispatchAction({
-            type: Action.RelationDrawMove,
-            data: { id, pointerInViewportCoords: clientCoords },
-          })
-        }
+    function onPointerUp(e: MouseEvent | TouchEvent) {
+      /**
+       * Think about a case: Mouse down with left button, mouse up with
+       * right button -> should not trigger below actions.
+       */
+      if (e instanceof MouseEvent && e.button !== 0) {
+        return
       }
 
-      const handlePointerUp = (e: MouseEvent | TouchEvent) => {
-        /**
-         * Think about a case: Mouse down with left button, mouse up with
-         * right button -> should not trigger below actions.
-         */
-        if (e instanceof MouseEvent && e.button !== 0) {
-          return
-        }
+      window.removeEventListener('mousemove', onPointerMove)
+      window.removeEventListener('touchmove', onPointerMove)
+      window.removeEventListener('mouseup', onPointerUp)
+      window.removeEventListener('touchend', onPointerUp)
+      window.removeEventListener('touchcancel', onPointerUp)
 
-        window.removeEventListener('mousemove', handlePointerMove)
-        window.removeEventListener('touchmove', handlePointerMove)
-        window.removeEventListener('mouseup', handlePointerUp)
-        window.removeEventListener('touchend', handlePointerUp)
+      const lastClientCoords = lastClientCoordsRef.current
 
-        if (intent === 'drawArrow') {
+      switch (gestureModeRef.current) {
+        case 'drawArrow': {
           dispatchAction({
             type: Action.RelationDrawEnd,
             data: {
@@ -150,112 +108,172 @@ export function Block({
               pointerInViewportCoords: lastClientCoords,
             },
           })
+          break
         }
-
-        intent = ''
-
-        if (modeRef.current === InteractionMode.Moving)
-          dispatchAction({ type: Action.BlockMoveEnd })
-
-        /** "Focusing" is controlled by the concept display. */
-        if (
-          modeRef.current === InteractionMode.Moving ||
-          modeRef.current === InteractionMode.Resizing
-        )
-          dispatchAction({
-            type: Action.BlockSetMode,
-            data: { id, mode: InteractionMode.Idle },
-          })
       }
 
-      return {
-        handlePointerDown: (e: MouseEvent | TouchEvent) => {
-          const clientCoords = getUnifiedClientCoords(e)
-          lastClientCoords = clientCoords
+      gestureModeRef.current = 'idle'
 
-          if (e instanceof MouseEvent) {
-            /** Reject non-primary button. */
-            if (e.button !== 0) {
-              /** Prevent focus if InteractionMode is not Focusing. */
-              if (modeRef.current !== InteractionMode.Focusing)
-                e.preventDefault()
-              if (e.button === 2 && modeRef.current === InteractionMode.Idle) {
-                dispatchAction({
-                  type: Action.ContextMenuOpen,
-                  data: {
-                    contextType: ContextType.InferFromPointer,
-                    pointerInViewportCoords: clientCoords,
-                  },
-                })
-              }
-              return
-            }
-          }
+      if (modeRef.current === InteractionMode.Moving)
+        dispatchAction({ type: Action.BlockMoveEnd })
 
-          const widthResizerEl = widthResizerElRef.current
-          const heightResizerEl = heightResizerElRef.current
-          const widthHeightResizerEl = widthHeightResizerElRef.current
-          const arrowTriggerEl = arrowTriggerElRef.current
+      /** "Focusing" is controlled by the concept display. */
+      if (
+        modeRef.current === InteractionMode.Moving ||
+        modeRef.current === InteractionMode.Resizing
+      )
+        dispatchAction({
+          type: Action.BlockSetMode,
+          data: { id, mode: InteractionMode.Idle },
+        })
+    }
 
-          if (widthResizerEl && widthResizerEl.contains(e.target as Node))
-            intent = 'resizeW'
-          else if (
-            heightResizerEl &&
-            heightResizerEl.contains(e.target as Node)
-          )
-            intent = 'resizeH'
-          else if (
-            widthHeightResizerEl &&
-            widthHeightResizerEl.contains(e.target as Node)
-          )
-            intent = 'resizeWH'
-          else if (
-            arrowTriggerEl &&
-            arrowTriggerEl.contains(e.target as Node)
-          ) {
-            intent = 'drawArrow'
-            dispatchAction({
-              type: Action.RelationDrawStart,
-              data: { id, pointerInViewportCoords: clientCoords },
-            })
-          } else if (modeRef.current !== InteractionMode.Focusing) {
-            intent = 'move'
+    function onPointerMove(e: MouseEvent | TouchEvent) {
+      const clientCoords = getUnifiedClientCoords(e)
+      const movement = vecSub(clientCoords, lastClientCoordsRef.current)
+      lastClientCoordsRef.current = clientCoords
+
+      switch (gestureModeRef.current) {
+        case 'ready_to_move': {
+          if (distanceOf(clientCoords, pointerDownCoordsRef.current) > 3) {
+            gestureModeRef.current = 'move'
             dispatchAction({
               type: Action.BlockMoveStart,
               data: { id, pointerInViewportCoords: clientCoords },
             })
           }
-
-          window.addEventListener('mousemove', handlePointerMove)
-          window.addEventListener('touchmove', handlePointerMove)
-          window.addEventListener('mouseup', handlePointerUp)
-          window.addEventListener('touchend', handlePointerUp)
-        },
+          break
+        }
+        case 'move': {
+          dispatchAction({
+            type: Action.BlockMove,
+            data: {
+              id,
+              pointerInViewportCoords: clientCoords,
+            },
+          })
+          dispatchAction({
+            type: Action.BlockSetMode,
+            data: { id, mode: InteractionMode.Moving },
+          })
+          break
+        }
+        case 'resizeW':
+        case 'resizeH':
+        case 'resizeWH': {
+          const gestureMode = gestureModeRef.current
+          dispatchAction({
+            type: Action.BlockResizeDelta,
+            data: {
+              id,
+              /**
+               * So that we can resize only one direction for blocks that
+               * allow both.
+               */
+              movementInViewportCoords: {
+                x:
+                  gestureMode === 'resizeW' || gestureMode === 'resizeWH'
+                    ? movement.x
+                    : 0,
+                y:
+                  gestureMode === 'resizeH' || gestureMode === 'resizeWH'
+                    ? movement.y
+                    : 0,
+              },
+            },
+          })
+          dispatchAction({
+            type: Action.BlockSetMode,
+            data: { id, mode: InteractionMode.Resizing },
+          })
+          break
+        }
+        case 'drawArrow': {
+          dispatchAction({
+            type: Action.RelationDrawMove,
+            data: { id, pointerInViewportCoords: clientCoords },
+          })
+          break
+        }
       }
-    })()
+    }
 
+    function onPointerDown(e: MouseEvent | TouchEvent) {
+      const clientCoords = getUnifiedClientCoords(e)
+      lastClientCoordsRef.current = clientCoords
+
+      /** Trigger context menu. */
+      if (e instanceof MouseEvent) {
+        /** Reject non-primary button. */
+        if (e.button !== 0) {
+          /** Prevent focus if InteractionMode is not Focusing. */
+          if (modeRef.current !== InteractionMode.Focusing) e.preventDefault()
+          if (e.button === 2 && modeRef.current === InteractionMode.Idle) {
+            dispatchAction({
+              type: Action.ContextMenuOpen,
+              data: {
+                contextType: ContextType.InferFromPointer,
+                pointerInViewportCoords: clientCoords,
+              },
+            })
+          }
+          return
+        }
+      }
+
+      const widthResizerEl = widthResizerElRef.current
+      const heightResizerEl = heightResizerElRef.current
+      const widthHeightResizerEl = widthHeightResizerElRef.current
+      const arrowTriggerEl = arrowTriggerElRef.current
+
+      if (widthResizerEl && widthResizerEl.contains(e.target as Node))
+        gestureModeRef.current = 'resizeW'
+      else if (heightResizerEl && heightResizerEl.contains(e.target as Node))
+        gestureModeRef.current = 'resizeH'
+      else if (
+        widthHeightResizerEl &&
+        widthHeightResizerEl.contains(e.target as Node)
+      )
+        gestureModeRef.current = 'resizeWH'
+      else if (arrowTriggerEl && arrowTriggerEl.contains(e.target as Node)) {
+        gestureModeRef.current = 'drawArrow'
+        dispatchAction({
+          type: Action.RelationDrawStart,
+          data: { id, pointerInViewportCoords: clientCoords },
+        })
+      } else if (modeRef.current !== InteractionMode.Focusing) {
+        gestureModeRef.current = 'ready_to_move'
+      }
+
+      window.addEventListener('mousemove', onPointerMove)
+      window.addEventListener('touchmove', onPointerMove)
+      window.addEventListener('mouseup', onPointerUp)
+      window.addEventListener('touchend', onPointerUp)
+      window.addEventListener('touchcancel', onPointerUp)
+    }
+
+    blockEl.addEventListener('mousedown', onPointerDown)
+    blockEl.addEventListener('touchstart', onPointerDown)
+
+    return () => {
+      blockEl.removeEventListener('mousedown', onPointerDown)
+      blockEl.removeEventListener('touchstart', onPointerDown)
+    }
+  }, [id, dispatchAction])
+
+  /** Disable system context menu when not focusing since we're showing our own. */
+  useEffect(() => {
     function preventContextMenu(e: MouseEvent) {
       if (modeRef.current !== InteractionMode.Focusing) e.preventDefault()
     }
-    const blockEl = blockElRef.current
 
-    blockEl.addEventListener('mousedown', gestureDetector.handlePointerDown)
-    blockEl.addEventListener('touchstart', gestureDetector.handlePointerDown)
-    /** Disable system since we're showing our own. */
+    const blockEl = blockElRef.current
     blockEl.addEventListener('contextmenu', preventContextMenu)
 
     return () => {
-      blockEl.removeEventListener(
-        'mousedown',
-        gestureDetector.handlePointerDown
-      )
-      blockEl.removeEventListener(
-        'touchstart',
-        gestureDetector.handlePointerDown
-      )
       blockEl.removeEventListener('contextmenu', preventContextMenu)
     }
-  }, [id, dispatchAction])
+  }, [])
 
   const blockClassName = useMemo(() => {
     return classes(
