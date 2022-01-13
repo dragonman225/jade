@@ -279,6 +279,8 @@ export function createAppStateReducer(
         const cursorBlock =
           cursorBlockId && blocks.find(b => cursorBlockId === b.id)
 
+        if (blocks.find(b => b.mode === InteractionMode.Focusing)) return state
+
         const shouldRemove = (blockId: BlockId): boolean => {
           return cursorBlock
             ? cursorBlock.selected
@@ -1191,7 +1193,7 @@ export function createAppStateReducer(
         }
       }
       case Action.CameraScaleDelta: {
-        const minScale = 0.2
+        const minScale = 0.05
         const maxScale = 2
         /** Fibonacci scaling. */
         const ratio = Math.sqrt(1.618)
