@@ -152,7 +152,7 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
                 pointerInViewportCoords: lastClientCoords,
               },
             })
-          } else if (e.key === 'Delete') {
+          } else if (e.key === 'Delete' || e.key === 'Backspace') {
             dispatchAction({
               type: Action.BlockRemove,
               data: {},
