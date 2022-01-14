@@ -7,7 +7,7 @@ import { classes } from 'typestyle'
 import { AppStyles } from './App.styles'
 import { useAnimationFrame } from './useAnimationFrame'
 import { Arrow } from './components/Arrow'
-import { Blocks } from './components/Blocks'
+import { BlockList } from './components/BlockList'
 import { CanvasInteractionDetector } from './components/CanvasInteractionDetector'
 import { PinnedPositioned } from './components/PinnedPositioned'
 import { NormalPositioned } from './components/NormalPositioned'
@@ -119,7 +119,7 @@ const App = React.memo(function App() {
           selectionBox={state.selectionBox}
           shouldAnimate={state.shouldAnimateCamera}>
           {state.blocksRendered && <Arrows />}
-          <Blocks
+          <BlockList
             /**
              * Use key to force unmount and re-mount on canvas switch, to
              * make sure `onRender` get called.
@@ -156,7 +156,7 @@ const App = React.memo(function App() {
         </NormalPositioned>
       </CanvasInteractionDetector>
       <PinnedPositioned>
-        <Blocks blocks={pinnedBlocks} />
+        <BlockList blocks={pinnedBlocks} />
       </PinnedPositioned>
       {state.contextMenuState.shouldShow &&
         createOverlay(

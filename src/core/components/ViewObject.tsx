@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { animated, SpringValue } from '@react-spring/web'
 
 import { PositionType, Size, Vec2 } from '../interfaces'
 
@@ -8,7 +7,6 @@ interface Props {
   pos: Vec2
   size: Size
   zIndex?: number
-  animatedOpacity?: SpringValue<number>
   children?: React.ReactNode
 }
 
@@ -17,7 +15,6 @@ export function ViewObject({
   pos,
   size,
   zIndex,
-  animatedOpacity,
   children,
 }: Props): JSX.Element {
   const resolvedZIndex = typeof zIndex === 'undefined' ? 'auto' : zIndex
@@ -86,7 +83,7 @@ export function ViewObject({
     }
     default: {
       return (
-        <animated.div
+        <div
           style={{
             width: size.w,
             height: size.h,
@@ -96,10 +93,9 @@ export function ViewObject({
             zIndex: resolvedZIndex,
             transformOrigin: 'top left',
             transform: `translate3d(${pos.x}px, ${pos.y}px, 0px)`,
-            opacity: animatedOpacity || 1,
           }}>
           {children}
-        </animated.div>
+        </div>
       )
     }
   }

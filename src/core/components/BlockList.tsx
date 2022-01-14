@@ -1,17 +1,24 @@
 import * as React from 'react'
 import { useEffect } from 'react'
-import { useTransition } from '@react-spring/web'
+import { useTransition, animated } from '@react-spring/web'
 
 import { BlockDriver } from './BlockDriver'
 import { ViewObject } from './ViewObject'
 import { BlockInstance } from '../interfaces'
+import { stylesheet } from 'typestyle'
 
 interface Props {
   blocks: BlockInstance[]
   onRender?: () => void
 }
 
-export function Blocks({ blocks, onRender }: Props): JSX.Element {
+const styles = stylesheet({
+  ul: {
+    listStyle: 'none',
+  },
+})
+
+export function BlockList({ blocks, onRender }: Props): JSX.Element {
   const transitions = useTransition(blocks, {
     from: { opacity: 0 },
     enter: { opacity: 1 },
@@ -26,18 +33,19 @@ export function Blocks({ blocks, onRender }: Props): JSX.Element {
   }, [])
 
   return (
-    <>
+    <ul className={styles.ul}>
       {transitions(({ opacity }, b) => (
-        <ViewObject
-          key={`vo-b-${b.id}`}
-          posType={b.posType}
-          pos={b.pos}
-          size={b.size}
-          zIndex={b.zIndex}
-          animatedOpacity={opacity}>
-          <BlockDriver block={b} />
-        </ViewObject>
+        <animated.li style={{ opacity }}>
+          <ViewObject
+            key={`vo-b-${b.id}`}
+            posType={b.posType}
+            pos={b.pos}
+            size={b.size}
+            zIndex={b.zIndex}>
+            <BlockDriver block={b} />
+          </ViewObject>
+        </animated.li>
       ))}
-    </>
+    </ul>
   )
 }
