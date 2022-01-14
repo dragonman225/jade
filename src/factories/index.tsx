@@ -30,7 +30,8 @@ class AlexFactoryRegistry implements FactoryRegistry {
     RecentToolFactory,
     InsightToolFactory,
     CSSFactory,
-  ]
+    /** Apply React.memo() to all factory views. */
+  ].map(factory => ({ ...factory, component: React.memo(factory.component) }))
   private default = PMTextFactory
 
   getDefaultContentFactory = () => this.default

@@ -134,7 +134,7 @@ function CSSReadOnly({ concept }: Props) {
   )
 }
 
-function CSS(props: Props) {
+function CSS(props: Props): JSX.Element {
   switch (props.viewMode) {
     case 'NavItem':
       return <CSSReadOnly {...props} />
@@ -146,7 +146,7 @@ function CSS(props: Props) {
 export const CSSFactory: Factory = {
   id: 'css',
   name: 'CSS',
-  component: React.memo(CSS),
+  component: CSS,
   toText: (concept: TypedConcept<CSSContent>) => {
     return concept.summary.data.globalCss || ''
   },

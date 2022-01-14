@@ -194,7 +194,7 @@ function EmbedReadOnly({ concept, blockId, viewMode }: Props) {
   }
 }
 
-function Embed(props: Props) {
+function Embed(props: Props): JSX.Element {
   switch (props.viewMode) {
     case 'NavItem':
       return <EmbedReadOnly {...props} />
@@ -206,7 +206,7 @@ function Embed(props: Props) {
 export const EmbedFactory: Factory = {
   id: 'embed',
   name: 'Embed',
-  component: React.memo(Embed),
+  component: Embed,
   toText: (concept: TypedConcept<EmbedContent>) => {
     const url = concept.summary.data.url
     return `embed ${url || ''}`
