@@ -5,8 +5,8 @@ import { useMemo, useCallback, useRef, useState, useContext } from 'react'
 import { classes } from 'typestyle'
 
 import { AppStyles } from './App.styles'
-import { useAnimationFrame } from './useAnimationFrame'
 import { Arrow } from './components/Arrow'
+import { ArrowList } from './components/ArrowList'
 import { BlockList } from './components/BlockList'
 import { CanvasInteractionDetector } from './components/CanvasInteractionDetector'
 import { PinnedPositioned } from './components/PinnedPositioned'
@@ -35,7 +35,7 @@ import {
 import { blockRectManager } from './utils/blockRectManager'
 import { blockToBox, findBlock } from './utils/block'
 import { SystemContext } from './store/systemContext'
-import { Arrows } from './components/Arrows'
+import { useAnimationFrame } from './utils/useAnimationFrame'
 
 const zeroSize = { w: 0, h: 0 }
 
@@ -118,7 +118,7 @@ const App = React.memo(function App() {
           selecting={state.selecting}
           selectionBox={state.selectionBox}
           shouldAnimate={state.shouldAnimateCamera}>
-          {state.blocksRendered && <Arrows />}
+          {state.blocksRendered && <ArrowList />}
           <BlockList
             /**
              * Use key to force unmount and re-mount on canvas switch, to

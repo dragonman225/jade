@@ -12,7 +12,7 @@ import { ViewObject } from './ViewObject'
 
 const zeroSize = { w: 0, h: 0 }
 
-export function Arrows(): JSX.Element {
+export function ArrowList(): JSX.Element {
   const { relations, blocks } = useContext(AppStateContext)
   const { dispatchAction } = useContext(SystemContext)
 
