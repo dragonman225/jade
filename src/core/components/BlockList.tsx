@@ -15,6 +15,7 @@ interface Props {
 const styles = stylesheet({
   ul: {
     listStyle: 'none',
+    margin: 0,
   },
 })
 
