@@ -3,6 +3,8 @@ import { useRef, useEffect, useCallback } from 'react'
 import { Vec2 } from '../../core/interfaces'
 import { getUnifiedClientCoords, distanceOf } from '../../core/utils'
 
+type CallbackFn = () => void
+
 /**
  * Synthesize focus and blur events for an arbitrary element.
  *
@@ -10,16 +12,16 @@ import { getUnifiedClientCoords, distanceOf } from '../../core/utils'
  *        -> pointer up) inside a node.
  *
  * Blur: Pointer down outside a node.
- *
- * TODO: Maintain focus state internally (so that onBlur won't fire if
- * it's not focused).
  */
 export function useSyntheticFocus<T extends HTMLElement>({
   onFocus,
   onBlur,
+  clickRadius = 3,
 }: {
-  onFocus: () => void
-  onBlur: () => void
+  onFocus: CallbackFn
+  onBlur: CallbackFn
+  /** If the pointer doesn't leave this circle between down and up, it's a click. */
+  clickRadius?: number
 }): {
   setNodeRef: (node: HTMLElement) => void
 } {
@@ -29,30 +31,37 @@ export function useSyntheticFocus<T extends HTMLElement>({
   }, [])
   const down = useRef<Vec2>({ x: 0, y: 0 })
   const moved = useRef(false)
+  const hasFocus = useRef(false)
 
   useEffect(() => {
-    function isNodeInside(node: Node) {
+    function isInsideElem(node: Node) {
       return elemRef.current && elemRef.current.contains(node)
     }
 
     function pointerDown(e: MouseEvent | TouchEvent) {
       down.current = getUnifiedClientCoords(e)
       moved.current = false
-      const isOutside = !isNodeInside(e.target as Node)
-      if (isOutside) onBlur()
+      const isOutside = !isInsideElem(e.target as Node)
+      if (hasFocus.current && isOutside) {
+        hasFocus.current = false
+        onBlur()
+      }
     }
 
     function pointerMove(e: MouseEvent | TouchEvent) {
       const curr = getUnifiedClientCoords(e)
       const dist = distanceOf(down.current, curr)
-      if (dist > 3) {
+      if (dist > clickRadius) {
         moved.current = true
       }
     }
 
     function pointerUp(e: MouseEvent | TouchEvent) {
-      const isInside = isNodeInside(e.target as Node)
-      if (!moved.current && isInside) onFocus()
+      const isInside = isInsideElem(e.target as Node)
+      if (!hasFocus.current && !moved.current && isInside) {
+        hasFocus.current = true
+        onFocus()
+      }
     }
 
     window.addEventListener('mousedown', pointerDown)
@@ -74,7 +83,7 @@ export function useSyntheticFocus<T extends HTMLElement>({
       window.removeEventListener('mousemove', pointerMove)
       window.removeEventListener('touchmove', pointerMove)
     }
-  }, [onFocus, onBlur])
+  }, [onFocus, onBlur, clickRadius])
 
   return {
     setNodeRef,
