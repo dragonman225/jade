@@ -2,8 +2,15 @@ import '@dragonman225/prosemirror-math/style/math.css'
 import 'katex/dist/katex.min.css'
 
 import * as React from 'react'
-import { useState, useEffect, useRef, useContext } from 'react'
-import { AllSelection, EditorState } from 'prosemirror-state'
+import {
+  useState,
+  useEffect,
+  useRef,
+  useContext,
+  useMemo,
+  useCallback,
+} from 'react'
+import { AllSelection, EditorState, Selection } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { Node as ProseNode } from 'prosemirror-model'
 import { history } from 'prosemirror-history'
@@ -25,6 +32,7 @@ import {
   isProseMirrorDocEmpty,
   keymapPlugin,
 } from './utils'
+import { useFunctionRef } from './useFunctionRef'
 import { PMTextContent } from './types'
 import { disablePasteWithMouseMiddleButton } from './ProseMirrorPlugins/disableFocusAndPasteWithMouseMiddleButton'
 import { observeInlineSelection } from './TextActionMenu/observeInlineSelection'
@@ -45,7 +53,10 @@ import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 import { PlaceMenu } from '../../core/components/PlaceMenu'
 import { SystemContext } from '../../core/store/systemContext'
 import { resolveInternalUrl, isInternalUrl } from '../../core/utils/url'
-import { useFunctionRef } from './useFunctionRef'
+import {
+  SyntheticFocusCallbackFn,
+  useSyntheticFocus,
+} from '../../core/utils/useSyntheticFocus'
 
 type Props = ConceptDisplayProps<PMTextContent>
 
@@ -67,16 +78,16 @@ const PMText: React.FunctionComponent<Props> = props => {
 
   /** ProseMirror. */
   const [showPlaceholder, setShowPlaceholder] = useState(false)
-  const [editorMounted, setEditorMounted] = useState(false)
   const [isFocusing, setIsFocusing] = useState(false)
-  const editorContainerRef = useRef<HTMLDivElement>(null)
-  const editorView = useRef<EditorView>(null)
+  const editorContainerRef = useRef<HTMLDivElement | null>(null)
+  const editorView = useRef<EditorView | null>(null)
 
   /** TextActionMenu. */
   const {
     textActionMenuRef,
-    showTextActionMenu,
-    setShowTextActionMenu,
+    shouldShowTextActionMenu,
+    openTextActionMenu,
+    closeTextActionMenu,
     textActionMenuPos,
     setTextActionMenuPos,
     boldActive,
@@ -96,6 +107,16 @@ const PMText: React.FunctionComponent<Props> = props => {
     turnIntoLatex,
     updateMenuState,
   } = useTextActionMenu(editorView.current)
+  const openTextActionMenuRef = useFunctionRef(openTextActionMenu)
+  const closeTextActionMenuRef = useFunctionRef(closeTextActionMenu)
+  useEffect(() => {
+    openTextActionMenuRef.current = openTextActionMenu
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openTextActionMenu])
+  useEffect(() => {
+    closeTextActionMenuRef.current = closeTextActionMenu
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [closeTextActionMenu])
 
   /** SuggestionMenu. */
   const suggestionMenuRef = useRef<HTMLDivElement>(null)
@@ -153,6 +174,16 @@ const PMText: React.FunctionComponent<Props> = props => {
         !event.shiftKey && // Shift + Enter is for hard break.
         event.key === 'Enter'
       ) {
+        const selection = window.getSelection()
+        selection && selection.removeAllRanges()
+        editorView.current &&
+          editorView.current.setProps({ editable: () => false })
+
+        closeTextActionMenu()
+        closeSuggestionMenu()
+        setIsFocusing(false)
+        onInteractionEnd()
+
         dispatchAction({
           type: Action.ConceptCreate,
           data: {
@@ -161,72 +192,12 @@ const PMText: React.FunctionComponent<Props> = props => {
             blockId,
           },
         })
-        onInteractionEnd()
-        setIsFocusing(false)
       }
 
       return false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blockId, dispatchAction, showSuggestionMenu, onInteractionEnd, viewMode])
-
-  /**
-   * Detect "blur". It's complex since we need to consider the interaction
-   * between the EditorView, the TextActionMenu, and the SuggestionMenu.
-   */
-  useEffect((): (() => void) | void => {
-    const editorViewEl = !!editorView.current && editorView.current.dom
-
-    function handleMousedown(e: MouseEvent) {
-      const textActionMenuEl = textActionMenuRef.current
-      const suggestionMenuEl = suggestionMenuRef.current
-      const isInEditorView =
-        !!editorViewEl && editorViewEl.contains(e.target as Element)
-      const isInTextActionMenu =
-        !!textActionMenuEl && textActionMenuEl.contains(e.target as Element)
-      const isInSuggestionMenu =
-        !!suggestionMenuEl && suggestionMenuEl.contains(e.target as Element)
-
-      if (!isInEditorView && !isInTextActionMenu && !isInSuggestionMenu) {
-        console.log('PMText: interaction end via mousedown')
-        setShowTextActionMenu(false)
-        closeSuggestionMenu()
-        window.getSelection().removeAllRanges()
-        /**
-         * Below is not working. The old selection persists in the view
-         * until future focus, and the future focus shows the
-         * selection being set in setSelection() instead of
-         * responding to the intention of the mouse.
-         */
-        // const state = view.state
-        // view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, 0)))
-        onInteractionEnd()
-        setIsFocusing(false)
-      }
-    }
-
-    if (
-      /**
-       * Only check when focus is inside `EditorView` (including nested
-       * ones), or when either menu is shown, to prevent unnecessary
-       * `setState()`.
-       */
-      // (editorViewEl && editorViewEl.contains(document.activeElement)) ||
-      // showTextActionMenu ||
-      // showSuggestionMenu
-      isFocusing
-    ) {
-      window.addEventListener('mousedown', handleMousedown)
-
-      return () => window.removeEventListener('mousedown', handleMousedown)
-    }
-  }, [
-    closeSuggestionMenu,
-    onInteractionEnd,
-    setShowTextActionMenu,
-    isFocusing,
-    textActionMenuRef,
-  ])
 
   function createEditorView(
     containerEl: HTMLElement,
@@ -255,16 +226,10 @@ const PMText: React.FunctionComponent<Props> = props => {
           })
       },
       handleDOMEvents: {
-        focusin: () => {
-          console.log('PMText: interaction start via focusin')
-          onInteractionStart()
-          setIsFocusing(true)
-          return false
-        },
         // Must call our ref function so that the getter works.
         keydown: (view, event) => onKeyDownRef.current(view, event),
       },
-      editable: () => !readOnly,
+      editable: () => false,
       /** Disable scroll-to-selection by lying that we do it in a custom way. */
       handleScrollToSelection: () => true,
     })
@@ -289,10 +254,10 @@ const PMText: React.FunctionComponent<Props> = props => {
               top: e.selectionBoundingRect.top - 50,
               left: e.selectionBoundingRect.left - 40,
             })
-            setShowTextActionMenu(true)
+            openTextActionMenuRef.current()
           },
           onSelectionRemove: () => {
-            setShowTextActionMenu(false)
+            closeTextActionMenuRef.current()
           },
         }),
         observeKeyword({
@@ -341,6 +306,7 @@ const PMText: React.FunctionComponent<Props> = props => {
             new MarkClickRule(linkMarkName, (attrs: LinkMark['attrs']) => {
               if (isInternalUrl(attrs.href)) {
                 const internalUrl = resolveInternalUrl(attrs.href)
+                if (!internalUrl.conceptId) return
                 dispatchAction({
                   type: Action.BlockOpenAsCanvas,
                   data: {
@@ -358,18 +324,25 @@ const PMText: React.FunctionComponent<Props> = props => {
         pasteLinkToText(),
       ],
     })
+
+    if (!editorContainerRef.current)
+      /** dummy */
+      return () => {
+        0
+      }
     const view = createEditorView(editorContainerRef.current, state)
+    editorView.current = view
 
     /** Auto-focusing newly created text block. */
     if (!concept.summary.data.initialized) {
+      view.setProps({ editable: () => true })
       view.focus()
+      setIsFocusing(true)
+      onInteractionStart()
       onChange({ initialized: true })
     }
 
-    editorView.current = view
-
     setShowPlaceholder(isProseMirrorDocEmpty(state.doc))
-    setEditorMounted(true)
 
     return () => {
       view.destroy()
@@ -383,12 +356,10 @@ const PMText: React.FunctionComponent<Props> = props => {
    * TODO: Do not rely on props change, build proper observer patterns.
    */
   useEffect(() => {
-    if (!editorMounted) return
-
     // console.log('PMText: update content')
 
     const view = editorView.current
-    const state = view.state
+    if (!view) return
 
     /**
      * Ignore the editor that is currently producing changes.
@@ -402,6 +373,7 @@ const PMText: React.FunctionComponent<Props> = props => {
 
     const jsonDoc = concept.summary.data.data
     const doc = getProseMirrorDoc(jsonDoc, schema)
+    const { state } = view
     const { from, to } = new AllSelection(state.doc)
 
     /** Block cases that cause replaceRangeWith() crash. */
@@ -414,30 +386,107 @@ const PMText: React.FunctionComponent<Props> = props => {
     view.dispatch(
       state.tr.replaceRangeWith(from, to, doc).setMeta('from_upstream', true)
     )
-  }, [concept.summary.data.data, editorMounted])
+  }, [concept.summary.data.data])
+
+  const onFocus = useCallback<SyntheticFocusCallbackFn>(
+    e => {
+      /** Should not set cursor when readOnly. */
+      if (readOnly || !editorView.current) return
+
+      const posInfo = editorView.current.posAtCoords({
+        left: e.clientX,
+        top: e.clientY,
+      })
+      if (!posInfo) return
+
+      console.log('PMText: interaction start via synthetic focus')
+
+      const resolvedPos = editorView.current.state.doc.resolve(posInfo.pos)
+      editorView.current.dispatch(
+        editorView.current.state.tr.setSelection(Selection.near(resolvedPos))
+      )
+      editorView.current.setProps({ editable: () => true })
+      editorView.current.focus()
+      setIsFocusing(true)
+      onInteractionStart()
+    },
+    [readOnly, onInteractionStart]
+  )
 
   /**
-   * Update "editable" prop of the editor view.
+   * Detect "blur". We need to consider the interaction between EditorView,
+   * TextActionMenu, and SuggestionMenu.
    */
-  useEffect(() => {
-    if (!editorMounted) return
+  const onPointerDownOutside = useCallback<SyntheticFocusCallbackFn>(
+    e => {
+      /** Save some unnecessary computation. */
+      if (!isFocusing) return
 
-    // console.log('PMText: update readOnly')
+      const editorViewEl = !!editorView.current && editorView.current.dom
+      const textActionMenuEl = textActionMenuRef.current
+      const suggestionMenuEl = suggestionMenuRef.current
+      const isInEditorView =
+        !!editorViewEl && editorViewEl.contains(e.target as Element)
+      const isInTextActionMenu =
+        !!textActionMenuEl && textActionMenuEl.contains(e.target as Element)
+      const isInSuggestionMenu =
+        !!suggestionMenuEl && suggestionMenuEl.contains(e.target as Element)
 
-    editorView.current.setProps({ editable: () => !readOnly })
-  }, [readOnly, editorMounted])
+      if (!isInEditorView && !isInTextActionMenu && !isInSuggestionMenu) {
+        console.log('PMText: interaction end via synthetic pointerDownOutside')
 
-  const editorContainer = (
-    <div
-      ref={editorContainerRef}
-      className={styles.EditorContainer}
-      data-view-mode={props.viewMode}>
-      {showPlaceholder && (
-        <div className={styles.Placeholder} data-view-mode={props.viewMode}>
-          {isFocusing ? `Type '/' for commands` : 'Wanna capture something'}
-        </div>
-      )}
-    </div>
+        const selection = window.getSelection()
+        selection && selection.removeAllRanges()
+        editorView.current &&
+          editorView.current.setProps({ editable: () => false })
+
+        closeTextActionMenu()
+        closeSuggestionMenu()
+        setIsFocusing(false)
+        onInteractionEnd()
+
+        /**
+         * Below is not working. The old selection persists in the view
+         * until future focus, and the future focus shows the
+         * selection being set in setSelection() instead of
+         * responding to the intention of the mouse.
+         */
+        // const state = view.state
+        // view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, 0)))
+      }
+    },
+    [
+      isFocusing,
+      onInteractionEnd,
+      closeSuggestionMenu,
+      closeTextActionMenu,
+      textActionMenuRef,
+    ]
+  )
+
+  const { setNodeRef } = useSyntheticFocus({
+    onFocus,
+    onPointerDownOutside,
+    externalHasFocus: isFocusing,
+  })
+
+  const editorContainer = useMemo(
+    () => (
+      <div
+        ref={node => {
+          setNodeRef(node)
+          editorContainerRef.current = node
+        }}
+        className={styles.EditorContainer}
+        data-view-mode={props.viewMode}>
+        {showPlaceholder && (
+          <div className={styles.Placeholder} data-view-mode={props.viewMode}>
+            {isFocusing ? `Type '/' for commands` : 'Wanna capture something'}
+          </div>
+        )}
+      </div>
+    ),
+    [isFocusing, props.viewMode, showPlaceholder, setNodeRef]
   )
 
   switch (props.viewMode) {
@@ -464,7 +513,7 @@ const PMText: React.FunctionComponent<Props> = props => {
                 />
               </PlaceMenu>
             )}
-          {showTextActionMenu &&
+          {shouldShowTextActionMenu &&
             props.createOverlay(
               <div style={{ position: 'absolute', ...textActionMenuPos }}>
                 <TextActionMenu

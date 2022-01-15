@@ -5,7 +5,6 @@ import { classes } from 'typestyle'
 import { styles } from './index.styles'
 import { Iframe } from './Iframe'
 import { Tweet } from './Tweet'
-import { useSyntheticFocus } from './useSyntheticFocus'
 import {
   ConceptDisplayProps,
   Factory,
@@ -17,6 +16,7 @@ import { SystemContext } from '../../core/store/systemContext'
 import { AppStateContext } from '../../core/store/appStateContext'
 import { findBlock } from '../../core/utils/block'
 import { saveTextToClipboard } from '../../core/utils/clipboard'
+import { useSyntheticFocus } from '../../core/utils/useSyntheticFocus'
 import { getTweetId, isTweet } from './utils'
 
 interface EmbedContent {

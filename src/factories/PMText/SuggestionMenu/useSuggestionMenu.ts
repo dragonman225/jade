@@ -97,7 +97,7 @@ export function useSuggestionMenu(
   factoryRegistry: FactoryRegistry,
   onInteractionEnd: () => void,
   onReplace: (type: string) => void,
-  editorView: EditorView
+  editorView: EditorView | null | undefined
 ) {
   const [showSuggestionMenu, setShowSuggestionMenu] = useState(false)
   const [keyword, setKeyword] = useState('')
@@ -181,6 +181,7 @@ export function useSuggestionMenu(
 
   const insertLinkToConcept = useCallback(
     (concept: TypedConcept<unknown>) => {
+      if (!editorView) return
       const { from, to } = keywordRange
       const keywordSlice = editorView.state.doc.slice(from, to)
       const markActiveMap = getActiveMarksFromSlice(keywordSlice)
@@ -231,6 +232,7 @@ export function useSuggestionMenu(
     } else {
       if (optionGroup.id === OptionGroupType.LinkTo) {
         const concept = database.getConcept(option.id)
+        if (!concept) return
         insertLinkToConcept(concept)
       } else if (optionGroup.id === OptionGroupType.CreateAndLinkTo) {
         const concept = createConcept('pmtext', {
