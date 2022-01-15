@@ -196,8 +196,11 @@ function createDatabase(path: string): PlatformDatabaseInterface {
     log('Queue write', item)
     writeBuffer.push(item)
     if (Date.now() - lastUpdatedTime > minUpdateInterval) {
-      commitBuffer()
-      lastUpdatedTime = Date.now()
+      /** Run commit in another task. */
+      setTimeout(() => {
+        commitBuffer()
+        lastUpdatedTime = Date.now()
+      })
     } else {
       if (!timer) {
         /** Schedule a commit in the future. */
