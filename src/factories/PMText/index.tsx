@@ -448,7 +448,7 @@ const PMText: React.FunctionComponent<Props> = props => {
       return (
         <>
           {editorContainer}
-          {showSuggestionMenu ? (
+          {showSuggestionMenu &&
             props.createOverlay(
               <PlaceMenu near={suggestionMenuAnchorRect}>
                 <SuggestionMenu
@@ -463,10 +463,7 @@ const PMText: React.FunctionComponent<Props> = props => {
                   onSelectNextOption={selectNextOption}
                 />
               </PlaceMenu>
-            )
-          ) : (
-            <></>
-          )}
+            )}
           {showTextActionMenu &&
             props.createOverlay(
               <div style={{ position: 'absolute', ...textActionMenuPos }}>
