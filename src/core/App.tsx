@@ -64,9 +64,10 @@ const App = React.memo(function App() {
       w: windowWidth / state.camera.scale + 2 * overscanX,
       h: windowHeight / state.camera.scale + 2 * overscanY,
     }
+    const rects = state.blocks.map(b => blockRectManager.getRect(b.id))
 
-    return state.blocks.filter(b => {
-      const rect = blockRectManager.getRect(b.id)
+    return state.blocks.filter((b, index) => {
+      const rect = rects[index]
 
       return (
         b.posType === PositionType.Normal &&
