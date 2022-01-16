@@ -42,10 +42,15 @@ export default {
       '0%': { opacity: 0 },
       '100%': { opacity: 1 },
     }),
+    fadeOut: keyframes({
+      '0%': { opacity: 1 },
+      '100%': { opacity: 0 },
+    }),
   },
   easings: {
-    /** @see https://easings.net/#easeInOutCubic */
+    /** @see https://easings.net/ */
     easeInOutCubic: 'cubic-bezier(0.65, 0, 0.35, 1)',
+    easeOutExpo: 'cubic-bezier(0.16, 1, 0.3, 1)',
   },
   paddings: {
     /** Create comfortable paddings for view mode "block". */
