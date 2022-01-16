@@ -185,18 +185,25 @@ export function AppRoot(props: AppRootProps): JSX.Element {
   const initialState = useMemo(() => loadAppState(db), [db])
   const [stateSnapshot, setStateSnapshot] = useState<AppState>(initialState)
   const stateRef = useRef<AppState>(initialState)
-  const stateChangedRef = useRef(true)
+  /**
+   * Need two timestamps. Consider this observed case:
+   * start rendering frame -> dispatchAction, raise render flag
+   * -> end rendering frame, clear render flag -> the state created by the
+   * dispatchAction is missed
+   */
+  const lastStateChangeTimeRef = useRef(0)
+  const lastFrameStartTimeRef = useRef(0)
   const dispatchAction = useCallback<(action: Actions) => void>(
     action => {
       stateRef.current = appStateReducer(stateRef.current, action)
-      stateChangedRef.current = true
+      lastStateChangeTimeRef.current = Date.now()
     },
     [appStateReducer]
   )
   useAnimationFrame(() => {
-    if (stateChangedRef.current) {
+    if (lastStateChangeTimeRef.current > lastFrameStartTimeRef.current) {
+      lastFrameStartTimeRef.current = Date.now()
       setStateSnapshot(stateRef.current)
-      stateChangedRef.current = false
     }
   })
 
