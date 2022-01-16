@@ -1,15 +1,17 @@
 import * as React from 'react'
 import { useContext, useState, useCallback } from 'react'
+import { classes } from 'typestyle'
 
 import { styles } from './index.styles'
 import { AppStateContext } from '../../core/store/appStateContext'
+import { Add } from '../../core/components/Icons/Add'
 import { ArrowBack } from '../../core/components/Icons/ArrowBack'
 import { Home } from '../../core/components/Icons/Home'
 import { ExpandDown } from '../../core/components/Icons/ExpandDown'
 import { ExpandUp } from '../../core/components/Icons/ExpandUp'
 import { Action } from '../../core/store/actions'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
-import { classes } from 'typestyle'
+import { createConcept } from '../../core/utils/concept'
 
 type Props = ConceptDisplayProps<undefined>
 
@@ -17,6 +19,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
   const {
     viewMode,
     blockId,
+    database,
     dispatchAction,
     createOverlay,
     onInteractionStart,
@@ -26,6 +29,16 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
 
   const [titleCollapsed, setTitleCollapsed] = useState(true)
   const toggleTitleCollapsed = useCallback(() => setTitleCollapsed(c => !c), [])
+  const createCanvas = useCallback(() => {
+    const canvas = createConcept('pmtext')
+    database.createConcept(canvas)
+    dispatchAction({
+      type: Action.BlockOpenAsCanvas,
+      data: {
+        id: canvas.id,
+      },
+    })
+  }, [database, dispatchAction])
 
   if (viewMode !== 'Block') {
     return <div className={styles.HeaderToolNav}>🔧 Header Tool</div>
@@ -106,6 +119,9 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
       </div>
       <button className={styles.Button} onClick={toggleTitleCollapsed}>
         {titleCollapsed ? <ExpandDown /> : <ExpandUp />}
+      </button>
+      <button className={styles.Button} onClick={createCanvas}>
+        <Add />
       </button>
     </div>
   )
