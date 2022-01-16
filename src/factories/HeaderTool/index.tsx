@@ -6,9 +6,10 @@ import { styles } from './index.styles'
 import { AppStateContext } from '../../core/store/appStateContext'
 import { Add } from '../../core/components/Icons/Add'
 import { ArrowBack } from '../../core/components/Icons/ArrowBack'
-import { Home } from '../../core/components/Icons/Home'
+import { ArrowForward } from '../../core/components/Icons/ArrowForward'
 import { ExpandDown } from '../../core/components/Icons/ExpandDown'
 import { ExpandUp } from '../../core/components/Icons/ExpandUp'
+import { Home } from '../../core/components/Icons/Home'
 import { Action } from '../../core/store/actions'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 import { createConcept } from '../../core/utils/concept'
@@ -39,6 +40,15 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
       },
     })
   }, [database, dispatchAction])
+  const navigateBack = useCallback(() => {
+    setTitleCollapsed(true)
+    dispatchAction({
+      type: Action.Undo,
+    })
+  }, [dispatchAction])
+  const navigateForward = useCallback(() => {
+    return
+  }, [])
 
   if (viewMode !== 'Block') {
     return <div className={styles.HeaderToolNav}>🔧 Header Tool</div>
@@ -50,15 +60,11 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
         styles.HeaderToolBlock,
         !titleCollapsed && styles.HeaderToolBlockNotCollapsed
       )}>
-      <button
-        className={styles.Button}
-        onClick={() => {
-          setTitleCollapsed(true)
-          dispatchAction({
-            type: Action.Undo,
-          })
-        }}>
+      <button className={styles.Button} onClick={navigateBack}>
         <ArrowBack />
+      </button>
+      <button className={styles.Button} onClick={navigateForward}>
+        <ArrowForward />
       </button>
       <button
         className={styles.Button}

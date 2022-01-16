@@ -33,9 +33,6 @@ export const styles = stylesheet({
     fill: theme.colors.contentText,
     $nest: {
       ...buttonTransparent.$nest,
-      '&:first-child': {
-        marginRight: '.3rem',
-      },
     },
   },
   TitleContainer: {
