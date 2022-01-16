@@ -202,12 +202,12 @@ export function Block({
       const clientCoords = getUnifiedClientCoords(e)
       lastClientCoordsRef.current = clientCoords
 
-      /** Trigger context menu. */
       if (e instanceof MouseEvent) {
         /** Reject non-primary button. */
         if (e.button !== 0) {
           /** Prevent focus if InteractionMode is not Focusing. */
           if (modeRef.current !== InteractionMode.Focusing) e.preventDefault()
+          /** Trigger context menu on right-click when idle. */
           if (e.button === 2 && modeRef.current === InteractionMode.Idle) {
             dispatchAction({
               type: Action.ContextMenuOpen,
