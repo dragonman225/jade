@@ -72,7 +72,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
           setTitleCollapsed(true)
           dispatchAction({
             type: Action.BlockOpenAsCanvas,
-            data: { id: state.homeConceptId },
+            data: { id: state.settings.homeConceptId },
           })
         }}>
         <Home />

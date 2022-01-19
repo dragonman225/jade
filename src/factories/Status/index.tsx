@@ -129,6 +129,25 @@ export const Status: React.FunctionComponent<Props> = props => {
     [importConcepts]
   )
 
+  const toggleEfficientRendering = useCallback(() => {
+    dispatchAction({
+      type: Action.SettingsSet,
+      data: {
+        shouldEnableEfficientRendering: !state.settings
+          .shouldEnableEfficientRendering,
+      },
+    })
+  }, [dispatchAction, state.settings.shouldEnableEfficientRendering])
+
+  const toggleDevMode = useCallback(() => {
+    dispatchAction({
+      type: Action.SettingsSet,
+      data: {
+        shouldEnableDevMode: !state.settings.shouldEnableDevMode,
+      },
+    })
+  }, [dispatchAction, state.settings.shouldEnableDevMode])
+
   switch (props.viewMode) {
     case 'NavItem':
     case 'Block':
@@ -147,13 +166,14 @@ export const Status: React.FunctionComponent<Props> = props => {
             />
           </div>
           <div className={styles.buttons}>
-            <button
-              onClick={() =>
-                dispatchAction({
-                  type: Action.DebuggingToggle,
-                })
-              }>
-              Turn {state.debugging ? 'ON ' : 'OFF '} efficient rendering
+            <button onClick={toggleEfficientRendering}>
+              Turn{' '}
+              {state.settings.shouldEnableEfficientRendering ? 'OFF ' : 'ON '}{' '}
+              efficient rendering
+            </button>
+            <button onClick={toggleDevMode}>
+              Turn {state.settings.shouldEnableDevMode ? 'OFF ' : 'ON '} dev
+              mode
             </button>
             <button onClick={generateRandomBlocks}>Create 100 blocks</button>
             <button onClick={exportAllConcepts}>Export all concepts</button>

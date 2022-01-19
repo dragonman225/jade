@@ -12,6 +12,7 @@ import {
 } from '../initial-concepts'
 import env from '../env'
 import { Concept4, PlatformDatabaseInterface, PositionType } from './interfaces'
+import { migrateSettings } from './utils/settings'
 import { withFullTextSearch } from './utils/withFullTextSearch'
 
 /** Render the app with platform-specific resources. */
@@ -32,7 +33,8 @@ export function startApp(
     console.log('core/index: Migrating state_v3')
     database.init(
       {
-        debugging: state3.debugging,
+        shouldEnableDevMode: state3.debugging,
+        shouldEnableEfficientRendering: true,
         homeConceptId: state3.homeConceptId,
         viewingConceptId: state3.viewingConceptId,
       },
@@ -83,15 +85,23 @@ export function startApp(
     database.setVersion(5)
   }
 
+  /** Migrate settings. */
+  if (database.isValid()) {
+    const oldSettings = database.getSettings()
+    const newSettings = migrateSettings(oldSettings)
+    database.saveSettings(newSettings)
+  }
+
   /** Bootstrap new database. */
   if (!database.isValid()) {
     console.log('core/index: Bootstrap new db')
     database.init(
       {
-        debugging: false,
         homeConceptId: 'home',
         /** Set viewing concept to the tutorial. */
         viewingConceptId: 'b1f78b9d-eebd-4d94-b3e3-ba80b54769ff',
+        shouldEnableDevMode: false,
+        shouldEnableEfficientRendering: true,
       },
       initialConcepts
     )

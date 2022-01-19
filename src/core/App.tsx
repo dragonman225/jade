@@ -77,7 +77,7 @@ const App = React.memo(function App() {
          * double-clicking to create a new Block + Concept.
          */
         (!rect ||
-          state.debugging ||
+          !state.settings.shouldEnableEfficientRendering ||
           isBoxBoxIntersectingObjVer(
             {
               ...b.pos,
@@ -88,7 +88,12 @@ const App = React.memo(function App() {
           ))
       )
     })
-  }, [state.blocks, state.camera, state.debugging, state.shouldAnimateCamera])
+  }, [
+    state.blocks,
+    state.camera,
+    state.settings.shouldEnableEfficientRendering,
+    state.shouldAnimateCamera,
+  ])
 
   const pinnedBlocks = state.blocks.filter(b => b.posType > PositionType.Normal)
 

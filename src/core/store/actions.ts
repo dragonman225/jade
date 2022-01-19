@@ -6,6 +6,7 @@ import {
   ContextMenuActionData,
   PositionType,
   RelationId,
+  Settings,
   Size,
   Vec2,
 } from '../interfaces'
@@ -36,12 +37,12 @@ export enum Action {
   RelationDrawMove = 'relation::drawMove',
   RelationDrawEnd = 'relation::drawEnd',
   RelationRemove = 'relation::remove',
-  DebuggingToggle = 'debugging::toggle',
   /** Now only for undo `BlockOpenAsCanvas`, but will evolve to real undo. */
   Undo = 'undo',
   BlocksRendered = 'blocksRendered',
   ContextMenuOpen = 'contextMenu::open',
   ContextMenuClose = 'contextMenu::close',
+  SettingsSet = 'settings::set',
 }
 
 export enum ConceptCreatePositionIntent {
@@ -232,10 +233,6 @@ interface RelationRemoveAction {
   }
 }
 
-interface DebuggingToggleAction {
-  type: Action.DebuggingToggle
-}
-
 interface UndoAction {
   type: Action.Undo
 }
@@ -251,6 +248,11 @@ interface ContextMenuOpenAction {
 
 interface ContextMenuCloseAction {
   type: Action.ContextMenuClose
+}
+
+interface SettingsSetAction {
+  type: Action.SettingsSet
+  data: Partial<Settings>
 }
 
 export type Actions =
@@ -279,8 +281,8 @@ export type Actions =
   | RelationDrawMoveAction
   | RelationDrawEndAction
   | RelationRemoveAction
-  | DebuggingToggleAction
   | UndoAction
   | BlocksRenderedAction
   | ContextMenuOpenAction
   | ContextMenuCloseAction
+  | SettingsSetAction

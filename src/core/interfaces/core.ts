@@ -8,11 +8,7 @@ import { Box, Camera, Vec2 } from './util'
 
 /** App state. */
 export interface AppState {
-  /** Loaded from `DatabaseInterface.getSettings()`. */
-  debugging: boolean
-  /** Loaded from `DatabaseInterface.getSettings()`. */
-  homeConceptId: ConceptId
-  /** Loaded from `DatabaseInterface.getConcept()`. */
+  settings: Settings
   viewingConcept: TypedConcept<unknown>
   expandHistory: (ConceptId | undefined)[]
   camera: Camera
@@ -35,9 +31,10 @@ export interface AppState {
 }
 
 export interface Settings {
-  debugging: boolean
   homeConceptId: ConceptId
   viewingConceptId: ConceptId
+  shouldEnableEfficientRendering: boolean
+  shouldEnableDevMode: boolean
 }
 
 export interface DatabaseInterface {

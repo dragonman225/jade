@@ -8,6 +8,7 @@ import { Section } from './Section'
 import { ContextForBlock, ListOption } from './types'
 import { BlockColor } from '../../interfaces'
 import { Action } from '../../store/actions'
+import { AppStateContext } from '../../store/appStateContext'
 import { SystemContext } from '../../store/systemContext'
 import { getDateString } from '../../utils'
 import { getFocusForBlock } from '../../utils/block'
@@ -21,6 +22,7 @@ interface Props {
 export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
   function ContextMenuForBlock({ context }, ref) {
     const { block, parentConcept, linkedConcept } = context
+    const { settings } = useContext(AppStateContext)
     const { dispatchAction } = useContext(SystemContext)
 
     const setColor = useCallback(
@@ -137,6 +139,19 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
               label="Updated"
               value={getDateString(linkedConcept.lastEditedTime)}
             />
+            {settings.shouldEnableDevMode && (
+              <>
+                <InfoLine
+                  label="Widget Type"
+                  value={linkedConcept.references.length ? 'Canvas' : 'Block'}
+                />
+                <InfoLine
+                  label="Content Type"
+                  value={linkedConcept.summary.type}
+                />
+                <InfoLine label="Object ID" value={linkedConcept.id} />{' '}
+              </>
+            )}
           </div>
         </Section>
       </div>

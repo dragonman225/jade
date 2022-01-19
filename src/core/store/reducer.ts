@@ -18,6 +18,7 @@ import {
   blockInstanceToBlock,
   bringBlocksToTop,
 } from '../utils/block'
+import { blockRectManager } from '../utils/blockRectManager'
 import { createConcept, updateConcept } from '../utils/concept'
 import {
   createSimpleRelation,
@@ -26,7 +27,6 @@ import {
   removeInvalidRelations,
 } from '../utils/relation'
 import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
-import { blockRectManager } from '../utils/blockRectManager'
 import { Action, Actions, ConceptCreatePositionIntent } from './actions'
 import {
   ConceptId,
@@ -85,8 +85,7 @@ export function loadAppState(db: DatabaseInterface): AppState {
   const blocks = synthesizeView(viewingConcept, db)
 
   return {
-    debugging: settings.debugging,
-    homeConceptId: settings.homeConceptId,
+    settings,
     viewingConcept,
     expandHistory: new Array(99).concat(viewingConcept.id) as (
       | ConceptId
@@ -981,7 +980,7 @@ export function createAppStateReducer(
       }
       case Action.BlockOpenAsCanvas: {
         const { id: toConceptId, focusBlockId } = action.data
-        const { blocks } = state
+        const { blocks, settings } = state
 
         if (!toConceptId) return state
 
@@ -1008,11 +1007,11 @@ export function createAppStateReducer(
           }
         }
 
-        db.saveSettings({
-          debugging: state.debugging,
-          homeConceptId: state.homeConceptId,
+        const newSettings = {
+          ...settings,
           viewingConceptId: toConceptId,
-        })
+        }
+        db.saveSettings(newSettings)
 
         /** Not in the target Canvas. Open it and set camera directly. */
         const concept = db.getConcept(toConceptId)
@@ -1024,6 +1023,7 @@ export function createAppStateReducer(
 
         return {
           ...state,
+          settings: newSettings,
           viewingConcept: concept,
           camera: newCamera || concept.camera,
           shouldAnimateCamera: false,
@@ -1367,33 +1367,36 @@ export function createAppStateReducer(
           relations: newViewingConcept.relations,
         }
       }
-      case Action.DebuggingToggle: {
-        db.saveSettings({
-          debugging: !state.debugging,
-          homeConceptId: state.homeConceptId,
-          viewingConceptId: state.viewingConcept.id,
-        })
+      case Action.SettingsSet: {
+        const updates = action.data
+        const newSettings = {
+          ...state.settings,
+          ...updates,
+        }
+
+        db.saveSettings(newSettings)
+
         return {
           ...state,
-          debugging: !state.debugging,
+          settings: newSettings,
         }
       }
       case Action.Undo: {
         const { expandHistory } = state
         const backToConceptId = expandHistory[expandHistory.length - 2]
         const concept = db.getConcept(backToConceptId)
+        const newSettings = {
+          ...state.settings,
+          viewingConceptId: backToConceptId,
+        }
 
         if (!concept) return state
 
-        db.saveSettings({
-          debugging: state.debugging,
-          homeConceptId: state.homeConceptId,
-          viewingConceptId: backToConceptId,
-        })
+        db.saveSettings(newSettings)
 
         return {
           ...state,
-          viewingConcept: concept,
+          settings: newSettings,
           camera: concept.camera,
           shouldAnimateCamera: false,
           blocks: synthesizeView(concept, db),
