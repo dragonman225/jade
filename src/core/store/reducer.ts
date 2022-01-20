@@ -1385,18 +1385,19 @@ export function createAppStateReducer(
         const { expandHistory } = state
         const backToConceptId = expandHistory[expandHistory.length - 2]
         const concept = db.getConcept(backToConceptId)
+        if (!concept) return state
+
         const newSettings = {
           ...state.settings,
-          viewingConceptId: backToConceptId,
+          viewingConceptId: concept.id,
         }
-
-        if (!concept) return state
 
         db.saveSettings(newSettings)
 
         return {
           ...state,
           settings: newSettings,
+          viewingConcept: concept,
           camera: concept.camera,
           shouldAnimateCamera: false,
           blocks: synthesizeView(concept, db),
