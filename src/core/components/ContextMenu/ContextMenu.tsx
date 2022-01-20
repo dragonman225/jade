@@ -86,11 +86,13 @@ export function ContextMenu(): JSX.Element {
     window.addEventListener('mousedown', handlePointerDown)
     window.addEventListener('touchstart', handlePointerDown)
     window.addEventListener('resize', closeContextMenu)
+    window.addEventListener('wheel', closeContextMenu)
 
     return () => {
       window.removeEventListener('mousedown', handlePointerDown)
       window.removeEventListener('touchstart', handlePointerDown)
       window.removeEventListener('resize', closeContextMenu)
+      window.removeEventListener('wheel', closeContextMenu)
     }
   }, [dispatchAction])
 
