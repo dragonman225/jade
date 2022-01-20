@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRef, useEffect } from 'react'
 
-import { getUnifiedClientCoords, vecSub } from '../utils'
+import { distanceOf, getUnifiedClientCoords, vecSub } from '../utils'
 import { Action, Actions, ConceptCreatePositionIntent } from '../store/actions'
 import { PositionType, Vec2 } from '../interfaces'
 import { stylesheet } from 'typestyle'
@@ -183,6 +183,74 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
       window.removeEventListener('keydown', inputDetector.handleKeydown)
       window.removeEventListener('mousemove', inputDetector.handlePointerMove)
       window.removeEventListener('touchmove', inputDetector.handlePointerMove)
+    }
+  }, [dispatchAction])
+
+  /** Cut/Paste. Prevent middle button paste since it conflicts with panning. */
+  const rMouseDown = useRef<Vec2>({ x: 0, y: 0 })
+  const rIsMiddleDown = useRef(false)
+  const rLastClientCoords = useRef<Vec2>({ x: 0, y: 0 })
+  const rPreventNextPaste = useRef(false)
+
+  useEffect(() => {
+    function onMouseDown(e: MouseEvent) {
+      rMouseDown.current = getUnifiedClientCoords(e)
+      rIsMiddleDown.current = e.button === 1
+    }
+
+    function onMouseMove(e: MouseEvent) {
+      const p = getUnifiedClientCoords(e)
+      rLastClientCoords.current = p
+      if (rIsMiddleDown.current && distanceOf(p, rMouseDown.current) > 3) {
+        rPreventNextPaste.current = true
+      }
+    }
+
+    function onMouseUp() {
+      rMouseDown.current = { x: 0, y: 0 }
+      rIsMiddleDown.current = false
+      /** If the paste to prevent does not fire within a range. */
+      setTimeout(() => {
+        rPreventNextPaste.current = false
+      }, 100)
+    }
+
+    window.addEventListener('mousedown', onMouseDown)
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+
+    return () => {
+      window.removeEventListener('mousedown', onMouseDown)
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+    }
+  }, [])
+
+  useEffect(() => {
+    function onCut() {
+      dispatchAction({
+        type: Action.BlockCut,
+      })
+    }
+
+    function onPaste() {
+      /** If paste is fired after mouse up. */
+      if (rPreventNextPaste.current) {
+        rPreventNextPaste.current = false
+        return
+      }
+      dispatchAction({
+        type: Action.BlockPaste,
+        data: { pointerInViewportCoords: rLastClientCoords.current },
+      })
+    }
+
+    document.addEventListener('cut', onCut)
+    document.addEventListener('paste', onPaste)
+
+    return () => {
+      document.removeEventListener('cut', onCut)
+      document.removeEventListener('paste', onPaste)
     }
   }, [dispatchAction])
 

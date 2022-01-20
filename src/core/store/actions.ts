@@ -16,6 +16,8 @@ export enum Action {
   ConceptWriteData = 'concept::writeData',
   BlockCreate = 'block::create',
   BlockRemove = 'block::remove',
+  BlockCut = 'block::cut',
+  BlockPaste = 'block::paste',
   BlockMoveStart = 'block::moveStart',
   BlockMove = 'block::move',
   BlockMoveEnd = 'block::moveEnd',
@@ -93,6 +95,17 @@ interface BlockRemoveAction {
   type: Action.BlockRemove
   data: {
     id?: string
+  }
+}
+
+interface BlockCutAction {
+  type: Action.BlockCut
+}
+
+interface BlockPasteAction {
+  type: Action.BlockPaste
+  data: {
+    pointerInViewportCoords: Vec2
   }
 }
 
@@ -260,6 +273,8 @@ export type Actions =
   | ConceptWriteDataAction
   | BlockCreateAction
   | BlockRemoveAction
+  | BlockCutAction
+  | BlockPasteAction
   | BlockMoveStartAction
   | BlockMoveAction
   | BlockMoveEndAction

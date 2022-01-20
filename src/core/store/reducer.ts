@@ -5,6 +5,7 @@ import {
   vecAdd,
   normalizeToBox,
   isPointInRect,
+  getBoundingBox,
 } from '../utils'
 import {
   createBlock,
@@ -117,6 +118,7 @@ export function loadAppState(db: DatabaseInterface): AppState {
       },
     },
     isMovingBlocks: false,
+    clipboard: [],
   }
 }
 
@@ -310,6 +312,101 @@ export function createAppStateReducer(
           viewingConcept: newViewingConcept,
           relations: newViewingConcept.relations,
           blocks: synthesizeView(newViewingConcept, db),
+        }
+      }
+      case Action.BlockCut: {
+        const { blocks, selectedBlockIds, viewingConcept } = state
+
+        if (blocks.find(b => b.mode !== InteractionMode.Idle)) return state
+        if (selectedBlockIds.length === 0) return state
+
+        const selectedBlockRects = selectedBlockIds.map(id =>
+          blockRectManager.getRect(id)
+        )
+        const boundingRect = getBoundingBox(selectedBlockRects)
+        const pasteOffset = {
+          x: (boundingRect.left - boundingRect.right) / 2,
+          y: (boundingRect.top - boundingRect.bottom) / 2,
+        }
+        const boundingBoxTopLeft = {
+          x: boundingRect.left,
+          y: boundingRect.top,
+        }
+
+        const newViewingConcept = updateConcept(viewingConcept, {
+          references: viewingConcept.references.filter(
+            r => !selectedBlockIds.includes(r.id)
+          ),
+          relations: viewingConcept.relations.filter(
+            r =>
+              !selectedBlockIds.includes(r.fromId) &&
+              !selectedBlockIds.includes(r.toId)
+          ),
+        })
+        db.updateConcept(newViewingConcept)
+
+        return {
+          ...state,
+          viewingConcept: newViewingConcept,
+          blocks: blocks.filter(b => !b.selected),
+          relations: newViewingConcept.relations,
+          /** Blocks moved to clipbard. */
+          selectedBlockIds: [],
+          clipboard: state.clipboard.concat({
+            pasteOffset,
+            blocks: blocks
+              .filter(b => b.selected)
+              .map(b => ({
+                ...b,
+                pos: vecSub(b.pos, boundingBoxTopLeft),
+              }))
+              .map(blockInstanceToBlock),
+            relations: state.relations.filter(
+              r =>
+                selectedBlockIds.includes(r.fromId) &&
+                selectedBlockIds.includes(r.toId)
+            ),
+          }),
+        }
+      }
+      case Action.BlockPaste: {
+        const { pointerInViewportCoords } = action.data
+        const { blocks, camera, clipboard, viewingConcept } = state
+
+        const clip = clipboard.pop()
+        if (!clip) return state
+
+        const pointerInEnvCoords = viewportCoordsToEnvCoords(
+          pointerInViewportCoords,
+          camera
+        )
+        const pastedBlocksBoundingBoxTopLeft = vecAdd(
+          pointerInEnvCoords,
+          clip.pasteOffset
+        )
+        const pastedBlocks = clip.blocks.map(b => ({
+          ...b,
+          pos: vecAdd(b.pos, pastedBlocksBoundingBoxTopLeft),
+        }))
+
+        const newViewingConcept = updateConcept(viewingConcept, {
+          references: viewingConcept.references.concat(pastedBlocks),
+          relations: viewingConcept.relations.concat(clip.relations),
+        })
+        db.updateConcept(newViewingConcept)
+
+        const pastedBlockInstances = pastedBlocks.map((b, i) =>
+          updateBlockInstance(createBlockInstance(b, blocks.length + i), {
+            selected: true,
+          })
+        )
+
+        return {
+          ...state,
+          viewingConcept: newViewingConcept,
+          blocks: state.blocks.concat(pastedBlockInstances),
+          relations: state.relations.concat(clip.relations),
+          selectedBlockIds: pastedBlockInstances.map(b => b.id),
         }
       }
       case Action.BlockMoveStart: {

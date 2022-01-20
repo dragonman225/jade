@@ -1,6 +1,7 @@
 import Fuse from 'fuse.js'
 
 import { BlockId, BlockInstance } from './block'
+import { Clip } from './clipboard'
 import { ConceptId, TypedConcept } from './concept'
 import { ContextMenuState } from './contextMenu'
 import { Relation } from './relation'
@@ -28,6 +29,7 @@ export interface AppState {
   drawingRelationToPoint: Vec2 // in environment coords
   contextMenuState: ContextMenuState
   isMovingBlocks: boolean
+  clipboard: Clip[]
 }
 
 export interface Settings {
