@@ -22,7 +22,7 @@ interface Props {
 export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
   function ContextMenuForBlock({ context }, ref) {
     const { block, parentConcept, linkedConcept } = context
-    const { settings } = useContext(AppStateContext)
+    const { settings, selectedBlockIds } = useContext(AppStateContext)
     const { dispatchAction } = useContext(SystemContext)
 
     const setColor = useCallback(
@@ -75,14 +75,30 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
       })
     }, [block, parentConcept, dispatchAction])
 
+    const blockCount = selectedBlockIds.includes(block.id)
+      ? selectedBlockIds.length
+      : 1
+    const isPlural = blockCount > 1
+    /** "N blocks" or "the block" */
+    const blockDescription = `${isPlural ? blockCount : 'the'} block${
+      isPlural ? 's' : ''
+    }`
     const actions = useMemo<ListOption[]>(
       () => [
+        // {
+        //   title: `Copy ${blockDescription}`,
+        //   perform: copyBlock,
+        // },
+        // {
+        //   title: `Cut ${blockDescription}`,
+        //   perform: cutBlock,
+        // },
         {
-          title: 'Delete block',
+          title: `Delete ${blockDescription}`,
           perform: deleteBlock,
         },
         {
-          title: 'Focus block',
+          title: `Focus ${blockDescription}`,
           perform: focusBlock,
         },
         {
@@ -90,7 +106,7 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
           perform: copyLink,
         },
       ],
-      [focusBlock, copyLink, deleteBlock]
+      [focusBlock, copyLink, deleteBlock, blockDescription]
     )
 
     return (
