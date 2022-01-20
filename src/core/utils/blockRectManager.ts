@@ -48,6 +48,7 @@ export class BlockRectManager {
     }
   }
 
+  /** Rect in env coords. */
   getRect = (blockId: BlockId): Omit<DOMRect, 'toJSON'> | undefined => {
     const info = this.blockInfoMap.get(blockId)
     if (!info) return undefined
