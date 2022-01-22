@@ -38,7 +38,7 @@ export function useSyntheticFocus<T extends HTMLElement>({
   const setNodeRef = useCallback((node: T | null) => {
     elemRef.current = node
   }, [])
-  const down = useRef<Vec2>({ x: 0, y: 0 })
+  const down = useRef<Vec2 | undefined>(undefined)
   const moved = useRef(false)
   const hasFocus = useRef(externalHasFocus)
 
@@ -66,6 +66,7 @@ export function useSyntheticFocus<T extends HTMLElement>({
     }
 
     function pointerMove(e: MouseEvent | TouchEvent) {
+      if (!down.current) return
       const here = getUnifiedClientCoords(e)
       const dist = distanceOf(down.current, here)
       if (dist > clickRadius) {
