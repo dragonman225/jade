@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { useContext, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './index.styles'
-import { AppStateContext } from '../../core/store/appStateContext'
+import { useAppState } from '../../core/store/appStateContext'
 import { Add } from '../../core/components/Icons/Add'
 import { ArrowBack } from '../../core/components/Icons/ArrowBack'
 import { ArrowForward } from '../../core/components/Icons/ArrowForward'
@@ -25,7 +25,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
     onInteractionStart,
     onInteractionEnd,
   } = props
-  const state = useContext(AppStateContext)
+  const state = useAppState()
 
   const [titleCollapsed, setTitleCollapsed] = useState(true)
   const toggleTitleCollapsed = useCallback(() => setTitleCollapsed(c => !c), [])

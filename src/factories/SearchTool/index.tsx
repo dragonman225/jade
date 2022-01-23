@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useState, useContext, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './index.style'
@@ -13,7 +13,7 @@ import {
 } from './search'
 import { ConceptPreview } from '../ConceptPreview'
 import { Search } from '../../core/components/Icons/Search'
-import { AppStateContext } from '../../core/store/appStateContext'
+import { useAppState } from '../../core/store/appStateContext'
 import {
   distanceOf,
   getUnifiedClientCoords,
@@ -28,7 +28,7 @@ import {
   Vec2,
 } from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
-import { SystemContext } from '../../core/store/systemContext'
+import { useSystem } from '../../core/store/systemContext'
 
 type Props = ConceptDisplayProps<undefined>
 
@@ -51,8 +51,8 @@ const S2LState = {
 
 const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const { dispatchAction, database, blockId } = props
-  const state = useContext(AppStateContext)
-  const { createOverlay } = useContext(SystemContext)
+  const state = useAppState()
+  const { createOverlay } = useSystem()
 
   const rSearchEl = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)

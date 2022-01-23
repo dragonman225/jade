@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect } from 'react'
 
 import { styles } from './index.styles'
 import { Backlink, getBacklinksOf } from './backlink'
-import { AppStateContext } from '../../core/store/appStateContext'
+import { useAppState } from '../../core/store/appStateContext'
 import { ExpandUp } from '../../core/components/Icons/ExpandUp'
 import { ExpandDown } from '../../core/components/Icons/ExpandDown'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
@@ -19,7 +19,7 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
     dispatchAction,
     database,
   } = props
-  const state = useContext(AppStateContext)
+  const state = useAppState()
   const [backlinks, setBacklinks] = useState<Backlink[]>([])
   const [collapsed, setCollapsed] = useState(true)
 

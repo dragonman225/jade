@@ -2,14 +2,7 @@ import '@dragonman225/prosemirror-math/style/math.css'
 import 'katex/dist/katex.min.css'
 
 import * as React from 'react'
-import {
-  useState,
-  useEffect,
-  useRef,
-  useContext,
-  useMemo,
-  useCallback,
-} from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { AllSelection, EditorState, Selection } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { Node as ProseNode } from 'prosemirror-model'
@@ -51,7 +44,7 @@ import {
 } from '../../core/interfaces'
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 import { PlaceMenu } from '../../core/components/PlaceMenu'
-import { SystemContext } from '../../core/store/systemContext'
+import { useSystem } from '../../core/store/systemContext'
 import { resolveInternalUrl, isInternalUrl } from '../../core/utils/url'
 import {
   SyntheticFocusCallbackFn,
@@ -74,7 +67,7 @@ const PMText: React.FunctionComponent<Props> = props => {
     onInteractionEnd,
     dispatchAction,
   } = props
-  const { openExternal, createOverlay } = useContext(SystemContext)
+  const { openExternal, createOverlay } = useSystem()
 
   /** ProseMirror. */
   const [showPlaceholder, setShowPlaceholder] = useState(false)

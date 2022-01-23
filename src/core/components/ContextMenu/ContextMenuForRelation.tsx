@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useCallback, useMemo, useContext } from 'react'
+import { useCallback, useMemo } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './ContextMenu.styles'
@@ -7,7 +7,7 @@ import { InfoLine } from './InfoLine'
 import { Section } from './Section'
 import { ContextForRelation, ListOption } from './types'
 import { Action } from '../../store/actions'
-import { SystemContext } from '../../store/systemContext'
+import { useSystem } from '../../store/systemContext'
 import { boundingBoxOfBoxes, getFocusForBox, growBox } from '../../utils'
 import { blockToBox } from '../../utils/block'
 
@@ -18,7 +18,7 @@ interface Props {
 export const ContextMenuForRelation = React.forwardRef<HTMLDivElement, Props>(
   function ContextMenuForRelation({ context }, ref) {
     const { relation, fromBlock, toBlock } = context
-    const { dispatchAction } = useContext(SystemContext)
+    const { dispatchAction } = useSystem()
 
     const deleteArrow = useCallback(() => {
       dispatchAction({

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useContext, useCallback } from 'react'
+import { useCallback } from 'react'
 import { stylesheet } from 'typestyle'
 
 import { Header } from './Header'
@@ -18,7 +18,7 @@ import {
   TypedConcept,
 } from '../../core/interfaces'
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
-import { AppStateContext } from '../../core/store/appStateContext'
+import { useAppState } from '../../core/store/appStateContext'
 import { buttonPrimary } from '../../lightComponents'
 import theme from '../../theme'
 
@@ -64,7 +64,7 @@ type Props = ConceptDisplayProps<undefined>
 
 export const Status: React.FunctionComponent<Props> = props => {
   const { dispatchAction, database } = props
-  const state = useContext(AppStateContext)
+  const state = useAppState()
 
   const generateRandomBlocks = useCallback(() => {
     function getRandomInt(start: number, end: number): number {

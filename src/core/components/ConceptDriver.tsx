@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { useCallback, useContext } from 'react'
+import { useCallback } from 'react'
 
-import { SystemContext } from '../store/systemContext'
+import { useSystem } from '../store/systemContext'
 import { BlockInstance, InteractionMode, TypedConcept } from '../interfaces'
 import { Action } from '../store/actions'
 
@@ -14,7 +14,7 @@ export const ConceptDisplay = React.memo(function ConceptDisplay({
   block,
   concept,
 }: ConceptDisplayProps) {
-  const { db, dispatchAction, factoryRegistry } = useContext(SystemContext)
+  const { db, dispatchAction, factoryRegistry } = useSystem()
 
   const setInteractionMode = useCallback(
     (mode: InteractionMode) => {

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useCallback, useMemo, useContext } from 'react'
+import { useCallback, useMemo } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './ContextMenu.styles'
@@ -8,8 +8,8 @@ import { Section } from './Section'
 import { ContextForBlock, ListOption } from './types'
 import { BlockColor } from '../../interfaces'
 import { Action } from '../../store/actions'
-import { AppStateContext } from '../../store/appStateContext'
-import { SystemContext } from '../../store/systemContext'
+import { useAppState } from '../../store/appStateContext'
+import { useSystem } from '../../store/systemContext'
 import { getDateString } from '../../utils'
 import { getFocusForBlock } from '../../utils/block'
 import { saveTextToClipboard } from '../../utils/clipboard'
@@ -22,8 +22,8 @@ interface Props {
 export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
   function ContextMenuForBlock({ context }, ref) {
     const { block, parentConcept, linkedConcept } = context
-    const { settings, selectedBlockIds } = useContext(AppStateContext)
-    const { dispatchAction } = useContext(SystemContext)
+    const { settings, selectedBlockIds } = useAppState()
+    const { dispatchAction } = useSystem()
 
     const setColor = useCallback(
       (color: BlockColor | undefined) => {

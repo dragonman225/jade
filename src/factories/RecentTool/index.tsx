@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { useRef, useContext } from 'react'
+import { useRef } from 'react'
 
 import { styles } from './index.styles'
 import { ConceptPreview } from '../ConceptPreview'
-import { AppStateContext } from '../../core/store/appStateContext'
+import { useAppState } from '../../core/store/appStateContext'
 import { Action } from '../../core/store/actions'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
 
@@ -16,7 +16,7 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
     dispatchAction,
     database,
   } = props
-  const state = useContext(AppStateContext)
+  const state = useAppState()
 
   const rRecentEl = useRef<HTMLDivElement>(null)
 

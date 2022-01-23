@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useRef, useState, useCallback, useContext } from 'react'
+import { useRef, useState, useCallback } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './index.styles'
@@ -13,8 +13,8 @@ import {
   TypedConcept,
 } from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
-import { SystemContext } from '../../core/store/systemContext'
-import { AppStateContext } from '../../core/store/appStateContext'
+import { useSystem } from '../../core/store/systemContext'
+import { useAppState } from '../../core/store/appStateContext'
 import { findBlock } from '../../core/utils/block'
 import { saveTextToClipboard } from '../../core/utils/clipboard'
 import { useSyntheticFocus } from '../../core/utils/useSyntheticFocus'
@@ -36,12 +36,12 @@ function EmbedInteractive({
   onInteractionEnd,
 }: Props) {
   /** Depending on blocks degrades perf. */
-  const { blocks } = useContext(AppStateContext)
+  const { blocks } = useAppState()
   /** `blockId` is useless when embedded in other blocks. */
   const block = findBlock(blocks, blockId) as BlockInstance
   const isResizing = block && block.mode === InteractionMode.Resizing
   const isFocusing = block && block.mode === InteractionMode.Focusing
-  const { openExternal, dispatchAction } = useContext(SystemContext)
+  const { openExternal, dispatchAction } = useSystem()
   const { data } = concept.summary
   const url = data && data.url ? data.url : ''
   const rInput = useRef<HTMLInputElement>(null)
@@ -164,7 +164,7 @@ function EmbedReadOnly({ concept, blockId, viewMode }: Props) {
   const { data } = concept.summary
   const url = data && data.url ? data.url : ''
 
-  const { blocks } = useContext(AppStateContext)
+  const { blocks } = useAppState()
   const block = findBlock(blocks, blockId) as BlockInstance
 
   if (url) {

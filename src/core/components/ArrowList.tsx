@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { useContext, useMemo } from 'react'
+import { useMemo } from 'react'
 import theme from '../../theme'
 import { ContextType, PositionType } from '../interfaces'
 import { Action } from '../store/actions'
-import { AppStateContext } from '../store/appStateContext'
-import { SystemContext } from '../store/systemContext'
+import { useAppState } from '../store/appStateContext'
+import { useSystem } from '../store/systemContext'
 import { boundingBoxOfBoxes, growBox } from '../utils'
 import { blockToBox, findBlock } from '../utils/block'
 import { Arrow } from './Arrow'
@@ -13,8 +13,8 @@ import { ViewObject } from './ViewObject'
 const zeroSize = { w: 0, h: 0 }
 
 export function ArrowList(): JSX.Element {
-  const { relations, blocks } = useContext(AppStateContext)
-  const { dispatchAction } = useContext(SystemContext)
+  const { relations, blocks } = useAppState()
+  const { dispatchAction } = useSystem()
 
   const fromBoxes = useMemo(
     () =>

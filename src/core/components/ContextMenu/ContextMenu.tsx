@@ -1,13 +1,13 @@
 import * as React from 'react'
-import { useEffect, useContext, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { styles } from './ContextMenu.styles'
 import { ContextMenuForBlock } from './ContextMenuForBlock'
 import { ContextMenuForRelation } from './ContextMenuForRelation'
 import { Context, ContextMenuType } from './types'
 import { AppState, ContextType, RelationId } from '../../interfaces'
-import { AppStateContext } from '../../store/appStateContext'
-import { System, SystemContext } from '../../store/systemContext'
+import { useAppState } from '../../store/appStateContext'
+import { System, useSystem } from '../../store/systemContext'
 import { Action } from '../../store/actions'
 import { viewportCoordsToEnvCoords } from '../../utils'
 import { getOverBlock } from '../../utils/block'
@@ -67,8 +67,8 @@ function getContext(appState: AppState, system: System): Context | undefined {
 }
 
 export function ContextMenu(): JSX.Element {
-  const appState = useContext(AppStateContext)
-  const system = useContext(SystemContext)
+  const appState = useAppState()
+  const system = useSystem()
   const { dispatchAction } = system
   const rContextMenuEl = useRef<HTMLDivElement>(null)
   const context = getContext(appState, system)

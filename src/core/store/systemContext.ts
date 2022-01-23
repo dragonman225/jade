@@ -1,4 +1,4 @@
-import { createContext } from 'react'
+import { createContext, useContext } from 'react'
 
 import { Actions } from './actions'
 import { DatabaseInterface, FactoryRegistry } from '../interfaces'
@@ -11,4 +11,13 @@ export interface System {
   openExternal: (link: string) => void
 }
 
-export const SystemContext = createContext<System>(undefined)
+export const SystemContext = createContext<System | null>(null)
+
+export function useSystem(): System {
+  const system = useContext(SystemContext)
+  if (!system) {
+    throw new LifecycleError('useSystem() must be called within a Provider')
+  } else {
+    return system
+  }
+}

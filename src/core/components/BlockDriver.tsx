@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { useMemo, useContext, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { style } from 'typestyle'
 
 import { Block } from './Block'
-import { SystemContext } from '../store/systemContext'
+import { useSystem } from '../store/systemContext'
 import theme from '../../theme'
 import {
   BlockInstance,
@@ -19,7 +19,7 @@ interface BlockDriverProps {
 export const BlockDriver = React.memo(function BlockDriver({
   block,
 }: BlockDriverProps): JSX.Element {
-  const { db, dispatchAction } = useContext(SystemContext)
+  const { db, dispatchAction } = useSystem()
   const [concept, setConcept] = useState<TypedConcept<unknown> | undefined>(
     () => db.getConcept(block.conceptId)
   )

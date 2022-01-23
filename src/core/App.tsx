@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { useMemo, useCallback, useRef, useState, useContext } from 'react'
+import { useMemo, useCallback, useRef, useState } from 'react'
 import { classes } from 'typestyle'
 
 import { AppStyles } from './App.styles'
@@ -15,7 +15,8 @@ import { ViewObject } from './components/ViewObject'
 import { Overlay } from './components/Overlay'
 import { PlaceMenu } from './components/PlaceMenu'
 import { ContextMenu } from './components/ContextMenu/ContextMenu'
-import { AppStateContext } from './store/appStateContext'
+import { AppStateContext, useAppState } from './store/appStateContext'
+import { useSystem } from './store/systemContext'
 import theme from '../theme'
 import { createAppStateReducer, loadAppState } from './store/reducer'
 import {
@@ -40,8 +41,8 @@ import { useAnimationFrame } from './utils/useAnimationFrame'
 const zeroSize = { w: 0, h: 0 }
 
 const App = React.memo(function App() {
-  const state = useContext(AppStateContext)
-  const { dispatchAction, createOverlay } = useContext(SystemContext)
+  const state = useAppState()
+  const { dispatchAction, createOverlay } = useSystem()
   const notifyBlocksRendered = useCallback(() => {
     dispatchAction({ type: Action.BlocksRendered })
   }, [dispatchAction])

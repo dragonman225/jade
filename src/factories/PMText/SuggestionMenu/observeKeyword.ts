@@ -135,6 +135,7 @@ export function observeKeyword({
     view() {
       return {
         update: (view, prevState) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const key = this.key as PluginKey<PluginState, any>
           const prevPluginState = key.getState(prevState)
           const nextPluginState = key.getState(view.state)

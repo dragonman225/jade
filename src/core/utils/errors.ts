@@ -1,0 +1,1 @@
+class LifecycleError extends Error {}
