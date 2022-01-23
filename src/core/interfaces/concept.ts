@@ -38,13 +38,6 @@ export interface TypedConcept<T> {
 
 /** Concept utils. */
 export const Concept = {
-  getSubConcepts(
-    concept: TypedConcept<unknown>,
-    db: DatabaseInterface
-  ): TypedConcept<unknown>[] {
-    return concept.references.map(ref => db.getConcept(ref.to)).filter(c => !!c)
-  },
-
   isHighOrder(concept: TypedConcept<unknown>): boolean {
     return concept.references.length > 0
   },
