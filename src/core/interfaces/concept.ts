@@ -1,5 +1,4 @@
 import { Camera, Timestamp, Vec2 } from './util'
-import { DatabaseInterface } from './core'
 import { Block } from './block'
 import { Relation } from './relation'
 
