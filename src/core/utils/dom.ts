@@ -116,8 +116,8 @@ export function getCaretCoordinates(r: Range): CaretCoordinates {
 }
 
 /** From Notablog. */
-export function getDateString<T extends string | number | undefined>(
-  dateRaw: T
+export function getDateString<T extends string | number | Date>(
+  dateRaw: T | undefined
 ): string {
   if (dateRaw) {
     const options: Parameters<Date['toLocaleDateString']>['1'] = {

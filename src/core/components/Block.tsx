@@ -31,7 +31,7 @@ interface Props {
   children?: React.ReactNode
 }
 
-export function Block({
+export const Block = React.memo(function Block({
   id,
   conceptId,
   color,
@@ -45,22 +45,22 @@ export function Block({
   className,
   children,
 }: Props): JSX.Element {
-  const blockElRef = useRef<HTMLDivElement>(null)
-  const widthResizerElRef = useRef<HTMLDivElement>(null)
-  const heightResizerElRef = useRef<HTMLDivElement>(null)
-  const widthHeightResizerElRef = useRef<HTMLDivElement>(null)
-  const arrowTriggerElRef = useRef<HTMLDivElement>(null)
-  const modeRef = useRef<InteractionMode>(mode)
+  const rBlockEl = useRef<HTMLDivElement>(null)
+  const rWidthResizerEl = useRef<HTMLDivElement>(null)
+  const rHeightResizerEl = useRef<HTMLDivElement>(null)
+  const rWidthHeightResizerEl = useRef<HTMLDivElement>(null)
+  const rArrowTriggerEl = useRef<HTMLDivElement>(null)
+  const rMode = useRef<InteractionMode>(mode)
   const [isHovering, setIsHovering] = useState(false)
 
   /** Register the block element so other places can query its rect. */
   useEffect(() => {
-    blockRectManager.setElement(id, blockElRef.current)
+    if (rBlockEl.current) blockRectManager.setElement(id, rBlockEl.current)
     return () => blockRectManager.detachElement(id)
   }, [id])
 
   useEffect(() => {
-    modeRef.current = mode
+    rMode.current = mode
   }, [mode])
 
   /** Advanced gesture detection. */
@@ -76,7 +76,8 @@ export function Block({
   const lastClientCoordsRef = useRef({ x: 0, y: 0 })
   const pointerDownCoordsRef = useRef({ x: 0, y: 0 })
   useEffect(() => {
-    const blockEl = blockElRef.current
+    const blockEl = rBlockEl.current
+    if (!blockEl) return
 
     function onPointerUp(e: MouseEvent | TouchEvent) {
       /**
@@ -114,13 +115,13 @@ export function Block({
 
       gestureModeRef.current = 'idle'
 
-      if (modeRef.current === InteractionMode.Moving)
+      if (rMode.current === InteractionMode.Moving)
         dispatchAction({ type: Action.BlockMoveEnd })
 
       /** "Focusing" is controlled by the concept display. */
       if (
-        modeRef.current === InteractionMode.Moving ||
-        modeRef.current === InteractionMode.Resizing
+        rMode.current === InteractionMode.Moving ||
+        rMode.current === InteractionMode.Resizing
       )
         dispatchAction({
           type: Action.BlockSetMode,
@@ -206,9 +207,9 @@ export function Block({
         /** Reject non-primary button. */
         if (e.button !== 0) {
           /** Prevent focus if InteractionMode is not Focusing. */
-          if (modeRef.current !== InteractionMode.Focusing) e.preventDefault()
+          if (rMode.current !== InteractionMode.Focusing) e.preventDefault()
           /** Trigger context menu on right-click when idle. */
-          if (e.button === 2 && modeRef.current === InteractionMode.Idle) {
+          if (e.button === 2 && rMode.current === InteractionMode.Idle) {
             dispatchAction({
               type: Action.ContextMenuOpen,
               data: {
@@ -221,10 +222,10 @@ export function Block({
         }
       }
 
-      const widthResizerEl = widthResizerElRef.current
-      const heightResizerEl = heightResizerElRef.current
-      const widthHeightResizerEl = widthHeightResizerElRef.current
-      const arrowTriggerEl = arrowTriggerElRef.current
+      const widthResizerEl = rWidthResizerEl.current
+      const heightResizerEl = rHeightResizerEl.current
+      const widthHeightResizerEl = rWidthHeightResizerEl.current
+      const arrowTriggerEl = rArrowTriggerEl.current
 
       if (widthResizerEl && widthResizerEl.contains(e.target as Node))
         gestureModeRef.current = 'resizeW'
@@ -241,7 +242,7 @@ export function Block({
           type: Action.RelationDrawStart,
           data: { id, pointerInViewportCoords: clientCoords },
         })
-      } else if (modeRef.current !== InteractionMode.Focusing) {
+      } else if (rMode.current !== InteractionMode.Focusing) {
         gestureModeRef.current = 'ready_to_move'
       }
 
@@ -263,11 +264,13 @@ export function Block({
 
   /** Disable system context menu when not focusing since we're showing our own. */
   useEffect(() => {
+    const blockEl = rBlockEl.current
+    if (!blockEl) return
+
     function preventContextMenu(e: MouseEvent) {
-      if (modeRef.current !== InteractionMode.Focusing) e.preventDefault()
+      if (rMode.current !== InteractionMode.Focusing) e.preventDefault()
     }
 
-    const blockEl = blockElRef.current
     blockEl.addEventListener('contextmenu', preventContextMenu)
 
     return () => {
@@ -297,21 +300,21 @@ export function Block({
 
   return (
     <div
-      ref={blockElRef}
+      ref={rBlockEl}
       className={blockClassName}
       data-color={color}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}>
       {children}
       {allowResizeWidth && (
-        <div ref={widthResizerElRef} className={styles.widthResizer} />
+        <div ref={rWidthResizerEl} className={styles.widthResizer} />
       )}
       {allowResizeHeight && (
-        <div ref={heightResizerElRef} className={styles.heightResizer} />
+        <div ref={rHeightResizerEl} className={styles.heightResizer} />
       )}
       {allowResizeWidth && allowResizeHeight && (
         <div
-          ref={widthHeightResizerElRef}
+          ref={rWidthHeightResizerEl}
           className={styles.widthHeightResizer}
         />
       )}
@@ -325,7 +328,7 @@ export function Block({
               <OpenInFull />
             </div>
             <div
-              ref={arrowTriggerElRef}
+              ref={rArrowTriggerEl}
               className={classes(styles.actionButton, styles.arrow)}>
               <ArrowNorthEast />
             </div>
@@ -334,4 +337,4 @@ export function Block({
       {highlighted && <div className={styles.highlightOverlay} />}
     </div>
   )
-}
+})

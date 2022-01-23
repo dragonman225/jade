@@ -6,6 +6,7 @@ import {
   TypedConcept,
 } from '../../core/interfaces'
 import { PubSub } from '../../core/utils/pubsub'
+import { getDefaultSettings } from '../../core/utils/settings'
 import env from '../../env'
 
 interface SQLiteDatabase {
@@ -58,8 +59,14 @@ interface WriteBufferItem {
 
 const SQLiteDatabase = ActualSQLiteDatabase as SQLiteDatabaseConstructor
 
+const LOG_PREFIX = 'electron-storage:'
+
 function log(...args: unknown[]) {
-  console.log('electron-storage:', ...args)
+  console.log(LOG_PREFIX, ...args)
+}
+
+function error(...args: unknown[]) {
+  console.error(LOG_PREFIX, ...args)
 }
 
 function createDatabase(path: string): PlatformDatabaseInterface {
@@ -213,7 +220,9 @@ function createDatabase(path: string): PlatformDatabaseInterface {
     }
   }
 
-  function hydrateConcept(dryConcept: DryConcept): TypedConcept<unknown> {
+  function hydrateConcept(
+    dryConcept: DryConcept
+  ): TypedConcept<unknown> | undefined {
     try {
       const concept = JSON.parse(dryConcept.json) as TypedConcept<unknown>
       return concept.relations ? concept : { ...concept, relations: [] }
@@ -223,7 +232,7 @@ function createDatabase(path: string): PlatformDatabaseInterface {
     }
   }
 
-  function getConcept(id: string): TypedConcept<unknown> {
+  function getConcept(id: string) {
     if (conceptCache.has(id)) return conceptCache.get(id)
     try {
       const start = performance.now()
@@ -231,13 +240,13 @@ function createDatabase(path: string): PlatformDatabaseInterface {
       const dryConcept = stmt.get<DryConcept>({ id })
       const mid = performance.now()
       const concept = hydrateConcept(dryConcept)
-      conceptCache.set(id, concept)
+      if (concept) conceptCache.set(id, concept)
       const end = performance.now()
       log(`Select concept "${id}" in ${mid - start}ms, \
 parse JSON in ${end - mid}ms.`)
       return concept
-    } catch (error) {
-      log(error)
+    } catch (err) {
+      error(err)
       return undefined
     }
   }
@@ -249,10 +258,15 @@ parse JSON in ${end - mid}ms.`)
       const dryConcepts = stmt.all<DryConcept>()
       const end = performance.now()
       log(`Select all concepts in ${end - start} ms`)
-      return dryConcepts.map(c => hydrateConcept(c))
-    } catch (error) {
-      log(error)
-      return undefined
+      const concepts: TypedConcept<unknown>[] = []
+      dryConcepts.forEach(c => {
+        const concept = hydrateConcept(c)
+        if (concept) concepts.push(concept)
+      })
+      return concepts
+    } catch (err) {
+      error(err)
+      return []
     }
   }
 
@@ -282,7 +296,7 @@ parse JSON in ${end - mid}ms.`)
       return JSON.parse(drySetting.value) as Settings
     } catch (error) {
       log(error)
-      return undefined
+      return getDefaultSettings()
     }
   }
 

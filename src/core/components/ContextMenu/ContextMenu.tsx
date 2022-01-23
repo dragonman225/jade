@@ -22,14 +22,16 @@ function getContextOfPointer(
     camera
   )
   const overBlock = getOverBlock(pointerInEnvCoords, blocks)
-  return (
-    overBlock && {
+  const linkedConcept = overBlock && system.db.getConcept(overBlock.conceptId)
+
+  if (overBlock && linkedConcept) {
+    return {
       type: ContextMenuType.Block,
       block: overBlock,
       parentConcept: viewingConcept,
-      linkedConcept: system.db.getConcept(overBlock.conceptId),
+      linkedConcept,
     }
-  )
+  } else return undefined
 }
 
 function getContextOfRelation(
@@ -68,7 +70,7 @@ export function ContextMenu(): JSX.Element {
   const appState = useContext(AppStateContext)
   const system = useContext(SystemContext)
   const { dispatchAction } = system
-  const contextMenuRef = useRef<HTMLDivElement>(null)
+  const rContextMenuEl = useRef<HTMLDivElement>(null)
   const context = getContext(appState, system)
 
   /** Close ContextMenu when clicking outside or when window resize. */
@@ -78,7 +80,7 @@ export function ContextMenu(): JSX.Element {
     }
 
     function handlePointerDown(e: MouseEvent | TouchEvent) {
-      if (!contextMenuRef.current.contains(e.target as Node)) {
+      if (!rContextMenuEl.current?.contains(e.target as Node)) {
         closeContextMenu()
       }
     }
@@ -108,10 +110,10 @@ export function ContextMenu(): JSX.Element {
 
   switch (context.type) {
     case ContextMenuType.Block: {
-      return <ContextMenuForBlock ref={contextMenuRef} context={context} />
+      return <ContextMenuForBlock ref={rContextMenuEl} context={context} />
     }
     case ContextMenuType.Relation: {
-      return <ContextMenuForRelation ref={contextMenuRef} context={context} />
+      return <ContextMenuForRelation ref={rContextMenuEl} context={context} />
     }
   }
 }

@@ -2,17 +2,28 @@ import { Settings } from '../interfaces'
 
 const INITIAL_HOME_ID = 'home'
 
-export function migrateSettings(settings: Settings): Settings {
+export function getDefaultSettings(): Settings {
   return {
-    homeConceptId: settings.homeConceptId || INITIAL_HOME_ID,
-    viewingConceptId: settings.viewingConceptId || INITIAL_HOME_ID,
+    homeConceptId: INITIAL_HOME_ID,
+    viewingConceptId: INITIAL_HOME_ID,
+    shouldEnableDevMode: false,
+    shouldEnableEfficientRendering: true,
+  }
+}
+
+export function migrateSettings(settings: Settings): Settings {
+  const defaultSettings = getDefaultSettings()
+  return {
+    homeConceptId: settings.homeConceptId || defaultSettings.homeConceptId,
+    viewingConceptId:
+      settings.viewingConceptId || defaultSettings.viewingConceptId,
     shouldEnableDevMode:
       typeof settings.shouldEnableDevMode === 'undefined'
-        ? false
+        ? defaultSettings.shouldEnableDevMode
         : settings.shouldEnableDevMode,
     shouldEnableEfficientRendering:
       typeof settings.shouldEnableEfficientRendering === 'undefined'
-        ? true
+        ? defaultSettings.shouldEnableEfficientRendering
         : settings.shouldEnableEfficientRendering,
   }
 }

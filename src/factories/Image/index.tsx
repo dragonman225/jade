@@ -12,8 +12,8 @@ function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.addEventListener('load', event => {
-      const img = event.target.result.toString() // a data-url
-      resolve(img)
+      const img = event.target?.result?.toString() // a data-url
+      img ? resolve(img) : reject('Cannot get data url')
     })
     reader.addEventListener('error', e => {
       reject(e)
@@ -55,7 +55,7 @@ function Image(props: Props): JSX.Element {
   )
   const [img, setImg] = useState(content.imgSrc)
   const [error, setError] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
+  const rInput = useRef<HTMLInputElement>(null)
 
   /** Update state on content change. */
   useEffect(() => {
@@ -112,7 +112,7 @@ function Image(props: Props): JSX.Element {
             <div className={styles.ImageBlockChooser}>
               <div className={styles.Title}>From the Web</div>
               <input
-                ref={inputRef}
+                ref={rInput}
                 className={styles.ImgLinkInput}
                 placeholder="Paste the image link..."
                 type="url"
@@ -122,7 +122,7 @@ function Image(props: Props): JSX.Element {
               <button
                 className={styles.ImgLinkButton}
                 onClick={() => {
-                  onChange({ imgSrc: inputRef.current.value })
+                  onChange({ imgSrc: rInput.current?.value })
                 }}>
                 Embed image
               </button>

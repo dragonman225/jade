@@ -72,10 +72,10 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
                     }>
                     <ConceptPreview
                       blockId={insightToolBlockId}
-                      concept={concept}
+                      conceptId={concept.id}
                       database={database}
                       dispatchAction={dispatchAction}
-                      viewMode={'NavItem'}
+                      viewMode="NavItem"
                     />
                   </div>
                   <hr className={styles.Divider} />

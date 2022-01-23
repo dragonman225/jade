@@ -15,7 +15,7 @@ interface TwitterAPI {
      */
     createTweetEmbed: (
       tweetId: string,
-      targetEl: HTMLElement,
+      targetEl: HTMLElement | null,
       options?: TwitterOptions
     ) => Promise<HTMLElement>
   }
@@ -41,7 +41,7 @@ interface TwitterOptions {
 }
 
 export interface TwitterEmbedProps {
-  id: string
+  id: string | undefined
   options?: TwitterOptions
   placeholder?: string | React.ReactNode
   protocol?: string
@@ -57,7 +57,7 @@ export function TweetEmbed({
   options,
   placeholder,
   className,
-  protocol: suggestedProtocol,
+  protocol: suggestedProtocol = 'https:',
   onTweetLoadSuccess,
   onTweetLoadError,
 }: TwitterEmbedProps): JSX.Element {
@@ -66,6 +66,8 @@ export function TweetEmbed({
 
   useEffect(() => {
     const renderTweet = () => {
+      if (!id) return
+
       const twttr = window['twttr'] as TwitterLoader
       twttr
         .ready()

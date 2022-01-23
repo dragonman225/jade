@@ -41,7 +41,10 @@ export function isConceptContainingLinkToConcept(
   if (!concept || !concept.summary || !concept.summary.type) return false
   switch (concept.summary.type) {
     case 'pmtext':
-      return isPMTextContainingLinkToConcept(conceptId, concept)
+      return isPMTextContainingLinkToConcept(
+        conceptId,
+        concept as TypedConcept<PMTextContent>
+      )
     default:
       return false
   }

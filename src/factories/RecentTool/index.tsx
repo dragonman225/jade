@@ -18,20 +18,20 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
   } = props
   const state = useContext(AppStateContext)
 
-  const recentRef = useRef<HTMLDivElement>(null)
+  const rRecentEl = useRef<HTMLDivElement>(null)
 
   if (viewMode !== 'Block') {
     return <span>Recent Tool</span>
   }
 
   return (
-    <div className={styles.Recent} ref={recentRef}>
+    <div className={styles.Recent} ref={rRecentEl}>
       {(function () {
         const historyToShow: string[] = []
-        const maxNumToShow = Math.floor(
-          // TODO: Think of a way to pass down block elegantly.
-          recentRef.current?.getBoundingClientRect().width / 100
-        )
+
+        // TODO: Think of a way to get block size elegantly.
+        const width = rRecentEl.current?.getBoundingClientRect().width || 0
+        const maxNumToShow = Math.floor(width / 100)
 
         for (let i = state.expandHistory.length - 2; i >= 0; i--) {
           const conceptId = state.expandHistory[i]
@@ -46,28 +46,25 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
           }
         }
 
-        return historyToShow.map(conceptId => {
-          const concept = database.getConcept(conceptId)
-          return (
-            <button
-              className={styles.RecentBtn}
-              onClick={() => {
-                dispatchAction({
-                  type: Action.BlockOpenAsCanvas,
-                  data: { id: conceptId },
-                })
-              }}
-              key={conceptId}>
-              <ConceptPreview
-                blockId={recentToolBlockId}
-                concept={concept}
-                database={database}
-                dispatchAction={dispatchAction}
-                viewMode="NavItem"
-              />
-            </button>
-          )
-        })
+        return historyToShow.map(conceptId => (
+          <button
+            className={styles.RecentBtn}
+            onClick={() => {
+              dispatchAction({
+                type: Action.BlockOpenAsCanvas,
+                data: { id: conceptId },
+              })
+            }}
+            key={conceptId}>
+            <ConceptPreview
+              blockId={recentToolBlockId}
+              conceptId={conceptId}
+              database={database}
+              dispatchAction={dispatchAction}
+              viewMode="NavItem"
+            />
+          </button>
+        ))
       })()}
     </div>
   )

@@ -22,7 +22,6 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
     blockId,
     database,
     dispatchAction,
-    createOverlay,
     onInteractionStart,
     onInteractionEnd,
   } = props
@@ -93,7 +92,6 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
             database: props.database,
             concept: state.viewingConcept,
             blockId,
-            createOverlay,
             onChange: data =>
               dispatchAction({
                 type: Action.ConceptWriteData,

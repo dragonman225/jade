@@ -35,7 +35,7 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
    * "Unable to preventDefault inside passive event listener due to target
    * being treated as passive."
    */
-  const cameraElRef = useRef<HTMLDivElement>(null)
+  const rCameraEl = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey) {
@@ -59,7 +59,7 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
     }
 
     const handleDoubleClick = (e: MouseEvent) => {
-      if (e.target === cameraElRef.current) {
+      if (e.target === rCameraEl.current) {
         const viewportCoords: Vec2 = { x: e.clientX, y: e.clientY }
         dispatchAction({
           type: Action.ConceptCreate,
@@ -97,7 +97,7 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
           if (e instanceof MouseEvent) {
             /** Interacting with a mouse. */
             if (e.button === 0) {
-              if (e.target === cameraElRef.current) {
+              if (e.target === rCameraEl.current) {
                 /** Primary button, target not being a Block -> Start selection box. */
                 dispatchAction({
                   type: Action.SelectionBoxSetStart,
@@ -113,7 +113,7 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
           } else {
             /** Interacting with a touch device. */
             /** TODO: Start selection box when holding with one finger for a while. */
-            if (e.target === cameraElRef.current && e.touches.length === 2) {
+            if (e.target === rCameraEl.current && e.touches.length === 2) {
               /** Two fingers, target not being a Block -> Start moving camera. */
               panning = true
             }
@@ -162,7 +162,8 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
       }
     })()
 
-    const cameraEl = cameraElRef.current
+    const cameraEl = rCameraEl.current
+    if (!cameraEl) return
     cameraEl.addEventListener('wheel', handleWheel)
     cameraEl.addEventListener('dblclick', handleDoubleClick)
     cameraEl.addEventListener('mousedown', inputDetector.handlePointerDown)
@@ -257,7 +258,7 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
   return (
     <div
       /** Fill the viewport to listen for events. */
-      ref={cameraElRef}
+      ref={rCameraEl}
       className={styles.canvasInteractionDetector}>
       {children}
     </div>

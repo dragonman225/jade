@@ -32,12 +32,12 @@ export class PubSub implements IPubSub {
     }[]
   }
   private lastEmitTime: number
-  private auditChannel: string
+  private auditChannel: string | undefined
 
-  constructor(options: PubSubOptions = {}) {
+  constructor({ auditChannel }: PubSubOptions = {}) {
     this.subscriberMap = {}
     this.lastEmitTime = 0
-    this.auditChannel = options.auditChannel
+    this.auditChannel = auditChannel
   }
 
   /**

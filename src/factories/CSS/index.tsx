@@ -61,9 +61,9 @@ function CSSEditable({
   onInteractionEnd,
 }: Props) {
   const { globalCss } = concept.summary.data
-  const styleElRef = useRef<HTMLStyleElement>()
-  const cssTextElRef = useRef<Text>()
-  const textareaElRef = useRef<HTMLTextAreaElement>()
+  const rStyleEl = useRef<HTMLStyleElement | undefined>()
+  const rCssTextEl = useRef<Text | undefined>()
+  const rTextareaEl = useRef<HTMLTextAreaElement>(null)
   const [cssText, setCssText] = useState(globalCss)
 
   /** Control the lifecycle of <style>. */
@@ -72,8 +72,8 @@ function CSSEditable({
     const cssTextEl = document.createTextNode('')
     styleEl.appendChild(cssTextEl)
     document.head.appendChild(styleEl)
-    styleElRef.current = styleEl
-    cssTextElRef.current = cssTextEl
+    rStyleEl.current = styleEl
+    rCssTextEl.current = cssTextEl
     return () => {
       document.head.removeChild(styleEl)
     }
@@ -81,12 +81,13 @@ function CSSEditable({
 
   /** Update CSS. */
   useEffect(() => {
-    cssTextElRef.current.textContent = cssText
+    if (rCssTextEl.current) rCssTextEl.current.textContent = cssText
   }, [cssText])
 
   /** Prevent moving camera while scrolling. */
   useEffect(() => {
-    const textareaEl = textareaElRef.current
+    const textareaEl = rTextareaEl.current
+    if (!textareaEl) return
     const handleWheel = (e: WheelEvent) => {
       if (!e.ctrlKey) e.stopPropagation()
     }
@@ -96,17 +97,18 @@ function CSSEditable({
 
   /** Prevent selection and focus when moving. */
   useEffect(() => {
-    const textareaEl = textareaElRef.current
+    const textareaEl = rTextareaEl.current
     if (readOnly && textareaEl) {
       textareaEl.blur()
-      window.getSelection().removeAllRanges()
+      const selection = window.getSelection()
+      selection && selection.removeAllRanges()
     }
   }, [readOnly])
 
   return (
     <div className={styles.cssBlock}>
       <textarea
-        ref={textareaElRef}
+        ref={rTextareaEl}
         value={cssText}
         className={styles.textarea}
         onFocus={onInteractionStart}

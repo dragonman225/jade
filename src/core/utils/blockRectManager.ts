@@ -2,8 +2,8 @@ import { BlockId, Camera } from '../interfaces'
 import { viewportRectToEnvRect } from './math'
 
 interface BlockInfo {
-  el: HTMLDivElement
-  cachedEnvRect: Omit<DOMRect, 'toJSON'>
+  el: HTMLDivElement | undefined
+  cachedEnvRect: Omit<DOMRect, 'toJSON'> | undefined
   alive: boolean
 }
 

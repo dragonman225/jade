@@ -72,7 +72,9 @@ export function synthesizeView(
   }
 
   const overlayConcept = db.getConcept('__tool_mask__')
-  const overlayBlocks = overlayConcept.references.map(blockToBlockInstance)
+  const overlayBlocks = overlayConcept
+    ? overlayConcept.references.map(blockToBlockInstance)
+    : []
   const viewingBlocks = viewingConcept.references.map(blockToBlockInstance)
 
   return overlayBlocks.concat(viewingBlocks)
@@ -314,6 +316,8 @@ export function createAppStateReducer(
           blocks: synthesizeView(newViewingConcept, db),
         }
       }
+      /** TODO: Block links are broken after cut/paste since it's moved to a 
+          new canvas. */
       case Action.BlockCut: {
         const { blocks, selectedBlockIds, viewingConcept } = state
 
@@ -324,6 +328,11 @@ export function createAppStateReducer(
           blockRectManager.getRect(id)
         )
         const boundingRect = getBoundingBox(selectedBlockRects)
+        /**
+         * When pasting, the pointer should be at the center of the
+         * bounding box of the pasted blocks. Below is used to calculate
+         * where to put the pasted blocks.
+         */
         const pasteOffset = {
           x: (boundingRect.left - boundingRect.right) / 2,
           y: (boundingRect.top - boundingRect.bottom) / 2,
@@ -350,7 +359,7 @@ export function createAppStateReducer(
           viewingConcept: newViewingConcept,
           blocks: blocks.filter(b => !b.selected),
           relations: newViewingConcept.relations,
-          /** Blocks moved to clipbard. */
+          /** Selected blocks are moved to clipbard. */
           selectedBlockIds: [],
           clipboard: state.clipboard.concat({
             pasteOffset,
@@ -358,6 +367,10 @@ export function createAppStateReducer(
               .filter(b => b.selected)
               .map(b => ({
                 ...b,
+                /**
+                 * Normalize positions to be relative to the top-left
+                 * corner of the bounding box.
+                 */
                 pos: vecSub(b.pos, boundingBoxTopLeft),
               }))
               .map(blockInstanceToBlock),

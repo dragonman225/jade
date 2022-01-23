@@ -18,12 +18,18 @@ export function ArrowList(): JSX.Element {
 
   const fromBoxes = useMemo(
     () =>
-      relations.map(relation => blockToBox(findBlock(blocks, relation.fromId))),
+      relations.map(relation => {
+        const b = findBlock(blocks, relation.fromId)
+        return b && blockToBox(b)
+      }),
     [relations, blocks]
   )
   const toBoxes = useMemo(
     () =>
-      relations.map(relation => blockToBox(findBlock(blocks, relation.toId))),
+      relations.map(relation => {
+        const b = findBlock(blocks, relation.toId)
+        return b && blockToBox(b)
+      }),
     [relations, blocks]
   )
 
@@ -34,6 +40,9 @@ export function ArrowList(): JSX.Element {
           fromBoxes[index] /*blockToBox(findBlock(blocks, relation.fromId))*/
         const toBox =
           toBoxes[index] /*blockToBox(findBlock(blocks, relation.toId))*/
+
+        if (!fromBox || !toBox) return null
+
         /** Grow box by 100 so that special arrows (e.g. top-top) don't overflow. */
         const viewBox = growBox(boundingBoxOfBoxes([fromBox, toBox]), 100)
 

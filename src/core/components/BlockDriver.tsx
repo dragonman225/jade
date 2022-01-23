@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useCallback, useMemo, useContext, useState, useEffect } from 'react'
+import { useMemo, useContext, useState, useEffect } from 'react'
 import { style } from 'typestyle'
 
 import { Block } from './Block'
@@ -8,88 +8,32 @@ import theme from '../../theme'
 import {
   BlockInstance,
   Concept,
-  InteractionMode,
   PositionType,
   TypedConcept,
 } from '../interfaces'
-import { Action } from '../store/actions'
-
+import { ConceptDriver } from './ConceptDriver'
 interface BlockDriverProps {
   block: BlockInstance
 }
 
-export const BlockDriver = React.memo(function BlockDriver(
-  props: BlockDriverProps
-): JSX.Element {
-  const { block } = props
-  const { db, factoryRegistry, dispatchAction, createOverlay } = useContext(
-    SystemContext
-  )
-  const [concept, setConcept] = useState<TypedConcept<unknown>>(() =>
-    db.getConcept(block.conceptId)
+export const BlockDriver = React.memo(function BlockDriver({
+  block,
+}: BlockDriverProps): JSX.Element {
+  const { db, dispatchAction } = useContext(SystemContext)
+  const [concept, setConcept] = useState<TypedConcept<unknown> | undefined>(
+    () => db.getConcept(block.conceptId)
   )
 
-  /** Reactivity. */
+  /** Subscribe to concept change. */
   useEffect(() => {
     function handleUpdate() {
-      setConcept(db.getConcept(concept.id))
+      setConcept(db.getConcept(block.conceptId))
     }
-
-    db.subscribeConcept(concept.id, handleUpdate)
-
+    db.subscribeConcept(block.conceptId, handleUpdate)
     return () => {
-      db.unsubscribeConcept(concept.id, handleUpdate)
+      db.unsubscribeConcept(block.conceptId, handleUpdate)
     }
-  }, [concept.id, db])
-
-  const setMode = useCallback(
-    (mode: InteractionMode) => {
-      dispatchAction({
-        type: Action.BlockSetMode,
-        data: {
-          id: block.id,
-          mode,
-        },
-      })
-    },
-    [block.id, dispatchAction]
-  )
-
-  const handleChange = useCallback(
-    (content: unknown) => {
-      dispatchAction({
-        type: Action.ConceptWriteData,
-        data: {
-          id: concept.id,
-          type: concept.summary.type,
-          content,
-        },
-      })
-    },
-    [concept.id, concept.summary.type, dispatchAction]
-  )
-
-  const handleReplace = useCallback(
-    (type: string) => {
-      dispatchAction({
-        type: Action.ConceptWriteData,
-        data: {
-          id: concept.id,
-          type,
-          content: { initialized: false },
-        },
-      })
-    },
-    [concept.id, dispatchAction]
-  )
-
-  const handleInteractionStart = useCallback(() => {
-    setMode(InteractionMode.Focusing)
-  }, [setMode])
-
-  const handleInteractionEnd = useCallback(() => {
-    setMode(InteractionMode.Idle)
-  }, [setMode])
+  }, [block.conceptId, db])
 
   const blockClassName = useMemo(() => {
     return block.posType > PositionType.Normal
@@ -105,30 +49,17 @@ export const BlockDriver = React.memo(function BlockDriver(
   return (
     <Block
       id={block.id}
-      conceptId={concept.id}
+      conceptId={block.conceptId}
       color={block.color}
       mode={block.mode}
       selected={block.selected}
       highlighted={block.highlighted}
-      blink={Concept.isHighOrder(concept)}
+      blink={concept ? Concept.isHighOrder(concept) : false}
       allowResizeWidth={block.size.w !== 'auto'}
       allowResizeHeight={block.size.h !== 'auto'}
       dispatchAction={dispatchAction}
       className={blockClassName}>
-      {factoryRegistry.createConceptDisplay(concept.summary.type, {
-        readOnly: block.mode === InteractionMode.Moving,
-        viewMode: 'Block',
-        concept,
-        blockId: block.id,
-        dispatchAction,
-        factoryRegistry,
-        database: db,
-        onChange: handleChange,
-        onReplace: handleReplace,
-        onInteractionStart: handleInteractionStart,
-        onInteractionEnd: handleInteractionEnd,
-        createOverlay,
-      })}
+      <ConceptDriver block={block} concept={concept} />
     </Block>
   )
 })

@@ -9,6 +9,7 @@ import {
   makeInlineMathInputRule,
 } from '@dragonman225/prosemirror-math'
 
+import { PMTextContent } from './types'
 import { schema } from './ProseMirrorSchema/schema'
 import {
   markingInputRule,
@@ -20,7 +21,7 @@ export function isProseMirrorDocEmpty(doc: Node): boolean {
 }
 
 export function getProseMirrorDoc(
-  jsonDoc: unknown | undefined,
+  jsonDoc: PMTextContent['data'],
   schema: Schema
 ): Node | undefined {
   return jsonDoc ? Node.fromJSON(schema, jsonDoc) : undefined
@@ -102,7 +103,7 @@ export function insertHardBreak(
 /** Wraps a command so that it runs when the EditorView has focus. */
 export function whenHasFocus(command: Command): Command {
   return (state, dispatch, view) => {
-    if (view.hasFocus()) return command(state, dispatch, view)
+    if (view && view.hasFocus()) return command(state, dispatch, view)
     return false
   }
 }

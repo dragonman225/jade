@@ -7,7 +7,7 @@ export interface System {
   db: DatabaseInterface
   factoryRegistry: FactoryRegistry
   dispatchAction: (action: Actions) => void
-  createOverlay: (children: React.ReactNode) => React.ReactPortal
+  createOverlay: (children: React.ReactNode) => React.ReactPortal | null
   openExternal: (link: string) => void
 }
 

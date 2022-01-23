@@ -6,6 +6,7 @@ import { styles } from './index.styles'
 import { Iframe } from './Iframe'
 import { Tweet } from './Tweet'
 import {
+  BlockInstance,
   ConceptDisplayProps,
   Factory,
   InteractionMode,
@@ -17,7 +18,7 @@ import { AppStateContext } from '../../core/store/appStateContext'
 import { findBlock } from '../../core/utils/block'
 import { saveTextToClipboard } from '../../core/utils/clipboard'
 import { useSyntheticFocus } from '../../core/utils/useSyntheticFocus'
-import { getTweetId, isTweet } from './utils'
+import { getTweetId, isTweetUrl } from './utils'
 
 interface EmbedContent {
   initialized?: boolean
@@ -37,13 +38,13 @@ function EmbedInteractive({
   /** Depending on blocks degrades perf. */
   const { blocks } = useContext(AppStateContext)
   /** `blockId` is useless when embedded in other blocks. */
-  const block = findBlock(blocks, blockId)
+  const block = findBlock(blocks, blockId) as BlockInstance
   const isResizing = block && block.mode === InteractionMode.Resizing
   const isFocusing = block && block.mode === InteractionMode.Focusing
   const { openExternal, dispatchAction } = useContext(SystemContext)
   const { data } = concept.summary
   const url = data && data.url ? data.url : ''
-  const inputRef = useRef<HTMLInputElement>()
+  const rInput = useRef<HTMLInputElement>(null)
   const [allowFrameInteraction, setAllowFrameInteraction] = useState(true)
   const noInteraction = !allowFrameInteraction || isResizing || !isFocusing
   const { setNodeRef } = useSyntheticFocus({
@@ -78,7 +79,9 @@ function EmbedInteractive({
   }, [blockId, onChange, dispatchAction])
 
   const embedLink = useCallback(() => {
-    onChange({ initialized: true, url: inputRef.current.value })
+    const url = rInput.current?.value
+    if (!url) return
+    onChange({ initialized: true, url })
     dispatchAction({
       type: Action.BlockSetSize,
       data: {
@@ -105,7 +108,7 @@ function EmbedInteractive({
               ? styles.FrameWrapperAutoHeight
               : styles.FrameWrapperFixedHeight
           }>
-          {isTweet(url) ? (
+          {isTweetUrl(url) ? (
             <Tweet id={getTweetId(url)} noInteraction={noInteraction} />
           ) : (
             <Iframe url={url} noInteraction={noInteraction} />
@@ -141,7 +144,7 @@ function EmbedInteractive({
     return (
       <div className={styles.EmbedBlockEmpty}>
         <input
-          ref={inputRef}
+          ref={rInput}
           className={styles.LinkInput}
           placeholder="Paste in https://..."
           type="url"
@@ -162,7 +165,7 @@ function EmbedReadOnly({ concept, blockId, viewMode }: Props) {
   const url = data && data.url ? data.url : ''
 
   const { blocks } = useContext(AppStateContext)
-  const block = findBlock(blocks, blockId)
+  const block = findBlock(blocks, blockId) as BlockInstance
 
   if (url) {
     return (
@@ -177,7 +180,7 @@ function EmbedReadOnly({ concept, blockId, viewMode }: Props) {
               ? styles.FrameWrapperAutoHeight
               : styles.FrameWrapperFixedHeight
           }>
-          {isTweet(url) ? (
+          {isTweetUrl(url) ? (
             <Tweet id={getTweetId(url)} noInteraction={true} />
           ) : (
             <Iframe

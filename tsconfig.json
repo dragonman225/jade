@@ -19,7 +19,7 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "skipLibCheck": true,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true
   }
 }

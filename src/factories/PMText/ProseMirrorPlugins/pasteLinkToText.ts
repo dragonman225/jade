@@ -17,6 +17,8 @@ export function pasteLinkToText(): Plugin {
   return new Plugin({
     props: {
       handlePaste: (view, event) => {
+        if (!event.clipboardData) return false
+
         /** Pasted content must contain only text/plain type and is a link. */
         const clipboardItems = Array.from(event.clipboardData.items)
         if (clipboardItems.length > 1) return false

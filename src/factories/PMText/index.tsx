@@ -74,7 +74,7 @@ const PMText: React.FunctionComponent<Props> = props => {
     onInteractionEnd,
     dispatchAction,
   } = props
-  const { openExternal } = useContext(SystemContext)
+  const { openExternal, createOverlay } = useContext(SystemContext)
 
   /** ProseMirror. */
   const [showPlaceholder, setShowPlaceholder] = useState(false)
@@ -493,12 +493,17 @@ const PMText: React.FunctionComponent<Props> = props => {
     case 'NavItem': {
       return <div className={styles.PMTextNavItem}>{editorContainer}</div>
     }
-    case 'Block': {
+    case 'Block':
+    case 'CardTitle': {
       return (
         <>
-          {editorContainer}
+          {props.viewMode === 'Block' ? (
+            editorContainer
+          ) : (
+            <div className={styles.PMTextCardTitle}>{editorContainer}</div>
+          )}
           {showSuggestionMenu &&
-            props.createOverlay(
+            createOverlay(
               <PlaceMenu near={suggestionMenuAnchorRect}>
                 <SuggestionMenu
                   ref={suggestionMenuRef}
@@ -514,7 +519,7 @@ const PMText: React.FunctionComponent<Props> = props => {
               </PlaceMenu>
             )}
           {shouldShowTextActionMenu &&
-            props.createOverlay(
+            createOverlay(
               <div style={{ position: 'absolute', ...textActionMenuPos }}>
                 <TextActionMenu
                   ref={textActionMenuRef}
@@ -538,9 +543,6 @@ const PMText: React.FunctionComponent<Props> = props => {
             )}
         </>
       )
-    }
-    case 'CardTitle': {
-      return <div className={styles.PMTextCardTitle}>{editorContainer}</div>
     }
     default:
       return (

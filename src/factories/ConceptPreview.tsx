@@ -2,7 +2,7 @@ import * as React from 'react'
 import { stylesheet } from 'typestyle'
 
 import { factoryRegistry } from './'
-import { ConceptDisplayProps } from '../core/interfaces'
+import { ConceptDisplayProps, ConceptId } from '../core/interfaces'
 
 function noop() {
   return
@@ -17,16 +17,21 @@ const styles = stylesheet({
 
 type Props = Pick<
   ConceptDisplayProps<unknown>,
-  'viewMode' | 'concept' | 'database' | 'dispatchAction' | 'blockId'
->
+  'viewMode' | 'database' | 'dispatchAction' | 'blockId'
+> & {
+  conceptId: ConceptId
+}
+
 export function ConceptPreview({
   viewMode,
-  concept,
+  conceptId,
   database,
   dispatchAction,
   blockId,
 }: Props): JSX.Element {
-  return (
+  const concept = database.getConcept(conceptId)
+
+  return concept ? (
     <div className={styles.conceptPreview}>
       {factoryRegistry.createConceptDisplay(concept.summary.type, {
         viewMode,
@@ -42,5 +47,7 @@ export function ConceptPreview({
         onInteractionEnd: noop,
       })}
     </div>
+  ) : (
+    <p>Cannot get concept {conceptId}</p>
   )
 }

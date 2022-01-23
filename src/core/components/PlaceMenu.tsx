@@ -8,9 +8,10 @@ interface Props {
   children?: React.ReactNode
 }
 
+/** TODO: ResizeObserver */
 export function PlaceMenu(props: Props): JSX.Element {
   const { near, children } = props
-  const containerRef = useRef<HTMLDivElement>(null)
+  const rContainerEl = useRef<HTMLDivElement>(null)
   const [measured, setMeasured] = useState(false)
   const [position, setPosition] = useState<{
     top?: number
@@ -23,9 +24,11 @@ export function PlaceMenu(props: Props): JSX.Element {
   })
 
   useEffect(() => {
+    if (!rContainerEl.current) return
+
     const winW = window.innerWidth
     const winH = window.innerHeight
-    const menuRect = containerRef.current.getBoundingClientRect()
+    const menuRect = rContainerEl.current.getBoundingClientRect()
     const topOrBottom = (() => {
       if (near.bottom + menuRect.height > winH) {
         return { bottom: winH - near.top }
@@ -46,7 +49,7 @@ export function PlaceMenu(props: Props): JSX.Element {
 
   return (
     <div
-      ref={containerRef}
+      ref={rContainerEl}
       style={{
         position: 'absolute',
         ...position,

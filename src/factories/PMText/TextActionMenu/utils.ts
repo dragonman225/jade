@@ -120,6 +120,7 @@ export const getActiveMarkFromSelection: GetActiveMarkFn<Selection> = (
 export const isHighlightMarkAttrsEqual: MarkAttrsComparator<
   HighlightMark['attrs']
 > = (anchorAttrs, currentAttrs) => {
+  if (!anchorAttrs || !currentAttrs) return false
   return anchorAttrs.color === currentAttrs.color
 }
 

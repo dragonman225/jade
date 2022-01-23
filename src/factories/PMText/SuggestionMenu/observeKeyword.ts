@@ -125,17 +125,21 @@ interface PluginOptions {
       onKeywordStop = noop,
     }
  */
-export function observeKeyword(
-  { rules, debug }: PluginOptions = { rules: [], debug: false }
-): Plugin<PluginState> {
+export function observeKeyword({
+  rules = [],
+  debug = false,
+}: PluginOptions): Plugin<PluginState> {
   return new Plugin({
     key: keywordObserverKey,
 
     view() {
       return {
         update: (view, prevState) => {
-          const prevPluginState = this.key.getState(prevState)
-          const nextPluginState = this.key.getState(view.state)
+          const key = this.key as PluginKey<PluginState, any>
+          const prevPluginState = key.getState(prevState)
+          const nextPluginState = key.getState(view.state)
+
+          if (!prevPluginState || !nextPluginState) return
 
           // See how the state changed
           const moved =
@@ -152,7 +156,7 @@ export function observeKeyword(
 
           // Trigger the hooks when necessary
           if (stopped || moved) {
-            const hookFn = prevPluginState.activeRule.onKeywordStop
+            const hookFn = prevPluginState.activeRule?.onKeywordStop
             hookFn &&
               hookFn({
                 keyword: prevPluginState.keyword,
@@ -161,7 +165,7 @@ export function observeKeyword(
               })
           }
           if (changed && !moved) {
-            const hookFn = nextPluginState.activeRule.onKeywordChange
+            const hookFn = nextPluginState.activeRule?.onKeywordChange
             hookFn &&
               hookFn({
                 keyword: nextPluginState.keyword,
@@ -174,7 +178,7 @@ export function observeKeyword(
               })
           }
           if (started || moved) {
-            const hookFn = nextPluginState.activeRule.onTrigger
+            const hookFn = nextPluginState.activeRule?.onTrigger
             hookFn &&
               hookFn({
                 keyword: nextPluginState.keyword,

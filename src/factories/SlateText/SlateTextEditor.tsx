@@ -176,17 +176,17 @@ export const SlateTextEditor = (props: Props): JSX.Element => {
      */
     if (e.target !== document.activeElement) {
       ReactEditor.deselect(editor)
-      props.onBlur()
+      props.onBlur && props.onBlur()
     }
   }
 
   const [lastBeforeInputEvent, setLastBeforeInputEvent] = useState<{
     data: string
     isComposing: boolean
-  }>(undefined)
+  }>()
   const onDOMBeforeInput = (e: InputEvent) => {
     console.log(e)
-    setLastBeforeInputEvent({ data: e.data, isComposing: e.isComposing })
+    setLastBeforeInputEvent({ data: e.data || '', isComposing: e.isComposing })
     if (
       lastBeforeInputEvent &&
       lastBeforeInputEvent.isComposing &&

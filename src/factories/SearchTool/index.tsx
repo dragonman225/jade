@@ -21,8 +21,14 @@ import {
   viewportCoordsToEnvCoords,
 } from '../../core/utils'
 import { styles as blockStyles } from '../../core/components/Block.styles'
-import { ConceptDisplayProps, Factory, Vec2 } from '../../core/interfaces'
+import {
+  AppState,
+  ConceptDisplayProps,
+  Factory,
+  Vec2,
+} from '../../core/interfaces'
 import { Action } from '../../core/store/actions'
+import { SystemContext } from '../../core/store/systemContext'
 
 type Props = ConceptDisplayProps<undefined>
 
@@ -46,7 +52,9 @@ const S2LState = {
 const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const { dispatchAction, database, blockId } = props
   const state = useContext(AppStateContext)
-  const searchRef = useRef<HTMLDivElement>(null)
+  const { createOverlay } = useContext(SystemContext)
+
+  const rSearchEl = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [text, setText] = useState('')
   const [minimized, setMinimized] = useState(true)
@@ -56,7 +64,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
     blocks: [],
     orphans: [],
   })
-  const pendingSearchTimeoutId = useRef<NodeJS.Timeout>(null)
+  const pendingSearchTimeoutId = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (pendingSearchTimeoutId.current) {
@@ -87,15 +95,15 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
     y: 0,
   })
   const [s2lDelta, setS2lDelta] = useState<Vec2>({ x: 0, y: 0 })
-  const s2lBlockRef = useRef<S2LBlock>(null)
-  const s2lStartOffsetRef = useRef<Vec2>(null)
-  const s2lDeltaRef = useRef<Vec2>(null)
-  const stateRef = useRef<typeof state>(null)
+  const s2lBlockRef = useRef<S2LBlock | undefined>()
+  const s2lStartOffsetRef = useRef<Vec2 | undefined>()
+  const s2lDeltaRef = useRef<Vec2 | undefined>()
+  const stateRef = useRef<AppState | undefined>()
 
   const handleWindowPointerDown = (e: MouseEvent | TouchEvent) => {
     /** Click outside to minimize. */
     if (e.target instanceof Node) {
-      if (!searchRef.current.contains(e.target)) {
+      if (!rSearchEl.current?.contains(e.target)) {
         setMinimized(true)
       }
     }
@@ -118,6 +126,9 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   }, [state])
 
   useEffect(() => {
+    const searchEl = rSearchEl.current
+    if (!searchEl) return
+
     const gestureDetector = (() => {
       let state: 'idle' | 'ready' | 'linking' = 'idle'
       let lastClientCoords = { x: 0, y: 0 }
@@ -128,6 +139,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
         if (
           state === 'ready' &&
           distanceOf(clientCoords, lastClientCoords) > 3 &&
+          s2lBlockRef.current &&
           s2lBlockRef.current.valid
         ) {
           setMinimized(true)
@@ -136,7 +148,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
 
           state = 'linking'
         } else if (state === 'linking') {
-          if (!s2lBlockRef.current.valid) return
+          if (!s2lBlockRef.current?.valid) return
           setS2lDelta(vecSub(clientCoords, s2lBlockRef.current.rect))
         }
 
@@ -152,7 +164,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
         if (state === 'ready') {
           const s2lBlock = s2lBlockRef.current
 
-          if (s2lBlock.valid) {
+          if (s2lBlock?.valid) {
             dispatchAction({
               type: Action.BlockOpenAsCanvas,
               data:
@@ -170,9 +182,9 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
           const s2lStartOffset = s2lStartOffsetRef.current
           const s2lDelta = s2lDeltaRef.current
           const state = stateRef.current
-          const scale = state.camera.scale
 
-          if (s2lBlock.valid) {
+          if (s2lBlock?.valid && s2lDelta && s2lStartOffset && state) {
+            const scale = state.camera.scale
             dispatchAction({
               type: Action.BlockCreate,
               data: {
@@ -186,11 +198,11 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                     y:
                       s2lBlock.rect.top + s2lDelta.y - s2lStartOffset.y * scale,
                   },
-                  stateRef.current.camera
+                  state.camera
                 ),
               },
             })
-          } else console.log('s2lBlock is invalid')
+          } else console.error('s2lBlock is invalid')
 
           setS2lBlock({ valid: false })
           setS2lStartOffset({ x: 0, y: 0 })
@@ -207,8 +219,9 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
           // HACK: Prevent block being dragged when start from a ScrollListItem.
           if (
             e.target instanceof Element &&
+            rSearchEl.current &&
             Array.from(
-              searchRef.current.querySelectorAll('.ScrollListItem')
+              rSearchEl.current.querySelectorAll('.ScrollListItem')
             ).find(el => el.contains(e.target as Element))
           )
             e.stopPropagation()
@@ -243,7 +256,6 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
       }
     })()
 
-    const searchEl = searchRef.current
     searchEl.addEventListener('mousedown', gestureDetector.handlePointerDown)
     searchEl.addEventListener('touchstart', gestureDetector.handlePointerDown)
     window.addEventListener('mousedown', handleWindowPointerDown)
@@ -291,7 +303,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
       className={classes(
         s2lState === S2LState.Linking && styles['Search--Linking']
       )}
-      ref={searchRef}>
+      ref={rSearchEl}>
       <div className={styles.SearchBar}>
         <div className={styles.SearchIcon}>
           <Search />
@@ -358,7 +370,21 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                       }>
                       {(function () {
                         switch (s2lState) {
-                          case S2LState.Idle: {
+                          case S2LState.Linking: {
+                            return (
+                              <div className={styles.ScrollListItem}>
+                                <ConceptPreview
+                                  blockId={blockId}
+                                  conceptId={item.concept.id}
+                                  viewMode="NavItem"
+                                  dispatchAction={dispatchAction}
+                                  database={database}
+                                />
+                              </div>
+                            )
+                          }
+                          case S2LState.Idle:
+                          default: {
                             /** The following doesn't support touch. */
                             return (
                               <div
@@ -375,7 +401,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                                 }}>
                                 <ConceptPreview
                                   blockId={blockId}
-                                  concept={item.concept}
+                                  conceptId={item.concept.id}
                                   viewMode="NavItem"
                                   dispatchAction={dispatchAction}
                                   database={database}
@@ -383,22 +409,6 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                                 <div className={styles.ScrollListItemOverlay} />
                               </div>
                             )
-                          }
-                          case S2LState.Linking: {
-                            return (
-                              <div className={styles.ScrollListItem}>
-                                <ConceptPreview
-                                  blockId={blockId}
-                                  concept={item.concept}
-                                  viewMode="NavItem"
-                                  dispatchAction={dispatchAction}
-                                  database={database}
-                                />
-                              </div>
-                            )
-                          }
-                          default: {
-                            return `Unknown s2lState "${s2lState.description}"`
                           }
                         }
                       })()}
@@ -422,16 +432,16 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
           </div>
         </>
       )}
-      {s2lState === S2LState.Linking && s2lBlock.valid ? (
+      {s2lState === S2LState.Linking &&
+        s2lBlock.valid &&
         (function () {
-          const concept = database.getConcept(s2lBlock.item.concept.id)
           const scale = state.camera.scale
           const pos = {
             x: s2lBlock.rect.left + s2lDelta.x - s2lStartOffset.x * scale,
             y: s2lBlock.rect.top + s2lDelta.y - s2lStartOffset.y * scale,
           }
 
-          return props.createOverlay(
+          return createOverlay(
             <div
               className={blockStyles.block}
               style={{
@@ -442,17 +452,14 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
               }}>
               <ConceptPreview
                 blockId={blockId}
-                concept={concept}
+                conceptId={s2lBlock.item.concept.id}
                 database={database}
                 dispatchAction={dispatchAction}
                 viewMode="Block"
               />
             </div>
           )
-        })()
-      ) : (
-        <></>
-      )}
+        })()}
     </div>
   )
 }

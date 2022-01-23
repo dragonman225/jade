@@ -35,7 +35,6 @@ export function Tweet(
       <TweetEmbed
         {...props}
         placeholder="loading"
-        protocol="https:" // without this won't work in Electron
         className={classes(
           props.noInteraction && styles.disableIframeInteraction,
           props.className

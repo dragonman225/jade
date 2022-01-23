@@ -137,9 +137,13 @@ const App = React.memo(function App() {
           {state.blocksRendered &&
             state.drawingRelation &&
             (() => {
-              const fromBox = blockToBox(
-                findBlock(state.blocks, state.drawingRelationFromBlockId)
+              const fromBlock = findBlock(
+                state.blocks,
+                state.drawingRelationFromBlockId
               )
+              if (!fromBlock) return
+
+              const fromBox = blockToBox(fromBlock)
               const toBox = { ...state.drawingRelationToPoint, w: 0, h: 0 }
               const viewBox = growBox(boundingBoxOfBoxes([fromBox, toBox]), 10)
 
@@ -213,10 +217,13 @@ export function AppRoot(props: AppRootProps): JSX.Element {
     }
   })
 
-  const overlayRef = useRef<HTMLDivElement>(null)
+  const rOverlayEl = useRef<HTMLDivElement>(null)
   const createOverlay = useCallback(
-    (children: React.ReactNode): React.ReactPortal => {
-      return ReactDOM.createPortal(children, overlayRef.current)
+    (children: React.ReactNode): React.ReactPortal | null => {
+      return (
+        rOverlayEl.current &&
+        ReactDOM.createPortal(children, rOverlayEl.current)
+      )
     },
     []
   )
@@ -238,7 +245,7 @@ export function AppRoot(props: AppRootProps): JSX.Element {
           <App />
         </AppStateContext.Provider>
       </SystemContext.Provider>
-      <Overlay ref={overlayRef} />
+      <Overlay ref={rOverlayEl} />
     </>
   )
 }

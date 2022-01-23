@@ -65,7 +65,7 @@ export function observeInlineSelection({
       const fromRect = view.coordsAtPos(state.selection.from)
       const toRect = view.coordsAtPos(state.selection.to)
       const selection = window.getSelection()
-      if (selection.rangeCount === 0) return
+      if (!selection || selection.rangeCount === 0) return
       const selectionBoundingRect = selection
         .getRangeAt(0)
         .getBoundingClientRect()

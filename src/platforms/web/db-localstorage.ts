@@ -5,6 +5,7 @@ import {
   TypedConcept,
 } from '../../core/interfaces'
 import env from '../../env'
+import { getDefaultSettings } from '../../core/utils/settings'
 
 const CHANNEL_ANY_CHANGES = '*'
 const pubSub = new PubSub()
@@ -35,6 +36,7 @@ export const database: PlatformDatabaseInterface = {
   getConcept: id => {
     try {
       const item = localStorage.getItem(`concept/${id}`)
+      if (!item) return undefined
       const concept = JSON.parse(item) as TypedConcept<unknown>
       return concept.relations ? concept : { ...concept, relations: [] }
     } catch (error) {
@@ -45,10 +47,10 @@ export const database: PlatformDatabaseInterface = {
     const concepts = []
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
-      if (key.startsWith('concept')) {
-        const concept = JSON.parse(
-          localStorage.getItem(key)
-        ) as TypedConcept<unknown>
+      if (key && key.startsWith('concept')) {
+        const json = localStorage.getItem(key)
+        if (!json) continue
+        const concept = JSON.parse(json) as TypedConcept<unknown>
         concepts.push(
           concept.relations ? concept : { ...concept, relations: [] }
         )
@@ -74,10 +76,17 @@ export const database: PlatformDatabaseInterface = {
   },
   getSettings: () => {
     try {
-      const settings = JSON.parse(localStorage.getItem('settings')) as Settings
+      const json = localStorage.getItem('settings')
+      if (!json) {
+        throw new Error('Settings is null')
+      }
+      const settings = JSON.parse(json) as Settings
       return settings
     } catch (error) {
-      return undefined
+      console.error(error)
+      const defaultSettings = getDefaultSettings()
+      database.saveSettings(defaultSettings)
+      return defaultSettings
     }
   },
   saveSettings: settings => {
@@ -85,10 +94,12 @@ export const database: PlatformDatabaseInterface = {
     markStorageUpdate()
   },
   getLastUpdatedTime: () => {
-    return parseInt(localStorage.getItem('lastUpdatedAt'))
+    const lastUpdatedAt = localStorage.getItem('lastUpdatedAt')
+    return lastUpdatedAt ? parseInt(lastUpdatedAt) : 0
   },
   getVersion: () => {
-    return parseInt(localStorage.getItem('JADE_DB_VER'))
+    const dbVer = localStorage.getItem('JADE_DB_VER')
+    return dbVer ? parseInt(dbVer) : 0
   },
   setVersion: n => {
     localStorage.setItem('JADE_DB_VER', n.toString())
