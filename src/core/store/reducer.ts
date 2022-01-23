@@ -45,7 +45,14 @@ import {
   Size,
   ContextType,
   InteractionMode,
+  Rect,
 } from '../interfaces'
+
+const LOG_PREFIX = 'core/store/reducer:'
+
+function log(...args: unknown[]) {
+  console.log(LOG_PREFIX, ...args)
+}
 
 export function synthesizeView(
   viewingConcept: TypedConcept<unknown>,
@@ -81,10 +88,13 @@ export function synthesizeView(
 }
 
 export function loadAppState(db: DatabaseInterface): AppState {
-  console.log('core/store/reducer: Loading app state')
+  log('Loading app state')
 
   const settings = db.getSettings()
   const viewingConcept = db.getConcept(settings.viewingConceptId)
+  if (!viewingConcept)
+    throw new Error(`${LOG_PREFIX} Viewing concept is broken`)
+
   const blocks = synthesizeView(viewingConcept, db)
 
   return {
@@ -241,6 +251,10 @@ export function createAppStateReducer(
         const newType = action.data.type
         const newData = action.data.content
         const concept = db.getConcept(action.data.id)
+        if (!concept) {
+          throw new Error('Trying to write data to broken concept')
+        }
+
         const newConcept = updateConcept(concept, {
           summary: {
             type: newType,
@@ -327,7 +341,7 @@ export function createAppStateReducer(
         const selectedBlockRects = selectedBlockIds.map(id =>
           blockRectManager.getRect(id)
         )
-        const boundingRect = getBoundingBox(selectedBlockRects)
+        const boundingRect = getBoundingBox(selectedBlockRects as Rect[])
         /**
          * When pasting, the pointer should be at the center of the
          * bounding box of the pasted blocks. Below is used to calculate
@@ -438,11 +452,13 @@ export function createAppStateReducer(
             ? currSeletedBlockIds
             : [id]
           : [id]
-        const cursorBlock = blocks.find(b => id === b.id)
+        const leaderBlock = blocks.find(b => id === b.id)
         const pointerInEnvCoords = viewportCoordsToEnvCoords(
           pointerInViewportCoords,
           camera
         )
+
+        if (!leaderBlock) return state
 
         return {
           ...state,
@@ -452,7 +468,7 @@ export function createAppStateReducer(
             })
           ),
           selectedBlockIds,
-          pointerOffsetInLeaderBox: vecSub(pointerInEnvCoords, cursorBlock.pos),
+          pointerOffsetInLeaderBox: vecSub(pointerInEnvCoords, leaderBlock.pos),
           isMovingBlocks: true,
         }
       }
@@ -479,6 +495,8 @@ export function createAppStateReducer(
         )
 
         const leaderBlock = blocks.find(b => id === b.id)
+        if (!leaderBlock) return state
+
         const leaderBlockBox = blockToBox(leaderBlock)
         const leaderBlockProposedPos = vecSub(
           pointerInEnvCoords,
@@ -499,8 +517,8 @@ export function createAppStateReducer(
             const envRect = blockRectManager.getRect(b.id)
             return {
               ...b.pos,
-              w: typeof b.size.w === 'number' ? b.size.w : envRect.width,
-              h: typeof b.size.h === 'number' ? b.size.h : envRect.height,
+              w: typeof b.size.w === 'number' ? b.size.w : envRect?.width || 0,
+              h: typeof b.size.h === 'number' ? b.size.h : envRect?.height || 0,
             }
           })
 
@@ -656,8 +674,8 @@ export function createAppStateReducer(
             const blockRect = {
               top: block.pos.y,
               left: block.pos.x,
-              bottom: block.pos.y + blockRectRaw.height,
-              right: block.pos.x + blockRectRaw.width,
+              bottom: block.pos.y + (blockRectRaw?.height || 0),
+              right: block.pos.x + (blockRectRaw?.width || 0),
             }
             const pointerInEnvCoords = viewportCoordsToEnvCoords(
               pointerInViewportCoords,
@@ -714,6 +732,7 @@ export function createAppStateReducer(
           }, movingBlocks[0])
 
           const targetConcept = db.getConcept(pointerOverBlock.conceptId)
+          if (!targetConcept) return state
 
           /**
            * The top-right corner of the bounding box of all blocks in
@@ -816,24 +835,26 @@ export function createAppStateReducer(
         const { id, movementInViewportCoords } = action.data
         const { camera, blocks, selectedBlockIds } = state
 
-        const cursorBlock = blocks.find(b => b.id === id)
-        const cursorBlockRectInEnvCoords = blockRectManager.getRect(id)
-        const cursorBlockOldSize = cursorBlock.size
+        const leaderBlock = blocks.find(b => b.id === id)
+        if (!leaderBlock) return state
+        const leaderBlockRectInEnvCoords = blockRectManager.getRect(id)
+        if (!leaderBlockRectInEnvCoords) return state
+        const leaderBlockOldSize = leaderBlock.size
 
         cursorBlockNewSize =
           prevCursorBlockId !== id
             ? /** The first resize action of a block. */
               {
                 w:
-                  typeof cursorBlockOldSize.w === 'number'
-                    ? cursorBlockOldSize.w +
+                  typeof leaderBlockOldSize.w === 'number'
+                    ? leaderBlockOldSize.w +
                       movementInViewportCoords.x / camera.scale
-                    : cursorBlockRectInEnvCoords.width,
+                    : leaderBlockRectInEnvCoords.width,
                 h:
-                  typeof cursorBlockOldSize.h === 'number'
-                    ? cursorBlockOldSize.h +
+                  typeof leaderBlockOldSize.h === 'number'
+                    ? leaderBlockOldSize.h +
                       movementInViewportCoords.y / camera.scale
-                    : cursorBlockRectInEnvCoords.height,
+                    : leaderBlockRectInEnvCoords.height,
               }
             : {
                 w:
@@ -850,7 +871,7 @@ export function createAppStateReducer(
         prevCursorBlockId = id
 
         const cursorBlockRect = {
-          ...cursorBlock.pos,
+          ...leaderBlock.pos,
           ...cursorBlockNewSize,
         }
 
@@ -860,9 +881,9 @@ export function createAppStateReducer(
          * 2. It's selected, and the source of this action is selected.
          */
         const shouldResize = (blockId: BlockId): boolean => {
-          return cursorBlock.selected
+          return leaderBlock.selected
             ? selectedBlockIds.includes(blockId)
-            : blockId === cursorBlock.id
+            : blockId === leaderBlock.id
         }
 
         const guidelineRects = blocks
@@ -871,8 +892,8 @@ export function createAppStateReducer(
             const envRect = blockRectManager.getRect(b.id)
             return {
               ...b.pos,
-              w: typeof b.size.w === 'number' ? b.size.w : envRect.width,
-              h: typeof b.size.h === 'number' ? b.size.h : envRect.height,
+              w: typeof b.size.w === 'number' ? b.size.w : envRect?.width || 0,
+              h: typeof b.size.h === 'number' ? b.size.h : envRect?.height || 0,
             }
           })
 
@@ -922,12 +943,12 @@ export function createAppStateReducer(
         /** Ignore snap result if size is "auto". */
         const sizeChange = {
           w:
-            typeof cursorBlockOldSize.w === 'number'
-              ? width - cursorBlockOldSize.w
+            typeof leaderBlockOldSize.w === 'number'
+              ? width - leaderBlockOldSize.w
               : 0,
           h:
-            typeof cursorBlockOldSize.h === 'number'
-              ? height - cursorBlockOldSize.h
+            typeof leaderBlockOldSize.h === 'number'
+              ? height - leaderBlockOldSize.h
               : 0,
         }
 
@@ -1100,6 +1121,7 @@ export function createAppStateReducer(
           if (block) {
             const scale = 1
             const focus = getFocusForBlock(block, scale)
+            if (!focus) return state
             return {
               ...state,
               camera: { focus, scale },
@@ -1110,7 +1132,9 @@ export function createAppStateReducer(
                   mode: InteractionMode.Idle, // Clear focus
                 })
               ),
-              selectedBlockIds: [focusBlockId],
+              selectedBlockIds: focusBlockId
+                ? [focusBlockId]
+                : state.selectedBlockIds,
             }
           } else {
             return state
@@ -1125,9 +1149,10 @@ export function createAppStateReducer(
 
         /** Not in the target Canvas. Open it and set camera directly. */
         const concept = db.getConcept(toConceptId)
+        if (!concept) return state
         const focusBlock = concept.references.find(r => r.id === focusBlockId)
         const newCamera = focusBlock && {
-          focus: getFocusForBlock(focusBlock, 1),
+          focus: getFocusForBlock(focusBlock, 1) || { x: 0, y: 0 },
           scale: 1,
         }
 
@@ -1137,17 +1162,19 @@ export function createAppStateReducer(
           viewingConcept: concept,
           camera: newCamera || concept.camera,
           shouldAnimateCamera: false,
-          blocks: focusBlock
-            ? bringBlocksToTop(
-                [focusBlockId],
-                synthesizeView(concept, db)
-              ).map(b =>
-                updateBlockInstance(b, { selected: b.id === focusBlockId })
-              )
-            : synthesizeView(concept, db),
-          selectedBlockIds: focusBlock
-            ? [focusBlockId]
-            : state.selectedBlockIds,
+          blocks:
+            focusBlockId && focusBlock
+              ? bringBlocksToTop(
+                  [focusBlockId],
+                  synthesizeView(concept, db)
+                ).map(b =>
+                  updateBlockInstance(b, { selected: b.id === focusBlockId })
+                )
+              : synthesizeView(concept, db),
+          selectedBlockIds:
+            focusBlockId && focusBlock
+              ? [focusBlockId]
+              : state.selectedBlockIds,
           blocksRendered: false,
           relations: concept.relations,
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
@@ -1419,7 +1446,7 @@ export function createAppStateReducer(
               block.posType === PositionType.Normal &&
               isPointInRect(
                 viewportCoordsToEnvCoords(pointerInViewportCoords, camera),
-                blockRectManager.getRect(block.id)
+                blockRectManager.getRect(block.id) as DOMRect
               )
             )
               return block
@@ -1491,9 +1518,11 @@ export function createAppStateReducer(
           settings: newSettings,
         }
       }
-      case Action.Undo: {
+      case Action.NavigateBack: {
         const { expandHistory } = state
+        console.log(expandHistory, state.viewingConcept.id)
         const backToConceptId = expandHistory[expandHistory.length - 2]
+        if (!backToConceptId) return state
         const concept = db.getConcept(backToConceptId)
         if (!concept) return state
 
@@ -1513,7 +1542,9 @@ export function createAppStateReducer(
           blocks: synthesizeView(concept, db),
           blocksRendered: false,
           relations: concept.relations,
-          expandHistory: [''].concat(expandHistory.slice(0, -1)),
+          expandHistory: ([undefined] as (string | undefined)[]).concat(
+            expandHistory.slice(0, -1)
+          ),
         }
       }
       case Action.BlocksRendered: {

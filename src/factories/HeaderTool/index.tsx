@@ -42,7 +42,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
   const navigateBack = useCallback(() => {
     setTitleCollapsed(true)
     dispatchAction({
-      type: Action.Undo,
+      type: Action.NavigateBack,
     })
   }, [dispatchAction])
   const navigateForward = useCallback(() => {

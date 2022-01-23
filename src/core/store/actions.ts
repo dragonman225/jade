@@ -39,8 +39,7 @@ export enum Action {
   RelationDrawMove = 'relation::drawMove',
   RelationDrawEnd = 'relation::drawEnd',
   RelationRemove = 'relation::remove',
-  /** Now only for undo `BlockOpenAsCanvas`, but will evolve to real undo. */
-  Undo = 'undo',
+  NavigateBack = 'navigateBack',
   BlocksRendered = 'blocksRendered',
   ContextMenuOpen = 'contextMenu::open',
   ContextMenuClose = 'contextMenu::close',
@@ -247,7 +246,7 @@ interface RelationRemoveAction {
 }
 
 interface UndoAction {
-  type: Action.Undo
+  type: Action.NavigateBack
 }
 
 interface BlocksRenderedAction {
