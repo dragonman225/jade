@@ -11,12 +11,13 @@ const styles = stylesheet({
    * We want children to be able to specify `right` and `bottom`, so we
    * need to occupy the whole sreen.
    */
-  Overlay: {
+  overlay: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     left: 0,
     right: 0,
+    zIndex: 1,
     /**
      * Since it's occupying the whole screen and it need to be at the top
      * of all other elements, so it blocks all events from other elements
@@ -24,7 +25,7 @@ const styles = stylesheet({
      */
     pointerEvents: 'none',
   },
-  OverlayChildren: {
+  overlayChildren: {
     width: 0,
     height: 0,
     /**
@@ -41,8 +42,8 @@ export const Overlay = React.forwardRef<HTMLDivElement, Props>(function Overlay(
 ) {
   const { children, className, ...other } = props
   return (
-    <div className={classes(styles.Overlay, className)} {...other}>
-      <div className={styles.OverlayChildren} ref={ref}>
+    <div className={classes(styles.overlay, className)} {...other}>
+      <div className={styles.overlayChildren} ref={ref}>
         {children}
       </div>
     </div>

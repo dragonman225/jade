@@ -2,21 +2,26 @@ import { stylesheet } from 'typestyle'
 
 import theme from '../theme'
 
-export const AppStyles = stylesheet({
-  App: {
-    overflow: 'hidden',
+export const appStyles = stylesheet({
+  app: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
     height: '100%',
+    zIndex: 0,
+    overflow: 'hidden',
     color: theme.colors.contentText,
     background: theme.colors.bgCanvas,
     transition: `background 0.3s ${theme.easings.easeInOutCubic}`,
   },
-  'App--BlockMoving': {
+  movingBlocks: {
     cursor: 'grabbing',
   },
-  'App--BlockResizing': {
+  resizingBlocks: {
     cursor: 'ew-resize',
   },
-  'App--DrawingRelation': {
+  drawingRelation: {
     cursor: 'crosshair',
   },
 })

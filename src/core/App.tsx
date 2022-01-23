@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom'
 import { useMemo, useCallback, useRef, useState } from 'react'
 import { classes } from 'typestyle'
 
-import { AppStyles } from './App.styles'
+import { appStyles } from './App.styles'
 import { Arrow } from './components/Arrow'
 import { ArrowList } from './components/ArrowList'
 import { BlockList } from './components/BlockList'
@@ -111,12 +111,11 @@ const App = React.memo(function App() {
   return (
     <div
       className={classes(
-        AppStyles.App,
-        state.blocks.find(b => b.mode === InteractionMode.Moving) &&
-          AppStyles['App--BlockMoving'],
+        appStyles.app,
+        state.isMovingBlocks && appStyles.movingBlocks,
         state.blocks.find(b => b.mode === InteractionMode.Resizing) &&
-          AppStyles['App--BlockResizing'],
-        state.drawingRelation && AppStyles['App--DrawingRelation']
+          appStyles.resizingBlocks,
+        state.drawingRelation && appStyles.drawingRelation
       )}>
       <CanvasInteractionDetector dispatchAction={dispatchAction}>
         <NormalPositioned
