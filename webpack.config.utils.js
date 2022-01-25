@@ -17,10 +17,23 @@ function getModuleConfig(mode) {
           {
             loader: 'babel-loader',
             options: {
-              presets: ['@babel/env', '@babel/typescript', '@babel/react'],
+              presets: [
+                '@babel/preset-env',
+                '@babel/preset-typescript',
+                '@babel/preset-react',
+              ],
               plugins: [
                 '@babel/proposal-class-properties',
                 '@babel/proposal-object-rest-spread',
+                /**
+                 * For async/await
+                 * create-react-app's usage:
+                 * https://github.com/facebook/create-react-app/blob/a422bf227cf5294a34d68696664e9568a152fd8f/packages/babel-preset-react-app/create.js#L178
+                 * babel documentation
+                 * https://babeljs.io/docs/en/babel-plugin-transform-runtime
+                 */
+                '@babel/plugin-transform-runtime',
+                /** For HMR */
                 mode === 'development' && 'react-refresh/babel',
               ].filter(Boolean),
             },
