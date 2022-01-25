@@ -14,6 +14,7 @@ import { getDateString } from '../../utils'
 import { getFocusForBlock } from '../../utils/block'
 import { saveTextToClipboard } from '../../utils/clipboard'
 import { getUrlForBlock } from '../../utils/url'
+import { useConcept } from '../../utils/useConcept'
 
 interface Props {
   context: ContextForBlock
@@ -21,9 +22,10 @@ interface Props {
 
 export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
   function ContextMenuForBlock({ context }, ref) {
-    const { block, parentConcept, linkedConcept } = context
-    const { settings, selectedBlockIds } = useAppState()
+    const { block } = context
+    const { settings, selectedBlockIds, viewingConcept } = useAppState()
     const { dispatchAction } = useSystem()
+    const linkedConcept = useConcept(block.conceptId)
 
     const setColor = useCallback(
       (color: BlockColor | undefined) => {
@@ -68,12 +70,12 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
     }, [block, dispatchAction])
 
     const copyLink = useCallback(() => {
-      const link = getUrlForBlock(parentConcept, block)
+      const link = getUrlForBlock(viewingConcept, block)
       saveTextToClipboard(link)
       dispatchAction({
         type: Action.ContextMenuClose,
       })
-    }, [block, parentConcept, dispatchAction])
+    }, [block, viewingConcept, dispatchAction])
 
     const blockCount = selectedBlockIds.includes(block.id)
       ? selectedBlockIds.length
@@ -149,23 +151,24 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
           <div className={styles.InfoLines}>
             <InfoLine
               label="Created"
-              value={getDateString(linkedConcept.createdTime)}
+              value={getDateString(linkedConcept?.createdTime)}
             />
             <InfoLine
               label="Updated"
-              value={getDateString(linkedConcept.lastEditedTime)}
+              value={getDateString(linkedConcept?.lastEditedTime)}
             />
             {settings.shouldEnableDevMode && (
               <>
                 <InfoLine
                   label="Widget Type"
-                  value={linkedConcept.references.length ? 'Canvas' : 'Block'}
+                  value={linkedConcept?.references.length ? 'Canvas' : 'Block'}
                 />
+                <InfoLine label="Widget ID" value={block.id} />
                 <InfoLine
                   label="Content Type"
-                  value={linkedConcept.summary.type}
+                  value={linkedConcept?.summary.type}
                 />
-                <InfoLine label="Object ID" value={linkedConcept.id} />{' '}
+                <InfoLine label="Content ID" value={block.conceptId} />{' '}
               </>
             )}
           </div>

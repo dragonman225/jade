@@ -1,4 +1,4 @@
-import { BlockInstance, Relation, TypedConcept } from '../../interfaces'
+import { BlockInstance, Relation } from '../../interfaces'
 
 export type ListOption = {
   title: string
@@ -14,8 +14,6 @@ export enum ContextMenuType {
 export interface ContextForBlock {
   type: ContextMenuType.Block
   block: BlockInstance
-  parentConcept: TypedConcept<unknown>
-  linkedConcept: TypedConcept<unknown>
 }
 
 export interface ContextForRelation {

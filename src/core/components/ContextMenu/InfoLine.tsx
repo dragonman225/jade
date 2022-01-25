@@ -5,7 +5,7 @@ import theme from '../../../theme'
 
 interface InfoLineProps {
   label: string
-  value: string
+  value: string | undefined
 }
 
 const styles = stylesheet({

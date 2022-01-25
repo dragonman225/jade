@@ -7,29 +7,23 @@ import { ContextMenuForRelation } from './ContextMenuForRelation'
 import { Context, ContextMenuType } from './types'
 import { AppState, ContextType, RelationId } from '../../interfaces'
 import { useAppState } from '../../store/appStateContext'
-import { System, useSystem } from '../../store/systemContext'
+import { useSystem } from '../../store/systemContext'
 import { Action } from '../../store/actions'
 import { viewportCoordsToEnvCoords } from '../../utils'
 import { getOverBlock } from '../../utils/block'
 
-function getContextOfPointer(
-  appState: AppState,
-  system: System
-): Context | undefined {
-  const { contextMenuState, camera, blocks, viewingConcept } = appState
+function getContextOfPointer(appState: AppState): Context | undefined {
+  const { contextMenuState, camera, blocks } = appState
   const pointerInEnvCoords = viewportCoordsToEnvCoords(
     contextMenuState.pos,
     camera
   )
   const overBlock = getOverBlock(pointerInEnvCoords, blocks)
-  const linkedConcept = overBlock && system.db.getConcept(overBlock.conceptId)
 
-  if (overBlock && linkedConcept) {
+  if (overBlock) {
     return {
       type: ContextMenuType.Block,
       block: overBlock,
-      parentConcept: viewingConcept,
-      linkedConcept,
     }
   } else return undefined
 }
@@ -54,11 +48,11 @@ function getContextOfRelation(
   )
 }
 
-function getContext(appState: AppState, system: System): Context | undefined {
+function getContext(appState: AppState): Context | undefined {
   const { contextMenuState } = appState
   switch (contextMenuState.data.contextType) {
     case ContextType.InferFromPointer: {
-      return getContextOfPointer(appState, system)
+      return getContextOfPointer(appState)
     }
     case ContextType.Relation: {
       return getContextOfRelation(appState, contextMenuState.data.relationId)
@@ -68,10 +62,9 @@ function getContext(appState: AppState, system: System): Context | undefined {
 
 export function ContextMenu(): JSX.Element {
   const appState = useAppState()
-  const system = useSystem()
-  const { dispatchAction } = system
+  const { dispatchAction } = useSystem()
   const rContextMenuEl = useRef<HTMLDivElement>(null)
-  const context = getContext(appState, system)
+  const context = getContext(appState)
 
   /** Close ContextMenu when clicking outside or when window resize. */
   useEffect(() => {
