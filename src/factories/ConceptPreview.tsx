@@ -3,6 +3,7 @@ import { stylesheet } from 'typestyle'
 
 import { factoryRegistry } from './'
 import { ConceptDisplayProps, ConceptId } from '../core/interfaces'
+import { useConcept } from '../core/utils/useConcept'
 
 function noop() {
   return
@@ -29,7 +30,7 @@ export function ConceptPreview({
   dispatchAction,
   blockId,
 }: Props): JSX.Element {
-  const concept = database.getConcept(conceptId)
+  const concept = useConcept(conceptId)
 
   return concept ? (
     <div className={styles.conceptPreview}>
