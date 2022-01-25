@@ -24,20 +24,16 @@ export const InsightTool: React.FunctionComponent<Props> = props => {
   const [collapsed, setCollapsed] = useState(true)
 
   useEffect(() => {
-    // TODO: Can we avoid re-subscribing when text or minimized changes?
-    const updateBacklinks = () => {
-      const concepts = database.getAllConcepts()
+    /** TODO: No need to get all concept, just get all related ids. */
+    const updateBacklinks = async () => {
+      const concepts = await database.getAllConcepts()
       const backlinks = getBacklinksOf(state.viewingConcept.id, concepts)
       setBacklinks(backlinks)
     }
 
-    updateBacklinks()
-
-    // database.subscribeConcept('*', updateBacklinks)
-
-    // return () => {
-    //   database.unsubscribeConcept('*', updateBacklinks)
-    // }
+    updateBacklinks().catch(error => {
+      throw error
+    })
   }, [database, state.viewingConcept.id])
 
   if (viewMode !== 'Block') {

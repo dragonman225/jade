@@ -73,9 +73,14 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
     }
     if (!minimized) {
       pendingSearchTimeoutId.current = setTimeout(() => {
-        const concepts = database.getAllConcepts()
-        const result = getSearchResult(text, concepts, database)
-        setResult(result)
+        async function run() {
+          const concepts = await database.getAllConcepts()
+          const result = getSearchResult(text, concepts, database)
+          setResult(result)
+        }
+        run().catch(error => {
+          throw error
+        })
       }, 50)
     } else setResult({ canvases: [], blocks: [], orphans: [] }) // fake it
   }, [text, database, minimized])

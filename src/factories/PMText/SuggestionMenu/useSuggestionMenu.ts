@@ -125,50 +125,56 @@ export function useSuggestionMenu(
     setKeywordRange({ from: 0, to: 0 })
   }, [])
 
-  const optionGroups: OptionGroup[] = useMemo(() => {
-    if (suggestFor === SuggestFor.SlashCommands) {
-      const filteredSlashCommands = slashCommands.filter(c =>
-        c.title.toLocaleLowerCase().includes(keyword.toLocaleLowerCase())
-      )
-      return [
-        {
-          id: OptionGroupType.TurnInto,
-          title: 'Turn into',
-          items: keyword ? filteredSlashCommands : slashCommands,
-        },
-      ]
-    } else {
-      const linkToOptionGroup: OptionGroup = {
-        id: OptionGroupType.LinkTo,
-        title: 'Insert link to',
-        items: keyword
-          ? database
-              .searchConceptByText(keyword, { limit: 6 })
-              .map(fuseResult =>
-                mapConceptToOption(factoryRegistry)(fuseResult.item)
-              )
-              .filter(o => !!o.title)
-          : database
-              .getAllConcepts()
-              .filter(pmtextOnly)
-              .sort(lastEditedTimeDescendingAndCanvasFirst)
-              .slice(0, 6)
-              .map(mapConceptToOption(factoryRegistry)),
-      }
-      const createOptionGroup: OptionGroup = {
-        id: OptionGroupType.CreateAndLinkTo,
-        title: 'Create and link to',
-        items: [
+  const [optionGroups, setOptionGroups] = useState<OptionGroup[]>([])
+  useEffect(() => {
+    async function updateOptionGroups() {
+      if (suggestFor === SuggestFor.SlashCommands) {
+        const filteredSlashCommands = slashCommands.filter(c =>
+          c.title.toLocaleLowerCase().includes(keyword.toLocaleLowerCase())
+        )
+        setOptionGroups([
           {
-            id: 'create_and_link_to',
-            title: `Create "${keyword}"`,
+            id: OptionGroupType.TurnInto,
+            title: 'Turn into',
+            items: keyword ? filteredSlashCommands : slashCommands,
           },
-        ],
+        ])
+      } else {
+        const linkToOptionGroup: OptionGroup = {
+          id: OptionGroupType.LinkTo,
+          title: 'Insert link to',
+          items: keyword
+            ? database
+                .searchConceptByText(keyword, { limit: 6 })
+                .map(fuseResult =>
+                  mapConceptToOption(factoryRegistry)(fuseResult.item)
+                )
+                .filter(o => !!o.title)
+            : (await database.getAllConcepts())
+                .filter(pmtextOnly)
+                .sort(lastEditedTimeDescendingAndCanvasFirst)
+                .slice(0, 6)
+                .map(mapConceptToOption(factoryRegistry)),
+        }
+        const createOptionGroup: OptionGroup = {
+          id: OptionGroupType.CreateAndLinkTo,
+          title: 'Create and link to',
+          items: [
+            {
+              id: 'create_and_link_to',
+              title: `Create "${keyword}"`,
+            },
+          ],
+        }
+        setOptionGroups(
+          keyword ? [linkToOptionGroup, createOptionGroup] : [linkToOptionGroup]
+        )
       }
-      return keyword
-        ? [linkToOptionGroup, createOptionGroup]
-        : [linkToOptionGroup]
     }
+
+    updateOptionGroups().catch(error => {
+      throw error
+    })
   }, [keyword, suggestFor, slashCommands, database, factoryRegistry])
 
   const updateKeyword = useCallback(

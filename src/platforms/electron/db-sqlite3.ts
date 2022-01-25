@@ -251,23 +251,25 @@ parse JSON in ${end - mid}ms.`)
     }
   }
 
-  function getAllConcepts(): TypedConcept<unknown>[] {
-    const start = performance.now()
-    try {
-      const stmt = conceptStmt.selectAll
-      const dryConcepts = stmt.all<DryConcept>()
-      const end = performance.now()
-      log(`Select all concepts in ${end - start} ms`)
-      const concepts: TypedConcept<unknown>[] = []
-      dryConcepts.forEach(c => {
-        const concept = hydrateConcept(c)
-        if (concept) concepts.push(concept)
-      })
-      return concepts
-    } catch (err) {
-      error(err)
-      return []
-    }
+  function getAllConcepts() {
+    return new Promise<TypedConcept<unknown>[]>(resolve => {
+      const start = performance.now()
+      try {
+        const stmt = conceptStmt.selectAll
+        const dryConcepts = stmt.all<DryConcept>()
+        const end = performance.now()
+        log(`Select all concepts in ${end - start} ms`)
+        const concepts: TypedConcept<unknown>[] = []
+        dryConcepts.forEach(c => {
+          const concept = hydrateConcept(c)
+          if (concept) concepts.push(concept)
+        })
+        resolve(concepts)
+      } catch (err) {
+        error(err)
+        resolve([])
+      }
+    })
   }
 
   function saveConcept(

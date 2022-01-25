@@ -87,9 +87,9 @@ export const Status: React.FunctionComponent<Props> = props => {
     }
   }, [dispatchAction])
 
-  const exportAllConcepts = useCallback(() => {
+  const exportAllConcepts = useCallback(async () => {
     const href = generateDataUrl(
-      JSON.stringify(database.getAllConcepts()),
+      JSON.stringify(await database.getAllConcepts()),
       'application/json'
     )
     const filename = `${withDateSuffix('all-concepts')}.json`

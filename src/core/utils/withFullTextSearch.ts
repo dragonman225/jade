@@ -40,11 +40,13 @@ export function withFullTextSearch(
 ): DatabaseInterface {
   /** Init full text search engine. */
   const fuse = new Fuse<TypedConcept<unknown>>([], fuseOptions)
-  initFuse()
+  initFuse().catch(error => {
+    throw error
+  })
 
   /** Get all concepts and put into Fuse. This is an expensive operation! */
-  function initFuse() {
-    const concepts = platformDatabase.getAllConcepts()
+  async function initFuse() {
+    const concepts = await platformDatabase.getAllConcepts()
     const searchableConcepts = concepts.map(getSearchableConcept)
     fuse.setCollection(searchableConcepts)
   }

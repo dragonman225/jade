@@ -44,19 +44,21 @@ export const database: PlatformDatabaseInterface = {
     }
   },
   getAllConcepts: () => {
-    const concepts = []
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key && key.startsWith('concept')) {
-        const json = localStorage.getItem(key)
-        if (!json) continue
-        const concept = JSON.parse(json) as TypedConcept<unknown>
-        concepts.push(
-          concept.relations ? concept : { ...concept, relations: [] }
-        )
+    return new Promise(resolve => {
+      const concepts = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith('concept')) {
+          const json = localStorage.getItem(key)
+          if (!json) continue
+          const concept = JSON.parse(json) as TypedConcept<unknown>
+          concepts.push(
+            concept.relations ? concept : { ...concept, relations: [] }
+          )
+        }
       }
-    }
-    return concepts
+      resolve(concepts)
+    })
   },
   updateConcept: concept => {
     setTimeout(() => {

@@ -15,11 +15,12 @@ import { Concept4, PlatformDatabaseInterface, PositionType } from './interfaces'
 import { migrateSettings } from './utils/settings'
 import { withFullTextSearch } from './utils/withFullTextSearch'
 
+// TODO: Move migration and loading to React and keep startApp sync.
 /** Render the app with platform-specific resources. */
-export function startApp(
+export async function startApp(
   platformDatabase: PlatformDatabaseInterface,
   openExternal: (link: string) => void
-): void {
+): Promise<void> {
   /** Set document title. */
   document.title = `Jade v${env.JADE_VER}`
 
@@ -54,7 +55,7 @@ export function startApp(
   const isState4 = database.isValid() && isNaN(database.getVersion())
   if (isState4) {
     console.log('core/index: Migrating state4')
-    const allConcepts = (database.getAllConcepts() as unknown) as Concept4[]
+    const allConcepts = ((await database.getAllConcepts()) as unknown) as Concept4[]
     const migrationTime = Date.now()
     allConcepts.forEach((c: Concept4) =>
       database.updateConcept({
