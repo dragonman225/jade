@@ -1,17 +1,14 @@
 import * as React from 'react'
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { style } from 'typestyle'
 
 import { Block } from './Block'
 import { useSystem } from '../store/systemContext'
 import theme from '../../theme'
-import {
-  BlockInstance,
-  Concept,
-  PositionType,
-  TypedConcept,
-} from '../interfaces'
+import { BlockInstance, Concept, PositionType } from '../interfaces'
 import { ConceptDriver } from './ConceptDriver'
+import { useConcept } from '../utils/useConcept'
+
 interface BlockDriverProps {
   block: BlockInstance
 }
@@ -19,21 +16,8 @@ interface BlockDriverProps {
 export const BlockDriver = React.memo(function BlockDriver({
   block,
 }: BlockDriverProps): JSX.Element {
-  const { db, dispatchAction } = useSystem()
-  const [concept, setConcept] = useState<TypedConcept<unknown> | undefined>(
-    () => db.getConcept(block.conceptId)
-  )
-
-  /** Subscribe to concept change. */
-  useEffect(() => {
-    function handleUpdate() {
-      setConcept(db.getConcept(block.conceptId))
-    }
-    db.subscribeConcept(block.conceptId, handleUpdate)
-    return () => {
-      db.unsubscribeConcept(block.conceptId, handleUpdate)
-    }
-  }, [block.conceptId, db])
+  const { dispatchAction } = useSystem()
+  const concept = useConcept(block.conceptId)
 
   const blockClassName = useMemo(() => {
     return block.posType > PositionType.Normal
