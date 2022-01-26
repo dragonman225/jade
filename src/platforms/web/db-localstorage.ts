@@ -34,14 +34,19 @@ export const database: PlatformDatabaseInterface = {
     localStorage.setItem('JADE_DB_VER', env.JADE_DB_VER.toString())
   },
   getConcept: id => {
-    try {
-      const item = localStorage.getItem(`concept/${id}`)
-      if (!item) return undefined
-      const concept = JSON.parse(item) as TypedConcept<unknown>
-      return concept.relations ? concept : { ...concept, relations: [] }
-    } catch (error) {
-      return undefined
-    }
+    return new Promise(resolve => {
+      try {
+        const item = localStorage.getItem(`concept/${id}`)
+        if (!item) {
+          resolve(undefined)
+          return // to supress type error on JSON.parse(item)
+        }
+        const concept = JSON.parse(item) as TypedConcept<unknown>
+        resolve(concept.relations ? concept : { ...concept, relations: [] })
+      } catch (error) {
+        resolve(undefined)
+      }
+    })
   },
   getAllConcepts: () => {
     return new Promise(resolve => {

@@ -233,22 +233,24 @@ function createDatabase(path: string): PlatformDatabaseInterface {
   }
 
   function getConcept(id: string) {
-    if (conceptCache.has(id)) return conceptCache.get(id)
-    try {
-      const start = performance.now()
-      const stmt = conceptStmt.select
-      const dryConcept = stmt.get<DryConcept>({ id })
-      const mid = performance.now()
-      const concept = hydrateConcept(dryConcept)
-      if (concept) conceptCache.set(id, concept)
-      const end = performance.now()
-      log(`Select concept "${id}" in ${mid - start}ms, \
+    return new Promise<TypedConcept<unknown> | undefined>(resolve => {
+      if (conceptCache.has(id)) resolve(conceptCache.get(id))
+      try {
+        const start = performance.now()
+        const stmt = conceptStmt.select
+        const dryConcept = stmt.get<DryConcept>({ id })
+        const mid = performance.now()
+        const concept = hydrateConcept(dryConcept)
+        if (concept) conceptCache.set(id, concept)
+        const end = performance.now()
+        log(`Select concept "${id}" in ${mid - start}ms, \
 parse JSON in ${end - mid}ms.`)
-      return concept
-    } catch (err) {
-      error(err)
-      return undefined
-    }
+        resolve(concept)
+      } catch (err) {
+        error(err)
+        resolve(undefined)
+      }
+    })
   }
 
   function getAllConcepts() {

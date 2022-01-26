@@ -237,9 +237,15 @@ export function useSuggestionMenu(
       onReplace(option.id)
     } else {
       if (optionGroup.id === OptionGroupType.LinkTo) {
-        const concept = database.getConcept(option.id)
-        if (!concept) return
-        insertLinkToConcept(concept)
+        database
+          .getConcept(option.id)
+          .then(concept => {
+            if (!concept) return
+            insertLinkToConcept(concept)
+          })
+          .catch(error => {
+            throw error
+          })
       } else if (optionGroup.id === OptionGroupType.CreateAndLinkTo) {
         const concept = createConcept('pmtext', {
           summary: {

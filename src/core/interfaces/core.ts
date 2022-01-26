@@ -42,7 +42,7 @@ export interface Settings {
 export interface DatabaseInterface {
   isValid(): boolean
   init(settings: Settings, concepts: TypedConcept<unknown>[]): void
-  getConcept(id: ConceptId): TypedConcept<unknown> | undefined
+  getConcept(id: ConceptId): Promise<TypedConcept<unknown> | undefined>
   getAllConcepts(): Promise<TypedConcept<unknown>[]>
   createConcept(concept: TypedConcept<unknown>): void
   updateConcept(concept: TypedConcept<unknown>): void

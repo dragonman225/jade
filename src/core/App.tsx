@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { useMemo, useCallback, useRef, useState } from 'react'
+import { useMemo, useCallback, useRef, useState, useEffect } from 'react'
 import { classes } from 'typestyle'
 
 import { appStyles } from './App.styles'
@@ -192,9 +192,10 @@ export function AppRoot(props: AppRootProps): JSX.Element {
     () => createAppStateReducer(db, factoryRegistry),
     [db, factoryRegistry]
   )
-  const initialState = useMemo(() => loadAppState(db), [db])
-  const [stateSnapshot, setStateSnapshot] = useState<AppState>(initialState)
-  const stateRef = useRef<AppState>(initialState)
+
+  const [stateSnapshot, setStateSnapshot] = useState<AppState>()
+  const rNextState = useRef<AppState>()
+
   /**
    * Need two timestamps. Consider this observed case:
    * start rendering frame -> dispatchAction, raise render flag
@@ -203,17 +204,49 @@ export function AppRoot(props: AppRootProps): JSX.Element {
    */
   const lastStateChangeTimeRef = useRef(0)
   const lastFrameStartTimeRef = useRef(0)
+
+  /** Load initial state. */
+  useEffect(() => {
+    loadAppState(db)
+      .then(state => {
+        rNextState.current = state
+        lastStateChangeTimeRef.current = Date.now()
+      })
+      .catch(error => {
+        throw error
+      })
+  }, [db])
+
+  /** Using a queue to ensure action ordering, since the reducer is async. */
+  const pendingActions = useRef<Actions[]>([])
+  const isFlushing = useRef(false)
+
+  const flushActions = useCallback(async () => {
+    isFlushing.current = true
+    while (pendingActions.current.length) {
+      const action = pendingActions.current.shift()
+      if (rNextState.current && action)
+        rNextState.current = await appStateReducer(rNextState.current, action)
+      lastStateChangeTimeRef.current = Date.now()
+    }
+    isFlushing.current = false
+  }, [appStateReducer])
+
   const dispatchAction = useCallback<(action: Actions) => void>(
     action => {
-      stateRef.current = appStateReducer(stateRef.current, action)
-      lastStateChangeTimeRef.current = Date.now()
+      pendingActions.current.push(action)
+      if (!isFlushing.current)
+        flushActions().catch(error => {
+          throw error
+        })
     },
-    [appStateReducer]
+    [flushActions]
   )
+
   useAnimationFrame(() => {
     if (lastStateChangeTimeRef.current > lastFrameStartTimeRef.current) {
       lastFrameStartTimeRef.current = Date.now()
-      setStateSnapshot(stateRef.current)
+      setStateSnapshot(rNextState.current)
     }
   })
 
@@ -238,7 +271,7 @@ export function AppRoot(props: AppRootProps): JSX.Element {
     [db, factoryRegistry, dispatchAction, createOverlay, openExternal]
   )
 
-  return (
+  return stateSnapshot ? (
     <>
       <SystemContext.Provider value={system}>
         <AppStateContext.Provider value={stateSnapshot}>
@@ -247,5 +280,7 @@ export function AppRoot(props: AppRootProps): JSX.Element {
       </SystemContext.Provider>
       <Overlay ref={rOverlayEl} />
     </>
+  ) : (
+    <div>Starting App</div>
   )
 }

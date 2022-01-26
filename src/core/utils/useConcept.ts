@@ -6,18 +6,21 @@ export function useConcept(
   conceptId: ConceptId
 ): TypedConcept<unknown> | undefined {
   const { db } = useSystem()
-  const [concept, setConcept] = useState<TypedConcept<unknown> | undefined>(
-    () => db.getConcept(conceptId)
-  )
+  const [concept, setConcept] = useState<TypedConcept<unknown> | undefined>()
 
   /** Subscribe to concept change. */
   useEffect(() => {
-    function handleUpdate() {
-      setConcept(db.getConcept(conceptId))
+    function updateConcept() {
+      db.getConcept(conceptId)
+        .then(concept => setConcept(concept))
+        .catch(error => {
+          throw error
+        })
     }
-    db.subscribeConcept(conceptId, handleUpdate)
+    updateConcept()
+    db.subscribeConcept(conceptId, updateConcept)
     return () => {
-      db.unsubscribeConcept(conceptId, handleUpdate)
+      db.unsubscribeConcept(conceptId, updateConcept)
     }
   }, [conceptId, db])
 

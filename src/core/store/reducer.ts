@@ -54,11 +54,11 @@ function log(...args: unknown[]) {
   console.log(LOG_PREFIX, ...args)
 }
 
-export function synthesizeView(
+export async function synthesizeView(
   viewingConcept: TypedConcept<unknown>,
   db: DatabaseInterface,
   existingBlockInstances?: BlockInstance[]
-): BlockInstance[] {
+): Promise<BlockInstance[]> {
   function blockToBlockInstance(block: Block, index: number) {
     if (!existingBlockInstances) return createBlockInstance(block, index)
 
@@ -78,7 +78,7 @@ export function synthesizeView(
     }
   }
 
-  const overlayConcept = db.getConcept('__tool_mask__')
+  const overlayConcept = await db.getConcept('__tool_mask__')
   const overlayBlocks = overlayConcept
     ? overlayConcept.references.map(blockToBlockInstance)
     : []
@@ -87,15 +87,15 @@ export function synthesizeView(
   return overlayBlocks.concat(viewingBlocks)
 }
 
-export function loadAppState(db: DatabaseInterface): AppState {
+export async function loadAppState(db: DatabaseInterface): Promise<AppState> {
   log('Loading app state')
 
   const settings = db.getSettings()
-  const viewingConcept = db.getConcept(settings.viewingConceptId)
+  const viewingConcept = await db.getConcept(settings.viewingConceptId)
   if (!viewingConcept)
     throw new Error(`${LOG_PREFIX} Viewing concept is broken`)
 
-  const blocks = synthesizeView(viewingConcept, db)
+  const blocks = await synthesizeView(viewingConcept, db)
 
   return {
     settings,
@@ -137,7 +137,7 @@ export function loadAppState(db: DatabaseInterface): AppState {
 export function createAppStateReducer(
   db: DatabaseInterface,
   factoryRegistry: FactoryRegistry
-): (state: AppState, action: Actions) => AppState {
+): (state: AppState, action: Actions) => Promise<AppState> {
   const defaultSize: { w: number; h: 'auto' } = { w: 300, h: 'auto' }
   const defaultGap = 5
 
@@ -150,7 +150,10 @@ export function createAppStateReducer(
   /** A block that the pointer is on. */
   let pointerOverBlock: BlockInstance | undefined = undefined
 
-  return function appStateReducer(state: AppState, action: Actions): AppState {
+  return async function appStateReducer(
+    state: AppState,
+    action: Actions
+  ): Promise<AppState> {
     // console.log(`core/store/reducer: "${action.type}"`, action)
 
     /** Press `Ctrl` + `K` > `4` to fold all actions. */
@@ -250,7 +253,7 @@ export function createAppStateReducer(
       case Action.ConceptWriteData: {
         const newType = action.data.type
         const newData = action.data.content
-        const concept = db.getConcept(action.data.id)
+        const concept = await db.getConcept(action.data.id)
         if (!concept) {
           throw new Error('Trying to write data to broken concept')
         }
@@ -287,7 +290,7 @@ export function createAppStateReducer(
         return {
           ...state,
           viewingConcept: newViewingConcept,
-          blocks: synthesizeView(newViewingConcept, db),
+          blocks: await synthesizeView(newViewingConcept, db),
         }
       }
       case Action.BlockRemove: {
@@ -327,7 +330,7 @@ export function createAppStateReducer(
           ...state,
           viewingConcept: newViewingConcept,
           relations: newViewingConcept.relations,
-          blocks: synthesizeView(newViewingConcept, db),
+          blocks: await synthesizeView(newViewingConcept, db),
         }
       }
       /** TODO: Block links are broken after cut/paste since it's moved to a 
@@ -731,7 +734,7 @@ export function createAppStateReducer(
             else return pv
           }, movingBlocks[0])
 
-          const targetConcept = db.getConcept(pointerOverBlock.conceptId)
+          const targetConcept = await db.getConcept(pointerOverBlock.conceptId)
           if (!targetConcept) return state
 
           /**
@@ -1148,7 +1151,7 @@ export function createAppStateReducer(
         db.saveSettings(newSettings)
 
         /** Not in the target Canvas. Open it and set camera directly. */
-        const concept = db.getConcept(toConceptId)
+        const concept = await db.getConcept(toConceptId)
         if (!concept) return state
         const focusBlock = concept.references.find(r => r.id === focusBlockId)
         const newCamera = focusBlock && {
@@ -1166,11 +1169,11 @@ export function createAppStateReducer(
             focusBlockId && focusBlock
               ? bringBlocksToTop(
                   [focusBlockId],
-                  synthesizeView(concept, db)
+                  await synthesizeView(concept, db)
                 ).map(b =>
                   updateBlockInstance(b, { selected: b.id === focusBlockId })
                 )
-              : synthesizeView(concept, db),
+              : await synthesizeView(concept, db),
           selectedBlockIds:
             focusBlockId && focusBlock
               ? [focusBlockId]
@@ -1523,7 +1526,7 @@ export function createAppStateReducer(
         console.log(expandHistory, state.viewingConcept.id)
         const backToConceptId = expandHistory[expandHistory.length - 2]
         if (!backToConceptId) return state
-        const concept = db.getConcept(backToConceptId)
+        const concept = await db.getConcept(backToConceptId)
         if (!concept) return state
 
         const newSettings = {
@@ -1539,7 +1542,7 @@ export function createAppStateReducer(
           viewingConcept: concept,
           camera: concept.camera,
           shouldAnimateCamera: false,
-          blocks: synthesizeView(concept, db),
+          blocks: await synthesizeView(concept, db),
           blocksRendered: false,
           relations: concept.relations,
           expandHistory: ([undefined] as (string | undefined)[]).concat(
