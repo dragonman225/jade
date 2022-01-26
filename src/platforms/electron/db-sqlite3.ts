@@ -144,22 +144,25 @@ function createDatabase(path: string): PlatformDatabaseInterface {
   }
 
   function init(settings: Settings, concepts: TypedConcept<unknown>[]) {
-    log('Init')
-    db.transaction(() => {
-      settingsCache = settings
-      insertSetting.run({ key: 'settings', value: JSON.stringify(settings) })
-      insertSetting.run({ key: 'JADE_DB_LOADED', value: 'yes' })
-      insertSetting.run({
-        key: 'JADE_DB_VER',
-        value: env.JADE_DB_VER.toString(),
-      })
-      for (let i = 0; i < concepts.length; ++i) {
-        const c = concepts[i]
-        conceptCache.set(c.id, c)
-        conceptStmt.create.run({ id: c.id, json: JSON.stringify(c) })
-      }
-    })() // Transaction must be called!
-    lastUpdatedTime = Date.now()
+    return new Promise<void>(resolve => {
+      log('Init')
+      db.transaction(() => {
+        settingsCache = settings
+        insertSetting.run({ key: 'settings', value: JSON.stringify(settings) })
+        insertSetting.run({ key: 'JADE_DB_LOADED', value: 'yes' })
+        insertSetting.run({
+          key: 'JADE_DB_VER',
+          value: env.JADE_DB_VER.toString(),
+        })
+        for (let i = 0; i < concepts.length; ++i) {
+          const c = concepts[i]
+          conceptCache.set(c.id, c)
+          conceptStmt.create.run({ id: c.id, json: JSON.stringify(c) })
+        }
+      })() // Transaction must be called!
+      lastUpdatedTime = Date.now()
+      resolve()
+    })
   }
 
   function commitBuffer() {

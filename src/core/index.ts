@@ -32,7 +32,7 @@ export async function startApp(
 
   if (!(await database.isValid()) && state3) {
     console.log('core/index: Migrating state_v3')
-    database.init(
+    await database.init(
       {
         shouldEnableDevMode: state3.debugging,
         shouldEnableEfficientRendering: true,
@@ -96,7 +96,7 @@ export async function startApp(
   /** Bootstrap new database. */
   if (!(await database.isValid())) {
     console.log('core/index: Bootstrap new db')
-    database.init(
+    await database.init(
       {
         homeConceptId: 'home',
         /** Set viewing concept to the tutorial. */

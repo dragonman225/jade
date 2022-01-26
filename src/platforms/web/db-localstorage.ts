@@ -28,12 +28,15 @@ export const database: PlatformDatabaseInterface = {
     })
   },
   init: (settings, concepts) => {
-    database.saveSettings(settings)
-    concepts.forEach(concept => {
-      database.createConcept(concept)
+    return new Promise(resolve => {
+      database.saveSettings(settings)
+      concepts.forEach(concept => {
+        database.createConcept(concept)
+      })
+      localStorage.setItem('JADE_DB_LOADED', '')
+      localStorage.setItem('JADE_DB_VER', env.JADE_DB_VER.toString())
+      resolve()
     })
-    localStorage.setItem('JADE_DB_LOADED', '')
-    localStorage.setItem('JADE_DB_VER', env.JADE_DB_VER.toString())
   },
   getConcept: id => {
     return new Promise(resolve => {

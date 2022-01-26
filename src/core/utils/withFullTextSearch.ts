@@ -65,7 +65,7 @@ export function withFullTextSearch(
     ...platformDatabase,
     init: (_, concepts) => {
       fuse.setCollection(concepts.map(getSearchableConcept))
-      platformDatabase.init(_, concepts)
+      return platformDatabase.init(_, concepts)
     },
     createConcept: concept => {
       fuse.add(getSearchableConcept(concept))
