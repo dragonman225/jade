@@ -323,12 +323,14 @@ parse JSON in ${end - mid}ms.`)
     return lastUpdatedTime
   }
 
-  function getVersion(): number {
-    const row = selectSetting.get<{ key: string; value: string }>({
-      key: 'JADE_DB_VER',
+  function getVersion() {
+    return new Promise<number>(resolve => {
+      const row = selectSetting.get<{ key: string; value: string }>({
+        key: 'JADE_DB_VER',
+      })
+      const ver = parseInt(row?.value)
+      resolve(ver)
     })
-    const ver = parseInt(row?.value)
-    return ver
   }
 
   function setVersion(n: number): void {

@@ -49,7 +49,7 @@ export interface DatabaseInterface {
   getSettings(): Settings
   saveSettings(settings: Settings): void
   getLastUpdatedTime(): number
-  getVersion(): number
+  getVersion(): Promise<number>
   setVersion(number: number): void
   subscribeConcept: (channel: string, callback: () => void) => void
   unsubscribeConcept: (channel: string, callback: () => void) => void

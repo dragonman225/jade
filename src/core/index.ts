@@ -52,7 +52,8 @@ export async function startApp(
    * We need to test isValid() or we cannot distinguish uninitialized from
    * State4.
    */
-  const isState4 = (await database.isValid()) && isNaN(database.getVersion())
+  const isState4 =
+    (await database.isValid()) && isNaN(await database.getVersion())
   if (isState4) {
     console.log('core/index: Migrating state4')
     const allConcepts = ((await database.getAllConcepts()) as unknown) as Concept4[]

@@ -110,8 +110,10 @@ export const database: PlatformDatabaseInterface = {
     return lastUpdatedAt ? parseInt(lastUpdatedAt) : 0
   },
   getVersion: () => {
-    const dbVer = localStorage.getItem('JADE_DB_VER')
-    return dbVer ? parseInt(dbVer) : 0
+    return new Promise(resolve => {
+      const dbVer = localStorage.getItem('JADE_DB_VER')
+      resolve(dbVer ? parseInt(dbVer) : 0)
+    })
   },
   setVersion: n => {
     localStorage.setItem('JADE_DB_VER', n.toString())
