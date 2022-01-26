@@ -30,7 +30,7 @@ export async function startApp(
   /** Migrate old state_v3 to the new database. */
   const state3 = legacyLoadState()
 
-  if (!database.isValid() && state3) {
+  if (!(await database.isValid()) && state3) {
     console.log('core/index: Migrating state_v3')
     database.init(
       {
@@ -52,7 +52,7 @@ export async function startApp(
    * We need to test isValid() or we cannot distinguish uninitialized from
    * State4.
    */
-  const isState4 = database.isValid() && isNaN(database.getVersion())
+  const isState4 = (await database.isValid()) && isNaN(database.getVersion())
   if (isState4) {
     console.log('core/index: Migrating state4')
     const allConcepts = ((await database.getAllConcepts()) as unknown) as Concept4[]
@@ -87,14 +87,14 @@ export async function startApp(
   }
 
   /** Migrate settings. */
-  if (database.isValid()) {
+  if (await database.isValid()) {
     const oldSettings = database.getSettings()
     const newSettings = migrateSettings(oldSettings)
     database.saveSettings(newSettings)
   }
 
   /** Bootstrap new database. */
-  if (!database.isValid()) {
+  if (!(await database.isValid())) {
     console.log('core/index: Bootstrap new db')
     database.init(
       {

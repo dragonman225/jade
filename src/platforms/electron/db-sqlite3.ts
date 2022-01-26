@@ -132,13 +132,15 @@ function createDatabase(path: string): PlatformDatabaseInterface {
     VALUES (@key, @value)`)
 
   function isValid() {
-    try {
-      const row = selectSetting.get({ key: 'JADE_DB_LOADED' })
-      return !!row
-    } catch (error) {
-      log(error)
-      return false
-    }
+    return new Promise<boolean>(resolve => {
+      try {
+        const row = selectSetting.get({ key: 'JADE_DB_LOADED' })
+        resolve(!!row)
+      } catch (error) {
+        log(error)
+        resolve(false)
+      }
+    })
   }
 
   function init(settings: Settings, concepts: TypedConcept<unknown>[]) {

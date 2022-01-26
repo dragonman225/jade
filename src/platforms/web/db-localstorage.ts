@@ -23,7 +23,9 @@ function markStorageUpdate() {
 
 export const database: PlatformDatabaseInterface = {
   isValid: () => {
-    return localStorage.getItem('JADE_DB_LOADED') !== null
+    return new Promise(resolve => {
+      resolve(localStorage.getItem('JADE_DB_LOADED') !== null)
+    })
   },
   init: (settings, concepts) => {
     database.saveSettings(settings)
