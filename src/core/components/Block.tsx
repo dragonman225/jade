@@ -1,5 +1,12 @@
 import * as React from 'react'
-import { useRef, useEffect, useMemo, useState, useCallback } from 'react'
+import {
+  useRef,
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useLayoutEffect,
+} from 'react'
 import { classes } from 'typestyle'
 
 import { ArrowNorthEast } from './Icons/ArrowNorthEast'
@@ -54,7 +61,7 @@ export const Block = React.memo(function Block({
   const [isHovering, setIsHovering] = useState(false)
 
   /** Register the block element so other places can query its rect. */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (rBlockEl.current) blockRectManager.setElement(id, rBlockEl.current)
     return () => blockRectManager.detachElement(id)
   }, [id])

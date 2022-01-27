@@ -7,15 +7,34 @@ interface BlockInfo {
   alive: boolean
 }
 
+/** Only update on size change. */
 export class BlockRectManager {
   private camera: Camera
   private blockInfoMap: Map<BlockId, BlockInfo>
+  private ro: ResizeObserver
 
   constructor() {
     this.blockInfoMap = new Map<BlockId, BlockInfo>()
+    this.ro = new ResizeObserver(entries => {
+      for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i]
+        const el = entry.target as HTMLDivElement
+        const blockId = el.dataset.blockId
+        if (!blockId) continue
+        const viewportRect = el.getBoundingClientRect()
+        const envRect = viewportRectToEnvRect(viewportRect, this.camera)
+        this.blockInfoMap.set(blockId, {
+          alive: true,
+          cachedEnvRect: envRect,
+          el,
+        })
+      }
+    })
   }
 
   setElement = (blockId: BlockId, el: HTMLDivElement): void => {
+    el.dataset.blockId = blockId
+    this.ro.observe(el)
     this.blockInfoMap.set(blockId, {
       alive: true,
       /**
@@ -40,6 +59,7 @@ export class BlockRectManager {
   detachElement = (blockId: BlockId): void => {
     const info = this.blockInfoMap.get(blockId)
     if (info) {
+      if (info.el) this.ro.unobserve(info.el)
       this.blockInfoMap.set(blockId, {
         alive: false,
         cachedEnvRect: info.cachedEnvRect,
@@ -48,7 +68,23 @@ export class BlockRectManager {
     }
   }
 
-  /** Rect in env coords. */
+  /**
+   * Get measured size in environment coordinates. Since there's caching,
+   * calling this function has low cost, and you can still get it when
+   * a block is temporarily not rendered.
+   */
+  getMeasuredSize = (
+    blockId: BlockId
+  ): { width: number; height: number } | undefined => {
+    const info = this.blockInfoMap.get(blockId)
+    if (!info) return undefined
+    return info.cachedEnvRect
+  }
+
+  /**
+   * Get DOMRect of a block. This is just a direct mapping to
+   * Element.getBoundingClientRect(), so use with care.
+   */
   getRect = (blockId: BlockId): Omit<DOMRect, 'toJSON'> | undefined => {
     const info = this.blockInfoMap.get(blockId)
     if (!info) return undefined

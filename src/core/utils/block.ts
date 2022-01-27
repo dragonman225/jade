@@ -115,14 +115,14 @@ export function isIntersectingWithBox(
   box: Box
 ): (block: BlockInstance) => boolean {
   return function (block): boolean {
-    const blockRect = blockRectManager.getRect(block.id)
+    const blockSize = blockRectManager.getMeasuredSize(block.id)
     return (
-      !!blockRect &&
+      !!blockSize &&
       isBoxBoxIntersectingObjVer(box, {
-        x: blockRect.x,
-        y: blockRect.y,
-        w: blockRect.width,
-        h: blockRect.height,
+        x: block.pos.x,
+        y: block.pos.y,
+        w: blockSize.width,
+        h: blockSize.height,
       })
     )
   }
@@ -149,12 +149,16 @@ export function findBlock(
 }
 
 export function blockToBox(block: BlockInstance): Box {
-  const rect = blockRectManager.getRect(block.id) || { width: 0, height: 0 }
+  const blockSize = blockRectManager.getMeasuredSize(block.id) || {
+    width: 0,
+    height: 0,
+  }
 
   return {
-    ...block.pos,
-    w: rect.width,
-    h: rect.height,
+    x: block.pos.x,
+    y: block.pos.y,
+    w: blockSize.width,
+    h: blockSize.height,
   }
 }
 
@@ -165,17 +169,38 @@ export function deselectAllBlocks(blocks: BlockInstance[]): BlockInstance[] {
 export function getOverBlock(
   pointerInEnvCoords: Vec2,
   blocks: BlockInstance[],
-  excludeBlockIds: BlockId[] = []
+  excludeBlockIds: BlockId[] = [],
+  excludeNonNormalPositioned = false
 ): BlockInstance | undefined {
   for (let i = blocks.length - 1; i >= 0; i--) {
     const block = blocks[i]
-    const blockRect = blockRectManager.getRect(block.id)
+    const rect = blockRectManager.getRect(block.id)
+
+    if (!rect) continue
+    if (excludeBlockIds.includes(block.id)) continue
+
+    /** Test pinned positioned. */
     if (
-      blockRect &&
-      !excludeBlockIds.includes(block.id) &&
-      isPointInRect(pointerInEnvCoords, blockRect)
-    )
+      !excludeNonNormalPositioned &&
+      block.posType !== PositionType.Normal &&
+      block.posType !== PositionType.None &&
+      isPointInRect(pointerInEnvCoords, rect)
+    ) {
       return block
+    }
+
+    /** Test normal positioned. */
+    if (
+      block.posType === PositionType.Normal &&
+      isPointInRect(pointerInEnvCoords, {
+        left: block.pos.x,
+        right: block.pos.x + rect.width,
+        top: block.pos.y,
+        bottom: block.pos.y + rect.height,
+      })
+    ) {
+      return block
+    }
   }
   return undefined
 }

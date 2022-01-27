@@ -18,6 +18,7 @@ import {
   findBlock,
   blockInstanceToBlock,
   bringBlocksToTop,
+  getOverBlock,
 } from '../utils/block'
 import { blockRectManager } from '../utils/blockRectManager'
 import { createConcept, updateConcept } from '../utils/concept'
@@ -161,8 +162,10 @@ export function createAppStateReducer(
       case Action.ConceptCreate: {
         const { posType } = action.data
         const { camera, blocks } = state
-        const defaultType = factoryRegistry.getDefaultContentFactory().id
-        const newConcept = createConcept(defaultType)
+
+        const defaultContentType = factoryRegistry.getDefaultContentFactory().id
+        const newConcept = createConcept(defaultContentType)
+
         const newBlockBox: (Vec2 & Size) | undefined = (() => {
           switch (action.data.intent) {
             case ConceptCreatePositionIntent.ExactAt: {
@@ -175,59 +178,67 @@ export function createAppStateReducer(
               }
             }
             case ConceptCreatePositionIntent.Below: {
-              const targetBlockRect = blockRectManager.getRect(
-                action.data.blockId
-              )
+              const srcBlockId = action.data.blockId
+              const srcBlockPos = findBlock(blocks, srcBlockId)?.pos
+              const srcBlockSize = blockRectManager.getMeasuredSize(srcBlockId)
               return (
-                targetBlockRect && {
-                  x: targetBlockRect.left,
-                  y: targetBlockRect.bottom + defaultGap,
-                  w: targetBlockRect.width,
+                srcBlockPos &&
+                srcBlockSize && {
+                  x: srcBlockPos.x,
+                  y: srcBlockPos.y + srcBlockSize.height + defaultGap,
+                  w: srcBlockSize.width,
                   h: defaultSize.h,
                 }
               )
             }
             case ConceptCreatePositionIntent.Above: {
-              const targetBlockRect = blockRectManager.getRect(
-                action.data.blockId
-              )
+              const srcBlockId = action.data.blockId
+              const srcBlockPos = findBlock(blocks, srcBlockId)?.pos
+              const srcBlockSize = blockRectManager.getMeasuredSize(srcBlockId)
               return (
-                targetBlockRect && {
-                  x: targetBlockRect.left,
-                  y: targetBlockRect.top - 50 + defaultGap,
-                  w: targetBlockRect.width,
+                srcBlockPos &&
+                srcBlockSize && {
+                  x: srcBlockPos.x,
+                  y:
+                    srcBlockPos.y -
+                    defaultGap -
+                    (defaultSize.h === 'auto' ? 50 : defaultSize.h),
+                  w: srcBlockSize.width,
                   h: defaultSize.h,
                 }
               )
             }
             case ConceptCreatePositionIntent.LeftOf: {
-              const targetBlockRect = blockRectManager.getRect(
-                action.data.blockId
-              )
+              const srcBlockId = action.data.blockId
+              const srcBlockPos = findBlock(blocks, srcBlockId)?.pos
+              const srcBlockSize = blockRectManager.getMeasuredSize(srcBlockId)
               return (
-                targetBlockRect && {
-                  x: targetBlockRect.left - defaultSize.w - defaultGap,
-                  y: targetBlockRect.top,
-                  w: targetBlockRect.width,
+                srcBlockPos &&
+                srcBlockSize && {
+                  x: srcBlockPos.x - defaultGap - defaultSize.w,
+                  y: srcBlockPos.y,
+                  w: srcBlockSize.width,
                   h: defaultSize.h,
                 }
               )
             }
             case ConceptCreatePositionIntent.RightOf: {
-              const targetBlockRect = blockRectManager.getRect(
-                action.data.blockId
-              )
+              const srcBlockId = action.data.blockId
+              const srcBlockPos = findBlock(blocks, srcBlockId)?.pos
+              const srcBlockSize = blockRectManager.getMeasuredSize(srcBlockId)
               return (
-                targetBlockRect && {
-                  x: targetBlockRect.right + defaultGap,
-                  y: targetBlockRect.top,
-                  w: targetBlockRect.width,
+                srcBlockPos &&
+                srcBlockSize && {
+                  x: srcBlockPos.x + srcBlockSize.width + defaultGap,
+                  y: srcBlockPos.y,
+                  w: srcBlockSize.width,
                   h: defaultSize.h,
                 }
               )
             }
           }
         })()
+
         if (!newBlockBox) return state
         const newBlock = createBlock({
           to: newConcept.id,
@@ -341,9 +352,19 @@ export function createAppStateReducer(
         if (blocks.find(b => b.mode !== InteractionMode.Idle)) return state
         if (selectedBlockIds.length === 0) return state
 
-        const selectedBlockRects = selectedBlockIds.map(id =>
-          blockRectManager.getRect(id)
-        )
+        const blockMap: Record<BlockId, BlockInstance> = {}
+        blocks.forEach(b => (blockMap[b.id] = b))
+
+        const selectedBlockRects = selectedBlockIds.map(id => {
+          const blockSize = blockRectManager.getMeasuredSize(id)
+          const block = blockMap[id]
+          return {
+            left: block.pos.x,
+            right: block.pos.x + (blockSize?.width || 0),
+            top: block.pos.y,
+            bottom: block.pos.y + (blockSize?.height || 0),
+          }
+        })
         const boundingRect = getBoundingBox(selectedBlockRects as Rect[])
         /**
          * When pasting, the pointer should be at the center of the
@@ -517,11 +538,11 @@ export function createAppStateReducer(
         const guidelineRects = blocks
           .filter(b => !shouldMove(b.id) && b.posType === PositionType.Normal)
           .map(b => {
-            const envRect = blockRectManager.getRect(b.id)
+            const size = blockRectManager.getMeasuredSize(b.id)
             return {
               ...b.pos,
-              w: typeof b.size.w === 'number' ? b.size.w : envRect?.width || 0,
-              h: typeof b.size.h === 'number' ? b.size.h : envRect?.height || 0,
+              w: typeof b.size.w === 'number' ? b.size.w : size?.width || 0,
+              h: typeof b.size.h === 'number' ? b.size.h : size?.height || 0,
             }
           })
 
@@ -673,12 +694,12 @@ export function createAppStateReducer(
             /** Below logic only works for normal positioned blocks. */
             if (block.posType !== PositionType.Normal) return undefined
             /** Position may be wrong! */
-            const blockRectRaw = blockRectManager.getRect(block.id)
+            const blockSize = blockRectManager.getMeasuredSize(block.id)
             const blockRect = {
               top: block.pos.y,
               left: block.pos.x,
-              bottom: block.pos.y + (blockRectRaw?.height || 0),
-              right: block.pos.x + (blockRectRaw?.width || 0),
+              bottom: block.pos.y + (blockSize?.height || 0),
+              right: block.pos.x + (blockSize?.width || 0),
             }
             const pointerInEnvCoords = viewportCoordsToEnvCoords(
               pointerInViewportCoords,
@@ -840,24 +861,24 @@ export function createAppStateReducer(
 
         const leaderBlock = blocks.find(b => b.id === id)
         if (!leaderBlock) return state
-        const leaderBlockRectInEnvCoords = blockRectManager.getRect(id)
-        if (!leaderBlockRectInEnvCoords) return state
-        const leaderBlockOldSize = leaderBlock.size
+        const leaderBlockSize = blockRectManager.getMeasuredSize(id)
+        if (!leaderBlockSize) return state
+        const prevLeaderBlockSize = leaderBlock.size
 
         cursorBlockNewSize =
           prevCursorBlockId !== id
             ? /** The first resize action of a block. */
               {
                 w:
-                  typeof leaderBlockOldSize.w === 'number'
-                    ? leaderBlockOldSize.w +
+                  typeof prevLeaderBlockSize.w === 'number'
+                    ? prevLeaderBlockSize.w +
                       movementInViewportCoords.x / camera.scale
-                    : leaderBlockRectInEnvCoords.width,
+                    : leaderBlockSize.width,
                 h:
-                  typeof leaderBlockOldSize.h === 'number'
-                    ? leaderBlockOldSize.h +
+                  typeof prevLeaderBlockSize.h === 'number'
+                    ? prevLeaderBlockSize.h +
                       movementInViewportCoords.y / camera.scale
-                    : leaderBlockRectInEnvCoords.height,
+                    : leaderBlockSize.height,
               }
             : {
                 w:
@@ -892,11 +913,11 @@ export function createAppStateReducer(
         const guidelineRects = blocks
           .filter(b => !shouldResize(b.id) && b.posType === PositionType.Normal)
           .map(b => {
-            const envRect = blockRectManager.getRect(b.id)
+            const size = blockRectManager.getMeasuredSize(b.id)
             return {
               ...b.pos,
-              w: typeof b.size.w === 'number' ? b.size.w : envRect?.width || 0,
-              h: typeof b.size.h === 'number' ? b.size.h : envRect?.height || 0,
+              w: typeof b.size.w === 'number' ? b.size.w : size?.width || 0,
+              h: typeof b.size.h === 'number' ? b.size.h : size?.height || 0,
             }
           })
 
@@ -946,12 +967,12 @@ export function createAppStateReducer(
         /** Ignore snap result if size is "auto". */
         const sizeChange = {
           w:
-            typeof leaderBlockOldSize.w === 'number'
-              ? width - leaderBlockOldSize.w
+            typeof prevLeaderBlockSize.w === 'number'
+              ? width - prevLeaderBlockSize.w
               : 0,
           h:
-            typeof leaderBlockOldSize.h === 'number'
-              ? height - leaderBlockOldSize.h
+            typeof prevLeaderBlockSize.h === 'number'
+              ? height - prevLeaderBlockSize.h
               : 0,
         }
 
@@ -1406,21 +1427,19 @@ export function createAppStateReducer(
       }
       case Action.RelationDrawMove: {
         const { pointerInViewportCoords } = action.data
-        const { camera, blocks } = state
+        const { camera, blocks, drawingRelationFromBlockId } = state
 
         const pointerInEnvCoords = viewportCoordsToEnvCoords(
           pointerInViewportCoords,
           camera
         )
 
-        const targetBlock = (() => {
-          for (let i = blocks.length - 1; i >= 0; i--) {
-            const block = blocks[i]
-            const rect = blockRectManager.getRect(block.id)
-            if (rect && isPointInRect(pointerInEnvCoords, rect)) return block
-          }
-          return undefined
-        })()
+        const targetBlock = getOverBlock(
+          pointerInEnvCoords,
+          blocks,
+          [drawingRelationFromBlockId],
+          true
+        )
 
         return {
           ...state,
@@ -1436,31 +1455,25 @@ export function createAppStateReducer(
         }
       }
       case Action.RelationDrawEnd: {
-        const { id, pointerInViewportCoords } = action.data
+        const { id: srcBlockId, pointerInViewportCoords } = action.data
         const { blocks, relations, camera, viewingConcept } = state
 
-        const targetBlock = (() => {
-          for (let i = blocks.length - 1; i >= 0; i--) {
-            const block = blocks[i]
-            if (
-              /** Disallow drawing a relation to itself. */
-              block.id !== id &&
-              /** Disallow drawing a relation to non-normal blocks. */
-              block.posType === PositionType.Normal &&
-              isPointInRect(
-                viewportCoordsToEnvCoords(pointerInViewportCoords, camera),
-                blockRectManager.getRect(block.id) as DOMRect
-              )
-            )
-              return block
-          }
-          return undefined
-        })()
+        const pointerInEnvCoords = viewportCoordsToEnvCoords(
+          pointerInViewportCoords,
+          camera
+        )
+
+        const targetBlock = getOverBlock(
+          pointerInEnvCoords,
+          blocks,
+          [srcBlockId],
+          true
+        )
 
         const newRelationProps = targetBlock && {
           type: 'block-to-block-in-canvas',
           fromEntity: Entity.Block,
-          fromId: id,
+          fromId: srcBlockId,
           toEntity: Entity.Block,
           toId: targetBlock.id,
         }
@@ -1523,7 +1536,6 @@ export function createAppStateReducer(
       }
       case Action.NavigateBack: {
         const { expandHistory } = state
-        console.log(expandHistory, state.viewingConcept.id)
         const backToConceptId = expandHistory[expandHistory.length - 2]
         if (!backToConceptId) return state
         const concept = await db.getConcept(backToConceptId)

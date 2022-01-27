@@ -65,10 +65,12 @@ const App = React.memo(function App() {
       w: windowWidth / state.camera.scale + 2 * overscanX,
       h: windowHeight / state.camera.scale + 2 * overscanY,
     }
-    const rects = state.blocks.map(b => blockRectManager.getRect(b.id))
+    const blockSizes = state.blocks.map(b =>
+      blockRectManager.getMeasuredSize(b.id)
+    )
 
     return state.blocks.filter((b, index) => {
-      const rect = rects[index]
+      const blockSize = blockSizes[index]
 
       return (
         b.posType === PositionType.Normal &&
@@ -77,13 +79,13 @@ const App = React.memo(function App() {
          * report. Usually this happens when opening a Canvas and
          * double-clicking to create a new Block + Concept.
          */
-        (!rect ||
+        (!blockSize ||
           !state.settings.shouldEnableEfficientRendering ||
           isBoxBoxIntersectingObjVer(
             {
               ...b.pos,
-              w: typeof b.size.w === 'number' ? b.size.w : rect.width,
-              h: typeof b.size.h === 'number' ? b.size.h : rect.height,
+              w: typeof b.size.w === 'number' ? b.size.w : blockSize.width,
+              h: typeof b.size.h === 'number' ? b.size.h : blockSize.height,
             },
             visibleArea
           ))
