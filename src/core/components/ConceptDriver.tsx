@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useCallback } from 'react'
 
+import { ConceptLoader } from './ConceptLoader'
 import { useSystem } from '../store/systemContext'
 import { BlockInstance, InteractionMode, TypedConcept } from '../interfaces'
 import { Action } from '../store/actions'
@@ -92,6 +93,6 @@ export const ConceptDriver = React.memo(function ConceptDriver({
   return concept ? (
     <ConceptDisplay block={block} concept={concept} />
   ) : (
-    <div>Concept {block.conceptId} may be lost</div>
+    <ConceptLoader />
   )
 })
