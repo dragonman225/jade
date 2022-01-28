@@ -13,7 +13,9 @@ export const appStyles = stylesheet({
     overflow: 'hidden',
     color: theme.colors.contentText,
     background: theme.colors.bgCanvas,
-    transition: `background 0.3s ${theme.easings.easeInOutCubic}`,
+    transition: `\
+color 0.5s ${theme.easings.easeInOutCubic},
+background 0.5s ${theme.easings.easeInOutCubic}`,
   },
   movingBlocks: {
     cursor: 'grabbing',
