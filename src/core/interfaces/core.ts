@@ -51,8 +51,14 @@ export interface DatabaseInterface {
   getLastUpdatedTime(): number
   getVersion(): Promise<number>
   setVersion(number: number): void
-  subscribeConcept: (channel: string, callback: () => void) => void
-  unsubscribeConcept: (channel: string, callback: () => void) => void
+  subscribeConcept: (
+    conceptId: string,
+    callback: (concept: TypedConcept<unknown> | undefined) => void
+  ) => void
+  unsubscribeConcept: (
+    conceptId: string,
+    callback: (concept: TypedConcept<unknown> | undefined) => void
+  ) => void
   searchConceptByText: Fuse<TypedConcept<unknown>>['search']
 }
 

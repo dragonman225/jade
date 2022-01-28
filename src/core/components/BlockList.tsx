@@ -8,6 +8,7 @@ import { ViewObject } from './ViewObject'
 import { BlockInstance } from '../interfaces'
 import { stylesheet } from 'typestyle'
 import theme from '../../theme'
+import { useConceptMap } from '../utils/useConcept'
 
 interface Props {
   blocks: BlockInstance[]
@@ -50,6 +51,8 @@ export function BlockList({ blocks, onRender }: Props): JSX.Element {
   //   keys: blocks.map(b => `vo-b-${b.id}`),
   // })
 
+  const conceptMap = useConceptMap(blocks.map(b => b.conceptId))
+
   /** Run on mount. */
   useEffect(() => {
     onRender && onRender()
@@ -68,7 +71,7 @@ export function BlockList({ blocks, onRender }: Props): JSX.Element {
             pos={b.pos}
             size={b.size}
             zIndex={b.zIndex}>
-            <BlockDriver block={b} />
+            <BlockDriver block={b} concept={conceptMap[b.conceptId]} />
           </ViewObject>
         </li>
       ))}

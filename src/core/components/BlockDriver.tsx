@@ -5,19 +5,24 @@ import { style } from 'typestyle'
 import { Block } from './Block'
 import { useSystem } from '../store/systemContext'
 import theme from '../../theme'
-import { BlockInstance, Concept, PositionType } from '../interfaces'
+import {
+  BlockInstance,
+  Concept,
+  PositionType,
+  TypedConcept,
+} from '../interfaces'
 import { ConceptDriver } from './ConceptDriver'
-import { useConcept } from '../utils/useConcept'
 
 interface BlockDriverProps {
   block: BlockInstance
+  concept: TypedConcept<unknown> | undefined
 }
 
 export const BlockDriver = React.memo(function BlockDriver({
   block,
+  concept,
 }: BlockDriverProps): JSX.Element {
   const { dispatchAction } = useSystem()
-  const concept = useConcept(block.conceptId)
 
   const blockClassName = useMemo(() => {
     return block.posType > PositionType.Normal

@@ -74,17 +74,15 @@ export const database: PlatformDatabaseInterface = {
     setTimeout(() => {
       localStorage.setItem(`concept/${concept.id}`, JSON.stringify(concept))
       markStorageUpdate()
-      setTimeout(() => {
-        pubSub.publish(concept.id)
-        pubSub.publish(CHANNEL_ANY_CHANGES)
-      })
+      pubSub.publish(concept.id, concept)
+      pubSub.publish(CHANNEL_ANY_CHANGES, concept)
     }, 0)
   },
   createConcept: concept => {
     localStorage.setItem(`concept/${concept.id}`, JSON.stringify(concept))
     markStorageUpdate()
-    pubSub.publish(concept.id)
-    pubSub.publish(CHANNEL_ANY_CHANGES)
+    pubSub.publish(concept.id, concept)
+    pubSub.publish(CHANNEL_ANY_CHANGES, concept)
   },
   getSettings: () => {
     try {

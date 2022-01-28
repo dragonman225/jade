@@ -283,7 +283,10 @@ parse JSON in ${end - mid}ms.`)
     concept: TypedConcept<unknown>,
     type: 'update' | 'create'
   ) {
+    /** Cache goes first, so subsequent get calls can benefit. */
     conceptCache.set(concept.id, concept)
+
+    /** Queue write second, so data persistence doesn't get blocked by subscribers. */
     const data = JSON.stringify(concept)
     queueWriteItem({
       table: conceptsTableName,
@@ -291,10 +294,10 @@ parse JSON in ${end - mid}ms.`)
       type,
       data,
     })
-    setTimeout(() => {
-      pubSub.publish(concept.id)
-      pubSub.publish(CHANNEL_ANY_CHANGES)
-    })
+
+    /** May be fast or slow depending on client usage. */
+    pubSub.publish(concept.id, concept)
+    pubSub.publish(CHANNEL_ANY_CHANGES, concept)
   }
 
   function getSettings(): Settings {
