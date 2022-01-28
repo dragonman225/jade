@@ -78,7 +78,7 @@ export class PubSub implements IPubSub {
     this.publishAuditMessage('subscribe', channel)
   }
 
-  unsubscribe = (channel: string, callback: (arg: unknown) => void): void => {
+  unsubscribe = <T>(channel: string, callback: (arg: T) => void): void => {
     const subscribers = this.subscriberMap[channel]
     if (subscribers && subscribers.length > 0) {
       for (let i = 0; i < subscribers.length; i++) {
