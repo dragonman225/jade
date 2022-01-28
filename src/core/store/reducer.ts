@@ -1159,6 +1159,7 @@ export function createAppStateReducer(
               selectedBlockIds: focusBlockId
                 ? [focusBlockId]
                 : state.selectedBlockIds,
+              isMovingBlocks: false,
             }
           } else {
             return state
@@ -1202,6 +1203,7 @@ export function createAppStateReducer(
           blocksRendered: false,
           relations: concept.relations,
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
+          isMovingBlocks: false,
         }
       }
       case Action.SelectionBoxSetStart: {
