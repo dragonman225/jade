@@ -38,6 +38,7 @@ import { pasteLinkToText } from './ProseMirrorPlugins/pasteLinkToText'
 import {
   ConceptDisplayProps,
   Factory,
+  InteractionMode,
   PositionType,
   Rect,
   TypedConcept,
@@ -50,13 +51,13 @@ import {
   SyntheticFocusCallbackFn,
   useSyntheticFocus,
 } from '../../core/utils/useSyntheticFocus'
+import { useAppState } from '../../core/store/appStateContext'
+import { findBlock } from '../../core/utils/block'
 
 type Props = ConceptDisplayProps<PMTextContent>
 
 const PMText: React.FunctionComponent<Props> = props => {
   const {
-    database,
-    factoryRegistry,
     concept,
     blockId,
     viewMode,
@@ -65,13 +66,23 @@ const PMText: React.FunctionComponent<Props> = props => {
     onReplace,
     onInteractionStart,
     onInteractionEnd,
-    dispatchAction,
   } = props
-  const { openExternal, createOverlay } = useSystem()
+  const { blocks } = useAppState()
+  const {
+    dispatchAction,
+    openExternal,
+    createOverlay,
+    factoryRegistry,
+    db: database,
+  } = useSystem()
+
+  const block = findBlock(blocks, blockId)
+  const [isFocusing, setIsFocusing] = useState(
+    block?.mode === InteractionMode.Focusing
+  )
 
   /** ProseMirror. */
   const [showPlaceholder, setShowPlaceholder] = useState(false)
-  const [isFocusing, setIsFocusing] = useState(false)
   const editorContainerRef = useRef<HTMLDivElement | null>(null)
   const editorView = useRef<EditorView | null>(null)
 
@@ -318,11 +329,8 @@ const PMText: React.FunctionComponent<Props> = props => {
       ],
     })
 
-    if (!editorContainerRef.current)
-      /** dummy */
-      return () => {
-        0
-      }
+    if (!editorContainerRef.current) return () => 0 /** dummy */
+
     const view = createEditorView(editorContainerRef.current, state)
     editorView.current = view
 
