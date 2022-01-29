@@ -73,6 +73,7 @@ export function ContextMenu(): JSX.Element {
     }
 
     function handlePointerDown(e: MouseEvent | TouchEvent) {
+      if (e instanceof MouseEvent && e.button === 2) return
       if (!rContextMenuEl.current?.contains(e.target as Node)) {
         closeContextMenu()
       }
