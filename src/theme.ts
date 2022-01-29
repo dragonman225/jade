@@ -50,6 +50,9 @@ export default {
   easings: {
     /** @see https://easings.net/ */
     easeInOutCubic: 'cubic-bezier(0.65, 0, 0.35, 1)',
+    easeInQuart: 'cubic-bezier(0.5, 0, 0.75, 0)',
+    easeOutQuart: 'cubic-bezier(0.25, 1, 0.5, 1)',
+    easeOutQuint: 'cubic-bezier(0.22, 1, 0.36, 1)',
     easeOutExpo: 'cubic-bezier(0.16, 1, 0.3, 1)',
   },
   paddings: {

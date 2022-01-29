@@ -51,6 +51,7 @@ export const styles = {
 opacity 0.2s ${theme.easings.easeInOutCubic},
 box-shadow 0.2s ${theme.easings.easeInOutCubic},
 background 0.5s ${theme.easings.easeInOutCubic}`,
+      animation: `${theme.animations.fadeIn} 0.3s ${theme.easings.easeInOutCubic}`,
       $nest: {
         ...blockColorMixin.$nest,
         '&:hover': {
@@ -73,7 +74,6 @@ background 0.5s ${theme.easings.easeInOutCubic}`,
       },
     },
     moving: {
-      opacity: 0.4,
       $nest: {
         '&:hover': {
           cursor: 'grabbing',
