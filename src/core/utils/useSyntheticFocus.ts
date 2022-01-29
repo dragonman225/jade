@@ -47,7 +47,7 @@ export function useSyntheticFocus<T extends HTMLElement>({
       return elemRef.current && elemRef.current.contains(node)
     }
 
-    function pointerDown(e: MouseEvent | TouchEvent) {
+    function onPointerDown(e: MouseEvent | TouchEvent) {
       down.current = getUnifiedClientCoords(e)
       moved.current = false
       const isOutside = !isInsideElem(e.target as Node)
@@ -63,9 +63,17 @@ export function useSyntheticFocus<T extends HTMLElement>({
         hasFocus.current = false
         onBlur && onBlur(event)
       }
+
+      if (e instanceof MouseEvent && e.button !== 0) return
+
+      window.addEventListener('mousemove', onPointerMove)
+      window.addEventListener('touchmove', onPointerMove)
+      window.addEventListener('mouseup', onPointerUp)
+      window.addEventListener('touchend', onPointerUp)
+      window.addEventListener('touchcancel', onPointerUp)
     }
 
-    function pointerMove(e: MouseEvent | TouchEvent) {
+    function onPointerMove(e: MouseEvent | TouchEvent) {
       if (!down.current) return
       const here = getUnifiedClientCoords(e)
       const dist = distanceOf(down.current, here)
@@ -74,7 +82,13 @@ export function useSyntheticFocus<T extends HTMLElement>({
       }
     }
 
-    function pointerUp(e: MouseEvent | TouchEvent) {
+    function onPointerUp(e: MouseEvent | TouchEvent) {
+      window.removeEventListener('mousemove', onPointerMove)
+      window.removeEventListener('touchmove', onPointerMove)
+      window.removeEventListener('mouseup', onPointerUp)
+      window.removeEventListener('touchend', onPointerUp)
+      window.removeEventListener('touchcancel', onPointerUp)
+
       const here = getUnifiedClientCoords(e)
       const isInside = isInsideElem(e.target as Node)
       if (
@@ -92,24 +106,12 @@ export function useSyntheticFocus<T extends HTMLElement>({
       }
     }
 
-    window.addEventListener('mousedown', pointerDown)
-    window.addEventListener('touchstart', pointerDown)
-
-    window.addEventListener('mouseup', pointerUp)
-    window.addEventListener('touchend', pointerUp)
-    window.addEventListener('touchcancel', pointerUp)
-    window.addEventListener('mousemove', pointerMove)
-    window.addEventListener('touchmove', pointerMove)
+    window.addEventListener('mousedown', onPointerDown)
+    window.addEventListener('touchstart', onPointerDown)
 
     return () => {
-      window.removeEventListener('mousedown', pointerDown)
-      window.removeEventListener('touchstart', pointerDown)
-
-      window.removeEventListener('mouseup', pointerUp)
-      window.removeEventListener('touchend', pointerUp)
-      window.removeEventListener('touchcancel', pointerUp)
-      window.removeEventListener('mousemove', pointerMove)
-      window.removeEventListener('touchmove', pointerMove)
+      window.removeEventListener('mousedown', onPointerDown)
+      window.removeEventListener('touchstart', onPointerDown)
     }
   }, [onFocus, onBlur, onPointerDownOutside, clickRadius, externalHasFocus])
 
