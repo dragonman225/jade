@@ -79,6 +79,7 @@ export function useSyntheticFocus<T extends HTMLElement>({
       const dist = distanceOf(down.current, here)
       if (dist > clickRadius) {
         moved.current = true
+        onPointerUp(e) // no value to keep listening when already moved
       }
     }
 
