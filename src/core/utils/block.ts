@@ -286,3 +286,7 @@ export function bringBlocksToTop(
 
   return blocks.map(b => newBlockMap[b.id])
 }
+
+export function isMovingBlocks(blocks: BlockInstance[]): boolean {
+  return !!blocks.find(b => b.mode === InteractionMode.Moving)
+}

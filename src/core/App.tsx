@@ -34,7 +34,7 @@ import {
   isBoxBoxIntersectingObjVer,
 } from './utils'
 import { blockRectManager } from './utils/blockRectManager'
-import { blockToBox, findBlock } from './utils/block'
+import { blockToBox, findBlock, isMovingBlocks } from './utils/block'
 import { SystemContext } from './store/systemContext'
 import { useAnimationFrame } from './utils/useAnimationFrame'
 
@@ -114,7 +114,7 @@ const App = React.memo(function App() {
     <div
       className={classes(
         appStyles.app,
-        state.isMovingBlocks && appStyles.movingBlocks,
+        isMovingBlocks(state.blocks) && appStyles.movingBlocks,
         state.blocks.find(b => b.mode === InteractionMode.Resizing) &&
           appStyles.resizingBlocks,
         state.drawingRelation && appStyles.drawingRelation

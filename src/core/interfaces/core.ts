@@ -28,7 +28,6 @@ export interface AppState {
   drawingRelationFromBlockId: BlockId
   drawingRelationToPoint: Vec2 // in environment coords
   contextMenuState: ContextMenuState
-  isMovingBlocks: boolean
   clipboard: Clip[]
 }
 

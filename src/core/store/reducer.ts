@@ -19,6 +19,7 @@ import {
   blockInstanceToBlock,
   bringBlocksToTop,
   getOverBlock,
+  isMovingBlocks,
 } from '../utils/block'
 import { blockRectManager } from '../utils/blockRectManager'
 import { createConcept, updateConcept } from '../utils/concept'
@@ -130,7 +131,6 @@ export async function loadAppState(db: DatabaseInterface): Promise<AppState> {
         pointerInViewportCoords: { x: 0, y: 0 },
       },
     },
-    isMovingBlocks: false,
     clipboard: [],
   }
 }
@@ -493,7 +493,6 @@ export function createAppStateReducer(
           ),
           selectedBlockIds,
           pointerOffsetInLeaderBox: vecSub(pointerInEnvCoords, leaderBlock.pos),
-          isMovingBlocks: true,
         }
       }
       case Action.BlockMove: {
@@ -852,7 +851,6 @@ export function createAppStateReducer(
           blocks: state.blocks.map(b =>
             updateBlockInstance(b, { highlighted: false })
           ),
-          isMovingBlocks: false,
         }
       }
       case Action.BlockResizeDelta: {
@@ -1159,7 +1157,6 @@ export function createAppStateReducer(
               selectedBlockIds: focusBlockId
                 ? [focusBlockId]
                 : state.selectedBlockIds,
-              isMovingBlocks: false,
             }
           } else {
             return state
@@ -1203,7 +1200,6 @@ export function createAppStateReducer(
           blocksRendered: false,
           relations: concept.relations,
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
-          isMovingBlocks: false,
         }
       }
       case Action.SelectionBoxSetStart: {
@@ -1277,7 +1273,6 @@ export function createAppStateReducer(
         const {
           selectionBoxStart,
           selecting,
-          isMovingBlocks,
           blocks,
           camera,
           viewingConcept,
@@ -1289,7 +1284,7 @@ export function createAppStateReducer(
         }
 
         /** Update selected blocks if the user is moving them. */
-        const newBlocks = isMovingBlocks
+        const newBlocks = isMovingBlocks(blocks)
           ? blocks.map(b =>
               b.posType === PositionType.Normal && b.selected
                 ? updateBlockInstance(b, {
