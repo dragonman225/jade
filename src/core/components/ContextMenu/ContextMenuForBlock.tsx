@@ -77,6 +77,15 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
       })
     }, [block, viewingConcept, dispatchAction])
 
+    const cutBlock = useCallback(() => {
+      dispatchAction({
+        type: Action.BlockCut,
+      })
+      dispatchAction({
+        type: Action.ContextMenuClose,
+      })
+    }, [dispatchAction])
+
     const blockCount = selectedBlockIds.includes(block.id)
       ? selectedBlockIds.length
       : 1
@@ -91,10 +100,10 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
         //   title: `Copy ${blockDescription}`,
         //   perform: copyBlock,
         // },
-        // {
-        //   title: `Cut ${blockDescription}`,
-        //   perform: cutBlock,
-        // },
+        {
+          title: `Cut ${blockDescription}`,
+          perform: cutBlock,
+        },
         {
           title: `Delete ${blockDescription}`,
           perform: deleteBlock,
@@ -108,7 +117,7 @@ export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
           perform: copyLink,
         },
       ],
-      [focusBlock, copyLink, deleteBlock, blockDescription]
+      [focusBlock, copyLink, deleteBlock, cutBlock, blockDescription]
     )
 
     return (

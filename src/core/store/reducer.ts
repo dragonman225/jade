@@ -4,7 +4,6 @@ import {
   vecSub,
   vecAdd,
   normalizeToBox,
-  isPointInRect,
   getBoundingBox,
 } from '../utils'
 import {
@@ -45,10 +44,11 @@ import {
   Entity,
   Vec2,
   Size,
-  ContextType,
   InteractionMode,
   Rect,
 } from '../interfaces'
+import { getContext } from '../components/ContextMenu/utils'
+import { ContextMenuType } from '../components/ContextMenu/types'
 
 const LOG_PREFIX = 'core/store/reducer:'
 
@@ -126,10 +126,7 @@ export async function loadAppState(db: DatabaseInterface): Promise<AppState> {
     contextMenuState: {
       shouldShow: false,
       pos: { x: 0, y: 0 },
-      data: {
-        contextType: ContextType.InferFromPointer,
-        pointerInViewportCoords: { x: 0, y: 0 },
-      },
+      context: undefined,
     },
     clipboard: [],
   }
@@ -148,8 +145,6 @@ export function createAppStateReducer(
    */
   let prevCursorBlockId = ''
   let cursorBlockNewSize: { w: number; h: number } = { w: 0, h: 0 }
-  /** A block that the pointer is on. */
-  let pointerOverBlock: BlockInstance | undefined = undefined
 
   return async function appStateReducer(
     state: AppState,
@@ -539,7 +534,8 @@ export function createAppStateReducer(
           .map(b => {
             const size = blockRectManager.getMeasuredSize(b.id)
             return {
-              ...b.pos,
+              x: b.pos.x,
+              y: b.pos.y,
               w: typeof b.size.w === 'number' ? b.size.w : size?.width || 0,
               h: typeof b.size.h === 'number' ? b.size.h : size?.height || 0,
             }
@@ -687,37 +683,9 @@ export function createAppStateReducer(
           }),
         })
 
-        pointerOverBlock = (() => {
-          for (let i = blocks.length - 1; i >= 0; i--) {
-            const block = blocks[i]
-            /** Below logic only works for normal positioned blocks. */
-            if (block.posType !== PositionType.Normal) return undefined
-            /** Position may be wrong! */
-            const blockSize = blockRectManager.getMeasuredSize(block.id)
-            const blockRect = {
-              top: block.pos.y,
-              left: block.pos.x,
-              bottom: block.pos.y + (blockSize?.height || 0),
-              right: block.pos.x + (blockSize?.width || 0),
-            }
-            const pointerInEnvCoords = viewportCoordsToEnvCoords(
-              pointerInViewportCoords,
-              camera
-            )
-            if (
-              /** It makes no sense to over itself. */
-              block.id !== id &&
-              blockRect &&
-              isPointInRect(pointerInEnvCoords, blockRect)
-            )
-              return block
-          }
-          return undefined
-        })()
-
-        const shouldHighlight = (blockId: BlockId): boolean => {
-          return blockId === (pointerOverBlock && pointerOverBlock.id)
-        }
+        // const shouldHighlight = (blockId: BlockId): boolean => {
+        //   return blockId === (pointerOverBlock && pointerOverBlock.id)
+        // }
 
         db.updateConcept(newViewingConcept)
 
@@ -726,7 +694,7 @@ export function createAppStateReducer(
           viewingConcept: newViewingConcept,
           blocks: bringBlocksToTop([id], blocks).map(b => ({
             ...b,
-            highlighted: shouldHighlight(b.id),
+            // highlighted: shouldHighlight(b.id),
             pos: shouldMove(b.id)
               ? vecAdd(b.pos, leaderBlockActualMovement)
               : b.pos,
@@ -734,116 +702,116 @@ export function createAppStateReducer(
         }
       }
       case Action.BlockMoveEnd: {
-        if (pointerOverBlock) {
-          /**
-           * When a move is end, if the pointer is over a *Block*, we move
-           * the selected *Block*s into the *Concept* the *Block*
-           * represents.
-           */
-          const { viewingConcept, selectedBlockIds, blocks } = state
-          const movingBlocks = blocks.filter(b =>
-            selectedBlockIds.includes(b.id)
-          )
+        // if (pointerOverBlock) {
+        //   /**
+        //    * When a move is end, if the pointer is over a *Block*, we move
+        //    * the selected *Block*s into the *Concept* the *Block*
+        //    * represents.
+        //    */
+        //   const { viewingConcept, selectedBlockIds, blocks } = state
+        //   const movingBlocks = blocks.filter(b =>
+        //     selectedBlockIds.includes(b.id)
+        //   )
 
-          /**
-           * We want to keep the relative position of the moving blocks
-           * after moving them.
-           */
-          const topLeftMostMovingBlock = movingBlocks.reduce((pv, cv) => {
-            if (cv.pos.x <= pv.pos.x && cv.pos.y <= pv.pos.y) return cv
-            else return pv
-          }, movingBlocks[0])
+        //   /**
+        //    * We want to keep the relative position of the moving blocks
+        //    * after moving them.
+        //    */
+        //   const topLeftMostMovingBlock = movingBlocks.reduce((pv, cv) => {
+        //     if (cv.pos.x <= pv.pos.x && cv.pos.y <= pv.pos.y) return cv
+        //     else return pv
+        //   }, movingBlocks[0])
 
-          const targetConcept = await db.getConcept(pointerOverBlock.conceptId)
-          if (!targetConcept) return state
+        //   const targetConcept = await db.getConcept(pointerOverBlock.conceptId)
+        //   if (!targetConcept) return state
 
-          /**
-           * The top-right corner of the bounding box of all blocks in
-           * targetConcept.
-           */
-          const topRightOfBoundingBoxOfBlocksInTargetConcept = targetConcept.references.reduce(
-            (pos, r) => {
-              const rightX = r.pos.x + (r.size.w === 'auto' ? 0 : r.size.w)
-              if (rightX > pos.x) {
-                pos.x = rightX
-              }
-              if (r.pos.y < pos.y) {
-                pos.y = r.pos.y
-              }
-              return pos
-            },
-            { x: -Infinity, y: -Infinity }
-          )
+        //   /**
+        //    * The top-right corner of the bounding box of all blocks in
+        //    * targetConcept.
+        //    */
+        //   const topRightOfBoundingBoxOfBlocksInTargetConcept = targetConcept.references.reduce(
+        //     (pos, r) => {
+        //       const rightX = r.pos.x + (r.size.w === 'auto' ? 0 : r.size.w)
+        //       if (rightX > pos.x) {
+        //         pos.x = rightX
+        //       }
+        //       if (r.pos.y < pos.y) {
+        //         pos.y = r.pos.y
+        //       }
+        //       return pos
+        //     },
+        //     { x: -Infinity, y: -Infinity }
+        //   )
 
-          /** Handle the case where targetConcept.references is []. */
-          const newPosOfTopLeftMostMovingBlock = vecAdd(
-            {
-              x:
-                topRightOfBoundingBoxOfBlocksInTargetConcept.x === -Infinity
-                  ? 100
-                  : topRightOfBoundingBoxOfBlocksInTargetConcept.x,
-              y:
-                topRightOfBoundingBoxOfBlocksInTargetConcept.y === -Infinity
-                  ? 100
-                  : topRightOfBoundingBoxOfBlocksInTargetConcept.y,
-            },
-            { x: 100, y: 0 }
-          )
+        //   /** Handle the case where targetConcept.references is []. */
+        //   const newPosOfTopLeftMostMovingBlock = vecAdd(
+        //     {
+        //       x:
+        //         topRightOfBoundingBoxOfBlocksInTargetConcept.x === -Infinity
+        //           ? 100
+        //           : topRightOfBoundingBoxOfBlocksInTargetConcept.x,
+        //       y:
+        //         topRightOfBoundingBoxOfBlocksInTargetConcept.y === -Infinity
+        //           ? 100
+        //           : topRightOfBoundingBoxOfBlocksInTargetConcept.y,
+        //     },
+        //     { x: 100, y: 0 }
+        //   )
 
-          /** The vector each moving block should move. */
-          const vectorToMove = vecSub(
-            newPosOfTopLeftMostMovingBlock,
-            topLeftMostMovingBlock.pos
-          )
+        //   /** The vector each moving block should move. */
+        //   const vectorToMove = vecSub(
+        //     newPosOfTopLeftMostMovingBlock,
+        //     topLeftMostMovingBlock.pos
+        //   )
 
-          const newViewingConcept = updateConcept(viewingConcept, {
-            references: viewingConcept.references.filter(
-              r => !selectedBlockIds.includes(r.id)
-            ),
-            relations: viewingConcept.relations.filter(
-              r =>
-                !selectedBlockIds.includes(r.fromId) &&
-                !selectedBlockIds.includes(r.toId)
-            ),
-          })
+        //   const newViewingConcept = updateConcept(viewingConcept, {
+        //     references: viewingConcept.references.filter(
+        //       r => !selectedBlockIds.includes(r.id)
+        //     ),
+        //     relations: viewingConcept.relations.filter(
+        //       r =>
+        //         !selectedBlockIds.includes(r.fromId) &&
+        //         !selectedBlockIds.includes(r.toId)
+        //     ),
+        //   })
 
-          const newTargetConcept = updateConcept(targetConcept, {
-            references: targetConcept.references.concat(
-              viewingConcept.references
-                .filter(r => selectedBlockIds.includes(r.id))
-                .map(r => ({
-                  ...r,
-                  pos: vecAdd(r.pos, vectorToMove),
-                }))
-            ),
-            relations: targetConcept.relations.concat(
-              viewingConcept.relations.filter(
-                r =>
-                  selectedBlockIds.includes(r.fromId) &&
-                  selectedBlockIds.includes(r.toId)
-              )
-            ),
-          })
+        //   const newTargetConcept = updateConcept(targetConcept, {
+        //     references: targetConcept.references.concat(
+        //       viewingConcept.references
+        //         .filter(r => selectedBlockIds.includes(r.id))
+        //         .map(r => ({
+        //           ...r,
+        //           pos: vecAdd(r.pos, vectorToMove),
+        //         }))
+        //     ),
+        //     relations: targetConcept.relations.concat(
+        //       viewingConcept.relations.filter(
+        //         r =>
+        //           selectedBlockIds.includes(r.fromId) &&
+        //           selectedBlockIds.includes(r.toId)
+        //       )
+        //     ),
+        //   })
 
-          db.updateConcept(newViewingConcept)
-          db.updateConcept(newTargetConcept)
+        //   db.updateConcept(newViewingConcept)
+        //   db.updateConcept(newTargetConcept)
 
-          return {
-            ...state,
-            viewingConcept: newViewingConcept,
-            pointerOffsetInLeaderBox: { x: 0, y: 0 },
-            blocks: blocks
-              .filter(b => !movingBlocks.includes(b))
-              .map(b => ({
-                ...b,
-                highlighted: false,
-              })),
-            relations: newViewingConcept.relations,
-            /** Blocks are moved into another concept, so reset it. */
-            selectedBlockIds: [],
-            isMovingBlocks: false,
-          }
-        }
+        //   return {
+        //     ...state,
+        //     viewingConcept: newViewingConcept,
+        //     pointerOffsetInLeaderBox: { x: 0, y: 0 },
+        //     blocks: blocks
+        //       .filter(b => !movingBlocks.includes(b))
+        //       .map(b => ({
+        //         ...b,
+        //         highlighted: false,
+        //       })),
+        //     relations: newViewingConcept.relations,
+        //     /** Blocks are moved into another concept, so reset it. */
+        //     selectedBlockIds: [],
+        //     isMovingBlocks: false,
+        //   }
+        // }
 
         return {
           ...state,
@@ -1107,14 +1075,20 @@ export function createAppStateReducer(
         }
       }
       case Action.BlockSelect: {
+        const toSelectIds = action.data.blockIds
+        const nextSelectedBlockIds = state.selectedBlockIds.concat(
+          /** Just add those that are not selected. */
+          toSelectIds.filter(id => !state.selectedBlockIds.includes(id))
+        )
+        const nextBlocks = state.blocks.map(b =>
+          updateBlockInstance(b, {
+            selected: nextSelectedBlockIds.includes(b.id),
+          })
+        )
         return {
           ...state,
-          selectedBlockIds: state.selectedBlockIds.concat(
-            /** Just add those that are not selected. */
-            action.data.filter(
-              c => !state.selectedBlockIds.find(sc => sc === c)
-            )
-          ),
+          blocks: nextBlocks,
+          selectedBlockIds: nextSelectedBlockIds,
         }
       }
       case Action.BlockDeselect: {
@@ -1128,6 +1102,9 @@ export function createAppStateReducer(
       case Action.BlockDeselectAll: {
         return {
           ...state,
+          blocks: state.blocks.map(b =>
+            updateBlockInstance(b, { selected: false })
+          ),
           selectedBlockIds: [],
         }
       }
@@ -1563,15 +1540,30 @@ export function createAppStateReducer(
         }
       }
       case Action.ContextMenuOpen: {
-        const { pointerInViewportCoords } = action.data
+        const context = getContext(state, action.data)
+        const contextMenuState = {
+          shouldShow: true,
+          pos: action.data.pointerInViewportCoords,
+          context,
+        }
+
+        if (context?.type === ContextMenuType.Block) {
+          const block = context.block
+          if (!block.selected) {
+            return {
+              ...state,
+              blocks: state.blocks.map(b =>
+                updateBlockInstance(b, { selected: b.id === block.id })
+              ),
+              selectedBlockIds: [block.id],
+              contextMenuState,
+            }
+          }
+        }
 
         return {
           ...state,
-          contextMenuState: {
-            shouldShow: true,
-            pos: pointerInViewportCoords,
-            data: action.data,
-          },
+          contextMenuState,
         }
       }
       case Action.ContextMenuClose: {
@@ -1580,10 +1572,7 @@ export function createAppStateReducer(
           contextMenuState: {
             shouldShow: false,
             pos: { x: 0, y: 0 },
-            data: {
-              contextType: ContextType.InferFromPointer,
-              pointerInViewportCoords: { x: 0, y: 0 },
-            },
+            context: undefined,
           },
         }
       }

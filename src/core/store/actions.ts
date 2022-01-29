@@ -162,7 +162,9 @@ interface BlockSetSizeAction {
 
 interface BlockSelectAction {
   type: Action.BlockSelect
-  data: BlockId[]
+  data: {
+    blockIds: BlockId[]
+  }
 }
 
 interface BlockDeselectAction {

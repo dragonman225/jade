@@ -1,3 +1,4 @@
+import { Context } from '../components/ContextMenu/types'
 import { RelationId } from './relation'
 import { Vec2 } from './util'
 
@@ -21,5 +22,5 @@ export type ContextMenuActionData = {
 export interface ContextMenuState {
   shouldShow: boolean
   pos: Vec2 // in viewport coords
-  data: ContextMenuActionData
+  context: Context | undefined
 }
