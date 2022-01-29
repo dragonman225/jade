@@ -1193,10 +1193,7 @@ export function createAppStateReducer(
                   updateBlockInstance(b, { selected: b.id === focusBlockId })
                 )
               : await synthesizeView(concept, db),
-          selectedBlockIds:
-            focusBlockId && focusBlock
-              ? [focusBlockId]
-              : state.selectedBlockIds,
+          selectedBlockIds: focusBlockId && focusBlock ? [focusBlockId] : [],
           blocksRendered: false,
           relations: concept.relations,
           expandHistory: state.expandHistory.slice(1).concat(toConceptId),
