@@ -101,7 +101,7 @@ export const menuListButton: NestedCSSProperties = {
   ...buttonTransparent,
   color: theme.colors.contentText,
   width: '100%',
-  padding: '.3rem .5rem',
+  padding: '.25rem .5rem',
   fontSize: '.875rem',
   textAlign: 'left',
   borderRadius: theme.borders.smallRadius,
