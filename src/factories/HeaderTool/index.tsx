@@ -5,6 +5,7 @@ import { classes } from 'typestyle'
 import { styles } from './index.styles'
 import { More } from './More'
 import { useAppState } from '../../core/store/appStateContext'
+import { useSettings } from '../../core/store/contexts'
 import { Add } from '../../core/components/Icons/Add'
 import { ArrowBack } from '../../core/components/Icons/ArrowBack'
 import { ArrowForward } from '../../core/components/Icons/ArrowForward'
@@ -27,6 +28,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
     onInteractionEnd,
   } = props
   const state = useAppState()
+  const settings = useSettings()
 
   const [titleCollapsed, setTitleCollapsed] = useState(true)
   const toggleTitleCollapsed = useCallback(() => setTitleCollapsed(c => !c), [])
@@ -72,7 +74,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
           setTitleCollapsed(true)
           dispatchAction({
             type: Action.BlockOpenAsCanvas,
-            data: { id: state.settings.homeConceptId },
+            data: { id: settings.homeConceptId },
           })
         }}>
         <Home />

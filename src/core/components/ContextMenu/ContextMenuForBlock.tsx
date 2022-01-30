@@ -9,6 +9,7 @@ import { ContextForBlock, ListOption } from './types'
 import { BlockColor } from '../../interfaces'
 import { Action } from '../../store/actions'
 import { useAppState } from '../../store/appStateContext'
+import { useSettings } from '../../store/contexts'
 import { useSystem } from '../../store/systemContext'
 import { getDateString } from '../../utils'
 import { getFocusForBlock } from '../../utils/block'
@@ -23,7 +24,8 @@ interface Props {
 export const ContextMenuForBlock = React.forwardRef<HTMLDivElement, Props>(
   function ContextMenuForBlock({ context }, ref) {
     const { block } = context
-    const { settings, selectedBlockIds, viewingConcept } = useAppState()
+    const { selectedBlockIds, viewingConcept } = useAppState()
+    const settings = useSettings()
     const { dispatchAction } = useSystem()
     const linkedConcept = useConcept(block.conceptId)
 

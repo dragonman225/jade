@@ -16,6 +16,7 @@ import { Overlay } from './components/Overlay'
 import { PlaceMenu } from './components/PlaceMenu'
 import { ContextMenu } from './components/ContextMenu/ContextMenu'
 import { AppStateContext, useAppState } from './store/appStateContext'
+import { SettingsContext, useSettings } from './store/contexts'
 import { useSystem } from './store/systemContext'
 import theme from '../theme'
 import { createAppStateReducer, loadAppState } from './store/reducer'
@@ -43,6 +44,7 @@ const zeroSize = { w: 0, h: 0 }
 const App = React.memo(function App() {
   const state = useAppState()
   const { dispatchAction, createOverlay } = useSystem()
+  const settings = useSettings()
   const notifyBlocksRendered = useCallback(() => {
     dispatchAction({ type: Action.BlocksRendered })
   }, [dispatchAction])
@@ -80,7 +82,7 @@ const App = React.memo(function App() {
          * double-clicking to create a new Block + Concept.
          */
         (!blockSize ||
-          !state.settings.shouldEnableEfficientRendering ||
+          !settings.shouldEnableEfficientRendering ||
           isBoxBoxIntersectingObjVer(
             {
               ...b.pos,
@@ -94,7 +96,7 @@ const App = React.memo(function App() {
   }, [
     state.blocks,
     state.camera,
-    state.settings.shouldEnableEfficientRendering,
+    settings.shouldEnableEfficientRendering,
     state.shouldAnimateCamera,
   ])
 
@@ -277,7 +279,9 @@ export function AppRoot(props: AppRootProps): JSX.Element {
     <>
       <SystemContext.Provider value={system}>
         <AppStateContext.Provider value={stateSnapshot}>
-          <App />
+          <SettingsContext.Provider value={stateSnapshot.settings}>
+            <App />
+          </SettingsContext.Provider>
         </AppStateContext.Provider>
       </SystemContext.Provider>
       <Overlay ref={rOverlayEl} />

@@ -103,7 +103,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
   const s2lBlockRef = useRef<S2LBlock | undefined>()
   const s2lStartOffsetRef = useRef<Vec2 | undefined>()
   const s2lDeltaRef = useRef<Vec2 | undefined>()
-  const stateRef = useRef<AppState | undefined>()
+  const stateRef = useRef<Omit<AppState, 'settings'> | undefined>()
 
   const handleWindowPointerDown = (e: MouseEvent | TouchEvent) => {
     /** Click outside to minimize. */

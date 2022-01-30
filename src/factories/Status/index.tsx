@@ -19,6 +19,7 @@ import {
 } from '../../core/interfaces'
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
 import { useAppState } from '../../core/store/appStateContext'
+import { useSettings } from '../../core/store/contexts'
 import { buttonPrimary } from '../../lightComponents'
 import theme from '../../theme'
 
@@ -65,6 +66,7 @@ type Props = ConceptDisplayProps<undefined>
 export const Status: React.FunctionComponent<Props> = props => {
   const { dispatchAction, database } = props
   const state = useAppState()
+  const settings = useSettings()
 
   const generateRandomBlocks = useCallback(() => {
     function getRandomInt(start: number, end: number): number {
@@ -133,20 +135,19 @@ export const Status: React.FunctionComponent<Props> = props => {
     dispatchAction({
       type: Action.SettingsSet,
       data: {
-        shouldEnableEfficientRendering: !state.settings
-          .shouldEnableEfficientRendering,
+        shouldEnableEfficientRendering: !settings.shouldEnableEfficientRendering,
       },
     })
-  }, [dispatchAction, state.settings.shouldEnableEfficientRendering])
+  }, [dispatchAction, settings.shouldEnableEfficientRendering])
 
   const toggleDevMode = useCallback(() => {
     dispatchAction({
       type: Action.SettingsSet,
       data: {
-        shouldEnableDevMode: !state.settings.shouldEnableDevMode,
+        shouldEnableDevMode: !settings.shouldEnableDevMode,
       },
     })
-  }, [dispatchAction, state.settings.shouldEnableDevMode])
+  }, [dispatchAction, settings.shouldEnableDevMode])
 
   switch (props.viewMode) {
     case 'NavItem':
@@ -167,13 +168,11 @@ export const Status: React.FunctionComponent<Props> = props => {
           </div>
           <div className={styles.buttons}>
             <button onClick={toggleEfficientRendering}>
-              Turn{' '}
-              {state.settings.shouldEnableEfficientRendering ? 'OFF ' : 'ON '}{' '}
+              Turn {settings.shouldEnableEfficientRendering ? 'OFF ' : 'ON '}{' '}
               efficient rendering
             </button>
             <button onClick={toggleDevMode}>
-              Turn {state.settings.shouldEnableDevMode ? 'OFF ' : 'ON '} dev
-              mode
+              Turn {settings.shouldEnableDevMode ? 'OFF ' : 'ON '} dev mode
             </button>
             <button onClick={generateRandomBlocks}>Create 100 blocks</button>
             <button onClick={exportAllConcepts}>Export all concepts</button>

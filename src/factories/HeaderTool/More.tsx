@@ -3,14 +3,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { styles } from './index.styles'
 import { MoreHoriz } from '../../core/components/Icons/MoreHoriz'
+import { useSettings } from '../../core/store/contexts'
 import { useSystem } from '../../core/store/systemContext'
-import { useAppState } from '../../core/store/appStateContext'
 import { getUrlForConceptId } from '../../core/utils/url'
 import { saveTextToClipboard } from '../../core/utils/clipboard'
 import { Action } from '../../core/store/actions'
 
 export const More = React.memo(function More() {
-  const { settings } = useAppState()
+  const settings = useSettings()
   const { createOverlay, dispatchAction } = useSystem()
   const rButtonEl = useRef<HTMLButtonElement>(null)
   const rMenuEl = useRef<HTMLDivElement>(null)
