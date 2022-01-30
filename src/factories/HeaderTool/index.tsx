@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react'
 import { classes } from 'typestyle'
 
 import { styles } from './index.styles'
+import { More } from './More'
 import { useAppState } from '../../core/store/appStateContext'
 import { Add } from '../../core/components/Icons/Add'
 import { ArrowBack } from '../../core/components/Icons/ArrowBack'
@@ -127,6 +128,7 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
       <button className={styles.Button} onClick={createCanvas}>
         <Add />
       </button>
+      <More />
     </div>
   )
 }

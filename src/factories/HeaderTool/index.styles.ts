@@ -1,7 +1,12 @@
 import { stylesheet } from 'typestyle'
 
 import theme from '../../theme'
-import { buttonTransparent, navBasic } from '../../lightComponents'
+import {
+  buttonTransparent,
+  menuListButton,
+  menuPanel,
+  navBasic,
+} from '../../lightComponents'
 
 const titleContainerMaxHeight = 300
 
@@ -44,5 +49,14 @@ export const styles = stylesheet({
   TitleContainerNotCollapsed: {
     maxHeight: `calc(${titleContainerMaxHeight}px - 0.7rem)`,
     overflow: 'auto',
+  },
+  menu: {
+    ...menuPanel,
+    boxShadow: theme.shadows.layer,
+    background: theme.colors.bgCanvasSemiTransparent,
+    backdropFilter: 'saturate(180%) blur(30px)',
+  },
+  menuItem: {
+    ...menuListButton,
   },
 })

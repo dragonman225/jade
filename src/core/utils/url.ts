@@ -1,7 +1,11 @@
-import { Block, BlockInstance, TypedConcept } from '../interfaces'
+import { Block, BlockInstance, ConceptId, TypedConcept } from '../interfaces'
 
 export function getUrlForConcept(concept: TypedConcept<unknown>): string {
   return `jade://v1/concept/${concept.id}`
+}
+
+export function getUrlForConceptId(conceptId: ConceptId): string {
+  return `jade://v1/concept/${conceptId}`
 }
 
 export function getUrlForBlock(
