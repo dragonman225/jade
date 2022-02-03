@@ -202,6 +202,7 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
     function onMouseMove(e: MouseEvent) {
       const p = getUnifiedClientCoords(e)
       rLastClientCoords.current = p
+      /** Prevent middle button paste when moved. */
       if (rIsMiddleDown.current && distanceOf(p, rMouseDown.current) > 3) {
         rPreventNextPaste.current = true
       }
@@ -210,7 +211,7 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
     function onMouseUp() {
       rMouseDown.current = { x: 0, y: 0 }
       rIsMiddleDown.current = false
-      /** If the paste to prevent does not fire within a range. */
+      /** If paste event does not fire after mouseup, clear the flag anyway. */
       setTimeout(() => {
         rPreventNextPaste.current = false
       }, 100)
@@ -235,7 +236,7 @@ export function CanvasInteractionDetector(props: Props): JSX.Element {
     }
 
     function onPaste() {
-      /** If paste is fired after mouse up. */
+      /** See above for how the flag is set. */
       if (rPreventNextPaste.current) {
         rPreventNextPaste.current = false
         return
