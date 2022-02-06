@@ -1576,6 +1576,9 @@ export function createAppStateReducer(
           },
         }
       }
+      default: {
+        return state
+      }
     }
   }
 }
