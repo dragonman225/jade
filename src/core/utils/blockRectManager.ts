@@ -16,16 +16,37 @@ export class BlockRectManager {
   constructor() {
     this.blockInfoMap = new Map<BlockId, BlockInfo>()
     this.ro = new ResizeObserver(entries => {
+      /** `transform: scale()` isn't counted as resize */
       for (let i = 0; i < entries.length; i++) {
         const entry = entries[i]
         const el = entry.target as HTMLDivElement
         const blockId = el.dataset.blockId
         if (!blockId) continue
         const viewportRect = el.getBoundingClientRect()
+        /** reproduce bug: go to A, zoom out, pan, zoom in to B, selection broken around B */
+        /** Camera.scale doesn't reflect the actual transform: scale */
         const envRect = viewportRectToEnvRect(viewportRect, this.camera)
+        // console.log(
+        //   'resize',
+        //   blockId,
+        //   this.camera.scale,
+        //   viewportRect,
+        //   envRect,
+        //   entry.borderBoxSize
+        // )
         this.blockInfoMap.set(blockId, {
           alive: true,
-          cachedEnvRect: envRect,
+          cachedEnvRect: {
+            top: envRect.top,
+            right: envRect.right,
+            bottom: envRect.bottom,
+            left: envRect.left,
+            x: envRect.x,
+            y: envRect.y,
+            /** borderBoxSize seems to have higher chance to be right */
+            width: entry.borderBoxSize[0].inlineSize,
+            height: entry.borderBoxSize[0].blockSize,
+          },
           el,
         })
       }
@@ -33,21 +54,15 @@ export class BlockRectManager {
   }
 
   setElement = (blockId: BlockId, el: HTMLDivElement): void => {
-    el.dataset.blockId = blockId
-    this.ro.observe(el)
+    const viewportRect = el.getBoundingClientRect()
+    const envRect = viewportRectToEnvRect(viewportRect, this.camera)
     this.blockInfoMap.set(blockId, {
       alive: true,
-      /**
-       * Calling getBoundingClientRect here forces reflow, which is bad for
-       * performance.
-       * viewportRectToEnvRect(
-       *  el.getBoundingClientRect(),
-       *  this.camera
-       * )
-       */
-      cachedEnvRect: undefined,
+      cachedEnvRect: envRect,
       el,
     })
+    el.dataset.blockId = blockId
+    this.ro.observe(el)
   }
 
   /**

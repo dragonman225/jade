@@ -49,8 +49,6 @@ const App = React.memo(function App() {
     dispatchAction({ type: Action.BlocksRendered })
   }, [dispatchAction])
 
-  blockRectManager.updateCamera(state.camera)
-
   const normalBlocks = useMemo(() => {
     /** Virtualized rendering wastes CPU time when zooming. */
     if (state.shouldAnimateCamera) {
@@ -214,6 +212,7 @@ export function AppRoot(props: AppRootProps): JSX.Element {
     loadAppState(db)
       .then(state => {
         rNextState.current = state
+        blockRectManager.updateCamera(state.camera)
         lastStateChangeTimeRef.current = Date.now()
       })
       .catch(error => {
@@ -229,8 +228,10 @@ export function AppRoot(props: AppRootProps): JSX.Element {
     isFlushing.current = true
     while (pendingActions.current.length) {
       const action = pendingActions.current.shift()
-      if (rNextState.current && action)
+      if (rNextState.current && action) {
         rNextState.current = await appStateReducer(rNextState.current, action)
+        blockRectManager.updateCamera(rNextState.current.camera)
+      }
       lastStateChangeTimeRef.current = Date.now()
     }
     isFlushing.current = false
