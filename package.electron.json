@@ -11,7 +11,7 @@
     "dist:win": "electron-builder build -w"
   },
   "devDependencies": {
-    "electron": "^11.1.1",
+    "electron": "^11.5.0",
     "electron-builder": "^22.9.1"
   },
   "dependencies": {
