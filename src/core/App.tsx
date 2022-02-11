@@ -9,17 +9,17 @@ import { Arrow } from './components/Arrow'
 import { ArrowList } from './components/ArrowList'
 import { BlockList } from './components/BlockList'
 import { CanvasBase } from './components/CanvasBase'
+import { ContextMenu } from './components/ContextMenu/ContextMenu'
 import { EfficientBlockList } from './components/EfficientBlockList'
 import { PinnedPositioned } from './components/PinnedPositioned'
 import { NormalPositioned } from './components/NormalPositioned'
 import { ViewObject } from './components/ViewObject'
 import { Overlay } from './components/Overlay'
 import { PlaceMenu } from './components/PlaceMenu'
-import { ContextMenu } from './components/ContextMenu/ContextMenu'
 import { AppStateContext, useAppState } from './store/appStateContext'
 import { SettingsContext, useSettings } from './store/contexts'
-import { useSystem } from './store/systemContext'
-import theme from '../theme'
+import { SystemContext, useSystem } from './store/systemContext'
+import { Action, Actions } from './store/actions'
 import { createAppStateReducer, loadAppState } from './store/reducer'
 import {
   AppState,
@@ -30,12 +30,11 @@ import {
   PositionType,
   Rect,
 } from './interfaces'
-import { Action, Actions } from './store/actions'
 import { boundingBoxOfBoxes, growBox } from './utils'
 import { blockRectManager } from './utils/blockRectManager'
 import { blockToBox, findBlock, isMovingBlocks } from './utils/block'
-import { SystemContext } from './store/systemContext'
 import { useAnimationFrame } from './utils/useAnimationFrame'
+import theme from '../theme'
 
 const zeroSize = { w: 0, h: 0 }
 
@@ -46,7 +45,6 @@ const App = React.memo(function App() {
   const notifyBlocksRendered = useCallback(() => {
     dispatchAction({ type: Action.BlocksRendered })
   }, [dispatchAction])
-
   const normalBlockSelector = useCallback(
     (b: BlockInstance) => b.posType === PositionType.Normal,
     []
