@@ -36,16 +36,17 @@ const styles = stylesheet({
   },
 })
 
-export const Overlay = React.forwardRef<HTMLDivElement, Props>(function Overlay(
-  props,
-  ref
-) {
-  const { children, className, ...other } = props
-  return (
-    <div className={classes(styles.overlay, className)} {...other}>
-      <div className={styles.overlayChildren} ref={ref}>
-        {children}
+const OverlayWithoutMemo = React.forwardRef<HTMLDivElement, Props>(
+  function Overlay(props, ref) {
+    const { children, className, ...other } = props
+    return (
+      <div className={classes(styles.overlay, className)} {...other}>
+        <div className={styles.overlayChildren} ref={ref}>
+          {children}
+        </div>
       </div>
-    </div>
-  )
-})
+    )
+  }
+)
+
+export const Overlay = React.memo(OverlayWithoutMemo)
