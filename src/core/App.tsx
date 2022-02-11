@@ -8,7 +8,7 @@ import { appStyles } from './App.styles'
 import { Arrow } from './components/Arrow'
 import { ArrowList } from './components/ArrowList'
 import { BlockList } from './components/BlockList'
-import { CanvasInteractionDetector } from './components/CanvasInteractionDetector'
+import { CanvasBase } from './components/CanvasBase'
 import { EfficientBlockList } from './components/EfficientBlockList'
 import { PinnedPositioned } from './components/PinnedPositioned'
 import { NormalPositioned } from './components/NormalPositioned'
@@ -72,7 +72,7 @@ const App = React.memo(function App() {
           appStyles.resizingBlocks,
         state.drawingRelation && appStyles.drawingRelation
       )}>
-      <CanvasInteractionDetector dispatchAction={dispatchAction}>
+      <CanvasBase dispatchAction={dispatchAction}>
         <NormalPositioned
           focus={state.camera.focus}
           scale={state.camera.scale}
@@ -122,7 +122,7 @@ const App = React.memo(function App() {
               )
             })()}
         </NormalPositioned>
-      </CanvasInteractionDetector>
+      </CanvasBase>
       <PinnedPositioned>
         <BlockList blocks={pinnedBlocks} />
       </PinnedPositioned>
