@@ -166,39 +166,93 @@ export function deselectAllBlocks(blocks: BlockInstance[]): BlockInstance[] {
   return blocks.map(b => updateBlockInstance(b, { selected: false }))
 }
 
+export function isPointInBlock(
+  pointerInEnvCoords: Vec2,
+  block: BlockInstance,
+  camera: Camera,
+  /** TODO: `windowSize` should be part of `camera`. */
+  windowSize: { w: number; h: number }
+): boolean {
+  const pos = block.pos
+  const size = blockRectManager.getMeasuredSize(block.id)
+  if (!size) return false
+
+  if (block.posType === PositionType.None) return false
+
+  if (block.posType === PositionType.Normal) {
+    return isPointInRect(pointerInEnvCoords, {
+      left: block.pos.x,
+      right: block.pos.x + size.width,
+      top: block.pos.y,
+      bottom: block.pos.y + size.height,
+    })
+  }
+
+  switch (block.posType) {
+    /**
+     * A pinned block's position and size are fixed in viewport
+     * coordinates, but they are dependent of the camera offset and scale.
+     */
+    case PositionType.PinnedTL: {
+      return isPointInRect(pointerInEnvCoords, {
+        left: camera.focus.x + pos.x / camera.scale,
+        right: camera.focus.x + (pos.x + size.width) / camera.scale,
+        top: camera.focus.y + pos.y / camera.scale,
+        bottom: camera.focus.y + (pos.y + size.height) / camera.scale,
+      })
+    }
+    case PositionType.PinnedTR: {
+      return isPointInRect(pointerInEnvCoords, {
+        left:
+          camera.focus.x + (windowSize.w - pos.x - size.width) / camera.scale,
+        right: camera.focus.x + (windowSize.w - pos.x) / camera.scale,
+        top: camera.focus.y + pos.y / camera.scale,
+        bottom: camera.focus.y + (pos.y + size.height) / camera.scale,
+      })
+    }
+    case PositionType.PinnedBL: {
+      return isPointInRect(pointerInEnvCoords, {
+        left: camera.focus.x + pos.x / camera.scale,
+        right: camera.focus.x + (pos.x + size.width) / camera.scale,
+        top:
+          camera.focus.y + (windowSize.h - pos.y - size.height) / camera.scale,
+        bottom: camera.focus.y + (windowSize.h - pos.y) / camera.scale,
+      })
+    }
+    case PositionType.PinnedBR: {
+      return isPointInRect(pointerInEnvCoords, {
+        left:
+          camera.focus.x + (windowSize.w - pos.x - size.width) / camera.scale,
+        right: camera.focus.x + (windowSize.w - pos.x) / camera.scale,
+        top:
+          camera.focus.y + (windowSize.h - pos.y - size.height) / camera.scale,
+        bottom: camera.focus.y + (windowSize.h - pos.y) / camera.scale,
+      })
+    }
+    default: {
+      return false
+    }
+  }
+}
+
 export function getOverBlock(
   pointerInEnvCoords: Vec2,
   blocks: BlockInstance[],
+  camera: Camera,
   excludeBlockIds: BlockId[] = [],
   excludeNonNormalPositioned = false
 ): BlockInstance | undefined {
+  const windowSize = { w: window.innerWidth, h: window.innerHeight }
+
   for (let i = blocks.length - 1; i >= 0; i--) {
     const block = blocks[i]
-    const rect = blockRectManager.getRect(block.id)
 
-    if (!rect) continue
     if (excludeBlockIds.includes(block.id)) continue
-
-    /** Test pinned positioned. */
-    if (
-      !excludeNonNormalPositioned &&
-      block.posType !== PositionType.Normal &&
-      block.posType !== PositionType.None &&
-      isPointInRect(pointerInEnvCoords, rect)
-    ) {
-      return block
+    if (excludeNonNormalPositioned && block.posType !== PositionType.Normal) {
+      continue
     }
 
-    /** Test normal positioned. */
-    if (
-      block.posType === PositionType.Normal &&
-      isPointInRect(pointerInEnvCoords, {
-        left: block.pos.x,
-        right: block.pos.x + rect.width,
-        top: block.pos.y,
-        bottom: block.pos.y + rect.height,
-      })
-    ) {
+    if (isPointInBlock(pointerInEnvCoords, block, camera, windowSize)) {
       return block
     }
   }

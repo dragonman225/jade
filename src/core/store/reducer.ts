@@ -1408,6 +1408,7 @@ export function createAppStateReducer(
         const targetBlock = getOverBlock(
           pointerInEnvCoords,
           blocks,
+          camera,
           [drawingRelationFromBlockId],
           true
         )
@@ -1437,6 +1438,7 @@ export function createAppStateReducer(
         const targetBlock = getOverBlock(
           pointerInEnvCoords,
           blocks,
+          camera,
           [srcBlockId],
           true
         )

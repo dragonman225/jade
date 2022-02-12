@@ -17,7 +17,7 @@ export function getContextOfPointer(
     actionData.pointerInViewportCoords,
     camera
   )
-  const overBlock = getOverBlock(pointerInEnvCoords, blocks)
+  const overBlock = getOverBlock(pointerInEnvCoords, blocks, camera)
 
   if (overBlock) {
     return {

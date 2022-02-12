@@ -54,11 +54,12 @@ export class BlockRectManager {
   }
 
   setElement = (blockId: BlockId, el: HTMLDivElement): void => {
-    const viewportRect = el.getBoundingClientRect()
-    const envRect = viewportRectToEnvRect(viewportRect, this.camera)
+    // getBoundingClientRect here is bad for performance
+    // const viewportRect = el.getBoundingClientRect()
+    // const envRect = viewportRectToEnvRect(viewportRect, this.camera)
     this.blockInfoMap.set(blockId, {
       alive: true,
-      cachedEnvRect: envRect,
+      cachedEnvRect: undefined,
       el,
     })
     el.dataset.blockId = blockId
@@ -94,27 +95,6 @@ export class BlockRectManager {
     const info = this.blockInfoMap.get(blockId)
     if (!info) return undefined
     return info.cachedEnvRect
-  }
-
-  /**
-   * Get DOMRect of a block. This is just a direct mapping to
-   * Element.getBoundingClientRect(), so use with care.
-   */
-  getRect = (blockId: BlockId): Omit<DOMRect, 'toJSON'> | undefined => {
-    const info = this.blockInfoMap.get(blockId)
-    if (!info) return undefined
-    if (info.el) {
-      const viewportRect = info.el.getBoundingClientRect()
-      const envRect = viewportRectToEnvRect(viewportRect, this.camera)
-      this.blockInfoMap.set(blockId, {
-        alive: true,
-        cachedEnvRect: envRect,
-        el: info.el,
-      })
-      return envRect
-    } else {
-      return info.cachedEnvRect
-    }
   }
 
   updateCamera = (camera: Camera): void => {
