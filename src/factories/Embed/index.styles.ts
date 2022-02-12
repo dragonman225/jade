@@ -18,7 +18,7 @@ const atoms = stylesheet({
     $nest: {
       ...buttonTranslucent.$nest,
       '&:not(:last-child)': {
-        borderRight: `1px solid ${theme.colors.neutral40}`,
+        borderRight: `1px solid ${theme.colors.neutral50}`,
       },
       '&:first-child': {
         borderTopLeftRadius: theme.borders.smallRadius,

@@ -29,16 +29,22 @@ export const buttonTransparent = {
 
 export const buttonTranslucent = {
   ...buttonBase,
-  color: theme.colors.neutral90,
+  /** neutral90 */
+  color: 'rgb(230, 226, 217, 0.95)',
   /** neutral10 */
-  background: 'rgba(25, 25, 24, 0.75)',
+  background: 'rgba(29, 28, 22, 0.75)',
+  // Cause long "Composite Layers" time.
   // backdropFilter: 'blur(5px)',
   $nest: {
     '&:hover': {
-      background: 'rgba(25, 25, 24, 0.85)',
+      /** neutral95 */
+      color: 'rgb(245, 240, 231)',
+      background: 'rgba(29, 28, 22, 0.85)',
     },
     '&:active': {
-      background: 'rgba(25, 25, 24, 0.95)',
+      /** neutral95 */
+      color: 'rgb(245, 240, 231)',
+      background: 'rgba(29, 28, 22, 0.95)',
     },
   },
 }
