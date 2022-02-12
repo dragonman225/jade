@@ -83,8 +83,8 @@ const PMText: React.FunctionComponent<Props> = props => {
 
   /** ProseMirror. */
   const [showPlaceholder, setShowPlaceholder] = useState(false)
-  const editorContainerRef = useRef<HTMLDivElement | null>(null)
-  const editorView = useRef<EditorView | null>(null)
+  const rEditorContainerEl = useRef<HTMLDivElement | null>(null)
+  const rEditorView = useRef<EditorView | null>(null)
 
   /** TextActionMenu. */
   const {
@@ -110,15 +110,15 @@ const PMText: React.FunctionComponent<Props> = props => {
     setLink,
     turnIntoLatex,
     updateMenuState,
-  } = useTextActionMenu(editorView.current)
-  const openTextActionMenuRef = useFunctionRef(openTextActionMenu)
-  const closeTextActionMenuRef = useFunctionRef(closeTextActionMenu)
+  } = useTextActionMenu(rEditorView.current)
+  const rOpenTextActionMenu = useFunctionRef(openTextActionMenu)
+  const rCloseTextActionMenu = useFunctionRef(closeTextActionMenu)
   useEffect(() => {
-    openTextActionMenuRef.current = openTextActionMenu
+    rOpenTextActionMenu.current = openTextActionMenu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openTextActionMenu])
   useEffect(() => {
-    closeTextActionMenuRef.current = closeTextActionMenu
+    rCloseTextActionMenu.current = closeTextActionMenu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [closeTextActionMenu])
 
@@ -132,7 +132,7 @@ const PMText: React.FunctionComponent<Props> = props => {
     factoryRegistry,
     onInteractionEnd,
     onReplace,
-    editorView.current
+    rEditorView.current
   )
   const {
     showSuggestionMenu,
@@ -155,11 +155,11 @@ const PMText: React.FunctionComponent<Props> = props => {
     bottom: 0,
     left: 0,
   })
-  const onKeyDownRef = useFunctionRef<
-    (_view: EditorView, event: KeyboardEvent) => boolean
+  const rOnKeyDown = useFunctionRef<
+    (view: EditorView, event: KeyboardEvent) => boolean
   >()
   useEffect(() => {
-    onKeyDownRef.current = (view: EditorView, event: KeyboardEvent) => {
+    rOnKeyDown.current = (view: EditorView, event: KeyboardEvent) => {
       /** COMPAT: macOS. */
       if (view.composing) return false
 
@@ -180,8 +180,8 @@ const PMText: React.FunctionComponent<Props> = props => {
       ) {
         const selection = window.getSelection()
         selection && selection.removeAllRanges()
-        editorView.current &&
-          editorView.current.setProps({ editable: () => false })
+        rEditorView.current &&
+          rEditorView.current.setProps({ editable: () => false })
 
         closeTextActionMenu()
         closeSuggestionMenu()
@@ -231,7 +231,7 @@ const PMText: React.FunctionComponent<Props> = props => {
       },
       handleDOMEvents: {
         // Must call our ref function so that the getter works.
-        keydown: (view, event) => onKeyDownRef.current(view, event),
+        keydown: (view, event) => rOnKeyDown.current(view, event),
       },
       editable: () => false,
       /** Disable scroll-to-selection by lying that we do it in a custom way. */
@@ -258,10 +258,10 @@ const PMText: React.FunctionComponent<Props> = props => {
               top: e.selectionBoundingRect.top - 50,
               left: e.selectionBoundingRect.left - 40,
             })
-            openTextActionMenuRef.current()
+            rOpenTextActionMenu.current()
           },
           onSelectionRemove: () => {
-            closeTextActionMenuRef.current()
+            rCloseTextActionMenu.current()
           },
         }),
         observeKeyword({
@@ -329,10 +329,10 @@ const PMText: React.FunctionComponent<Props> = props => {
       ],
     })
 
-    if (!editorContainerRef.current) return () => 0 /** dummy */
+    if (!rEditorContainerEl.current) return () => 0 /** dummy */
 
-    const view = createEditorView(editorContainerRef.current, state)
-    editorView.current = view
+    const view = createEditorView(rEditorContainerEl.current, state)
+    rEditorView.current = view
 
     /** Auto-focusing newly created text block. */
     if (!concept.summary.data.initialized) {
@@ -359,7 +359,7 @@ const PMText: React.FunctionComponent<Props> = props => {
   useEffect(() => {
     // console.log('PMText: update content')
 
-    const view = editorView.current
+    const view = rEditorView.current
     if (!view) return
 
     /**
@@ -392,9 +392,9 @@ const PMText: React.FunctionComponent<Props> = props => {
   const onFocus = useCallback<SyntheticFocusCallbackFn>(
     e => {
       /** Should not set cursor when readOnly. */
-      if (readOnly || !editorView.current) return
+      if (readOnly || !rEditorView.current) return
 
-      const posInfo = editorView.current.posAtCoords({
+      const posInfo = rEditorView.current.posAtCoords({
         left: e.clientX,
         top: e.clientY,
       })
@@ -402,12 +402,12 @@ const PMText: React.FunctionComponent<Props> = props => {
 
       console.log('PMText: interaction start via synthetic focus')
 
-      const resolvedPos = editorView.current.state.doc.resolve(posInfo.pos)
-      editorView.current.dispatch(
-        editorView.current.state.tr.setSelection(Selection.near(resolvedPos))
+      const resolvedPos = rEditorView.current.state.doc.resolve(posInfo.pos)
+      rEditorView.current.dispatch(
+        rEditorView.current.state.tr.setSelection(Selection.near(resolvedPos))
       )
-      editorView.current.setProps({ editable: () => true })
-      editorView.current.focus()
+      rEditorView.current.setProps({ editable: () => true })
+      rEditorView.current.focus()
       setIsFocusing(true)
       onInteractionStart()
     },
@@ -423,7 +423,7 @@ const PMText: React.FunctionComponent<Props> = props => {
       /** Save some unnecessary computation. */
       if (!isFocusing) return
 
-      const editorViewEl = !!editorView.current && editorView.current.dom
+      const editorViewEl = !!rEditorView.current && rEditorView.current.dom
       const textActionMenuEl = textActionMenuRef.current
       const suggestionMenuEl = suggestionMenuRef.current
       const isInEditorView =
@@ -438,8 +438,8 @@ const PMText: React.FunctionComponent<Props> = props => {
 
         const selection = window.getSelection()
         selection && selection.removeAllRanges()
-        editorView.current &&
-          editorView.current.setProps({ editable: () => false })
+        rEditorView.current &&
+          rEditorView.current.setProps({ editable: () => false })
 
         closeTextActionMenu()
         closeSuggestionMenu()
@@ -476,7 +476,7 @@ const PMText: React.FunctionComponent<Props> = props => {
       <div
         ref={node => {
           setNodeRef(node)
-          editorContainerRef.current = node
+          rEditorContainerEl.current = node
         }}
         className={styles.EditorContainer}
         data-view-mode={props.viewMode}>
