@@ -50,7 +50,7 @@ const S2LState = {
 }
 
 const SearchToolBlock: React.FunctionComponent<Props> = props => {
-  const { dispatchAction, database, blockId } = props
+  const { dispatchAction, database, blockId: searchToolBlockId } = props
   const state = useAppState()
   const { createOverlay } = useSystem()
 
@@ -379,7 +379,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                             return (
                               <div className={styles.ScrollListItem}>
                                 <ConceptPreview
-                                  blockId={blockId}
+                                  blockId={searchToolBlockId}
                                   conceptId={item.concept.id}
                                   viewMode="NavItem"
                                   dispatchAction={dispatchAction}
@@ -405,7 +405,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                                   setS2lBlock({ valid: false })
                                 }}>
                                 <ConceptPreview
-                                  blockId={blockId}
+                                  blockId={searchToolBlockId}
                                   conceptId={item.concept.id}
                                   viewMode="NavItem"
                                   dispatchAction={dispatchAction}
@@ -456,7 +456,7 @@ const SearchToolBlock: React.FunctionComponent<Props> = props => {
                 pointerEvents: 'none', // Since we use `viewMode: 'Block'` here.
               }}>
               <ConceptPreview
-                blockId={blockId}
+                blockId={searchToolBlockId}
                 conceptId={s2lBlock.item.concept.id}
                 database={database}
                 dispatchAction={dispatchAction}
