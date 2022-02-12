@@ -6,6 +6,7 @@ import { ConceptPreview } from '../ConceptPreview'
 import { useAppState } from '../../core/store/appStateContext'
 import { Action } from '../../core/store/actions'
 import { ConceptDisplayProps, Factory } from '../../core/interfaces'
+import { blockRectManager } from '../../core/utils/blockRectManager'
 
 type Props = ConceptDisplayProps<undefined>
 
@@ -16,7 +17,7 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
     dispatchAction,
     database,
   } = props
-  const state = useAppState()
+  const { expandHistory } = useAppState()
 
   const rRecentEl = useRef<HTMLDivElement>(null)
 
@@ -29,12 +30,13 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
       {(function () {
         const historyToShow: string[] = []
 
-        // TODO: Think of a way to get block size elegantly.
-        const width = rRecentEl.current?.getBoundingClientRect().width || 0
+        // TODO: Need improvement
+        const width =
+          blockRectManager.getMeasuredSize(recentToolBlockId)?.width || 0
         const maxNumToShow = Math.floor(width / 100)
 
-        for (let i = state.expandHistory.length - 2; i >= 0; i--) {
-          const conceptId = state.expandHistory[i]
+        for (let i = expandHistory.length - 2; i >= 0; i--) {
+          const conceptId = expandHistory[i]
 
           /** Ignore if the slot is unpopulated. */
           if (!conceptId) continue
