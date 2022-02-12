@@ -9,6 +9,7 @@ import {
 } from '../../lightComponents'
 
 const titleContainerMaxHeight = 300
+export const moreMenuWidth = 216
 
 export const styles = stylesheet({
   HeaderToolNav: {
@@ -55,6 +56,7 @@ export const styles = stylesheet({
     boxShadow: theme.shadows.layer,
     background: theme.colors.bgCanvasSemiTransparent,
     backdropFilter: 'saturate(180%) blur(30px)',
+    width: moreMenuWidth,
   },
   menuItem: {
     ...menuListButton,

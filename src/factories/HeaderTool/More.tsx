@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { styles } from './index.styles'
+import { moreMenuWidth, styles } from './index.styles'
 import { MoreHoriz } from '../../core/components/Icons/MoreHoriz'
 import { useSettings } from '../../core/store/contexts'
 import { useSystem } from '../../core/store/systemContext'
@@ -73,8 +73,7 @@ export const More = React.memo(function More() {
             ref={rMenuEl}
             className={styles.menu}
             style={{
-              transform: getMenuCssTransform(rButtonEl.current, 216),
-              width: 216,
+              transform: getMenuCssTransform(rButtonEl.current),
             }}>
             <button className={styles.menuItem} onClick={copyLinkToCanvas}>
               Copy link to Canvas
@@ -89,13 +88,10 @@ export const More = React.memo(function More() {
   )
 })
 
-function getMenuCssTransform(
-  buttonEl: HTMLButtonElement | null,
-  menuWidth: number
-) {
+function getMenuCssTransform(buttonEl: HTMLButtonElement | null) {
   const rect = buttonEl?.getBoundingClientRect()
   if (!rect) return ''
-  return `translate(${(rect.left + rect.right) / 2 - menuWidth / 2}px, ${
+  return `translate(${(rect.left + rect.right) / 2 - moreMenuWidth / 2}px, ${
     rect.bottom + 5
   }px)`
 }
