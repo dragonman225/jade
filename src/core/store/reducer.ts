@@ -493,12 +493,8 @@ export function createAppStateReducer(
       case Action.BlockMove: {
         const { id, pointerInViewportCoords } = action.data
 
-        const {
-          selectedBlockIds,
-          blocks,
-          camera,
-          pointerOffsetInLeaderBox,
-        } = state
+        const { selectedBlockIds, blocks, camera, pointerOffsetInLeaderBox } =
+          state
 
         if (blocks.find(b => id === b.id)?.posType !== PositionType.Normal) {
           console.warn(
@@ -544,14 +540,12 @@ export function createAppStateReducer(
         const generationTolerance = 36
         const gap = defaultGap
 
-        const {
-          horizontalGuidelines,
-          verticalGuidelines,
-        } = generateGuidelinesFromRects(
-          leaderBlockBox,
-          guidelineRects,
-          generationTolerance
-        )
+        const { horizontalGuidelines, verticalGuidelines } =
+          generateGuidelinesFromRects(
+            leaderBlockBox,
+            guidelineRects,
+            generationTolerance
+          )
 
         const snapTolerance = 12
 
@@ -890,14 +884,12 @@ export function createAppStateReducer(
         const generationTolerance = 36 / camera.scale
         const gap = defaultGap
 
-        const {
-          horizontalGuidelines,
-          verticalGuidelines,
-        } = generateGuidelinesFromRects(
-          cursorBlockRect,
-          guidelineRects,
-          generationTolerance
-        )
+        const { horizontalGuidelines, verticalGuidelines } =
+          generateGuidelinesFromRects(
+            cursorBlockRect,
+            guidelineRects,
+            generationTolerance
+          )
 
         const snapTolerance = 12 / camera.scale
 
@@ -1244,13 +1236,8 @@ export function createAppStateReducer(
       case Action.CameraMoveDelta: {
         const movementInEnvCoords = vecDiv(action.data, state.camera.scale)
 
-        const {
-          selectionBoxStart,
-          selecting,
-          blocks,
-          camera,
-          viewingConcept,
-        } = state
+        const { selectionBoxStart, selecting, blocks, camera, viewingConcept } =
+          state
 
         const newCamera: Camera = {
           ...camera,

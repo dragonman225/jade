@@ -10,7 +10,7 @@ import {
 } from '@dragonman225/prosemirror-math'
 
 import { PMTextContent } from './types'
-import { schema } from './ProseMirrorSchema/schema'
+import { PMTextSchema, schema } from './ProseMirrorSchema/schema'
 import {
   markingInputRule,
   markingPatterns,
@@ -90,13 +90,15 @@ export const inputRulesPlugin = inputRules({
  */
 export function insertHardBreak(
   state: EditorState,
-  dispatch: (tr: Transaction<typeof schema>) => void
+  dispatch: (tr: Transaction<PMTextSchema>) => void
 ): boolean {
   const type = schema.nodes.hard_break
   const { $from } = state.selection
   if (!$from.parent.canReplaceWith($from.index(), $from.index(), type))
     return false
-  dispatch(state.tr.replaceSelectionWith(type.create()))
+  dispatch(
+    state.tr.replaceSelectionWith(type.create()) as Transaction<PMTextSchema>
+  )
   return true
 }
 

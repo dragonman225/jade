@@ -135,7 +135,8 @@ export const Status: React.FunctionComponent<Props> = props => {
     dispatchAction({
       type: Action.SettingsSet,
       data: {
-        shouldEnableEfficientRendering: !settings.shouldEnableEfficientRendering,
+        shouldEnableEfficientRendering:
+          !settings.shouldEnableEfficientRendering,
       },
     })
   }, [dispatchAction, settings.shouldEnableEfficientRendering])

@@ -56,7 +56,8 @@ export async function startApp(
     (await database.isValid()) && isNaN(await database.getVersion())
   if (isState4) {
     console.log('core/index: Migrating state4')
-    const allConcepts = ((await database.getAllConcepts()) as unknown) as Concept4[]
+    const allConcepts =
+      (await database.getAllConcepts()) as unknown as Concept4[]
     const migrationTime = Date.now()
     allConcepts.forEach((c: Concept4) =>
       database.updateConcept({

@@ -36,13 +36,8 @@ interface ImageContent {
 type Props = ConceptDisplayProps<ImageContent>
 
 function Image(props: Props): JSX.Element {
-  const {
-    viewMode,
-    concept,
-    onInteractionStart,
-    onInteractionEnd,
-    onChange,
-  } = props
+  const { viewMode, concept, onInteractionStart, onInteractionEnd, onChange } =
+    props
   const content = concept.summary.data
 
   /** Migrate the legacy format to the new one. */
@@ -79,7 +74,7 @@ function Image(props: Props): JSX.Element {
         onChange({ imgSrc: img })
       })
       .catch(err => {
-        setError(err)
+        setError(err as string)
         setImgState(IMAGE_STATE.ERROR)
       })
   }

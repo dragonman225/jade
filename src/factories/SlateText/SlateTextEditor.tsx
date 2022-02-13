@@ -93,7 +93,7 @@ export interface Props {
 
 export const SlateTextEditor = (props: Props): JSX.Element => {
   const editor = useMemo(
-    () => withReact((withHistory(createEditor()) as unknown) as ReactEditor),
+    () => withReact(withHistory(createEditor()) as unknown as ReactEditor),
     []
   )
   const [value, setValue] = useState(props.content)

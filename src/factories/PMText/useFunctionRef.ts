@@ -23,9 +23,9 @@ export function useFunctionRef<T>(initialFunction?: T): { current: T } {
   assert(initialFunction)
   const r = useRef(
     (() => {
-      const dummyFn = ((() => {
+      const dummyFn = (() => {
         return
-      }) as unknown) as T
+      }) as unknown as T
       let fn = initialFunction || dummyFn
       return {
         get current() {

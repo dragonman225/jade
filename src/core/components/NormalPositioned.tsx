@@ -14,14 +14,8 @@ interface Props {
 }
 
 export function NormalPositioned(props: Props): JSX.Element {
-  const {
-    focus,
-    scale,
-    selecting,
-    selectionBox,
-    shouldAnimate,
-    children,
-  } = props
+  const { focus, scale, selecting, selectionBox, shouldAnimate, children } =
+    props
   const transform = `\
 translate3d(${-focus.x * scale}px, ${-focus.y * scale}px, 0px) scale(${scale})`
   const animatedStyles = useSpring({

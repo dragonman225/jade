@@ -11,8 +11,9 @@ function createDefaultCamera() {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
-export const initialConceptsFromFile = require('./initial-content-concepts.json') as TypedConcept<unknown>[]
+export const initialConceptsFromFile =
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+  require('./initial-content-concepts.json') as TypedConcept<unknown>[]
 export const toolConcepts: TypedConcept<unknown>[] = [
   createConcept('headertool'),
   createConcept('recenttool'),

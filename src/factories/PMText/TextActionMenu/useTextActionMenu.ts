@@ -18,13 +18,13 @@ import {
   toggleMarkOnSelection,
   turnIntoMath,
 } from './utils'
-import { schema } from '../ProseMirrorSchema/schema'
+import { PMTextSchema, schema } from '../ProseMirrorSchema/schema'
 import { HighlightColor } from '../ProseMirrorSchema/highlight'
 
 // TODO: Define stable interface.
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function useTextActionMenu(
-  editorView: EditorView<typeof schema> | null | undefined
+  editorView: EditorView<PMTextSchema> | null | undefined
 ) {
   const textActionMenuRef = useRef<HTMLDivElement>(null)
   const [isOpen, setIsOpen] = useState(false)

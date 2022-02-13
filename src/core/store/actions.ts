@@ -40,6 +40,7 @@ export enum Action {
   RelationDrawEnd = 'relation::drawEnd',
   RelationRemove = 'relation::remove',
   NavigateBack = 'navigateBack',
+  NavigateForward = 'navigateForward',
   BlocksRendered = 'blocksRendered',
   ContextMenuOpen = 'contextMenu::open',
   ContextMenuClose = 'contextMenu::close',
@@ -247,8 +248,12 @@ interface RelationRemoveAction {
   }
 }
 
-interface UndoAction {
+interface NavigateBackAction {
   type: Action.NavigateBack
+}
+
+interface NavigateForwardAction {
+  type: Action.NavigateForward
 }
 
 interface BlocksRenderedAction {
@@ -297,7 +302,8 @@ export type Actions =
   | RelationDrawMoveAction
   | RelationDrawEndAction
   | RelationRemoveAction
-  | UndoAction
+  | NavigateBackAction
+  | NavigateForwardAction
   | BlocksRenderedAction
   | ContextMenuOpenAction
   | ContextMenuCloseAction

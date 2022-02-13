@@ -20,9 +20,7 @@ interface LinkMarkSpec extends MarkSpec {
     href: { default: string }
     title: { default: null }
   }
-  toDOM: (
-    mark: LinkMark
-  ) => [
+  toDOM: (mark: LinkMark) => [
     string,
     { href: string; title?: string } & {
       [attr: string]: string | null | undefined

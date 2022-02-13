@@ -28,9 +28,7 @@ interface SQLiteDatabaseConstructor {
 }
 
 interface SQLiteStatement {
-  run(
-    ...bindParameters: unknown[]
-  ): {
+  run(...bindParameters: unknown[]): {
     changes: number
     lastInsertRowid: number
   }

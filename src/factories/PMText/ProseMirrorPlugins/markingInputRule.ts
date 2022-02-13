@@ -17,13 +17,13 @@ export function markingInputRule(
   return new InputRule(
     pattern,
     (state: EditorState<Schema>, match, start, end) => {
-      let marks: Mark[] = []
+      let marks: Mark<Schema>[] = []
       if (Array.isArray(markTypeOrMarkTypes)) {
         const markTypes = markTypeOrMarkTypes
-        marks = markTypes.map(mt => mt.create())
+        marks = markTypes.map(mt => mt.create() as Mark<Schema>)
       } else {
         const markType = markTypeOrMarkTypes
-        marks = [markType.create()]
+        marks = [markType.create() as Mark<Schema>]
       }
 
       /**
