@@ -20,7 +20,6 @@ export const ViewObject = React.memo(function ViewObject({
 }: Props): JSX.Element {
   const resolvedZIndex = typeof zIndex === 'undefined' ? 'auto' : zIndex
   const style: React.CSSProperties = useMemo(() => {
-    console.log('style change')
     switch (posType) {
       /**
        * To render a "pinned block":
