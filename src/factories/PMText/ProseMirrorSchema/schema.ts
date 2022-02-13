@@ -76,3 +76,5 @@ export const schema = new Schema({
     [highlightMarkName]: highlightMarkSpec,
   },
 })
+
+export type PMTextSchema = typeof schema

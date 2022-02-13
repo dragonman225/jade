@@ -17,7 +17,6 @@ import {
   useSuggestionMenu,
   SuggestFor,
 } from './SuggestionMenu/useSuggestionMenu'
-import { observeKeyword } from './SuggestionMenu/observeKeyword'
 import { schema } from './ProseMirrorSchema/schema'
 import {
   getProseMirrorDoc,
@@ -40,7 +39,6 @@ import {
   Factory,
   InteractionMode,
   PositionType,
-  Rect,
   TypedConcept,
 } from '../../core/interfaces'
 import { Action, ConceptCreatePositionIntent } from '../../core/store/actions'
@@ -127,6 +125,7 @@ const PMText: React.FunctionComponent<Props> = props => {
   const {
     models: suggestionMenuModels,
     operations: suggestionMenuOperations,
+    utils: { keywordObserver },
   } = useSuggestionMenu(
     database,
     factoryRegistry,
@@ -139,25 +138,18 @@ const PMText: React.FunctionComponent<Props> = props => {
     optionGroups,
     suggestFor,
     selectedOptionIndex,
+    suggestionMenuAnchorRect,
   } = suggestionMenuModels
   const {
-    openSuggestionMenu,
     closeSuggestionMenu,
-    updateKeyword,
     confirmOption,
     selectOption,
     selectPrevOption,
     selectNextOption,
   } = suggestionMenuOperations
-  const [suggestionMenuAnchorRect, setSlashMenuAnchorRect] = useState<Rect>({
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-  })
-  const rOnKeyDown = useFunctionRef<
-    (view: EditorView, event: KeyboardEvent) => boolean
-  >()
+
+  const rOnKeyDown =
+    useFunctionRef<(view: EditorView, event: KeyboardEvent) => boolean>()
   useEffect(() => {
     rOnKeyDown.current = (view: EditorView, event: KeyboardEvent) => {
       /** COMPAT: macOS. */
@@ -264,47 +256,7 @@ const PMText: React.FunctionComponent<Props> = props => {
             rCloseTextActionMenu.current()
           },
         }),
-        observeKeyword({
-          debug: false,
-          rules: [
-            {
-              trigger: /\/$/,
-              onTrigger: e => {
-                openSuggestionMenu(SuggestFor.SlashCommands)
-                setSlashMenuAnchorRect(e.keywordCoords.from)
-                updateKeyword(e.keyword, {
-                  from: e.keywordRange.from - e.triggerString.length,
-                  to: e.keywordRange.to,
-                })
-              },
-              onKeywordChange: e => {
-                updateKeyword(e.keyword, {
-                  from: e.keywordRange.from - e.triggerString.length,
-                  to: e.keywordRange.to,
-                })
-              },
-              onKeywordStop: closeSuggestionMenu,
-            },
-            {
-              trigger: /(\[\[|@)$/,
-              onTrigger: e => {
-                openSuggestionMenu(SuggestFor.Mention)
-                setSlashMenuAnchorRect(e.keywordCoords.from)
-                updateKeyword(e.keyword, {
-                  from: e.keywordRange.from - e.triggerString.length,
-                  to: e.keywordRange.to,
-                })
-              },
-              onKeywordChange: e => {
-                updateKeyword(e.keyword, {
-                  from: e.keywordRange.from - e.triggerString.length,
-                  to: e.keywordRange.to,
-                })
-              },
-              onKeywordStop: closeSuggestionMenu,
-            },
-          ],
-        }),
+        keywordObserver.plugin,
         handleMarkClick({
           rules: [
             new MarkClickRule(linkMarkName, (attrs: LinkMark['attrs']) => {

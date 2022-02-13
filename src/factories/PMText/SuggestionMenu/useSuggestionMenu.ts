@@ -1,4 +1,4 @@
-import { useCallback, useState, useMemo, useEffect } from 'react'
+import { useCallback, useState, useMemo, useEffect, useRef } from 'react'
 import { EditorView } from 'prosemirror-view'
 import { Fragment, Slice } from 'prosemirror-model'
 
@@ -7,8 +7,8 @@ import {
   mapConceptToOption,
   pmtextOnly,
 } from './utils'
-import { resetKeywordObserver } from './observeKeyword'
-import { schema } from '../ProseMirrorSchema/schema'
+import { KeywordObserver, createKeywordObserver } from './observeKeyword'
+import { PMTextSchema, schema } from '../ProseMirrorSchema/schema'
 import { LinkMark, linkMarkName } from '../ProseMirrorSchema/link'
 import {
   HighlightMark,
@@ -23,8 +23,10 @@ import { createConcept } from '../../../core/utils/concept'
 import {
   DatabaseInterface,
   FactoryRegistry,
+  Rect,
   TypedConcept,
 } from '../../../core/interfaces'
+import { Transaction } from 'prosemirror-state'
 
 export interface Option {
   id: string
@@ -97,13 +99,20 @@ export function useSuggestionMenu(
   factoryRegistry: FactoryRegistry,
   onInteractionEnd: () => void,
   onReplace: (type: string) => void,
-  editorView: EditorView | null | undefined
+  editorView: EditorView<PMTextSchema> | null | undefined
 ) {
   const [showSuggestionMenu, setShowSuggestionMenu] = useState(false)
   const [keyword, setKeyword] = useState('')
   const [keywordRange, setKeywordRange] = useState({ from: 0, to: 0 })
   const [suggestFor, setSuggestFor] = useState(SuggestFor.SlashCommands)
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(0)
+  const [suggestionMenuAnchorRect, setSuggestionMenuAnchorRect] =
+    useState<Rect>({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    })
 
   const slashCommands = useMemo(
     () =>
@@ -298,9 +307,59 @@ export function useSuggestionMenu(
     )
   }, [optionGroups])
 
+  const rKeywordObserver = useRef<KeywordObserver>()
+  if (!rKeywordObserver.current) {
+    rKeywordObserver.current = createKeywordObserver({
+      debug: false,
+      rules: [
+        {
+          trigger: /\/$/,
+          onTrigger: e => {
+            openSuggestionMenu(SuggestFor.SlashCommands)
+            setSuggestionMenuAnchorRect(e.keywordCoords.from)
+            updateKeyword(e.keyword, {
+              from: e.keywordRange.from - e.triggerString.length,
+              to: e.keywordRange.to,
+            })
+          },
+          onKeywordChange: e => {
+            updateKeyword(e.keyword, {
+              from: e.keywordRange.from - e.triggerString.length,
+              to: e.keywordRange.to,
+            })
+          },
+          onKeywordStop: closeSuggestionMenu,
+        },
+        {
+          trigger: /(\[\[|@|「「)$/,
+          onTrigger: e => {
+            openSuggestionMenu(SuggestFor.Mention)
+            setSuggestionMenuAnchorRect(e.keywordCoords.from)
+            updateKeyword(e.keyword, {
+              from: e.keywordRange.from - e.triggerString.length,
+              to: e.keywordRange.to,
+            })
+          },
+          onKeywordChange: e => {
+            updateKeyword(e.keyword, {
+              from: e.keywordRange.from - e.triggerString.length,
+              to: e.keywordRange.to,
+            })
+          },
+          onKeywordStop: closeSuggestionMenu,
+        },
+      ],
+    })
+  }
+
   useEffect(() => {
     if (!showSuggestionMenu && editorView)
-      resetKeywordObserver(editorView.state, editorView.dispatch.bind(null))
+      rKeywordObserver.current?.reset(
+        editorView.state,
+        editorView.dispatch.bind(null) as (
+          tr: Transaction<PMTextSchema>
+        ) => void
+      )
   }, [showSuggestionMenu, editorView])
 
   useEffect(() => {
@@ -316,6 +375,7 @@ export function useSuggestionMenu(
       optionGroups,
       suggestFor,
       selectedOptionIndex,
+      suggestionMenuAnchorRect,
     },
     operations: {
       openSuggestionMenu,
@@ -325,6 +385,10 @@ export function useSuggestionMenu(
       selectOption,
       selectPrevOption,
       selectNextOption,
+    },
+    utils: {
+      /** Stable across the lifetime of the component that use this hook. */
+      keywordObserver: rKeywordObserver.current,
     },
   }
 }

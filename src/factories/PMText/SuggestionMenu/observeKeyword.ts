@@ -1,19 +1,8 @@
-import { Plugin, PluginKey } from 'prosemirror-state'
+import { Plugin, PluginKey, Transaction } from 'prosemirror-state'
 import { Decoration, DecorationSet } from 'prosemirror-view'
 import type { Command } from 'prosemirror-commands'
 
-const keywordObserverKey = new PluginKey<PluginState>('observeKeyword')
-
-function createResetState(): PluginState {
-  return {
-    active: false,
-    keywordRange: { from: -1, to: -1 },
-    keyword: '',
-    triggerPos: -1,
-    triggerString: '',
-    activeRule: undefined,
-  }
-}
+import { PMTextSchema } from '../ProseMirrorSchema/schema'
 
 type Rect = {
   top: number
@@ -33,21 +22,21 @@ type KeywordCoords = {
 }
 
 export interface KeywordEvent {
-  /** The keyword string without trigger string. */
+  /** The keyword string without the trigger string. */
   keyword: string
   /** A range in absolute index that represents the keyword. */
   keywordRange: KeywordRange
   /** The view coordinates of the keyword. */
   keywordCoords: KeywordCoords
-  /** The string that triggers the start of KeywordEvents. */
+  /** The string that triggers the KeywordEvent. */
   triggerString: string
 }
 
 /**
  * Used by commands. Commands work by attaching meta to transactions,
- * which are later intercepted by the plugin.
+ * which will be intercepted by the plugin.
  */
-interface KeywordObserverTrMeta {
+interface KeywordObserverTransactionMeta {
   stopReporting: boolean
 }
 
@@ -71,7 +60,7 @@ interface ObserveRule {
   onKeywordStop?(this: void, event: Omit<KeywordEvent, 'keywordCoords'>): void
 }
 
-interface PluginState {
+interface KeywordObserverPluginState {
   /** Is reporting keyword or not. */
   active: boolean
   /** The keyword string without trigger string. */
@@ -93,52 +82,51 @@ interface PluginState {
   activeRule: ObserveRule | undefined
 }
 
-interface PluginOptions {
+interface KeywordObserverPluginOptions {
   rules?: ObserveRule[]
   debug?: boolean
 }
 
+export interface KeywordObserver {
+  /** A ProseMirror Plugin that need to be inserted into the editor. */
+  plugin: Plugin<KeywordObserverPluginState, PMTextSchema>
+  /**
+   * A ProseMirror Command that can be used to reset the observer's state
+   * to stop reporting keyword.
+   */
+  reset: Command<PMTextSchema>
+}
+
 /**
- * Legacy notes:
- * idea: On tr that changes doc (prevent trigger on focusing in the
- * middle of text and before the cursor is the trigger string),
- * check if before the cursor is the trigger string,
- * if there is, change state to suggesting, and produce events that reports
- * search text, so the user can show suggestions. When the user does not
- * need suggestions (e.g. no match for too many times), return something
- * in the event handler, so the plugin knows, it changes state to detecting
- * and wait for the next trigger.
+ * Create a KeywordObserver that can be used to monitor text being typed
+ * into a ProseMirror editor when a trigger condition (defined by a Regular
+ * Expression) is met.
  *
- * no result + space, or no result + total length > 9 => close menu
- */
-/**
- * Report text being typed after a trigger condition (defined by a Regex).
+ * This can be an useful building block for slash commands, inline tags,
+ * inline mentions.
  *
- * A useful building block for slash commands, inline tags, inline mentions.
- * 
- * {
-      debug = false,
-      keywordDecorationClass = 'ProseMirrorKeyword',
-      trigger = /@$/,
-      onTrigger = noop,
-      onKeywordChange = noop,
-      onKeywordStop = noop,
-    }
+ * Tip: The KeywordObserver does not have opinions on when it should stop
+ * reporting keyword, except for caret being moved out of current keyword
+ * context by pointer events or arrow keys. You can define other
+ * application-specific logic that stops reporting keyword, e.g. when no
+ * match for too many times (Notion's slash commands: no match + keyword
+ * length > 9 chars OR no match + `Space` key).
  */
-export function observeKeyword({
+export function createKeywordObserver({
   rules = [],
   debug = false,
-}: PluginOptions): Plugin<PluginState> {
-  return new Plugin({
-    key: keywordObserverKey,
+}: KeywordObserverPluginOptions): KeywordObserver {
+  const pluginKey = new PluginKey<KeywordObserverPluginState, PMTextSchema>(
+    'keywordObserver'
+  )
+  const plugin = new Plugin({
+    key: pluginKey,
 
     view() {
       return {
         update: (view, prevState) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const key = this.key as PluginKey<PluginState, any>
-          const prevPluginState = key.getState(prevState)
-          const nextPluginState = key.getState(view.state)
+          const prevPluginState = pluginKey.getState(prevState)
+          const nextPluginState = pluginKey.getState(view.state)
 
           if (!prevPluginState || !nextPluginState) return
 
@@ -221,9 +209,9 @@ export function observeKeyword({
             return createResetState()
           }
 
-          /** Stop if the user runs the `resetKeywordObserver` command. */
-          const meta = tr.getMeta(keywordObserverKey) as
-            | KeywordObserverTrMeta
+          /** Stop if the user runs the "reset" command. */
+          const meta = tr.getMeta(pluginKey) as
+            | KeywordObserverTransactionMeta
             | undefined
           if (meta && meta.stopReporting) {
             return createResetState()
@@ -247,8 +235,13 @@ export function observeKeyword({
 
         /** The observer is waiting to be triggered. */
 
-        /* Ignore if tr is produced by pointer or paste, or tr does not
-             change content. */
+        /**
+         * Ignore if tr is produced by pointer or paste. Ignore if tr does
+         * not change content. To prevent triggering upon focusing in the
+         * middle of some text and the text before the caret meets the
+         * trigger condition. e.g. putting the caret right after a slash
+         * char should not bring up the slash commands menu.
+         */
         if (tr.getMeta('pointer') || tr.getMeta('uiEvent') || !tr.docChanged)
           return { ...state }
 
@@ -292,7 +285,10 @@ export function observeKeyword({
           const rule = rules[i]
           const match = rule.trigger.exec(textBeforeCaret)
 
-          /** Trigger on the first match. */
+          /**
+           * Trigger on the first match, changing plugin state to "active"
+           * (reporting keyword).
+           */
           if (match) {
             return {
               active: true,
@@ -311,20 +307,7 @@ export function observeKeyword({
     },
 
     props: {
-      /**
-       * Call the keydown hook if keyword is active.
-       */
-      // handleKeyDown(view, event) {
-      //   const { active } = this.getState(view.state)
-
-      //   if (!active) return false
-
-      //   return onKeyDown({ view, event })
-      // },
-
-      /**
-       * Setup decorations on currently active keyword.
-       */
+      /** Setup decorations on currently active keyword. */
       decorations(state) {
         const { active, activeRule, keywordRange: range } = this.getState(state)
 
@@ -344,20 +327,29 @@ export function observeKeyword({
       },
     },
   })
+  return {
+    plugin,
+    reset: (state, dispatch) => {
+      const pluginState = pluginKey.getState(state)
+      if (!pluginState || !pluginState.active) return false
+      if (dispatch)
+        dispatch(
+          state.tr.setMeta(pluginKey, {
+            stopReporting: true,
+          } as KeywordObserverTransactionMeta) as Transaction<PMTextSchema>
+        )
+      return true
+    },
+  }
 }
 
-/**
- * A command that can be used to reset the observer state and stop
- * reporting keyword.
- */
-export const resetKeywordObserver: Command = (state, dispatch) => {
-  const pluginState = keywordObserverKey.getState(state)
-  if (!pluginState || !pluginState.active) return false
-  if (dispatch)
-    dispatch(
-      state.tr.setMeta(keywordObserverKey, {
-        stopReporting: true,
-      } as KeywordObserverTrMeta)
-    )
-  return true
+function createResetState(): KeywordObserverPluginState {
+  return {
+    active: false,
+    keywordRange: { from: -1, to: -1 },
+    keyword: '',
+    triggerPos: -1,
+    triggerString: '',
+    activeRule: undefined,
+  }
 }
