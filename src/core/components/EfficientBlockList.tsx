@@ -34,8 +34,8 @@ export function EfficientBlockList({
 
     const windowWidth = window.innerWidth
     const windowHeight = window.innerHeight
-    const overscanX = windowWidth * 0.25
-    const overscanY = windowHeight * 0.25
+    const overscanX = 0 /*windowWidth * 0.25*/
+    const overscanY = 0 /*windowHeight * 0.25*/
     const visibleArea = {
       x: camera.focus.x - overscanX,
       y: camera.focus.y - overscanY,
