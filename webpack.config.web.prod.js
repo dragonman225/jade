@@ -29,7 +29,7 @@ module.exports = {
     ...getCommonPlugins(),
     new BannerPlugin({
       banner:
-        'Jade v0.3.7 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.',
+        'Jade v0.3.8 Copyright (c) Wen-Zhi (Alexander) Wang. All rights reserved.',
     }),
     new ForkTsCheckerWebpackPlugin({
       async: false,
