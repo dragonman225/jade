@@ -5,25 +5,26 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=no"
-    />
+      content="width=device-width, initial-scale=1, user-scalable=no" />
     <title>Jade</title>
     <link
       rel="stylesheet"
-      href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"
-    />
+      href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css" />
     <style>
       :root {
+        /* Fonts. */
+        --webkit-font-smoothing: antialiased;
         font-size: 18px;
         font-family: 'Noto Sans', 'Noto Sans CJK TC', -apple-system,
           BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
           'Open Sans', 'Helvetica Neue', sans-serif;
-        --webkit-font-smoothing: antialiased;
         line-height: 1.6;
-        --loader-size: 4.5rem;
-        --loader-ring-width: 0.4rem;
-        --loader-translate-x: calc(50vw - var(--loader-size) / 2);
-        --loader-translate-y: calc(50vh - var(--loader-size) / 2);
+
+        /* Spinner. */
+        --spinner-size: 4.5rem;
+        --spinner-ring-width: 0.4rem;
+
+        /* Theme. */
         --bg-canvas: hsl(42deg, 70%, 96%);
         --bg-canvas-semi-transparent: hsl(42deg, 70%, 96%, 0.7);
         --bg-block: hsl(42deg, 70%, 98.5%);
@@ -110,37 +111,116 @@
 
       @keyframes spin {
         0% {
-          transform: translate(
-              var(--loader-translate-x),
-              var(--loader-translate-y)
-            )
-            rotate(0deg);
+          transform: rotate(0deg);
         }
 
         100% {
-          transform: translate(
-              var(--loader-translate-x),
-              var(--loader-translate-y)
-            )
-            rotate(360deg);
+          transform: rotate(360deg);
         }
       }
 
-      #loader {
+      @keyframes breathing {
+        0% {
+          background-position: 80% 0%;
+        }
+        55% {
+          background-position: 0% 100%;
+        }
+        65% {
+          background-position: 0% 0%;
+        }
+        85% {
+          background-position: 80% 100%;
+        }
+        100% {
+          background-position: 80% 0%;
+        }
+      }
+
+      @keyframes glow {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.2;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .loading-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .spinner {
         display: block;
-        border: var(--loader-ring-width) solid var(--neutral-90);
+        border: var(--spinner-ring-width) solid var(--neutral-90);
         border-radius: 50%;
-        border-top: var(--loader-ring-width) solid var(--ui-text);
-        width: var(--loader-size);
-        height: var(--loader-size);
-        animation: spin 1.25s linear infinite;
+        border-top: var(--spinner-ring-width) solid var(--ui-text);
+        width: var(--spinner-size);
+        height: var(--spinner-size);
+        animation: spin 1.5s linear infinite;
+      }
+
+      .breather {
+        display: block;
+        background: linear-gradient(
+          250deg,
+          hsl(155deg, 89%, 74%),
+          hsl(94deg, 100%, 85%),
+          hsl(33deg, 100%, 79%)
+        );
+        background-size: 400% 400%;
+        border-radius: 50%;
+        width: var(--spinner-size);
+        height: var(--spinner-size);
+        animation: breathing 6s ease infinite;
+      }
+
+      .glow-ball {
+        display: block;
+        background: linear-gradient(
+          225deg,
+          hsl(155deg, 89%, 74%),
+          hsl(94deg, 100%, 85%),
+          hsl(33deg, 100%, 79%)
+        );
+        background-size: 100% 100%;
+        border-radius: 50%;
+        width: var(--spinner-size);
+        height: var(--spinner-size);
+      }
+
+      .glow-ball-spin {
+        animation: spin 1s ease infinite;
+      }
+
+      .glow-ball-square {
+        border-radius: 25%;
+      }
+
+      .loading-message {
+        margin: 0;
+        margin-top: 0.75rem;
+        font-size: 1rem;
+        font-weight: normal;
+        color: var(--neutral-30);
       }
     </style>
   </head>
 
   <body>
     <div id="react-root">
-      <div id="loader"></div>
+      <div class="loading-container">
+        <div class="glow-ball glow-ball-spin"></div>
+        <h1 class="loading-message">Loading</h1>
+      </div>
     </div>
   </body>
 </html>

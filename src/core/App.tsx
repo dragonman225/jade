@@ -242,6 +242,9 @@ export function AppRoot(props: AppRootProps): JSX.Element {
       <Overlay ref={rOverlayEl} />
     </>
   ) : (
-    <div>Starting App</div>
+    <div className="loading-container">
+      <div className="glow-ball glow-ball-square" />
+      <h1 className="loading-message">Starting</h1>
+    </div>
   )
 }
