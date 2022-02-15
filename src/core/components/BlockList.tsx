@@ -60,24 +60,44 @@ export function BlockList({ blocks, onRender }: Props): JSX.Element {
   }, [])
 
   return (
-    <ul className={styles.ul}>
-      {/* {transitions(({ opacity }, b) => (
-        <animated.li style={{ opacity }}> */}
-      {/* <TransitionGroup component={null} appear={true} enter={true} exit={true}> */}
+    <>
       {blocks.map(b => (
-        <li key={`vo-b-${b.id}`} className={styles.li}>
-          <ViewObject
-            posType={b.posType}
-            pos={b.pos}
-            size={b.size}
-            zIndex={b.zIndex}>
-            <BlockDriver block={b} concept={conceptMap[b.conceptId]} />
-          </ViewObject>
-        </li>
+        <ViewObject
+          className={styles.li}
+          key={`vo-b-${b.id}`}
+          posType={b.posType}
+          pos={b.pos}
+          size={b.size}
+          zIndex={b.zIndex}>
+          <BlockDriver block={b} concept={conceptMap[b.conceptId]} />
+        </ViewObject>
       ))}
-      {/* </TransitionGroup> */}
-      {/* </animated.li>
-      ))} */}
-    </ul>
+    </>
   )
+
+  /**
+   * Removing <ul> (in <NormalPositioned>) and <li> greatly reduce the
+   * number of elements to "Recalculate Style", which makes panning laggy.
+   */
+  // return (
+  //   <ul className={styles.ul}>
+  //     {/* {transitions(({ opacity }, b) => (
+  //       <animated.li style={{ opacity }}> */}
+  //     {/* <TransitionGroup component={null} appear={true} enter={true} exit={true}> */}
+  //     {blocks.map(b => (
+  //       <li key={`vo-b-${b.id}`} className={styles.li}>
+  //         <ViewObject
+  //           posType={b.posType}
+  //           pos={b.pos}
+  //           size={b.size}
+  //           zIndex={b.zIndex}>
+  //           <BlockDriver block={b} concept={conceptMap[b.conceptId]} />
+  //         </ViewObject>
+  //       </li>
+  //     ))}
+  //     {/* </TransitionGroup> */}
+  //     {/* </animated.li>
+  //     ))} */}
+  //   </ul>
+  // )
 }

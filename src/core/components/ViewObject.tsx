@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { PositionType, Size, Vec2 } from '../interfaces'
 
 interface Props {
+  className?: string
   posType: PositionType
   pos: Vec2
   size: Size
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export const ViewObject = React.memo(function ViewObject({
+  className,
   posType,
   pos,
   size,
@@ -19,6 +21,8 @@ export const ViewObject = React.memo(function ViewObject({
   children,
 }: Props): JSX.Element {
   const resolvedZIndex = typeof zIndex === 'undefined' ? 'auto' : zIndex
+  /** These style causes long "Recalculate Style" when panning the camera,
+   * even if they are not changing. */
   const style: React.CSSProperties = useMemo(() => {
     switch (posType) {
       /**
@@ -84,5 +88,9 @@ export const ViewObject = React.memo(function ViewObject({
     }
   }, [posType, size.w, size.h, pos.x, pos.y, resolvedZIndex])
 
-  return <div style={style}>{children}</div>
+  return (
+    <div className={className} style={style}>
+      {children}
+    </div>
+  )
 })

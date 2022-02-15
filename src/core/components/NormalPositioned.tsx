@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { stylesheet } from 'typestyle'
 import { useSpring, animated } from '@react-spring/web'
 
 import { SelectionBox } from './SelectionBox'
@@ -12,6 +13,17 @@ interface Props {
   shouldAnimate?: boolean
   children?: React.ReactNode
 }
+
+const styles = stylesheet({
+  origin: {
+    width: 0,
+    height: 0,
+    transformOrigin: 'top left',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+})
 
 export function NormalPositioned(props: Props): JSX.Element {
   const { focus, scale, selecting, selectionBox, shouldAnimate, children } =
@@ -28,11 +40,9 @@ translate3d(${-focus.x * scale}px, ${-focus.y * scale}px, 0px) scale(${scale})`
 
   return (
     <animated.div
-      /** Act as the origin of the layer. */
+      /** Act as the environment origin for all normal positioned blocks. */
+      className={styles.origin}
       style={{
-        width: 0,
-        height: 0,
-        transformOrigin: 'top left',
         transform: shouldAnimate ? animatedStyles.transform : transform,
       }}>
       {children}
