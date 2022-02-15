@@ -70,6 +70,19 @@ export const Block = React.memo(function Block({
     rMode.current = mode
   }, [mode])
 
+  /** Reset focus on unmount or the block may go into an irrecoverable state. */
+  useEffect(
+    () => () => {
+      if (rMode.current === InteractionMode.Focusing) {
+        dispatchAction({
+          type: Action.BlockSetMode,
+          data: { id, mode: InteractionMode.Idle },
+        })
+      }
+    },
+    [id, dispatchAction]
+  )
+
   /** Advanced gesture detection. */
   const gestureModeRef = useRef<
     | 'idle'
