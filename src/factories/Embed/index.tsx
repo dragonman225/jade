@@ -150,7 +150,12 @@ function EmbedInteractive({
           type="url"
           onFocus={onInteractionStart}
           onBlur={onInteractionEnd}
-          onKeyDown={e => e.key === 'Enter' && embedLink()}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              onInteractionEnd()
+              embedLink()
+            }
+          }}
         />
         <button className={styles.LinkConfirmButton} onClick={embedLink}>
           Embed link
