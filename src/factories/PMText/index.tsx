@@ -27,7 +27,6 @@ import {
 import { useFunctionRef } from './useFunctionRef'
 import { PMTextContent } from './types'
 import { disablePasteWithMouseMiddleButton } from './ProseMirrorPlugins/disableFocusAndPasteWithMouseMiddleButton'
-import { observeInlineSelection } from './TextActionMenu/observeInlineSelection'
 import {
   handleMarkClick,
   MarkClickRule,
@@ -79,19 +78,17 @@ const PMText: React.FunctionComponent<Props> = props => {
     block?.mode === InteractionMode.Focusing
   )
 
-  /** ProseMirror. */
+  /** ProseMirror */
   const [showPlaceholder, setShowPlaceholder] = useState(false)
   const rEditorContainerEl = useRef<HTMLDivElement | null>(null)
   const rEditorView = useRef<EditorView | null>(null)
 
-  /** TextActionMenu. */
+  /** TextActionMenu */
   const {
     textActionMenuRef,
     shouldShowTextActionMenu,
-    openTextActionMenu,
     closeTextActionMenu,
     textActionMenuPos,
-    setTextActionMenuPos,
     boldActive,
     italicActive,
     strikeActive,
@@ -108,19 +105,10 @@ const PMText: React.FunctionComponent<Props> = props => {
     setLink,
     turnIntoLatex,
     updateMenuState,
+    inlineSelectionObserver,
   } = useTextActionMenu(rEditorView.current)
-  const rOpenTextActionMenu = useFunctionRef(openTextActionMenu)
-  const rCloseTextActionMenu = useFunctionRef(closeTextActionMenu)
-  useEffect(() => {
-    rOpenTextActionMenu.current = openTextActionMenu
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openTextActionMenu])
-  useEffect(() => {
-    rCloseTextActionMenu.current = closeTextActionMenu
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [closeTextActionMenu])
 
-  /** SuggestionMenu. */
+  /** SuggestionMenu */
   const suggestionMenuRef = useRef<HTMLDivElement>(null)
   const {
     models: suggestionMenuModels,
@@ -244,18 +232,7 @@ const PMText: React.FunctionComponent<Props> = props => {
         inputRulesPlugin,
         history(),
         disablePasteWithMouseMiddleButton(),
-        observeInlineSelection({
-          onSelectionCreate: e => {
-            setTextActionMenuPos({
-              top: e.selectionBoundingRect.top - 50,
-              left: e.selectionBoundingRect.left - 40,
-            })
-            rOpenTextActionMenu.current()
-          },
-          onSelectionRemove: () => {
-            rCloseTextActionMenu.current()
-          },
-        }),
+        inlineSelectionObserver.plugin,
         keywordObserver.plugin,
         handleMarkClick({
           rules: [

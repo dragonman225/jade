@@ -45,17 +45,14 @@ interface PluginOptions {
   onSelectionRemove?: () => void
 }
 
-export function observeInlineSelection({
+export interface InlineSelectionObserver {
+  plugin: Plugin
+}
+
+export function createInlineSelectionObserver({
   onSelectionCreate = noop,
   onSelectionRemove = noop,
-}: PluginOptions = {}): Plugin {
-  /**
-   * Should not store state like this. Each call to this function returns
-   * a new Plugin, which should have its own independent state.
-   */
-  // let setupComplete = false
-  // let editorView: EditorView = undefined
-
+}: PluginOptions = {}): InlineSelectionObserver {
   function mayDispatchSelectionEvent(view: EditorView) {
     if (!view) return
 
@@ -80,42 +77,67 @@ export function observeInlineSelection({
     }
   }
 
-  return new Plugin({
-    props: {
-      handleDOMEvents: {
-        mouseup: view => {
-          mayDispatchSelectionEvent(view)
-          return false
+  /** EditorView is stable across lifetime. */
+  let editorView: EditorView
+
+  function cleanUp() {
+    window.removeEventListener('mouseup', onPointerUp)
+    window.removeEventListener('touchend', onPointerUp)
+    window.removeEventListener('touchcancel', onPointerUp)
+  }
+
+  function onPointerUp() {
+    mayDispatchSelectionEvent(editorView)
+    cleanUp()
+  }
+
+  function onPointerDown(view: EditorView): boolean {
+    editorView = view
+
+    window.addEventListener('mouseup', onPointerUp)
+    window.addEventListener('touchend', onPointerUp)
+    window.addEventListener('touchcancel', onPointerUp)
+
+    return false
+  }
+
+  return {
+    plugin: new Plugin({
+      props: {
+        handleDOMEvents: {
+          mousedown: onPointerDown,
+          touchstart: onPointerDown,
+          keydown: isMac
+            ? (view, e) => {
+                if (e.metaKey && e.key === 'a')
+                  setTimeout(() => mayDispatchSelectionEvent(view))
+                return false
+              }
+            : (view, e) => {
+                if (e.ctrlKey && e.key === 'a')
+                  setTimeout(() => mayDispatchSelectionEvent(view))
+                return false
+              },
         },
-        keydown: isMac
-          ? (view, e) => {
-              if (e.metaKey && e.key === 'a')
-                setTimeout(() => mayDispatchSelectionEvent(view))
-              return false
-            }
-          : (view, e) => {
-              if (e.ctrlKey && e.key === 'a')
-                setTimeout(() => mayDispatchSelectionEvent(view))
-              return false
-            },
       },
-    },
-    view() {
-      return {
-        update(view, lastState) {
-          /**
-           * Selection changeing from non-empty to empty means it's
-           * removed.
-           */
-          if (
-            lastState &&
-            !lastState.selection.empty &&
-            view.state.selection.empty
-          ) {
-            onSelectionRemove()
-          }
-        },
-      }
-    },
-  })
+      view() {
+        return {
+          update(view, lastState) {
+            /**
+             * Selection changeing from non-empty to empty means it's
+             * removed.
+             */
+            if (
+              lastState &&
+              !lastState.selection.empty &&
+              view.state.selection.empty
+            ) {
+              onSelectionRemove()
+            }
+          },
+          destroy: cleanUp,
+        }
+      },
+    }),
+  }
 }

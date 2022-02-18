@@ -4,6 +4,10 @@ import { EditorView } from 'prosemirror-view'
 import { Selection } from 'prosemirror-state'
 
 import {
+  createInlineSelectionObserver,
+  InlineSelectionObserver,
+} from './inlineSelectionObserver'
+import {
   getActiveHighlightColorFromSelection,
   getActiveLink,
   getActiveMarksFromSelection,
@@ -91,6 +95,22 @@ export function useTextActionMenu(
     setIsOpen(false)
   }, [])
 
+  const rInlineSelectionObserver = useRef<InlineSelectionObserver>()
+  if (!rInlineSelectionObserver.current) {
+    rInlineSelectionObserver.current = createInlineSelectionObserver({
+      onSelectionCreate: e => {
+        setTextActionMenuPos({
+          top: e.selectionBoundingRect.top - 50,
+          left: e.selectionBoundingRect.left - 40,
+        })
+        openTextActionMenu()
+      },
+      onSelectionRemove: () => {
+        closeTextActionMenu()
+      },
+    })
+  }
+
   return {
     textActionMenuRef,
     shouldShowTextActionMenu: isOpen,
@@ -114,5 +134,7 @@ export function useTextActionMenu(
     setLink,
     turnIntoLatex,
     updateMenuState,
+    /** Stable across the lifetime of the component that use this hook. */
+    inlineSelectionObserver: rInlineSelectionObserver.current,
   }
 }
