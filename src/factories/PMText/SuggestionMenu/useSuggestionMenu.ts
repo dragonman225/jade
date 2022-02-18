@@ -2,12 +2,12 @@ import { useCallback, useState, useMemo, useEffect, useRef } from 'react'
 import { EditorView } from 'prosemirror-view'
 import { Fragment, Slice } from 'prosemirror-model'
 
+import { KeywordObserver, createKeywordObserver } from './keywordObserver'
 import {
   lastEditedTimeDescendingAndCanvasFirst,
   mapConceptToOption,
   pmtextOnly,
 } from './utils'
-import { KeywordObserver, createKeywordObserver } from './observeKeyword'
 import { PMTextSchema, schema } from '../ProseMirrorSchema/schema'
 import { LinkMark, linkMarkName } from '../ProseMirrorSchema/link'
 import {
