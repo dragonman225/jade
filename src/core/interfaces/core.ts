@@ -11,7 +11,16 @@ import { Box, Camera, Vec2 } from './util'
 export interface AppState {
   settings: Settings
   viewingConcept: TypedConcept<unknown>
-  expandHistory: (ConceptId | undefined)[]
+  /** View navigation module. */
+  navigation: {
+    /** Index of the current view in history. */
+    current: number
+    /**
+     * A conventional single-trail representation of history. TODO: Switch
+     * to a graph.
+     */
+    history: ConceptId[]
+  }
   camera: Camera
   /** Whether to animate camera if there's a camera change. */
   shouldAnimateCamera: boolean

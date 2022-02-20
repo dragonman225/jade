@@ -165,6 +165,8 @@ export const Status: React.FunctionComponent<Props> = props => {
               scale={state.camera.scale}
               selecting={state.selecting}
               selectedCount={state.selectedBlockIds.length}
+              viewingConcept={state.viewingConcept}
+              settings={settings}
             />
           </div>
           <div className={styles.buttons}>

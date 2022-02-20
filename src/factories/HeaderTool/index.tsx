@@ -49,8 +49,11 @@ const HeaderTool: React.FunctionComponent<Props> = props => {
     })
   }, [dispatchAction])
   const navigateForward = useCallback(() => {
-    return
-  }, [])
+    setTitleCollapsed(true)
+    dispatchAction({
+      type: Action.NavigateForward,
+    })
+  }, [dispatchAction])
 
   if (viewMode !== 'Block') {
     return <div className={styles.HeaderToolNav}>🔧 Header Tool</div>

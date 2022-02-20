@@ -31,7 +31,6 @@ import {
 import { generateGuidelinesFromRects, RectSide, snapValue } from '../utils/snap'
 import { Action, Actions, ConceptCreatePositionIntent } from './actions'
 import {
-  ConceptId,
   DatabaseInterface,
   Block,
   PositionType,
@@ -102,10 +101,10 @@ export async function loadAppState(db: DatabaseInterface): Promise<AppState> {
   return {
     settings,
     viewingConcept,
-    expandHistory: new Array(99).concat(viewingConcept.id) as (
-      | ConceptId
-      | undefined
-    )[],
+    navigation: {
+      current: 0,
+      history: [viewingConcept.id],
+    },
     camera: viewingConcept.camera,
     shouldAnimateCamera: false,
     selecting: false,
@@ -1102,7 +1101,7 @@ export function createAppStateReducer(
       }
       case Action.BlockOpenAsCanvas: {
         const { id: toConceptId, focusBlockId } = action.data
-        const { blocks, settings } = state
+        const { blocks, settings, navigation } = state
 
         if (!toConceptId) return state
 
@@ -1165,7 +1164,12 @@ export function createAppStateReducer(
           selectedBlockIds: focusBlockId && focusBlock ? [focusBlockId] : [],
           blocksRendered: false,
           relations: concept.relations,
-          expandHistory: state.expandHistory.slice(1).concat(toConceptId),
+          navigation: {
+            current: navigation.current + 1,
+            history: navigation.history
+              .slice(0, navigation.current + 1)
+              .concat(toConceptId),
+          },
         }
       }
       case Action.SelectionBoxSetStart: {
@@ -1494,11 +1498,19 @@ export function createAppStateReducer(
           settings: newSettings,
         }
       }
-      case Action.NavigateBack: {
-        const { expandHistory } = state
-        const backToConceptId = expandHistory[expandHistory.length - 2]
-        if (!backToConceptId) return state
-        const concept = await db.getConcept(backToConceptId)
+      case Action.NavigateBack:
+      case Action.NavigateForward: {
+        const { navigation } = state
+
+        const actionType = action.type
+        const toIndex =
+          actionType === Action.NavigateBack
+            ? navigation.current - 1
+            : navigation.current + 1
+
+        const toConceptId = navigation.history[toIndex]
+        if (!toConceptId) return state
+        const concept = await db.getConcept(toConceptId)
         if (!concept) return state
 
         const newSettings = {
@@ -1517,9 +1529,10 @@ export function createAppStateReducer(
           blocks: await synthesizeView(concept, db),
           blocksRendered: false,
           relations: concept.relations,
-          expandHistory: ([undefined] as (string | undefined)[]).concat(
-            expandHistory.slice(0, -1)
-          ),
+          navigation: {
+            current: toIndex,
+            history: navigation.history,
+          },
         }
       }
       case Action.BlocksRendered: {

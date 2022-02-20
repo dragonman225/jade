@@ -17,7 +17,7 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
     dispatchAction,
     database,
   } = props
-  const { expandHistory } = useAppState()
+  const { navigation } = useAppState()
 
   const rRecentEl = useRef<HTMLDivElement>(null)
 
@@ -35,11 +35,13 @@ export const RecentTool: React.FunctionComponent<Props> = props => {
           blockRectManager.getMeasuredSize(recentToolBlockId)?.width || 0
         const maxNumToShow = Math.floor(width / 100)
 
-        for (let i = expandHistory.length - 2; i >= 0; i--) {
-          const conceptId = expandHistory[i]
+        for (let i = navigation.history.length - 1; i >= 0; i--) {
+          const conceptId = navigation.history[i]
 
-          /** Ignore if the slot is unpopulated. */
-          if (!conceptId) continue
+          /** Ignore current view. */
+          if (conceptId === navigation.history[navigation.current]) {
+            continue
+          }
 
           /** Ignore repeated visits. */
           if (!historyToShow.find(id => id === conceptId)) {

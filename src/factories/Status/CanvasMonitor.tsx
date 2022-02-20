@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { stylesheet } from 'typestyle'
 
-import { Vec2 } from '../../core/interfaces'
+import { Settings, TypedConcept, Vec2 } from '../../core/interfaces'
 import theme from '../../theme'
 
 interface Props {
@@ -9,6 +9,8 @@ interface Props {
   scale: number
   selecting: boolean
   selectedCount: number
+  viewingConcept: TypedConcept<unknown>
+  settings: Settings
 }
 
 const styles = stylesheet({
@@ -48,6 +50,8 @@ export function CanvasMonitor({
   scale,
   selecting,
   selectedCount,
+  viewingConcept,
+  settings,
 }: Props): JSX.Element {
   return (
     <div className={styles.canvasMonitor}>
@@ -62,6 +66,13 @@ export function CanvasMonitor({
         <code>
           {selecting ? '✓' : '✗'} Selecting {selectedCount}
         </code>
+      </p>
+      <p>
+        <code>viewingConcept.id</code>: <code>{viewingConcept.id}</code>
+      </p>
+      <p>
+        <code>settings.viewingConceptId</code>:{' '}
+        <code>{settings.viewingConceptId}</code>
       </p>
     </div>
   )
