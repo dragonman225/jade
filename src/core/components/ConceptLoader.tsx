@@ -18,8 +18,6 @@ const styles = stylesheet({
     alignItems: 'center',
     width: '100%',
     height: '100%',
-    minWidth: 48,
-    minHeight: 48,
     $nest: {
       '& > div': {
         width: '0.3rem',

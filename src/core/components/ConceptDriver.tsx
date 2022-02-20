@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useCallback } from 'react'
+import { style } from 'typestyle'
 
 import { ConceptLoader } from './ConceptLoader'
 import { useSystem } from '../store/systemContext'
@@ -86,6 +87,16 @@ interface ConceptDriverProps {
   concept: TypedConcept<unknown> | undefined
 }
 
+const conceptLoaderWrapper = style({
+  width: '100%',
+  height: '100%',
+  minWidth: 48,
+  minHeight: 48,
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+})
+
 export const ConceptDriver = React.memo(function ConceptDriver({
   block,
   concept,
@@ -93,6 +104,8 @@ export const ConceptDriver = React.memo(function ConceptDriver({
   return concept ? (
     <ConceptDisplay block={block} concept={concept} />
   ) : (
-    <ConceptLoader />
+    <div className={conceptLoaderWrapper}>
+      <ConceptLoader />
+    </div>
   )
 })

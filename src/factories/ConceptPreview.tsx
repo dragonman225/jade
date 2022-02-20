@@ -2,6 +2,7 @@ import * as React from 'react'
 import { stylesheet } from 'typestyle'
 
 import { factoryRegistry } from './'
+import { ConceptLoader } from '../core/components/ConceptLoader'
 import { ConceptDisplayProps, ConceptId } from '../core/interfaces'
 import { useConcept } from '../core/utils/useConcept'
 
@@ -49,6 +50,6 @@ export function ConceptPreview({
       })}
     </div>
   ) : (
-    <p>Cannot get concept {conceptId}</p>
+    <ConceptLoader />
   )
 }
