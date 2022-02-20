@@ -1,5 +1,6 @@
 import { Plugin } from 'prosemirror-state'
 
+/** Pasting with the mouse's middle button is a hard-coded behavior in X11. */
 export function disablePasteWithMouseMiddleButton(): Plugin {
   let setupComplete = false
   let preventNextPaste = false
