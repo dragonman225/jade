@@ -60,6 +60,12 @@ export function handleMarkClick({
           event.preventDefault()
           return false
         },
+        /** Prevent opening link in a new tab (Chromium) or a new window
+         * (Electron) when panning. */
+        auxclick(_view, event) {
+          event.preventDefault()
+          return false
+        },
         /** Prevent dragging link when not editable. */
         dragstart(_view, event) {
           event.preventDefault()
