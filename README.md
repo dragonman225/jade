@@ -5,4 +5,5 @@
 - `npx browserslist@latest --update-db` updates caniuse-lite version in your **npm, yarn or pnpm lock file**.
   - Source: [Browsers Data Updating](https://github.com/browserslist/browserslist#browsers-data-updating)
 
+* To build, only works with Node.js 16
 * Always make sure there's only one version of each `prosemirror-*` package installed in `yarn.lock`. If there's multiple, you may get false positive type errors, or more serious, your app may not work.
