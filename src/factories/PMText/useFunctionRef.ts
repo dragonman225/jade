@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Wen-Zhi (Alexander) Wang <zxcvb22217@gmail.com>
+// Copyright (c) 2021 Alexander Wang <alexwang.maker@gmail.com>
 // SPDX-License-Identifier: MIT
 
 import { useRef } from 'react'

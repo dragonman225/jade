@@ -2,7 +2,7 @@
   "name": "jade",
   "version": "0.3.8",
   "main": "index.js",
-  "license": "MIT",
+  "private": "true",
   "scripts": {
     "postinstall": "npm run electron:rebuild-native",
     "lint": "eslint ./ --ext .js,.jsx,.ts,.tsx --fix",
