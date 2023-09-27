@@ -40,3 +40,9 @@ yarn electron:start
 ### Troubleshooting
 
 - Always make sure there's only one version of each `prosemirror-*` package installed in `yarn.lock`. If there's multiple, you may get false positive type errors, and your app may crash.
+
+## Support
+
+If you find this project useful,
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/V7V6EB0H0)
