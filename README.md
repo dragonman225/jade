@@ -14,6 +14,8 @@ Since I've moved on to a new project, [tableOS](https://tableos.substack.com/p/a
 
 **The code is neither guaranteed to run, nor will I provide direct support.** But if you have questions about how something works or are interested in the UI design, feel free to open issues, I will consider writing posts to talk about them.
 
+Lastly, Jade was inspired by [Muse](https://www.inkandswitch.com/muse/) and [Semilattice](https://www.semilattice.xyz/). I would like to extend my sincere thanks to them.
+
 ## Hacking
 
 Clone this repository on your development machine and `cd` into it.
