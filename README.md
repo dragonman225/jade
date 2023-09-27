@@ -10,7 +10,7 @@ I researched topics including but not limited to:
 
 If you want to try Jade, the easiest way is by visiting [the hosted demo](https://dragonman225.js.org/p/jade/index.html) on my website. Also you might want read the [user-facing post](https://dragonman225.js.org/jade).
 
-Since I've moved on to a new project, [tableOS](https://tableos.substack.com/p/alpha), and am **no longer developing Jade**, I decided to share the code publicly, for anyone interested to **study the technology and concepts**.
+Since I've moved on to a new project, [tableOS](https://tableos.substack.com/p/alpha), and am **no longer developing Jade**, I want to share the code publicly, for anyone interested to **study the technology and concepts**.
 
 **The code is neither guaranteed to run, nor will I provide direct support.** But if you have questions about how something works or are interested in the UI design, feel free to open issues, I will consider writing posts to talk about them.
 
